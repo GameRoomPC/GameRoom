@@ -1,4 +1,4 @@
-package sample;
+package data;
 
 import javafx.animation.*;
 import javafx.event.ActionEvent;

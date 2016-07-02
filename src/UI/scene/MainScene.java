@@ -5,17 +5,20 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import sample.GameEntry;
-import sample.Main;
+import data.GameEntry;
+import UI.Main;
 
-import static sample.Main.HEIGHT;
-import static sample.Main.WIDTH;
+import static UI.Main.HEIGHT;
+import static UI.Main.WIDTH;
 
 /**
  * Created by LM on 03/07/2016.
@@ -88,10 +91,15 @@ public class MainScene extends GameRoomScene {
         });
         sizeSlider.setValue(0.4);
 
-        sizeSlider.setPrefWidth(Main.WIDTH/4);
-        sizeSlider.setMaxWidth(Main.WIDTH/4);
+        sizeSlider.setPrefWidth(Main.WIDTH/8);
+        sizeSlider.setMaxWidth(Main.WIDTH/8);
+        sizeSlider.setPrefHeight(Main.WIDTH/160);
+        sizeSlider.setMaxHeight(Main.WIDTH/160);
 
-        Image settingsImage = new Image("res/ui/settingsButton.png",WIDTH/30,WIDTH/30,true,true);
+        /*sizeSlider.setScaleX(0.7);
+        sizeSlider.setScaleY(0.7);*/
+
+        Image settingsImage = new Image("res/ui/settingsButton.png",WIDTH/40,WIDTH/40,true,true);
         ImageView settingsButton = new ImageView(settingsImage);
         settingsButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
@@ -102,13 +110,34 @@ public class MainScene extends GameRoomScene {
                 }
             }
         });
+        Main.addEffectsToButton(settingsButton);
+        /*settingsButton.setScaleX(0.7);
+        settingsButton.setScaleY(0.7);*/
+
+        Image addImage = new Image("res/ui/addButton.png",WIDTH/45,WIDTH/45,true,true);
+        ImageView addButton = new ImageView(addImage);
+
+        ContextMenu addMenu = new ContextMenu();
+        MenuItem addExeItem = new MenuItem("Add .exe");
+        MenuItem addFolderItem = new MenuItem("Add folder of symbolic link");
+        addMenu.getItems().addAll(addExeItem, addFolderItem);
+        addButton.setOnMousePressed(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if(event.isPrimaryButtonDown()){
+                    addMenu.show(addButton,addButton.getX(),addButton.getY()+addButton.getFitHeight());
+                }
+            }
+        });
+        Main.addEffectsToButton(addButton);
 
         HBox hbox = new HBox();
-        hbox.setPadding(new Insets(15, 12, 15, 12));
-        hbox.setSpacing(10);
-        hbox.getChildren().add(settingsButton);
-        hbox.getChildren().add(sizeSlider);
-        HBox.setMargin(sizeSlider, new Insets(15, 12, 15, 12));
+        hbox.setPadding(new Insets(15, 12, 15, 10));
+        hbox.setSpacing(15);
+        hbox.getChildren().addAll(addButton,settingsButton,sizeSlider);
+        hbox.setAlignment(Pos.CENTER_LEFT);
+
+        //HBox.setMargin(sizeSlider, new Insets(15, 12, 15, 12));
 
         wrappingPane.setTop(hbox);
     }

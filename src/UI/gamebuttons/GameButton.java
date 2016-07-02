@@ -1,5 +1,6 @@
 package UI.gamebuttons;
 
+import UI.Main;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -16,7 +17,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.effect.Bloom;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.GaussianBlur;
@@ -29,13 +29,12 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
-import sample.GameEntry;
-import sample.Main;
+import data.GameEntry;
 
+import static UI.Main.FADE_IN_OUT_TIME;
+import static UI.Main.addEffectsToButton;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
-import static sample.Main.FADE_IN_OUT_TIME;
-import static sample.Main.addEffectsToButton;
 
 /**
  * Created by LM on 02/07/2016.

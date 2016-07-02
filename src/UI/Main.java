@@ -1,4 +1,4 @@
-package sample;
+package UI;
 
 import UI.gamebuttons.GameButton;
 import UI.scene.GameRoomScene;
