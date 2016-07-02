@@ -1,6 +1,9 @@
 package sample;
 
 import UI.gamebuttons.GameButton;
+import UI.scene.GameRoomScene;
+import UI.scene.MainScene;
+import UI.scene.SettingsScene;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -41,11 +44,6 @@ public class Main extends Application {
     public static int WIDTH;
     public static int HEIGHT;
 
-    public final static double MAX_SCALE_FACTOR = 0.9;
-    public final static double MIN_SCALE_FACTOR = 0.1;
-
-    public final static double COVER_HEIGHT_WIDTH_RATIO = 1.48;
-
     public final static double BUTTONS_SCALE_EFFECT_FACTOR = 1.05;
     public final static double BUTTONS_BLOOM_EFFECT_RADIUS = 0;
     public final static double BUTTONS_BRIGHTNESS_EFFECT_FACTOR = 0.8;
@@ -55,94 +53,9 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        //primaryStage.setFullScreen(true);
-        Button btn = new Button();
-        btn.setText("Say 'Hello World'");
-        btn.setOnAction(new EventHandler<ActionEvent>() {
+        MainScene scene = new MainScene(WIDTH, HEIGHT,primaryStage);
 
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("Hello World!");
-            }
-        });
-
-        GameEntry bf4 = new GameEntry("Battlefield 4");
-        Image image = new Image("res/bf4.bmp",WIDTH/4,WIDTH/4*COVER_HEIGHT_WIDTH_RATIO,false,true);
-        bf4.setImages(new Image[]{image});
-
-        GameEntry tw3 = new GameEntry("The Witcher 3");
-        Image image2 = new Image("res/tw3.bmp",WIDTH/4,WIDTH/4*COVER_HEIGHT_WIDTH_RATIO,false,true);
-        tw3.setImages(new Image[]{image2});
-
-        GameEntry gtav = new GameEntry("GTA V");
-        Image image3 = new Image("res/gtav.bmp",WIDTH/4,WIDTH/4*COVER_HEIGHT_WIDTH_RATIO,false,true);
-        gtav.setImages(new Image[]{image3});
-
-        BorderPane root = new BorderPane();
-        Scene scene = new Scene(root, WIDTH, HEIGHT);
-        scene.getStylesheets().add("res/flatterfx.css");
-
-        TilePane tilePane = new TilePane();
-        tilePane.setHgap(30);
-        tilePane.setVgap(30);
-        tilePane.setPrefColumns(5);
-        tilePane.setPrefTileWidth(Main.WIDTH/4);
-        tilePane.setPrefTileHeight(tilePane.getPrefTileWidth()*COVER_HEIGHT_WIDTH_RATIO);
-
-        tilePane.getChildren().add(new GameButton(bf4, tilePane, scene));
-        tilePane.getChildren().add(new GameButton(tw3, tilePane, scene));
-        tilePane.getChildren().add(new GameButton(gtav, tilePane, scene));
-
-
-        Slider sizeSlider = new Slider();
-        sizeSlider.setMin(MIN_SCALE_FACTOR);
-        sizeSlider.setMax(MAX_SCALE_FACTOR);
-        sizeSlider.setBlockIncrement(0.1);
-        sizeSlider.setFocusTraversable(false);
-
-        sizeSlider.valueProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                /*for(Node node : grid.getChildren()){
-                    node.setScaleX(newValue.doubleValue());
-                    node.setScaleY(newValue.doubleValue());
-                }*/
-                tilePane.setPrefTileWidth(Main.WIDTH/4*newValue.doubleValue());
-                tilePane.setPrefTileHeight(Main.WIDTH/4*COVER_HEIGHT_WIDTH_RATIO*newValue.doubleValue());
-            }
-        });
-        sizeSlider.setValue(0.4);
-
-        sizeSlider.setPrefWidth(Main.WIDTH/4);
-        sizeSlider.setMaxWidth(Main.WIDTH/4);
-
-        HBox hbox = new HBox();
-        hbox.setPadding(new Insets(15, 12, 15, 12));
-        hbox.setSpacing(10);
-        hbox.getChildren().add(sizeSlider);
-        HBox.setMargin(sizeSlider, new Insets(15, 12, 15, 12));
-
-        root.setTop(hbox);
-        root.setCenter(tilePane);
-        BorderPane.setMargin(tilePane, new Insets(50,50,50,50));
-
-        //Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
-        //tilePane.requestFocus();
-
-        //Just for first interaction with arrows
-        /*tilePane.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                System.out.println(event.getCharacter());
-                if(event.getCode() == KeyCode.KP_UP || event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.UP || event.getCode() == KeyCode.UP){
-                    if(tilePane.getChildren().size()>0){
-                        tilePane.getChildren().get(0).fireEvent(new MouseEvent(MOUSE_ENTERED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
-                        tilePane.removeEventHandler(KeyEvent.KEY_PRESSED, this);
-                    }
-                }
-            }
-        });*/
-        primaryStage.setTitle("Hello World");
+        primaryStage.setTitle("GameRoom");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
