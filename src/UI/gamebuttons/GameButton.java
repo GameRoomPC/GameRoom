@@ -10,6 +10,9 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -29,6 +32,7 @@ import javafx.util.Duration;
 import sample.GameEntry;
 import sample.Main;
 
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static sample.Main.FADE_IN_OUT_TIME;
 import static sample.Main.addEffectsToButton;
@@ -53,7 +57,7 @@ public class GameButton extends BorderPane {
 
     private boolean inContextMenu = false;
 
-    public GameButton(GameEntry entry, TilePane parent){
+    public GameButton(GameEntry entry, TilePane parent, Scene scene){
         super();
         initCoverPane(entry, parent);
         initContextMenu(entry);
@@ -81,6 +85,34 @@ public class GameButton extends BorderPane {
                 coverView.setFitHeight(newValue.doubleValue());
                 playButton.setFitHeight(newValue.doubleValue()*RATIO_PLAYBUTTON_COVER);
                 infoButton.setFitHeight(newValue.doubleValue()*RATIO_INFOBUTTON_COVER);
+            }
+        });
+        setFocusTraversable(true);
+        focusedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if(newValue){
+                    coverPane.fireEvent(new MouseEvent(MOUSE_ENTERED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
+                    playButton.fireEvent(new MouseEvent(MOUSE_ENTERED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
+                    scene.setCursor(Cursor.NONE);
+                    scene.addEventHandler(MouseEvent.MOUSE_MOVED, new EventHandler<MouseEvent>(){
+
+                        @Override
+                        public void handle(MouseEvent event) {
+                            if(scene.getCursor().equals(Cursor.NONE)){
+                                scene.setCursor(Cursor.DEFAULT);
+                                for(Node node : getChildren()){
+                                    node.fireEvent(new MouseEvent(MOUSE_EXITED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
+                                }
+                                scene.removeEventHandler(MouseEvent.MOUSE_MOVED, this);
+                            }
+                        }
+                    });
+
+                }else{
+                    coverPane.fireEvent(new MouseEvent(MOUSE_EXITED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
+                    playButton.fireEvent(new MouseEvent(MOUSE_EXITED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
+                }
             }
         });
     }
@@ -166,7 +198,7 @@ public class GameButton extends BorderPane {
         coverPane.setOnMouseEntered(e -> {
             playButton.setVisible(true);
             infoButton.setVisible(true);
-            coverPane.requestFocus();
+            //coverPane.requestFocus();
             Timeline fadeInTimeline = new Timeline(
                     new KeyFrame(Duration.seconds(0),
                             new KeyValue(blur.radiusProperty(), blur.radiusProperty().getValue(), Interpolator.LINEAR),
