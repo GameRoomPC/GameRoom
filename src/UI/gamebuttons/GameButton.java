@@ -1,6 +1,7 @@
 package UI.gamebuttons;
 
-import UI.Main;
+import UI.scene.GameInfoScene;
+import UI.scene.GameRoomScene;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -27,12 +28,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
+import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import data.GameEntry;
 
-import static UI.Main.FADE_IN_OUT_TIME;
-import static UI.Main.addEffectsToButton;
+import static UI.Main.*;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 
@@ -47,6 +48,8 @@ public class GameButton extends BorderPane {
     private final static double RATIO_PLAYBUTTON_COVER = 2/3.0;
     private final static double RATIO_INFOBUTTON_COVER = 1/6.0;
 
+    private GameRoomScene parentScene;
+
     private StackPane coverPane;
     private Label nameLabel;
     private ContextMenu contextMenu;
@@ -54,10 +57,13 @@ public class GameButton extends BorderPane {
     private ImageView playButton;
     private ImageView infoButton;
 
+    private GameEntry entry;
     private boolean inContextMenu = false;
 
-    public GameButton(GameEntry entry, TilePane parent, Scene scene){
+    public GameButton(GameEntry entry, TilePane parent, GameRoomScene scene){
         super();
+        this.entry = entry;
+        this.parentScene = scene;
         initCoverPane(entry, parent);
         initContextMenu(entry);
         initNameText(entry);
@@ -125,16 +131,16 @@ public class GameButton extends BorderPane {
     }
     private void initContextMenu(GameEntry entry){
         contextMenu = new ContextMenu();
-        MenuItem cmItem1 = new MenuItem("Jouer");
+        MenuItem cmItem1 = new MenuItem(RESSOURCE_BUNDLE.getString("Play"));
         cmItem1.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
 
             }
         });
         contextMenu.getItems().add(cmItem1);
-        MenuItem cmItem2 = new MenuItem("Réglages");
+        MenuItem cmItem2 = new MenuItem(RESSOURCE_BUNDLE.getString("Settings"));
         contextMenu.getItems().add(cmItem2);
-        MenuItem cmItem3 = new MenuItem("A propos");
+        MenuItem cmItem3 = new MenuItem(RESSOURCE_BUNDLE.getString("About"));
         contextMenu.getItems().add(cmItem3);
         contextMenu.setOnShowing(new EventHandler<WindowEvent>() {
             @Override
@@ -154,8 +160,6 @@ public class GameButton extends BorderPane {
             public void handle(MouseEvent event) {
                 if (event.isSecondaryButtonDown()) {
                     contextMenu.show(coverPane, event.getScreenX(), event.getScreenY());
-                }else{
-                    System.out.println("Tile pressed ");
                 }
                 event.consume();
             }
@@ -168,7 +172,7 @@ public class GameButton extends BorderPane {
 
         playButton = new ImageView(playImage);
         infoButton = new ImageView(infoImage);
-        coverView = new ImageView(entry.getImage(0));
+        coverView = new ImageView(entry.getImagePath(0));
 
         coverView.setPreserveRatio(true);
         playButton.setPreserveRatio(true);
@@ -176,6 +180,12 @@ public class GameButton extends BorderPane {
 
         playButton.setVisible(false);
         infoButton.setVisible(false);
+        infoButton.setOnMousePressed(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                parentScene.fadeTransitionTo(new GameInfoScene(new StackPane(),WIDTH, HEIGHT,parentScene.getParentStage(),parentScene,entry), parentScene.getParentStage());
+            }
+        });
 
         //COVER EFFECTS
         DropShadow dropShadow = new DropShadow();
@@ -245,5 +255,9 @@ public class GameButton extends BorderPane {
         coverPane.getChildren().add(infoButton);
         StackPane.setAlignment(infoButton, Pos.BOTTOM_RIGHT);
 
+    }
+
+    public GameEntry getEntry() {
+        return entry;
     }
 }

@@ -4,6 +4,7 @@ import UI.gamebuttons.GameButton;
 import UI.scene.GameRoomScene;
 import UI.scene.MainScene;
 import UI.scene.SettingsScene;
+import data.GeneralSettings;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -36,6 +37,8 @@ import javafx.util.Duration;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
@@ -47,6 +50,8 @@ public class Main extends Application {
     public final static double BUTTONS_SCALE_EFFECT_FACTOR = 1.05;
     public final static double BUTTONS_BLOOM_EFFECT_RADIUS = 0;
     public final static double BUTTONS_BRIGHTNESS_EFFECT_FACTOR = 0.8;
+    public static ResourceBundle RESSOURCE_BUNDLE;
+    public static final GeneralSettings GENERAL_SETTINGS = new GeneralSettings();
 
     //transition time in seconds
     public final static double FADE_IN_OUT_TIME = 0.1;
@@ -65,6 +70,7 @@ public class Main extends Application {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         WIDTH = (int) screenSize.getWidth();
         HEIGHT = (int) screenSize.getHeight();
+        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", Locale.forLanguageTag(GENERAL_SETTINGS.getLocale()));
         launch(args);
     }
     public static void addEffectsToButton(ImageView button){

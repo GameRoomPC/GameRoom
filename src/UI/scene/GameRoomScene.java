@@ -24,6 +24,7 @@ public abstract class GameRoomScene extends Scene {
         super(stackPane, width, height);
         this.rootStackPane = stackPane;
         this.parentStage = parentStage;
+        getStylesheets().add("res/flatterfx.css");
         initAndAddWrappingPaneToRoot();
     }
     public StackPane getRootStackPane(){

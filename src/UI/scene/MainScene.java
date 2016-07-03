@@ -3,6 +3,7 @@ package UI.scene;
 import UI.gamebuttons.GameButton;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -13,11 +14,15 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import data.GameEntry;
 import UI.Main;
 
+import java.io.File;
+
 import static UI.Main.HEIGHT;
+import static UI.Main.RESSOURCE_BUNDLE;
 import static UI.Main.WIDTH;
 
 /**
@@ -34,14 +39,8 @@ public class MainScene extends GameRoomScene {
     TilePane tilePane = new TilePane();
     public MainScene(int width, int height, Stage parentStage) {
         super(new StackPane(), width, height, parentStage);
-        getStylesheets().add("res/flatterfx.css");
-        tilePane.setHgap(30);
-        tilePane.setVgap(30);
-        tilePane.setPrefColumns(5);
-        tilePane.setPrefTileWidth(WIDTH/4);
-        tilePane.setPrefTileHeight(tilePane.getPrefTileWidth()*COVER_HEIGHT_WIDTH_RATIO);
-        BorderPane.setMargin(tilePane, new Insets(50,50,50,50));
-        initTestValues();
+
+        initCenter();
         initTop();
     }
 
@@ -56,18 +55,25 @@ public class MainScene extends GameRoomScene {
         getRootStackPane().getChildren().add(wrappingPane);
     }
 
-    private void initTestValues(){
+    private void initCenter(){
+        tilePane.setHgap(30);
+        tilePane.setVgap(30);
+        tilePane.setPrefColumns(5);
+        tilePane.setPrefTileWidth(WIDTH/4);
+        tilePane.setPrefTileHeight(tilePane.getPrefTileWidth()*COVER_HEIGHT_WIDTH_RATIO);
+        BorderPane.setMargin(tilePane, new Insets(50,50,50,50));
+
         GameEntry bf4 = new GameEntry("Battlefield 4");
-        Image image = new Image("res/bf4.bmp", WIDTH/4,WIDTH/4*COVER_HEIGHT_WIDTH_RATIO,false,true);
-        bf4.setImages(new Image[]{image});
+        bf4.setImagesPaths(new String[]{"res/bf4.bmp"});
+        Image image = new Image(bf4.getImagePath(0), WIDTH/4,WIDTH/4*COVER_HEIGHT_WIDTH_RATIO,false,true);
 
         GameEntry tw3 = new GameEntry("The Witcher 3");
-        Image image2 = new Image("res/tw3.bmp",WIDTH/4,WIDTH/4*COVER_HEIGHT_WIDTH_RATIO,false,true);
-        tw3.setImages(new Image[]{image2});
+        tw3.setImagesPaths(new String[]{"res/tw3.bmp"});
+        Image image2 = new Image(tw3.getImagePath(0),WIDTH/4,WIDTH/4*COVER_HEIGHT_WIDTH_RATIO,false,true);
 
         GameEntry gtav = new GameEntry("GTA V");
-        Image image3 = new Image("res/gtav.bmp",WIDTH/4,WIDTH/4*COVER_HEIGHT_WIDTH_RATIO,false,true);
-        gtav.setImages(new Image[]{image3});
+        gtav.setImagesPaths(new String[]{"res/gtav.bmp"});
+        Image image3 = new Image(gtav.getImagePath(0),WIDTH/4,WIDTH/4*COVER_HEIGHT_WIDTH_RATIO,false,true);
 
         tilePane.getChildren().add(new GameButton(bf4, tilePane, this));
         tilePane.getChildren().add(new GameButton(tw3, tilePane, this));
@@ -89,7 +95,13 @@ public class MainScene extends GameRoomScene {
                 tilePane.setPrefTileHeight(Main.WIDTH/4*COVER_HEIGHT_WIDTH_RATIO*newValue.doubleValue());
             }
         });
-        sizeSlider.setValue(0.4);
+        sizeSlider.setOnMouseReleased(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                Main.GENERAL_SETTINGS.setTileZoom(sizeSlider.getValue());
+            }
+        });
+        sizeSlider.setValue(Main.GENERAL_SETTINGS.getTileZoom());
 
         sizeSlider.setPrefWidth(Main.WIDTH/8);
         sizeSlider.setMaxWidth(Main.WIDTH/8);
@@ -105,7 +117,7 @@ public class MainScene extends GameRoomScene {
             @Override
             public void handle(MouseEvent event) {
                 if(event.isPrimaryButtonDown()){
-                    SettingsScene settingsScene = new SettingsScene(new StackPane(), WIDTH, HEIGHT,getParentStage());
+                    SettingsScene settingsScene = new SettingsScene(new StackPane(), WIDTH, HEIGHT,getParentStage(), MainScene.this);
                     fadeTransitionTo(settingsScene,getParentStage());
                 }
             }
@@ -118,8 +130,19 @@ public class MainScene extends GameRoomScene {
         ImageView addButton = new ImageView(addImage);
 
         ContextMenu addMenu = new ContextMenu();
-        MenuItem addExeItem = new MenuItem("Add .exe");
-        MenuItem addFolderItem = new MenuItem("Add folder of symbolic link");
+        MenuItem addExeItem = new MenuItem(RESSOURCE_BUNDLE.getString("Add_exe"));
+        MenuItem addFolderItem = new MenuItem(RESSOURCE_BUNDLE.getString("Add_folder_ink"));
+        addFolderItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                DirectoryChooser directoryChooser = new DirectoryChooser();
+                directoryChooser.setTitle(RESSOURCE_BUNDLE.getString("Select_folder_ink"));
+                File selectedFile = directoryChooser.showDialog(getParentStage());
+                if(selectedFile!=null){
+                    //TODO IMPLEMENT CONFIGURATION HERE
+                }
+            }
+        });
         addMenu.getItems().addAll(addExeItem, addFolderItem);
         addButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override

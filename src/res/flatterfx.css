@@ -7,7 +7,7 @@
 
     /*default font */
     -fx-font-family: 'Helvetica Neue';
-    -fx-font-size: 20.0px;
+    -fx-font-size: 25.0px;
     -fx-font-weight: 600;
     -fx-disabled-opacity: 0.6;
 
@@ -172,7 +172,7 @@
  *                                                                             *
  ******************************************************************************/
 .combo-box-base {
-    -fx-skin: "com.guigarage.flatterfx.skin.FlatterComboBoxSkin";
+    /*-fx-skin: "com.guigarage.flatterfx.skin.FlatterComboBoxSkin";*/
 }
 
 .popup-overlay {
