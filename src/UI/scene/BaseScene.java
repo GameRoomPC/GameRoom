@@ -15,12 +15,12 @@ import javafx.util.Duration;
 /**
  * Created by LM on 03/07/2016.
  */
-public abstract class GameRoomScene extends Scene {
+public abstract class BaseScene extends Scene {
     public final static double FADE_IN_OUT_TIME = 0.1;
     private StackPane rootStackPane;
     private Stage parentStage;
 
-    public GameRoomScene(StackPane stackPane, int width, int height, Stage parentStage){
+    public BaseScene(StackPane stackPane, int width, int height, Stage parentStage){
         super(stackPane, width, height);
         this.rootStackPane = stackPane;
         this.parentStage = parentStage;
@@ -31,7 +31,7 @@ public abstract class GameRoomScene extends Scene {
         return rootStackPane;
     }
 
-    public void fadeTransitionTo(GameRoomScene scene2, Stage stage){
+    public void fadeTransitionTo(BaseScene scene2, Stage stage){
         Timeline fadeOutTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(getWrappingPane().opacityProperty(), getWrappingPane().opacityProperty().getValue(), Interpolator.LINEAR)),
