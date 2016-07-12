@@ -78,6 +78,12 @@
 .toggle-button:focused,
 .button:focused,
 .button:default:focused {
+    /*-fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
+    -fx-border-width: 2px;*/
+}
+.toggle-button:hover,
+.button:hover,
+.button:default:hover {
        -fx-background-color: derive(-flatter-red, 50.0%);
 }
 
@@ -173,6 +179,17 @@
  ******************************************************************************/
 .combo-box-base {
     /*-fx-skin: "com.guigarage.flatterfx.skin.FlatterComboBoxSkin";*/
+}
+.title-bar:default:focused{
+    -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
+    -fx-border-width: 2px;
+}
+.title-bar:default:selected{
+    -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
+    -fx-border-width: 2px;
+}
+.title-bar:default:hover{
+    -fx-background-color: derive(-flatter-red, 50.0%);
 }
 
 .popup-overlay {
@@ -403,6 +420,162 @@
    -fx-background-color: rgb(0.0, 183.0, 221.0);
    -fx-scale-x: 0.05em;
    -fx-scale-y: 0.05em;
+}
+/***************************************/
+/*   SCROLLPANE
+/***************************************/
+
+.scroll-pane > .viewport {
+   -fx-background-color: transparent;
+}
+.scroll-pane {
+   -fx-background-color: transparent;
+}
+/***************************************/
+/*   DIALOGPANE
+/***************************************/
+
+.dialog > .dialog-pane {
+    -fx-background-color: -dark;
+    -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
+    -fx-border-width: 2px;
+}
+
+.dialog > .dialog-pane > .button-bar {
+    -fx-background-color: -dark;
+}
+
+.dialog > .dialog-pane > .content.label {
+    -fx-background-color: -dark;
+}
+
+.dialog:header > .dialog-pane .header-panel {
+    -fx-background-color: -dark;
+
+}
+
+.alert.confirmation.dialog-pane {
+   /* -fx-graphic: url("lock24.png");*/
+    -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
+    -fx-border-width: 2px;
+}
+.alert.warning.dialog-pane {
+    /*-fx-graphic: url("lock24.png");*/
+    -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
+    -fx-border-width: 2px;
+}
+/*******************************************************************************
+ *                                                                             *
+ * Command Link                                                                *
+ *                                                                             *
+ ******************************************************************************/
+ /* For the text displayed above command-link buttons (but below the header) */
+.command-links-dialog.dialog-pane{
+    -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
+    -fx-border-width: 2px;
+    -fx-font-family: 'Helvetica Neue';
+    -fx-font-size: 22.0px;
+    -fx-font-weight: 600;
+    -fx-disabled-opacity: 0.6;
+}
+
+.command-links-dialog.dialog-pane > .container > .command-link-message {
+    -fx-font-size: 1.25em;
+}
+
+.command-links-dialog.dialog-pane > .container > .command-link-button {
+    -fx-padding: 10 10 10 10;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
+    -fx-border-width: 2px;
+}
+
+.command-links-dialog.dialog-pane > .container > .command-link-button:hover {
+    -fx-border-color: -transparent;
+    -fx-background-color: derive(-flatter-red, 50.0%);
+
+}
+
+.command-links-dialog.dialog-pane > .container > .command-link-button:armed  {
+    -fx-background-color: derive(-flatter-red, -20.0%);
+}
+
+.command-links-dialog.dialog-pane > .container > .command-link-button:default {
+    -fx-border-color: -dark;
+    -fx-background-color: -dark;
+}
+
+.command-links-dialog.dialog-pane > .container > .command-link-button:default:hover {
+    -fx-border-color: -transparent;
+    -fx-background-color: derive(-flatter-red, 50.0%);
+}
+
+.command-links-dialog.dialog-pane > .container > .command-link-button:default:armed {
+    -fx-background-color: derive(-flatter-red, -20.0%);
+}
+
+.command-links-dialog.dialog-pane > .container > .command-link-button > .container > .line-1 {
+    -fx-font-size: 1.25em;
+    -fx-padding: -5 0 0 5;
+}
+
+.command-links-dialog.dialog-pane > .container > .command-link-button > .container > .line-2 {
+    -fx-font-size: 1em;
+    -fx-padding: 0 0 0 5;
+}
+
+.command-links-dialog.dialog-pane > .container > .command-link-button > .container > .graphic-container {
+    -fx-padding: 10 10 0 0
+}
+/*
+.progress-indicator:indeterminate .segment {
+    -fx-shape:"M 71.079865,1.4240656 A 12.821762,12.821762 0 0 1 58.258103,14.245828 l -10e-7,-12.8217624 z";
+    -fx-scale-shape: false;
+}
+/*******************************************************************************
+ *                                                                             *
+ * Custom Choice dialogs                                                            *
+ *                                                                             *
+ ******************************************************************************/
+ /* For the text displayed above command-link buttons (but below the header) */
+.custom-choice-dialog.dialog-pane{
+     -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
+     -fx-border-width: 2px;
+     -fx-font-family: 'Helvetica Neue';
+     -fx-font-size: 22.0px;
+     -fx-font-weight: 600;
+     -fx-disabled-opacity: 0.6;
+ }
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:hover {
+    -fx-border-color: -dark;
+    -fx-background-color: derive(-flatter-red, 50.0%);
+
+}
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button {
+       -fx-border-color: -dark;
+       -fx-background-color: derive(-dark, 20%);
+       -fx-border-width: 2px;
+
+}
+
+
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:armed  {
+    -fx-background-color: derive(-flatter-red, -20.0%);
+}
+
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:default {
+    -fx-border-color: derive(-flatter-red, -20.0%);
+    -fx-background-color: -dark;
+}
+
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:default:hover {
+    -fx-border-color: -dark;
+    -fx-background-color: derive(-flatter-red, 50.0%);
+}
+
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:default:armed {
+    -fx-background-color: derive(-flatter-red, -20.0%);
 }
 /*
 .progress-indicator:indeterminate .segment {

@@ -1,26 +1,22 @@
 package data;
 
 import UI.Main;
-import javafx.scene.Node;
 import javafx.scene.image.Image;
 
 import java.io.*;
-import java.nio.file.CopyOption;
-import java.nio.file.Files;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Path;
 import java.util.Properties;
 import java.util.UUID;
-
-import static UI.scene.MainScene.MAX_SCALE_FACTOR;
-import static UI.scene.MainScene.MIN_SCALE_FACTOR;
 
 /**
  * Created by LM on 02/07/2016.
  */
 public class GameEntry {
-    private final static String[] DEFAULT_IMAGES_PATHS = {"res/defaultImages/cover.jpg"};
+    private final static File[] DEFAULT_IMAGES_PATHS = {new File("res/defaultImages/cover.jpg")};
     private final static int IMAGES_NUMBER = 3;
 
-    private boolean savedLocally = false;
+    private boolean savedLocaly = false;
 
     private String name = "";
     private String year = "";
@@ -28,16 +24,12 @@ public class GameEntry {
     private String editor = "";
     private String path = "";
     private UUID uuid;
-    private String[] imagesPaths = new String[IMAGES_NUMBER];
+    private File[] imagesPaths = new File[IMAGES_NUMBER];
+    private long playTime = 0; //Time in seconds
 
     public GameEntry(String name) {
         uuid = UUID.randomUUID();
         this.name = name;
-        try {
-            Main.ALL_GAMES_ENTRIES.appendEntry(this);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public GameEntry(UUID uuid) {
@@ -61,32 +53,38 @@ public class GameEntry {
         return configFile;
     }
 
-    private void saveEntry() throws IOException {
-        Properties prop = new Properties();
-        OutputStream output =  new FileOutputStream(propertyFile());
+    private void saveEntry() {
+        if (savedLocaly) {
+            Properties prop = new Properties();
+            OutputStream output = null;
+            try {
+                output = new FileOutputStream(propertyFile());
 
-        // set the properties value
-        prop.setProperty("name", name);
-        prop.setProperty("year", year);
-        prop.setProperty("description", description);
-        prop.setProperty("editor", editor);
-        prop.setProperty("path", path);
+                // set the properties value
+                prop.setProperty("name", name);
+                prop.setProperty("year", year);
+                prop.setProperty("description", description);
+                prop.setProperty("editor", editor);
+                prop.setProperty("path", path);
 
-        for (int i = 0; i < IMAGES_NUMBER; i++) {
-            if (imagesPaths[i] != null) {
-                prop.setProperty("image" + i,imagesPaths[i]);
-            } else {
-                break;
+                for (int i = 0; i < IMAGES_NUMBER; i++) {
+                    if (imagesPaths[i] != null) {
+                        prop.setProperty("image" + i, imagesPaths[i].getPath());
+                    } else {
+                        break;
+                    }
+                }
+                prop.setProperty("playTime", Long.toString(playTime));
+                // save properties to project root folder
+                prop.store(output, null);
+                output.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
-        // save properties to project root folder
-        prop.store(output, null);
-
-        output.close();
-
     }
 
-    private void loadEntry() throws IOException {
+    public void loadEntry() throws IOException {
         Properties prop = new Properties();
         InputStream input = null;
 
@@ -110,10 +108,13 @@ public class GameEntry {
         if (prop.getProperty("path") != null) {
             path = prop.getProperty("path");
         }
+        if (prop.getProperty("playTime") != null) {
+            playTime = Long.parseLong(prop.getProperty("playTime"));
+        }
 
         for (int i = 0; i < IMAGES_NUMBER; i++) {
             if (prop.getProperty("image" + i) != null) {
-                imagesPaths[i] = prop.getProperty("image" + i);
+                imagesPaths[i] = new File(prop.getProperty("image" + i));
             } else {
                 break;
             }
@@ -129,11 +130,7 @@ public class GameEntry {
 
     public void setName(String name) {
         this.name = name;
-        try {
-            saveEntry();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        saveEntry();
     }
 
     public String getYear() {
@@ -142,11 +139,7 @@ public class GameEntry {
 
     public void setYear(String year) {
         this.year = year;
-        try {
-            saveEntry();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        saveEntry();
     }
 
     public String getEditor() {
@@ -155,26 +148,35 @@ public class GameEntry {
 
     public void setEditor(String editor) {
         this.editor = editor;
-        try {
-            saveEntry();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        saveEntry();
     }
 
     public UUID getUuid() {
         return uuid;
     }
 
-    public String getImagePath(int index) {
-        if(index<imagesPaths.length){
-            String result = imagesPaths[index] ;
-            if (result == null){
+    public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth){
+        File currFile = getImagePath(index);
+        if(DEFAULT_IMAGES_PATHS.length > index && currFile.equals(DEFAULT_IMAGES_PATHS[index])){
+            return new Image(currFile.getPath(), width,height,preserveRatio,smooth);
+        }else{
+            return new Image("file:" + File.separator + File.separator + File.separator +  currFile.getAbsolutePath(), width,height,preserveRatio,smooth);
+        }
+    }
+
+    /**
+     * Should not be used to create a new imageView, use getImage instead
+     * @param index
+     * @return
+     */
+    public File getImagePath(int index) {
+        if (index < imagesPaths.length) {
+            File result = imagesPaths[index];
+            if (result == null) {
                 return DEFAULT_IMAGES_PATHS[index];
             }
             return result;
         }
-        //TODO implement basic image if requested one is missing
         return DEFAULT_IMAGES_PATHS[0];
     }
 
@@ -184,11 +186,7 @@ public class GameEntry {
 
     public void setPath(String path) {
         this.path = path;
-        try {
-            saveEntry();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        saveEntry();
     }
 
     public String getDescription() {
@@ -197,21 +195,93 @@ public class GameEntry {
 
     public void setDescription(String description) {
         this.description = description;
-        try {
-            saveEntry();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        saveEntry();
     }
 
-    public void setImagePath(int index, String imagePath) {
+    public void setImagePath(int index, File imagePath) {
         if (imagesPaths.length > index) {
             imagesPaths[index] = imagePath;
         }
-        try {
-            saveEntry();
-        } catch (IOException e) {
-            e.printStackTrace();
+        saveEntry();
+    }
+    public long getPlayTimeSeconds() {
+        return playTime;
+    }
+    public void setPlayTimeSeconds(long seconds){
+        this.playTime = seconds;
+        saveEntry();
+    }
+    public void addPlayTimeSeconds(long seconds){
+        this.playTime+=seconds;
+        saveEntry();
+    }
+    public String getPlayTimeFormatted(boolean fullFormat){
+        String result  = "";
+        long seconds=playTime, minutes=0,hours=0;
+
+        if(seconds > 60){
+            minutes = seconds /60;
+            seconds = (long)(seconds/60.0 - seconds/60)*60;
+
+            if(minutes > 60){
+                hours = minutes/60;
+                minutes = (long)(minutes/60.0 - minutes/60)*60;
+            }
+        }
+        if(fullFormat){
+            result = hours + "h" + minutes + "m" + seconds + "s";
+        }else{
+            if(hours>0){
+                result = hours + "h";
+            }else if(minutes > 0){
+                result = minutes + "m";
+            }else{
+                result = seconds + "s";
+            }
+        }
+        return result;
+
+    }
+
+    public void setSavedLocaly(boolean savedLocaly) {
+        this.savedLocaly = savedLocaly;
+        if(savedLocaly) {
+            try {
+                Main.ALL_GAMES_ENTRIES.appendEntry(this);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        saveEntry();
+    }
+
+    public void deleteFiles() {
+        File file = new File(getUuid().toString());
+        String[] entries = file.list();
+        if(entries!=null) {
+            for (String s : entries) {
+                File currentFile = new File(file.getAbsolutePath(), s);
+                currentFile.delete();
+            }
+            file.delete();
+            try {
+                Main.ALL_GAMES_ENTRIES.removeEntry(this);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
+    public String getProcessName(){
+        String name = "";
+        for(int i = path.length()-1; i>=0; i--){
+            char c = path.charAt(i);
+            if(c=='\\' ||c == '/'){
+                break;
+            }else{
+                name = c+name;
+            }
+        }
+        return name;
+    }
+
 }

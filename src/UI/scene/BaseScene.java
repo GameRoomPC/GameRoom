@@ -1,9 +1,12 @@
 package UI.scene;
 
+import UI.Main;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
@@ -20,12 +23,26 @@ public abstract class BaseScene extends Scene {
     private StackPane rootStackPane;
     private Stage parentStage;
 
-    public BaseScene(StackPane stackPane, int width, int height, Stage parentStage){
-        super(stackPane, width, height);
+    public BaseScene(StackPane stackPane,Stage parentStage){
+        super(stackPane, Main.GENERAL_SETTINGS.getWindowWidth(), Main.GENERAL_SETTINGS.getWindowHeight());
         this.rootStackPane = stackPane;
         this.parentStage = parentStage;
         getStylesheets().add("res/flatterfx.css");
         initAndAddWrappingPaneToRoot();
+
+        widthProperty().addListener(new ChangeListener<Number>() {
+            @Override public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneWidth, Number newSceneWidth) {
+                //Main.logger.debug("New window's width : "+ newSceneWidth);
+                Main.GENERAL_SETTINGS.setWindowWidth(newSceneWidth.intValue());
+            }
+        });
+        heightProperty().addListener(new ChangeListener<Number>() {
+            @Override public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneHeight, Number newSceneHeight) {
+                //Main.logger.debug("New window's height : "+ newSceneHeight);
+                Main.GENERAL_SETTINGS.setWindowHeight(newSceneHeight.intValue());
+            }
+        });
+
     }
     public StackPane getRootStackPane(){
         return rootStackPane;

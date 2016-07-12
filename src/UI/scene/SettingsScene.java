@@ -1,6 +1,6 @@
 package UI.scene;
 
-import UI.ImageButton;
+import UI.button.ImageButton;
 import UI.Main;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -19,7 +19,7 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 import static UI.Main.RESSOURCE_BUNDLE;
-import static UI.Main.WIDTH;
+import static UI.Main.SCREEN_WIDTH;
 
 /**
  * Created by LM on 03/07/2016.
@@ -30,7 +30,7 @@ public class SettingsScene extends BaseScene {
     private BaseScene previousScene;
 
     public SettingsScene(StackPane root,int width, int height, Stage parentStage, BaseScene previousScene){
-        super(root, width, height, parentStage);
+        super(root, parentStage);
         this.previousScene=previousScene;
 
         getStylesheets().add("res/flatterfx.css");
@@ -88,7 +88,7 @@ public class SettingsScene extends BaseScene {
 
     }
     private void initTop(){
-        Image leftArrowImage = new Image("res/ui/arrowLeft.png",WIDTH/45,WIDTH/45,true,true);
+        Image leftArrowImage = new Image("res/ui/arrowLeft.png", SCREEN_WIDTH /45, SCREEN_WIDTH /45,true,true);
         ImageButton backButton = new ImageButton(leftArrowImage);
         backButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override

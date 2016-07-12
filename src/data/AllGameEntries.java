@@ -1,13 +1,9 @@
 package data;
 
-import UI.gamebuttons.GameButton;
+import UI.Main;
 
 import java.io.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -53,6 +49,7 @@ public class AllGameEntries {
             uuids.add(UUID.fromString(line));
             lineNum++;
         }
+        Main.logger.info("Loaded " + uuids.size()+" uuids.");
         return uuids;
     }
 
@@ -69,11 +66,12 @@ public class AllGameEntries {
         while ((currentLine = reader.readLine()) != null) {
             // trim newline when comparing with lineToRemove
             String trimmedLine = currentLine.trim();
-            if (trimmedLine.equals(lineToRemove)) continue;
+            if (trimmedLine.contains(lineToRemove)) continue;
             writer.write(currentLine + System.getProperty("line.separator"));
         }
         writer.close();
         reader.close();
+        inputFile.delete();
         return tempFile.renameTo(inputFile);
     }
 
