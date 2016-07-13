@@ -539,7 +539,8 @@
  *                                                                             *
  ******************************************************************************/
  /* For the text displayed above command-link buttons (but below the header) */
-.custom-choice-dialog.dialog-pane{
+.custom-choice-dialog.dialog-pane,
+.search-dialog.dialog-pane{
      -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
      -fx-border-width: 2px;
      -fx-font-family: 'Helvetica Neue';
@@ -547,12 +548,14 @@
      -fx-font-weight: 600;
      -fx-disabled-opacity: 0.6;
  }
-.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:hover {
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:hover,
+.search-result-row:hover{
     -fx-border-color: -dark;
     -fx-background-color: derive(-flatter-red, 50.0%);
 
 }
-.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button {
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button,
+.search-result-row{
        -fx-border-color: -dark;
        -fx-background-color: derive(-dark, 20%);
        -fx-border-width: 2px;
@@ -560,21 +563,26 @@
 }
 
 
-.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:armed  {
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:armed,
+.search-result-row:armed,
+.search-result-row:focused{
     -fx-background-color: derive(-flatter-red, -20.0%);
 }
 
-.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:default {
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:default,
+.search-result-row:default{
     -fx-border-color: derive(-flatter-red, -20.0%);
     -fx-background-color: -dark;
 }
 
-.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:default:hover {
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:default:hover,
+.search-result-row:hover{
     -fx-border-color: -dark;
     -fx-background-color: derive(-flatter-red, 50.0%);
 }
 
-.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:default:armed {
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button:default:armed,
+.search-result-row:armed{
     -fx-background-color: derive(-flatter-red, -20.0%);
 }
 /*

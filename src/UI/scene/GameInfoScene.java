@@ -28,6 +28,8 @@ public class GameInfoScene extends BaseScene {
     private BaseScene previousScene;
     private GameEntry entry;
 
+    private int row_count=0;
+
     public GameInfoScene(StackPane stackPane, Stage parentStage, BaseScene previousScene, GameEntry entry) {
         super(stackPane, parentStage);
         this.entry = entry;
@@ -116,11 +118,12 @@ public class GameInfoScene extends BaseScene {
         propertiesPane.getColumnConstraints().add(cc2);
 
         propertiesPane.setAlignment(Pos.TOP_LEFT);
-        addProperty(RESSOURCE_BUNDLE.getString("play_time"), entry.getPlayTimeFormatted(false), 0, propertiesPane).setStyle("-fx-font-size: 34.0px;");
-        addProperty(RESSOURCE_BUNDLE.getString("game_path"), entry.getPath(),1,propertiesPane);
-        addProperty(RESSOURCE_BUNDLE.getString("year"), entry.getYear(),2,propertiesPane);
-        addProperty(RESSOURCE_BUNDLE.getString("editor"), entry.getEditor(),3,propertiesPane);
-        addProperty(RESSOURCE_BUNDLE.getString("description"), entry.getDescription(),4,propertiesPane);
+        addProperty(RESSOURCE_BUNDLE.getString("play_time"), entry.getPlayTimeFormatted(false), propertiesPane).setStyle("-fx-font-size: 34.0px;");
+        addProperty(RESSOURCE_BUNDLE.getString("game_path"), entry.getPath(),propertiesPane);
+        addProperty(RESSOURCE_BUNDLE.getString("year"), entry.getYear(),propertiesPane);
+        addProperty(RESSOURCE_BUNDLE.getString("developer"), entry.getDeveloper(),propertiesPane);
+        addProperty(RESSOURCE_BUNDLE.getString("publisher"), entry.getPublisher(),propertiesPane);
+        addProperty(RESSOURCE_BUNDLE.getString("description"), entry.getDescription(),propertiesPane);
 
         GridPane coverAndPropertiesPane = new GridPane();
 
@@ -129,26 +132,27 @@ public class GameInfoScene extends BaseScene {
 
         InfoGameButton button = new InfoGameButton(entry, this, wrappingPane);
         coverAndPropertiesPane.add(button,0,0);
-        coverAndPropertiesPane.add(propertiesPane,1,0);
         coverAndPropertiesPane.setPadding(new Insets(50* SCREEN_HEIGHT /1080,50* SCREEN_WIDTH /1920,20* SCREEN_HEIGHT /1080,50* SCREEN_WIDTH /1920));
 
-        centerPane.setContent(coverAndPropertiesPane);
-        wrappingPane.setCenter(centerPane);
+        centerPane.setContent(propertiesPane);
+        coverAndPropertiesPane.add(centerPane,1,0);
+
+        wrappingPane.setCenter(coverAndPropertiesPane);
 
     }
-    private Label addProperty(String title, String value, int row, GridPane contentPane){
+    private Label addProperty(String title, String value, GridPane contentPane){
         Label titleLabel = new Label(title+" :");
         titleLabel.setAlignment(Pos.TOP_LEFT);
         titleLabel.setStyle("-fx-font-weight: lighter;");
-        contentPane.add(titleLabel,0,row);
+        contentPane.add(titleLabel,0,row_count);
         Label valueLabel = new Label(value);
         if(value.equals("")){
             valueLabel.setText("-");
         }
         valueLabel.setStyle("-fx-font-weight: normal;");
-        contentPane.add(valueLabel, 1,row);
+        contentPane.add(valueLabel, 1,row_count);
         valueLabel.setWrapText(true);
-        //GridPane.setHgrow(valueLabel, Priority.SOMETIMES);
+        row_count++;
         return valueLabel;
     }
 

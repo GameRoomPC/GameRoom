@@ -166,10 +166,11 @@ public class MainScene extends BaseScene {
                             fileChooser.setInitialDirectory(
                                     new File(System.getProperty("user.home"))
                             );
-                            //TODO fix internet shorcuts problem
+                            //TODO fix internet shorcuts problem (bug submitted)
                             fileChooser.getExtensionFilters().addAll(
                                     new FileChooser.ExtensionFilter("EXE", "*.exe"),
-                                    new FileChooser.ExtensionFilter("JAR", "*.jar")
+                                    new FileChooser.ExtensionFilter("JAR", "*.jar"),
+                                    new FileChooser.ExtensionFilter("URL", "*.url")
                             );
                             try {
                                 File selectedFile = fileChooser.showOpenDialog(getParentStage());
@@ -177,7 +178,7 @@ public class MainScene extends BaseScene {
                                     fadeTransitionTo(new GameEditScene(new StackPane(), (int) SCREEN_WIDTH, (int) SCREEN_HEIGHT, getParentStage(), MainScene.this, selectedFile), getParentStage());
                                 }
                             }catch (NullPointerException ne){
-                                //ne.printStackTrace();
+                                ne.printStackTrace();
                                 Alert alert = new Alert(Alert.AlertType.WARNING);
                                 alert.setHeaderText(null);
                                 alert.initStyle(StageStyle.UNDECORATED);

@@ -39,7 +39,6 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 
 import static UI.Main.*;
-import static UI.Main.FADE_IN_OUT_TIME;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
@@ -48,7 +47,9 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
  * Created by LM on 12/07/2016.
  */
 public abstract class GameButton extends BorderPane {
-    public final static double COVER_HEIGHT_WIDTH_RATIO = 1.48;
+    public final static double FADE_IN_OUT_TIME = 0.1;
+
+    public final static double COVER_HEIGHT_WIDTH_RATIO = 127.0/90.0;
 
     protected static double COVER_SCALE_EFFECT_FACTOR = 1.1;
     private final static double COVER_BLUR_EFFECT_RADIUS = 10;

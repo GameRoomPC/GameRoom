@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.awt.*;
+import java.io.File;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -26,9 +27,9 @@ public class Main extends Application {
     public static GeneralSettings GENERAL_SETTINGS;
 
     public static final Logger logger = LogManager.getLogger(Main.class);
+    public static final File CACHE_FOLDER = new File("cache");
 
     //transition time in seconds
-    public final static double FADE_IN_OUT_TIME = 0.1;
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -46,6 +47,10 @@ public class Main extends Application {
     @Override
     public void stop(){
         logger.info("Closing app, saving settings.");
+        for(int i = 0; i< CACHE_FOLDER.listFiles().length; i++){
+            File temp = CACHE_FOLDER.listFiles()[i];
+            temp.delete();
+        }
         GENERAL_SETTINGS.saveSettings();
     }
 
@@ -59,6 +64,7 @@ public class Main extends Application {
         GENERAL_SETTINGS = new GeneralSettings();
         RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", Locale.forLanguageTag(GENERAL_SETTINGS.getLocale()));
 
+        CACHE_FOLDER.mkdirs();
         launch(args);
     }
 }

@@ -4,8 +4,6 @@ import UI.Main;
 import javafx.scene.image.Image;
 
 import java.io.*;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Path;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -21,11 +19,18 @@ public class GameEntry {
     private String name = "";
     private String year = "";
     private String description = "";
-    private String editor = "";
+    private String developer = "";
+    private String publisher = "";
     private String path = "";
     private UUID uuid;
+
     private File[] imagesPaths = new File[IMAGES_NUMBER];
     private long playTime = 0; //Time in seconds
+
+
+    /*FOR IGDB PURPOSE ONLY, should not be stored*/
+    private int igdb_ID;
+    private String[] igdb_imageURL= new String[IMAGES_NUMBER];
 
     public GameEntry(String name) {
         uuid = UUID.randomUUID();
@@ -64,7 +69,8 @@ public class GameEntry {
                 prop.setProperty("name", name);
                 prop.setProperty("year", year);
                 prop.setProperty("description", description);
-                prop.setProperty("editor", editor);
+                prop.setProperty("developer", developer);
+                prop.setProperty("publisher", publisher);
                 prop.setProperty("path", path);
 
                 for (int i = 0; i < IMAGES_NUMBER; i++) {
@@ -102,8 +108,11 @@ public class GameEntry {
         if (prop.getProperty("description") != null) {
             description = prop.getProperty("description");
         }
-        if (prop.getProperty("editor") != null) {
-            editor = prop.getProperty("editor");
+        if (prop.getProperty("developer") != null) {
+            developer = prop.getProperty("developer");
+        }
+        if (prop.getProperty("publisher") != null) {
+            publisher = prop.getProperty("publisher");
         }
         if (prop.getProperty("path") != null) {
             path = prop.getProperty("path");
@@ -142,12 +151,21 @@ public class GameEntry {
         saveEntry();
     }
 
-    public String getEditor() {
-        return editor;
+    public String getDeveloper() {
+        return developer;
     }
 
-    public void setEditor(String editor) {
-        this.editor = editor;
+    public void setDeveloper(String developer) {
+        this.developer = developer;
+        saveEntry();
+    }
+
+    public String getPublisher() {
+        return publisher;
+    }
+
+    public void setPublisher(String publisher) {
+        this.publisher = publisher;
         saveEntry();
     }
 
@@ -284,4 +302,17 @@ public class GameEntry {
         return name;
     }
 
+    public int getIgdb_ID() {
+        return igdb_ID;
+    }
+
+    public void setIgdb_ID(int igdb_ID) {
+        this.igdb_ID = igdb_ID;
+    }
+    public String getIgdb_imageURL(int index){
+        return igdb_imageURL[index];
+    }
+    public void setIgdb_imageURL(int index, String url){
+        igdb_imageURL[index] = url;
+    }
 }
