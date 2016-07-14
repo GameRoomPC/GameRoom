@@ -207,7 +207,7 @@ public class GameEditScene extends BaseScene {
         contentPane.add(new Label(RESSOURCE_BUNDLE.getString("game_path") + " :"), 0, row_count);
         PathTextField gamePathField = new PathTextField(entry.getPath(),this);
         gamePathField.getTextField().setPrefColumnCount(50);
-        gamePathField.setId("game_description");
+        gamePathField.setId("game_path");
         gamePathField.getTextField().textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
