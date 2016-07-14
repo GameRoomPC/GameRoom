@@ -58,7 +58,7 @@ public class SearchDialog extends Dialog<GameEntry> {
     private JSONArray gamesDataArray;
 
     final ToggleGroup toggleGroup = new ToggleGroup();
-    private int selectedID=-1;
+    private int selectedID = -1;
 
     public SearchDialog() {
         super();
@@ -130,7 +130,7 @@ public class SearchDialog extends Dialog<GameEntry> {
                             protected String call() throws Exception {
                                 gamesDataArray = GameScrapper.getGamesData(ids);
                                 String gameList = "SearchResult : ";
-                                for (Object obj: gamesDataArray)
+                                for (Object obj : gamesDataArray)
 
                                 {
                                     JSONObject jsob = ((JSONObject) obj);
@@ -149,7 +149,7 @@ public class SearchDialog extends Dialog<GameEntry> {
                                                     FileOutputStream fos = new FileOutputStream(outputPath);
                                                     fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
                                                     fos.close();
-                                                    addNewRow(jsob,imageFile);
+                                                    addNewRow(jsob, imageFile);
                                                     return null;
                                                 }
                                             };
@@ -157,7 +157,7 @@ public class SearchDialog extends Dialog<GameEntry> {
                                             th.setDaemon(true);
                                             th.start();
                                         } else {
-                                            addNewRow(jsob,imageFile);
+                                            addNewRow(jsob, imageFile);
                                         }
                                         gameList += jsob.getString("name") + ", ";
 
@@ -165,7 +165,7 @@ public class SearchDialog extends Dialog<GameEntry> {
                                         e.printStackTrace();
                                     } catch (JSONException je) {
                                         if (je.toString().contains("cover")) {
-                                            addNewRow(jsob,null);
+                                            addNewRow(jsob, null);
                                         }
                                     }
                                 }
@@ -209,7 +209,7 @@ public class SearchDialog extends Dialog<GameEntry> {
         BorderPane.setMargin(topBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
         HBox buttonBox = new HBox();
-        buttonBox.setSpacing(30* SCREEN_WIDTH /1920);
+        buttonBox.setSpacing(30 * SCREEN_WIDTH / 1920);
 
         //ButtonType cancelButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType nextButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("next"), ButtonBar.ButtonData.OK_DONE);
@@ -219,29 +219,21 @@ public class SearchDialog extends Dialog<GameEntry> {
 
     protected void addNewRow(JSONObject jsob, File imageFile) {
         String path = null;
-        if(imageFile != null){
+        if (imageFile != null) {
             path = imageFile.getAbsolutePath();
         }
         SearchResultRow row = new SearchResultRow(jsob.getString("name")
-                , GameScrapper.getYear(jsob.getInt("id"), gamesDataArray )
+                , GameScrapper.getYear(jsob.getInt("id"), gamesDataArray)
                 , jsob.getInt("id")
                 , path);
-        row.setPrefWidth(topBox.getWidth()-topBox.getSpacing()*2);
-        Platform.runLater(new
-
-                                  Runnable() {
-                                      @Override
-                                      public void run() {
-                                          Platform.runLater(new Runnable() {
-                                              @Override
-                                              public void run() {
-                                                  statusLabel.setText("");
-                                                  resultsPane.getChildren().add(row);
-                                              }
-                                          });
-                                      }
-                                  }
-
+        row.setPrefWidth(topBox.getWidth() - topBox.getSpacing() * 2);
+        Platform.runLater(new Runnable() {
+                              @Override
+                              public void run() {
+                                  statusLabel.setText("");
+                                  resultsPane.getChildren().add(row);
+                              }
+                          }
         );
         setOnShown(new EventHandler<DialogEvent>() {
             @Override
@@ -257,20 +249,20 @@ public class SearchDialog extends Dialog<GameEntry> {
         row.radioButton.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                if(newValue){
+                if (newValue) {
                     row.setStyle("-fx-background-color: derive(-flatter-red, -20.0%);");
                     selectedID = jsob.getInt("id");
-                }else{
+                } else {
                     row.setStyle("-fx-background-color: derive(-dark, 20%);");
                 }
             }
         });
-        row.setOnMouseClicked(me->{
+        row.setOnMouseClicked(me -> {
             row.radioButton.setSelected(true);
             selectedID = jsob.getInt("id");
         });
-        setOnHiding(ne->{
-            if(selectedID != -1){
+        setOnHiding(ne -> {
+            if (selectedID != -1) {
                 JSONObject gameJson = this.gamesDataArray.getJSONObject(GameScrapper.indexOf(selectedID, this.gamesDataArray));
                 setResult(GameScrapper.getEntry(gameJson));
             }
@@ -305,7 +297,7 @@ public class SearchDialog extends Dialog<GameEntry> {
             setWidth(Double.MAX_VALUE);
             setAlignment(Pos.CENTER_RIGHT);
             radioButton = new RadioButton();
-            add(radioButton,0,0);
+            add(radioButton, 0, 0);
             GridPane.setMargin(radioButton, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
 
             coverPane.getChildren().add(new ImageView(new Image("res/defaultImages/cover.jpg", COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, false, true)));

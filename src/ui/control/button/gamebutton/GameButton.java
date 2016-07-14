@@ -1,5 +1,7 @@
 package ui.control.button.gamebutton;
 
+import javafx.application.Platform;
+import ui.Main;
 import ui.control.button.ImageButton;
 import ui.scene.BaseScene;
 import ui.scene.GameInfoScene;
@@ -11,7 +13,6 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -35,10 +36,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static ui.Main.*;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -49,6 +47,10 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
  * Created by LM on 12/07/2016.
  */
 public abstract class GameButton extends BorderPane {
+    private static Image DEFAULT_COVER_IMAGE;
+    private static Image DEFAULT_PLAY_IMAGE;
+    private static Image DEFAULT_INFO_IMAGE;
+
     public final static double FADE_IN_OUT_TIME = 0.1;
 
     public final static double COVER_HEIGHT_WIDTH_RATIO = 127.0/90.0;
@@ -152,11 +154,16 @@ public abstract class GameButton extends BorderPane {
 
     private void initCoverPane(GameEntry entry) {
         coverPane = new StackPane();
-        Image playImage = new Image("res/ui/playButton.png", getPlayButtonWidth(), getPlayButtonHeight(), true, true);
-        Image infoImage = new Image("res/ui/infoButton.png", getInfoButtonWidth(), getInfoButtonHeight(), true, true);
 
-        playButton = new ImageButton(playImage);
-        infoButton = new ImageButton(infoImage);
+        if(DEFAULT_PLAY_IMAGE == null){
+            DEFAULT_PLAY_IMAGE = new Image("res/ui/playButton.png", getPlayButtonWidth(), getPlayButtonHeight(), true, true);
+        }
+        if(DEFAULT_INFO_IMAGE == null){
+            DEFAULT_INFO_IMAGE = new Image("res/ui/infoButton.png", getInfoButtonWidth(), getInfoButtonHeight(), true, true);
+        }
+        playButton = new ImageButton(DEFAULT_PLAY_IMAGE);
+        infoButton = new ImageButton(DEFAULT_INFO_IMAGE);
+
         playTimeLabel = new Label(entry.getPlayTimeFormatted(false));
         playButton.setOpacity(0);
         infoButton.setOpacity(0);
@@ -166,7 +173,25 @@ public abstract class GameButton extends BorderPane {
         playTimeLabel.setFocusTraversable(false);
         playTimeLabel.setMouseTransparent(true);
 
-        coverView = new ImageView( entry.getImage(0, getCoverWidth(), getCoverHeight(), false, true));
+        if(DEFAULT_COVER_IMAGE == null){
+            for(int i = 256; i<1025;i*=2){
+                if(i>getCoverHeight()){
+                    DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover"+i+".jpg");
+                    break;
+                }
+            }
+            if(DEFAULT_COVER_IMAGE == null){
+                DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover.jpg");
+            }
+        }
+        coverView = new ImageView(DEFAULT_COVER_IMAGE);
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                //TODO implement real multithreading loading
+                coverView.setImage( entry.getImage(0, getCoverWidth(), getCoverHeight(), false, true));
+            }
+        });
         coverView.setPreserveRatio(true);
 
         playButton.setOnMouseClicked(mc -> {
@@ -261,8 +286,10 @@ public abstract class GameButton extends BorderPane {
             }
         });
         coverPane.setOnMouseMoved(e -> {
-            if (this.contains(new Point2D(e.getX(), e.getY()))) {
-                requestFocus();
+            if(MainScene.INPUT_MODE == MainScene.INPUT_MODE_MOUSE) {
+                if (this.contains(new Point2D(e.getX(), e.getY()))) {
+                    requestFocus();
+                }
             }
         });
         coverPane.setOnMouseEntered(e -> {

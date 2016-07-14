@@ -1,5 +1,6 @@
 package system.application;
 
+import javafx.application.Platform;
 import system.os.PowerMode;
 import ui.Main;
 
@@ -24,6 +25,8 @@ public class GeneralSettings {
     private int windowHeight =480;
     private PowerMode gamingPowerMode;
     private boolean enablePowerGamingMode = false;
+    private boolean alwaysInBackground = true;
+    private boolean noMoreTrayMessage = false;
 
     public GeneralSettings(){
         loadSettings();
@@ -80,6 +83,12 @@ public class GeneralSettings {
             if(prop.getProperty("enablePowerGamingMode")!=null){
                 enablePowerGamingMode = Boolean.valueOf(prop.getProperty("enablePowerGamingMode"));
             }
+            if(prop.getProperty("alwaysInBackground")!=null){
+                alwaysInBackground = Boolean.valueOf(prop.getProperty("alwaysInBackground"));
+            }
+            if(prop.getProperty("noMoreTrayMessage")!=null){
+                noMoreTrayMessage = Boolean.valueOf(prop.getProperty("noMoreTrayMessage"));
+            }
 
 
         } catch (IOException ex) {
@@ -96,12 +105,7 @@ public class GeneralSettings {
             Main.logger.info("Loaded settings : "
                     +"windowWidth="+windowWidth
                     +", windowHeight="+ windowHeight
-                    +", locale="+locale
-                    +", closeOnLaunch="+closeOnLaunch
-                    +", tileZoom=" +tileZoom
-                    +", fullScreen="+fullScreen
-                    +", powerGamingMode="+gamingPowerMode.getAlias()
-                    +", enablePowerGamingMode="+enablePowerGamingMode);
+                    +", locale="+locale);
         }
     }
 
@@ -150,6 +154,25 @@ public class GeneralSettings {
         saveSettings();
     }
 
+    public boolean isAlwaysInBackground() {
+        return alwaysInBackground;
+    }
+
+    public void setAlwaysInBackground(boolean alwaysInBackground) {
+        this.alwaysInBackground = alwaysInBackground;
+        Platform.setImplicitExit(!alwaysInBackground);
+        saveSettings();
+    }
+
+    public boolean isNoMoreTrayMessage() {
+        return noMoreTrayMessage;
+    }
+
+    public void setNoMoreTrayMessage(boolean noMoreTrayMessage) {
+        this.noMoreTrayMessage = noMoreTrayMessage;
+        saveSettings();
+    }
+
     public double getTileZoom() {
         return tileZoom;
     }
@@ -176,6 +199,9 @@ public class GeneralSettings {
             prop.setProperty("windowHeight", Integer.toString(windowHeight));
             prop.setProperty("gamingPowerMode", gamingPowerMode.getUuid().toString());
             prop.setProperty("enablePowerGamingMode", Boolean.toString(enablePowerGamingMode));
+            prop.setProperty("alwaysInBackground", Boolean.toString(alwaysInBackground));
+            prop.setProperty("noMoreTrayMessage", Boolean.toString(noMoreTrayMessage));
+
 
             // save properties to project root folder
             prop.store(output, null);

@@ -1,5 +1,10 @@
 package ui.scene;
 
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.input.ScrollEvent;
 import ui.control.button.ImageButton;
 import ui.dialog.ChoiceDialog;
 import ui.control.button.gamebutton.TileGameButton;
@@ -22,8 +27,17 @@ import javafx.stage.*;
 import data.game.GameEntry;
 import ui.Main;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.*;
+import java.util.List;
 
 import static ui.Main.*;
 import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
@@ -32,6 +46,7 @@ import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
  * Created by LM on 03/07/2016.
  */
 public class MainScene extends BaseScene {
+    public static boolean SCROLLING = false;
     public static int INPUT_MODE = 0;
 
     public final static int INPUT_MODE_MOUSE = 0;
@@ -47,11 +62,11 @@ public class MainScene extends BaseScene {
     public MainScene(Stage parentStage) {
         super(new StackPane(), parentStage);
         setCursor(Cursor.DEFAULT);
-        addEventHandler(MouseEvent.MOUSE_MOVED, new EventHandler<MouseEvent>(){
+        addEventHandler(MouseEvent.MOUSE_MOVED, new EventHandler<MouseEvent>() {
 
             @Override
             public void handle(MouseEvent event) {
-                if(MainScene.INPUT_MODE == MainScene.INPUT_MODE_KEYBOARD){
+                if (MainScene.INPUT_MODE == MainScene.INPUT_MODE_KEYBOARD) {
                     MainScene.INPUT_MODE = MainScene.INPUT_MODE_MOUSE;
                     setCursor(Cursor.DEFAULT);
                 }
@@ -73,14 +88,30 @@ public class MainScene extends BaseScene {
     }
 
     private void initCenter() {
-        tilePane.setHgap(50* SCREEN_WIDTH /1920);
-        tilePane.setVgap(70* SCREEN_HEIGHT /1080);
+        tilePane.setHgap(50 * SCREEN_WIDTH / 1920);
+        tilePane.setVgap(70 * SCREEN_HEIGHT / 1080);
         tilePane.setPrefTileWidth(SCREEN_WIDTH / 4);
         tilePane.setPrefTileHeight(tilePane.getPrefTileWidth() * COVER_HEIGHT_WIDTH_RATIO);
 
-        for (UUID uuid : Main.ALL_GAMES_ENTRIES.readUUIDS()) {
-            addGame(new GameEntry(uuid));
+        ArrayList<UUID> uuids = Main.ALL_GAMES_ENTRIES.readUUIDS();
+        for (UUID uuid : uuids) {
+            Runnable scanGames = new Runnable() {
+                @Override
+                public void run() {
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            addGame(new GameEntry(uuid));
+                        }
+                    });
+                }
+            };
+
+            Thread th = new Thread(scanGames);
+            th.setDaemon(true);
+            th.start();
         }
+
         ScrollPane centerPane = new ScrollPane();
         remapArrowKeys(centerPane);
         centerPane.setFitToWidth(true);
@@ -91,7 +122,7 @@ public class MainScene extends BaseScene {
         centerPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
         //StackPane.setMargin(tilePane, new Insets(50* SCREEN_HEIGHT /1080, 25* SCREEN_WIDTH /1920, 60* SCREEN_HEIGHT /1080, 25* SCREEN_WIDTH /1920));
-        tilePane.setPadding(new Insets(50* SCREEN_HEIGHT /1080, 30* SCREEN_WIDTH /1920, 0* SCREEN_HEIGHT /1080, 30* SCREEN_WIDTH /1920));
+        tilePane.setPadding(new Insets(50 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920));
 
         centerPane.setContent(tilePane);
         //centerPane.getStylesheets().add("res/flatterfx.css");
@@ -137,7 +168,7 @@ public class MainScene extends BaseScene {
             @Override
             public void handle(MouseEvent event) {
                 if (event.isPrimaryButtonDown()) {
-                    SettingsScene settingsScene = new SettingsScene(new StackPane(), (int) SCREEN_WIDTH, (int) SCREEN_HEIGHT, getParentStage(), MainScene.this);
+                    SettingsScene settingsScene = new SettingsScene(new StackPane(), getParentStage(), MainScene.this);
                     fadeTransitionTo(settingsScene, getParentStage());
                 }
             }
@@ -179,7 +210,7 @@ public class MainScene extends BaseScene {
                                 if (selectedFile != null) {
                                     fadeTransitionTo(new GameEditScene(new StackPane(), (int) SCREEN_WIDTH, (int) SCREEN_HEIGHT, getParentStage(), MainScene.this, selectedFile), getParentStage());
                                 }
-                            }catch (NullPointerException ne){
+                            } catch (NullPointerException ne) {
                                 ne.printStackTrace();
                                 Alert alert = new Alert(Alert.AlertType.WARNING);
                                 alert.setHeaderText(null);
@@ -216,12 +247,13 @@ public class MainScene extends BaseScene {
 
         wrappingPane.setTop(hbox);
     }
-    private int indexOf(GameEntry entry){
+
+    private int indexOf(GameEntry entry) {
         int index = 0;
         int i = 0;
-        for(Node n : tilePane.getChildren()){
+        for (Node n : tilePane.getChildren()) {
 
-            if(((TileGameButton)n).getEntry().getUuid().equals(entry.getUuid())){
+            if (((TileGameButton) n).getEntry().getUuid().equals(entry.getUuid())) {
                 index = i;
                 break;
             }
@@ -229,18 +261,47 @@ public class MainScene extends BaseScene {
         }
         return index;
     }
-    public void removeGame(GameEntry entry){
-        Main.logger.debug("Removed game : "+entry.getName());
+    private void refreshTrayMenu(){
+        Main.startMenu.removeAll();
+
+        for(Node tgb : tilePane.getChildren()){
+            GameEntry entry = ((TileGameButton)tgb).getEntry();
+            java.awt.MenuItem gameItem = new java.awt.MenuItem(entry.getName());
+            gameItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    entry.startGame();
+                }
+            });
+            File file = new File(entry.getPath());
+
+            // Get metadata and create an icon
+            /*try {
+                sun.awt.shell.ShellFolder sf = sun.awt.shell.ShellFolder.getShellFolder(file);
+                Icon icon = new ImageIcon(sf.getIcon(true));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }*/
+            Main.startMenu.add(gameItem);
+        }
+    }
+    public void removeGame(GameEntry entry) {
+        Main.logger.debug("Removed game : " + entry.getName());
         tilePane.getChildren().remove(indexOf(entry));
+        refreshTrayMenu();
     }
+
     public void updateGame(GameEntry entry) {
-        Main.logger.debug("Updated game : "+entry.getName());
+        Main.logger.debug("Updated game : " + entry.getName());
         tilePane.getChildren().set(indexOf(entry), new TileGameButton(entry, tilePane, this));
+        refreshTrayMenu();
     }
+
     public void addGame(GameEntry entry) {
-        Main.logger.debug("Added game : "+entry.getName());
+        Main.logger.debug("Added game : " + entry.getName());
         tilePane.getChildren().add(new TileGameButton(entry, tilePane, this));
         sortByName();
+        refreshTrayMenu();
     }
 
     public void sortByName() {
@@ -258,6 +319,7 @@ public class MainScene extends BaseScene {
         });
         tilePane.getChildren().setAll(nodes);
     }
+
     private void remapArrowKeys(ScrollPane scrollPane) {
         List<KeyEvent> mappedEvents = new ArrayList<>();
         scrollPane.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {

@@ -97,15 +97,17 @@ public class GameEditScene extends BaseScene {
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                File localCoverFile = new File(entry.getUuid().toString() + File.separator + "cover." + getExtension(chosenImageFile.getName()));
-                try {
-                    if (!localCoverFile.exists()) {
-                        localCoverFile.mkdirs();
-                        localCoverFile.createNewFile();
+                if(chosenImageFile!=null) {
+                    File localCoverFile = new File(entry.getUuid().toString() + File.separator + "cover." + getExtension(chosenImageFile.getName()));
+                    try {
+                        if (!localCoverFile.exists()) {
+                            localCoverFile.mkdirs();
+                            localCoverFile.createNewFile();
+                        }
+                        Files.copy(chosenImageFile.toPath().toAbsolutePath(), localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                    Files.copy(chosenImageFile.toPath().toAbsolutePath(), localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
                 entry.setSavedLocaly(true);
                 switch (mode) {

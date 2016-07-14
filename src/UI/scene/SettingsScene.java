@@ -25,8 +25,9 @@ import static ui.Main.RESSOURCE_BUNDLE;
 public class SettingsScene extends BaseScene {
     private BorderPane wrappingPane;
     private GridPane contentPane = new GridPane();
+    private int row_count = 0;
 
-    public SettingsScene(StackPane root,int width, int height, Stage parentStage, BaseScene previousScene){
+    public SettingsScene(StackPane root, Stage parentStage, BaseScene previousScene){
         super(root, parentStage);
         this.previousScene=previousScene;
 
@@ -73,8 +74,9 @@ public class SettingsScene extends BaseScene {
                 Main.GENERAL_SETTINGS.setLocale(localeComboBox.getValue().toLanguageTag());
             }
         });
-        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("Language")+" :"),0,0);
-        contentPane.add(localeComboBox,1,0);
+        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("Language")+" :"),0,row_count);
+        contentPane.add(localeComboBox,1,row_count);
+        row_count++;
 
 
         /*****************************CLOSE ON LAUNCH*********************************/
@@ -88,8 +90,23 @@ public class SettingsScene extends BaseScene {
                 Main.GENERAL_SETTINGS.setCloseOnLaunch(newValue);
             }
         });
-        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("Close_on_launch")+" :"),0,1);
-        contentPane.add(closeOnLaunchBox,1,1);
+        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("Close_on_launch")+" :"),0,row_count);
+        contentPane.add(closeOnLaunchBox,1,row_count);
+        row_count++;
+
+
+        CheckBox alwaysBackGroundBox = new CheckBox();
+        alwaysBackGroundBox.setSelected(Main.GENERAL_SETTINGS.isAlwaysInBackground());
+        alwaysBackGroundBox.setWrapText(true);
+        alwaysBackGroundBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                Main.GENERAL_SETTINGS.setAlwaysInBackground(newValue);
+            }
+        });
+        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("always_in_background")+" :"),0,row_count);
+        contentPane.add(alwaysBackGroundBox,1,row_count);
+        row_count++;
 
 
         /*****************************POWER MODE*********************************/
@@ -124,11 +141,13 @@ public class SettingsScene extends BaseScene {
                 powerModeComboBox.setDisable(!newValue);
             }
         });
-        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("enable_gaming_power_mode")+" :"),0,2);
-        contentPane.add(enablePowerMode,1,2);
+        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("enable_gaming_power_mode")+" :"),0,row_count);
+        contentPane.add(enablePowerMode,1,row_count);
+        row_count++;
 
-        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("gaming_power_mode")+" :"),0,3);
-        contentPane.add(powerModeComboBox,1,3);
+        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("gaming_power_mode")+" :"),0,row_count);
+        contentPane.add(powerModeComboBox,1,row_count);
+        row_count++;
     }
     private void initTop(){
         wrappingPane.setTop(createTop(RESSOURCE_BUNDLE.getString("Settings")));

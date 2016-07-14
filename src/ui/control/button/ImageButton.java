@@ -31,14 +31,17 @@ public class ImageButton extends Button {
 
     public ImageButton(Image image) {
         super();
-        view = new ImageView(image);
+        if(image!=null){
+            view = new ImageView(image);
+        }else{
+            view = new ImageView();
+        }
         view.setPreserveRatio(true);
         view.setVisible(true);
         setGraphic(view);
         setStyle("-fx-background-color: transparent;");
         addEffectsToButton(view);
     }
-
     private void addEffectsToButton(ImageView buttonView) {
         ColorAdjust buttonColorAdjust = new ColorAdjust();
         buttonColorAdjust.setBrightness(0.0);
