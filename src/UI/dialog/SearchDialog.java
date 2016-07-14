@@ -1,47 +1,37 @@
-package UI.dialog;
+package ui.dialog;
 
-import UI.Main;
-import UI.button.ImageButton;
-import UI.button.gamebutton.GameButton;
-import UI.scene.GameEditScene;
-import data.GameEntry;
-import data.GameScrapper;
-import data.SimpleImageInfo;
+import ui.Main;
+import ui.control.button.ImageButton;
+import ui.control.button.gamebutton.GameButton;
+import ui.scene.GameEditScene;
+import data.game.GameEntry;
+import data.game.GameScrapper;
+import data.http.SimpleImageInfo;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
-import javafx.util.Pair;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -50,11 +40,9 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
-import java.util.Iterator;
 
-import static UI.Main.RESSOURCE_BUNDLE;
-import static UI.Main.SCREEN_HEIGHT;
-import static UI.Main.SCREEN_WIDTH;
+import static ui.Main.SCREEN_WIDTH;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 
 /**
  * Created by LM on 12/07/2016.
@@ -255,9 +243,12 @@ public class SearchDialog extends Dialog<GameEntry> {
                                   }
 
         );
-        setOnShowing(new EventHandler<DialogEvent>() {
+        setOnShown(new EventHandler<DialogEvent>() {
             @Override
             public void handle(DialogEvent event) {
+                //TODO fix this method not being called
+
+                searchField.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
                 searchField.requestFocus();
             }
         });

@@ -1,8 +1,8 @@
-package UI;
+package ui;
 
-import UI.scene.MainScene;
-import data.AllGameEntries;
-import data.GeneralSettings;
+import ui.scene.MainScene;
+import data.game.AllGameEntries;
+import system.application.GeneralSettings;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;

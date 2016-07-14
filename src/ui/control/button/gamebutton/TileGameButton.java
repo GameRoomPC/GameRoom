@@ -1,12 +1,12 @@
-package UI.button.gamebutton;
+package ui.control.button.gamebutton;
 
-import UI.scene.BaseScene;
+import ui.scene.BaseScene;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.layout.TilePane;
-import data.GameEntry;
+import data.game.GameEntry;
 
-import static UI.Main.*;
+import static ui.Main.*;
 
 /**
  * Created by LM on 02/07/2016.

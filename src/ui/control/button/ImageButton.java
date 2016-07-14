@@ -1,4 +1,4 @@
-package UI.button;
+package ui.control.button;
 
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -129,6 +129,10 @@ public class ImageButton extends Button {
     }
     public void addMouseExitedHandler(MouseExitedHandler meh){
         mouseExitedHandlers.add(meh);
+    }
+
+    public void setImage(Image img){
+        view.setImage(img);
     }
 }
 

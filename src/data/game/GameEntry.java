@@ -1,11 +1,17 @@
-package data;
+package data.game;
 
-import UI.Main;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Task;
+import system.application.GameStarter;
+import ui.Main;
 import javafx.scene.image.Image;
 
 import java.io.*;
 import java.util.Properties;
 import java.util.UUID;
+
+import static ui.Main.logger;
 
 /**
  * Created by LM on 02/07/2016.
@@ -314,5 +320,9 @@ public class GameEntry {
     }
     public void setIgdb_imageURL(int index, String url){
         igdb_imageURL[index] = url;
+    }
+
+    public void startGame(){
+        new GameStarter(this).start();
     }
 }

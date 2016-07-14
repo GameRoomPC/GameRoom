@@ -1,13 +1,10 @@
-package UI.button.gamebutton;
+package ui.control.button.gamebutton;
 
-import UI.scene.BaseScene;
-import data.GameEntry;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import ui.scene.BaseScene;
+import data.game.GameEntry;
 import javafx.scene.layout.Pane;
 
-import static UI.Main.GENERAL_SETTINGS;
-import static UI.Main.SCREEN_HEIGHT;
+import static ui.Main.GENERAL_SETTINGS;
 
 /**
  * Created by LM on 12/07/2016.

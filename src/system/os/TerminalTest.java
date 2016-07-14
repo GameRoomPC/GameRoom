@@ -1,27 +1,28 @@
-package ui.dialog;
+package system.os;
 
+import data.game.GameEntry;
+import system.application.GeneralSettings;
+import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.layout.StackPane;
-
-/**
- * Created by LM on 05/07/2016.
- */
-import javafx.application.Application;
 import javafx.stage.Stage;
+import ui.Main;
+import ui.dialog.SearchDialog;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.stream.Stream;
 
 import static ui.Main.*;
 
 /**
- * Created by LM on 05/07/2016.
+ * Created by LM on 12/07/2016.
  */
-public class ChoiceDialogTest extends Application {
+public class TerminalTest extends Application {
 
     private static StackPane contentPane;
     private static Scene scene;
@@ -30,27 +31,27 @@ public class ChoiceDialogTest extends Application {
     public static void initScene() {
         Button launchButton = new Button("Launch");
 
+        Terminal terminal = new Terminal();
 
-        ChoiceDialog choiceDialog = new ChoiceDialog(
-                new ChoiceDialog.ChoiceDialogButton("This is a test", "More specifically this is really a test, I hope that it will work"),
-                new ChoiceDialog.ChoiceDialogButton("This is an other test", "I hope that it will work, blablablablabnalablablabalm, more specifically this is really a test."));
-        choiceDialog.setResizable(true);
+
         launchButton.setOnAction(e -> {
-                    Optional<ButtonType> result = choiceDialog.showAndWait();
-                    result.ifPresent(letter -> {
-                        System.out.println("Choice : " + letter.getText());
-                    });
+                    try {
+                        String[] result = terminal.execute("powercfg", "-list");
+                        for(String s : result){
+                            Main.logger.debug("[cmd powercfg] "+s);
+                        }
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
                 }
         );
-        choiceDialog.setHeader("This is a test header");
         contentPane.getChildren().addAll(launchButton);
-
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         contentPane = new StackPane();
-        scene = new Scene(contentPane, SCREEN_WIDTH, SCREEN_HEIGHT);
+        scene = new Scene(contentPane, 640, 480);
         initScene();
         primaryStage.setTitle("UITest");
         primaryStage.setScene(scene);
@@ -59,9 +60,16 @@ public class ChoiceDialogTest extends Application {
 
     public static void main(String[] args) {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        SCREEN_WIDTH = (int) 1920;
-        SCREEN_HEIGHT = (int) 1080;
+        SCREEN_WIDTH = (int) screenSize.getWidth();
+        SCREEN_HEIGHT = (int) screenSize.getHeight();
+        GENERAL_SETTINGS = new GeneralSettings();
         RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", Locale.forLanguageTag(GENERAL_SETTINGS.getLocale()));
+
+
+        if(!CACHE_FOLDER.exists()){
+            CACHE_FOLDER.mkdirs();
+        }
+
         launch(args);
     }
 }

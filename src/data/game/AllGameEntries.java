@@ -1,6 +1,6 @@
-package data;
+package data.game;
 
-import UI.Main;
+import ui.Main;
 
 import java.io.*;
 import java.util.ArrayList;

@@ -1,7 +1,7 @@
-package UI.scene;
+package ui.scene;
 
-import UI.button.ImageButton;
-import UI.Main;
+import system.os.PowerMode;
+import ui.Main;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -9,8 +9,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
@@ -18,8 +16,8 @@ import javafx.util.StringConverter;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-import static UI.Main.RESSOURCE_BUNDLE;
-import static UI.Main.SCREEN_WIDTH;
+import static ui.Main.GENERAL_SETTINGS;
+import static ui.Main.RESSOURCE_BUNDLE;
 
 /**
  * Created by LM on 03/07/2016.
@@ -27,7 +25,6 @@ import static UI.Main.SCREEN_WIDTH;
 public class SettingsScene extends BaseScene {
     private BorderPane wrappingPane;
     private GridPane contentPane = new GridPane();
-    private BaseScene previousScene;
 
     public SettingsScene(StackPane root,int width, int height, Stage parentStage, BaseScene previousScene){
         super(root, parentStage);
@@ -51,6 +48,9 @@ public class SettingsScene extends BaseScene {
         BorderPane.setMargin(contentPane, new Insets(50,50,50,50));
         contentPane.setHgap(30);
         contentPane.setVgap(15);
+
+
+        /*****************************LOCALE*********************************/
         //TODO Implement real modularized locale selection
         ComboBox<Locale> localeComboBox = new ComboBox<>();
         localeComboBox.getItems().addAll(Locale.FRENCH, Locale.ENGLISH);
@@ -75,8 +75,13 @@ public class SettingsScene extends BaseScene {
         });
         contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("Language")+" :"),0,0);
         contentPane.add(localeComboBox,1,0);
+
+
+        /*****************************CLOSE ON LAUNCH*********************************/
+
         CheckBox closeOnLaunchBox = new CheckBox();
         closeOnLaunchBox.setSelected(Main.GENERAL_SETTINGS.isCloseOnLaunch());
+        closeOnLaunchBox.setWrapText(true);
         closeOnLaunchBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -86,25 +91,47 @@ public class SettingsScene extends BaseScene {
         contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("Close_on_launch")+" :"),0,1);
         contentPane.add(closeOnLaunchBox,1,1);
 
-    }
-    private void initTop(){
-        Image leftArrowImage = new Image("res/ui/arrowLeft.png", SCREEN_WIDTH /45, SCREEN_WIDTH /45,true,true);
-        ImageButton backButton = new ImageButton(leftArrowImage);
-        backButton.setOnMousePressed(new EventHandler<MouseEvent>() {
+
+        /*****************************POWER MODE*********************************/
+        ComboBox<PowerMode> powerModeComboBox = new ComboBox<>();
+        powerModeComboBox.getItems().addAll(PowerMode.getPowerModesAvailable());
+        powerModeComboBox.setConverter(new StringConverter<PowerMode>() {
             @Override
-            public void handle(MouseEvent event) {
-                fadeTransitionTo(previousScene,getParentStage());
+            public String toString(PowerMode object) {
+                return object.getAlias();
+            }
+
+            @Override
+            public PowerMode fromString(String string) {
+                return null;
             }
         });
-        HBox hbox = new HBox();
-        hbox.setPadding(new Insets(15, 12, 15, 10));
-        hbox.setSpacing(15);
-        hbox.getChildren().addAll(backButton);
-        hbox.setAlignment(Pos.CENTER_LEFT);
+        powerModeComboBox.setValue(GENERAL_SETTINGS.getGamingPowerMode());
+        powerModeComboBox.setDisable(!GENERAL_SETTINGS.isEnablePowerGamingMode());
+        powerModeComboBox.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                Main.GENERAL_SETTINGS.setGamingPowerMode(powerModeComboBox.getValue());
+            }
+        });
+        CheckBox enablePowerMode = new CheckBox();
+        enablePowerMode.setSelected(Main.GENERAL_SETTINGS.isEnablePowerGamingMode());
+        enablePowerMode.setWrapText(true);
+        enablePowerMode.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                Main.GENERAL_SETTINGS.setEnablePowerGamingMode(newValue);
+                powerModeComboBox.setDisable(!newValue);
+            }
+        });
+        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("enable_gaming_power_mode")+" :"),0,2);
+        contentPane.add(enablePowerMode,1,2);
 
-        //HBox.setMargin(sizeSlider, new Insets(15, 12, 15, 12));
-
-        wrappingPane.setTop(hbox);
+        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("gaming_power_mode")+" :"),0,3);
+        contentPane.add(powerModeComboBox,1,3);
+    }
+    private void initTop(){
+        wrappingPane.setTop(createTop(RESSOURCE_BUNDLE.getString("Settings")));
     }
 
     @Override

@@ -1,11 +1,10 @@
-package UI.dialog;
+package ui.dialog;
 
-import data.GameEntry;
-import data.GeneralSettings;
+import data.game.GameEntry;
+import system.application.GeneralSettings;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -14,7 +13,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-import static UI.Main.*;
+import static ui.Main.*;
 
 /**
  * Created by LM on 12/07/2016.

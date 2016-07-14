@@ -1,8 +1,8 @@
-package UI.scene;
+package ui.scene;
 
-import UI.button.ImageButton;
-import UI.dialog.ChoiceDialog;
-import UI.button.gamebutton.TileGameButton;
+import ui.control.button.ImageButton;
+import ui.dialog.ChoiceDialog;
+import ui.control.button.gamebutton.TileGameButton;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -19,14 +19,14 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.*;
-import data.GameEntry;
-import UI.Main;
+import data.game.GameEntry;
+import ui.Main;
 
 import java.io.File;
 import java.util.*;
 
-import static UI.Main.*;
-import static UI.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
+import static ui.Main.*;
+import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
 
 /**
  * Created by LM on 03/07/2016.
@@ -153,7 +153,7 @@ public class MainScene extends BaseScene {
             @Override
             public void handle(MouseEvent event) {
                 if (event.isPrimaryButtonDown()) {
-                    UI.dialog.ChoiceDialog choiceDialog = new ChoiceDialog(
+                    ui.dialog.ChoiceDialog choiceDialog = new ChoiceDialog(
                             new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_exe"), RESSOURCE_BUNDLE.getString("add_exe_long")),
                             new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_folder_ink"), RESSOURCE_BUNDLE.getString("add_symlink_long"))
                     );

@@ -1,4 +1,4 @@
-package data;
+package data.http;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

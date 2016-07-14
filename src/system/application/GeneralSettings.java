@@ -1,13 +1,16 @@
-package data;
+package system.application;
 
-import UI.Main;
+import system.os.PowerMode;
+import ui.Main;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.UUID;
 
-import static UI.scene.MainScene.MAX_SCALE_FACTOR;
-import static UI.scene.MainScene.MIN_SCALE_FACTOR;
+import static ui.scene.MainScene.MAX_SCALE_FACTOR;
+import static ui.scene.MainScene.MIN_SCALE_FACTOR;
 
 /**
  * Created by LM on 03/07/2016.
@@ -19,6 +22,8 @@ public class GeneralSettings {
     private boolean fullScreen = false; //TODO fix fullscreen exiting after changing scene, see https://bugs.openjdk.java.net/browse/JDK-8089209
     private int windowWidth=640;
     private int windowHeight =480;
+    private PowerMode gamingPowerMode;
+    private boolean enablePowerGamingMode = false;
 
     public GeneralSettings(){
         loadSettings();
@@ -67,6 +72,14 @@ public class GeneralSettings {
             }else{
                 windowHeight = (int) Main.SCREEN_HEIGHT;
             }
+            if(prop.getProperty("gamingPowerMode")!=null){
+                gamingPowerMode = new PowerMode(UUID.fromString(prop.getProperty("gamingPowerMode")));
+            }else{
+                gamingPowerMode = PowerMode.getActivePowerMode();
+            }
+            if(prop.getProperty("enablePowerGamingMode")!=null){
+                enablePowerGamingMode = Boolean.valueOf(prop.getProperty("enablePowerGamingMode"));
+            }
 
 
         } catch (IOException ex) {
@@ -86,7 +99,9 @@ public class GeneralSettings {
                     +", locale="+locale
                     +", closeOnLaunch="+closeOnLaunch
                     +", tileZoom=" +tileZoom
-                    +", fullScreen="+fullScreen);
+                    +", fullScreen="+fullScreen
+                    +", powerGamingMode="+gamingPowerMode.getAlias()
+                    +", enablePowerGamingMode="+enablePowerGamingMode);
         }
     }
 
@@ -117,6 +132,24 @@ public class GeneralSettings {
         saveSettings();
     }
 
+    public PowerMode getGamingPowerMode() {
+        return gamingPowerMode;
+    }
+
+    public void setGamingPowerMode(PowerMode gamingPowerMode) {
+        this.gamingPowerMode = gamingPowerMode;
+        saveSettings();
+    }
+
+    public boolean isEnablePowerGamingMode() {
+        return enablePowerGamingMode;
+    }
+
+    public void setEnablePowerGamingMode(boolean enablePowerGamingMode) {
+        this.enablePowerGamingMode = enablePowerGamingMode;
+        saveSettings();
+    }
+
     public double getTileZoom() {
         return tileZoom;
     }
@@ -141,7 +174,8 @@ public class GeneralSettings {
             prop.setProperty("fullScreen", Boolean.toString(fullScreen));
             prop.setProperty("windowWidth", Integer.toString(windowWidth));
             prop.setProperty("windowHeight", Integer.toString(windowHeight));
-
+            prop.setProperty("gamingPowerMode", gamingPowerMode.getUuid().toString());
+            prop.setProperty("enablePowerGamingMode", Boolean.toString(enablePowerGamingMode));
 
             // save properties to project root folder
             prop.store(output, null);
@@ -175,4 +209,5 @@ public class GeneralSettings {
     public void setWindowHeight(int windowHeight) {
         this.windowHeight = windowHeight;
     }
+
 }

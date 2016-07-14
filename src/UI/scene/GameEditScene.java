@@ -1,12 +1,12 @@
-package UI.scene;
+package ui.scene;
 
-import UI.Main;
-import UI.button.ImageButton;
-import UI.button.gamebutton.GameButton;
-import UI.dialog.SearchDialog;
-import data.GameEntry;
-import data.GameScrapper;
-import data.HTTPDownloader;
+import ui.Main;
+import ui.control.button.ImageButton;
+import ui.control.button.gamebutton.GameButton;
+import ui.control.textfield.PathTextField;
+import ui.dialog.SearchDialog;
+import data.game.GameEntry;
+import data.io.HTTPDownloader;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -26,8 +26,6 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
@@ -35,25 +33,14 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Optional;
 
-import static UI.Main.*;
-import static data.GameScrapper.getGamesData;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static ui.Main.*;
 
 /**
  * Created by LM on 03/07/2016.
@@ -72,7 +59,6 @@ public class GameEditScene extends BaseScene {
     private ImageView coverView;
     private File chosenImageFile;
 
-    private BaseScene previousScene;
     private GameEntry entry;
     private int mode;
 
@@ -139,7 +125,6 @@ public class GameEditScene extends BaseScene {
         igdbButton.setOnAction(new EventHandler<ActionEvent>() {
                                    @Override
                                    public void handle(ActionEvent event) {
-                                       //TODO open a search dialog here
                                        SearchDialog dialog = new SearchDialog();
                                        Optional<GameEntry> result = dialog.showAndWait();
                                        result.ifPresent(val -> {
@@ -219,12 +204,18 @@ public class GameEditScene extends BaseScene {
             }
         });
 
-        createLineForProperty("game_path", entry.getPath(), new ChangeListener<String>() {
+        contentPane.add(new Label(RESSOURCE_BUNDLE.getString("game_path") + " :"), 0, row_count);
+        PathTextField gamePathField = new PathTextField(entry.getPath(),this);
+        gamePathField.getTextField().setPrefColumnCount(50);
+        gamePathField.setId("game_description");
+        gamePathField.getTextField().textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 entry.setPath(newValue);
             }
         });
+        contentPane.add(gamePathField, 1, row_count);
+        row_count++;
 
         createLineForProperty("year", entry.getYear(), new ChangeListener<String>() {
             @Override
@@ -295,8 +286,11 @@ public class GameEditScene extends BaseScene {
                 if (node.getId() != null && node.getId().equals(property)) {
                     if(node instanceof TextField) {
                         ((TextField) node).setText(newValue);
-                    }else if(node instanceof  TextArea)
+                    }else if(node instanceof  TextArea) {
                         ((TextArea) node).setText(newValue);
+                    }else if(node instanceof  PathTextField) {
+                        ((PathTextField) node).setText(newValue);
+                    }
                     break;
                 }
             }
@@ -390,9 +384,7 @@ public class GameEditScene extends BaseScene {
     }
 
     private void initTop() {
-        Image leftArrowImage = new Image("res/ui/arrowLeft.png", SCREEN_WIDTH / 45, SCREEN_WIDTH / 45, true, true);
-        ImageButton backButton = new ImageButton(leftArrowImage);
-        backButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        EventHandler<MouseEvent> backButtonHandler = new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -424,24 +416,13 @@ public class GameEditScene extends BaseScene {
                     // ... user chose CANCEL or closed the dialog
                 }
             }
-        });
-        addEscapeKeyEvent(backButton);
+        };
+        String title = RESSOURCE_BUNDLE.getString("add_a_game");
+        if(mode == MODE_EDIT){
+            title = RESSOURCE_BUNDLE.getString("edit_a_game");
+        }
 
-        Label titleLabel = new Label(RESSOURCE_BUNDLE.getString("add_a_game"));
-        titleLabel.setScaleX(2.5);
-        titleLabel.setScaleY(2.5);
-
-        StackPane topPane = new StackPane();
-
-        topPane.getChildren().addAll(backButton, titleLabel);
-        StackPane.setAlignment(backButton, Pos.TOP_LEFT);
-        StackPane.setAlignment(titleLabel, Pos.TOP_CENTER);
-        StackPane.setMargin(titleLabel, new Insets(55 * Main.SCREEN_HEIGHT / 1080
-                , 12 * Main.SCREEN_WIDTH / 1920
-                , 15 * Main.SCREEN_HEIGHT / 1080
-                , 15 * Main.SCREEN_WIDTH / 1920));
-
-        wrappingPane.setTop(topPane);
+        wrappingPane.setTop(createTop(backButtonHandler,title));
     }
 
     @Override

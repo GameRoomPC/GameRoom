@@ -1,17 +1,12 @@
-package UI.scene;
+package ui.scene;
 
-import UI.Main;
-import UI.button.gamebutton.InfoGameButton;
-import UI.button.ImageButton;
-import data.GameEntry;
+import ui.control.button.gamebutton.InfoGameButton;
+import data.game.GameEntry;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -19,15 +14,13 @@ import javafx.stage.StageStyle;
 
 import java.util.Optional;
 
-import static UI.Main.*;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static ui.Main.*;
 
 /**
  * Created by LM on 03/07/2016.
  */
 public class GameInfoScene extends BaseScene {
     private BorderPane wrappingPane;
-    private BaseScene previousScene;
     private GameEntry entry;
 
     private int row_count=0;
@@ -77,30 +70,7 @@ public class GameInfoScene extends BaseScene {
 
     }
     private void initTop(){
-        Image leftArrowImage = new Image("res/ui/arrowLeft.png", SCREEN_WIDTH /45, SCREEN_WIDTH /45,true,true);
-        ImageButton backButton = new ImageButton(leftArrowImage);
-        backButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                fadeTransitionTo(previousScene,getParentStage());
-            }
-        });
-        addEscapeKeyEvent(backButton);
-
-        Label titleLabel = new Label(entry.getName());
-        titleLabel.setScaleX(2.5);
-        titleLabel.setScaleY(2.5);
-
-        StackPane topPane = new StackPane();
-
-        topPane.getChildren().addAll(backButton,titleLabel);
-        StackPane.setAlignment(backButton, Pos.TOP_LEFT);
-        StackPane.setAlignment(titleLabel,Pos.TOP_CENTER);
-        StackPane.setMargin(titleLabel, new Insets(55* Main.SCREEN_HEIGHT /1080
-                ,12* Main.SCREEN_WIDTH /1920
-                , 15* Main.SCREEN_HEIGHT /1080
-                , 15* Main.SCREEN_WIDTH /1920));
-        wrappingPane.setTop(topPane);
+        wrappingPane.setTop(createTop(entry.getName()));
     }
     private void initCenter(){
         ScrollPane centerPane = new ScrollPane();

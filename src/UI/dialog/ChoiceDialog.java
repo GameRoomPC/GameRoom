@@ -1,6 +1,6 @@
-package UI.dialog;
+package ui.dialog;
 
-import UI.Main;
+import ui.Main;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
