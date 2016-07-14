@@ -32,6 +32,10 @@ import static UI.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
  * Created by LM on 03/07/2016.
  */
 public class MainScene extends BaseScene {
+    public static int INPUT_MODE = 0;
+
+    public final static int INPUT_MODE_MOUSE = 0;
+    public final static int INPUT_MODE_KEYBOARD = 1;
 
     public final static double MAX_SCALE_FACTOR = 0.9;
     public final static double MIN_SCALE_FACTOR = 0.1;
@@ -47,10 +51,8 @@ public class MainScene extends BaseScene {
 
             @Override
             public void handle(MouseEvent event) {
-                if(getCursor()==null){
-                    setCursor(Cursor.DEFAULT);
-                }
-                if(getCursor().equals(Cursor.NONE)){
+                if(MainScene.INPUT_MODE == MainScene.INPUT_MODE_KEYBOARD){
+                    MainScene.INPUT_MODE = MainScene.INPUT_MODE_MOUSE;
                     setCursor(Cursor.DEFAULT);
                 }
             }
@@ -269,6 +271,8 @@ public class MainScene extends BaseScene {
                     case DOWN:
                     case LEFT:
                     case RIGHT:
+                    case ENTER:
+                        INPUT_MODE = INPUT_MODE_KEYBOARD;
                         setCursor(Cursor.NONE);
                         KeyEvent newEvent = remap(event);
                         mappedEvents.add(newEvent);

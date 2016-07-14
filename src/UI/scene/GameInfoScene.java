@@ -10,6 +10,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
@@ -19,6 +20,7 @@ import javafx.stage.StageStyle;
 import java.util.Optional;
 
 import static UI.Main.*;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 
 /**
  * Created by LM on 03/07/2016.
@@ -77,12 +79,13 @@ public class GameInfoScene extends BaseScene {
     private void initTop(){
         Image leftArrowImage = new Image("res/ui/arrowLeft.png", SCREEN_WIDTH /45, SCREEN_WIDTH /45,true,true);
         ImageButton backButton = new ImageButton(leftArrowImage);
-        backButton.setOnMousePressed(new EventHandler<MouseEvent>() {
+        backButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 fadeTransitionTo(previousScene,getParentStage());
             }
         });
+        addEscapeKeyEvent(backButton);
 
         Label titleLabel = new Label(entry.getName());
         titleLabel.setScaleX(2.5);

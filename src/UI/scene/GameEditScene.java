@@ -26,6 +26,8 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
@@ -50,6 +52,8 @@ import java.util.Optional;
 
 import static UI.Main.*;
 import static data.GameScrapper.getGamesData;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 
 /**
  * Created by LM on 03/07/2016.
@@ -388,7 +392,7 @@ public class GameEditScene extends BaseScene {
     private void initTop() {
         Image leftArrowImage = new Image("res/ui/arrowLeft.png", SCREEN_WIDTH / 45, SCREEN_WIDTH / 45, true, true);
         ImageButton backButton = new ImageButton(leftArrowImage);
-        backButton.setOnMousePressed(new EventHandler<MouseEvent>() {
+        backButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -421,6 +425,7 @@ public class GameEditScene extends BaseScene {
                 }
             }
         });
+        addEscapeKeyEvent(backButton);
 
         Label titleLabel = new Label(RESSOURCE_BUNDLE.getString("add_a_game"));
         titleLabel.setScaleX(2.5);

@@ -1,6 +1,7 @@
 package UI.scene;
 
 import UI.Main;
+import UI.button.ImageButton;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -10,10 +11,15 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 
 /**
  * Created by LM on 03/07/2016.
@@ -86,5 +92,17 @@ public abstract class BaseScene extends Scene {
 
     public Stage getParentStage() {
         return parentStage;
+    }
+
+    public void addEscapeKeyEvent(ImageButton backButton){
+        addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            switch (event.getCode()){
+                case ESCAPE:
+                    backButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
+                    break;
+                default:
+                    break;
+            }
+        });
     }
 }

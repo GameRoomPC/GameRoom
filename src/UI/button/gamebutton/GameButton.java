@@ -1,8 +1,10 @@
 package UI.button.gamebutton;
 
+import UI.Main;
 import UI.button.ImageButton;
 import UI.scene.BaseScene;
 import UI.scene.GameInfoScene;
+import UI.scene.MainScene;
 import data.GameEntry;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -25,6 +27,7 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
@@ -89,6 +92,11 @@ public abstract class GameButton extends BorderPane {
         initContextMenu();
         initNameText(entry);
 
+        setOnKeyPressed(ke->{
+            if(ke.getCode() == KeyCode.ENTER){
+                playButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
+            }
+        });
         setCenter(coverPane);
         setBottom(nameLabel);
     }
@@ -225,9 +233,8 @@ public abstract class GameButton extends BorderPane {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 if (newValue) {
-                    playButton.setDisable(false);
-                    infoButton.setDisable(false);
-                    playTimeLabel.setDisable(false);
+                    playButton.setMouseTransparent(false);
+                    infoButton.setMouseTransparent(false);
 
                     Timeline fadeInTimeline = new Timeline(
                             new KeyFrame(Duration.seconds(0),
@@ -251,14 +258,13 @@ public abstract class GameButton extends BorderPane {
                     fadeInTimeline.play();
 
                     //coverPane.fireEvent(new MouseEvent(MOUSE_ENTERED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
-                    if (getCursor() != null && parentScene.getCursor().equals(Cursor.NONE)) {
+                    if (MainScene.INPUT_MODE == MainScene.INPUT_MODE_KEYBOARD) {
                         playButton.fireEvent(new MouseEvent(MOUSE_ENTERED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
                     }
                 } else {
                     if (!inContextMenu) {
-                        playButton.setDisable(true);
-                        infoButton.setDisable(true);
-                        playTimeLabel.setDisable(true);
+                        playButton.setMouseTransparent(true);
+                        infoButton.setMouseTransparent(true);
 
                         Timeline fadeOutTimeline = new Timeline(
                                 new KeyFrame(Duration.seconds(0),
@@ -267,7 +273,7 @@ public abstract class GameButton extends BorderPane {
                                         new KeyValue(playButton.opacityProperty(), playButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
                                         new KeyValue(infoButton.opacityProperty(), infoButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
                                         new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT),
-                                new KeyValue(scaleYProperty(), scaleYProperty().getValue(), Interpolator.LINEAR),
+                                        new KeyValue(scaleYProperty(), scaleYProperty().getValue(), Interpolator.LINEAR),
                                         new KeyValue(coverColorAdjust.brightnessProperty(), coverColorAdjust.brightnessProperty().getValue(), Interpolator.LINEAR)),
                                 new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
                                         new KeyValue(blur.radiusProperty(), 0, Interpolator.LINEAR),
@@ -284,10 +290,7 @@ public abstract class GameButton extends BorderPane {
                         fadeOutTimeline.play();
                     }
                     //coverPane.fireEvent(new MouseEvent(MOUSE_EXITED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
-                    if(parentScene.getCursor() == null){
-                        parentScene.setCursor(Cursor.DEFAULT);
-                    }
-                    if (parentScene.getCursor() != null && parentScene.getCursor().equals(Cursor.NONE)) {
+                    if (MainScene.INPUT_MODE == MainScene.INPUT_MODE_KEYBOARD) {
                         playButton.fireEvent(new MouseEvent(MOUSE_EXITED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
                     }
                 }
@@ -307,7 +310,7 @@ public abstract class GameButton extends BorderPane {
         coverPane.setOnMouseExited(e -> {
             if (getCursor() != null && !getCursor().equals(Cursor.NONE)) {
                 requestFocus();
-                /*Timeline fadeOutTimeline = new Timeline(
+                Timeline fadeOutTimeline = new Timeline(
                         new KeyFrame(Duration.seconds(0),
                                 new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT)),
                         new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
@@ -316,7 +319,7 @@ public abstract class GameButton extends BorderPane {
                 fadeOutTimeline.setCycleCount(1);
                 fadeOutTimeline.setAutoReverse(false);
 
-                fadeOutTimeline.play();*/
+                fadeOutTimeline.play();
             }
         });
         infoButton.addMouseEnteredHandler(e -> {
@@ -324,6 +327,9 @@ public abstract class GameButton extends BorderPane {
                 setCursor(Cursor.DEFAULT);
             }
             if (getCursor() != null && !getCursor().equals(Cursor.NONE)) {
+
+                playTimeLabel.setOpacity(0);
+                playTimeLabel.setVisible(true);
                 Timeline fadeInTimeline = new Timeline(
                         new KeyFrame(Duration.seconds(0),
                                 new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_IN)),
@@ -352,6 +358,9 @@ public abstract class GameButton extends BorderPane {
                 fadeOutTimeline.setAutoReverse(false);
 
                 fadeOutTimeline.play();
+
+                playTimeLabel.setOpacity(0);
+                playTimeLabel.setVisible(false);
             }
         });
 
