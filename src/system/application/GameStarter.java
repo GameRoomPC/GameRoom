@@ -35,7 +35,7 @@ public class GameStarter {
                 long startTime = System.currentTimeMillis();
 
                 boolean keepRunning = true;
-                logger.info("Started "+ entry.getProcessName());
+                logger.info("Monitoring "+ entry.getProcessName());
                 while (keepRunning) {
 
                     keepRunning = isProcessRunning(entry.getProcessName());
@@ -48,9 +48,8 @@ public class GameStarter {
                         e.printStackTrace();
                     }
                 }
-                if(GENERAL_SETTINGS.isEnablePowerGamingMode()) {
-                    originalPowerMode.activate();
-                }
+                if(GENERAL_SETTINGS.isEnablePowerGamingMode())
+                originalPowerMode.activate();
                 long stopTime = System.currentTimeMillis();
                 return stopTime - startTime;
             }
@@ -69,7 +68,6 @@ public class GameStarter {
 
         th.start();
     }
-
     public static boolean isProcessRunning(String process) {
         boolean found = false;
         try {
@@ -108,4 +106,5 @@ public class GameStarter {
         }
         return found;
     }
+
 }

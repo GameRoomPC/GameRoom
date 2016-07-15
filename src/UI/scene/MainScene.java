@@ -1,7 +1,10 @@
 package ui.scene;
 
+import data.game.AllGameEntries;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.ScrollEvent;
@@ -26,6 +29,7 @@ import javafx.scene.layout.*;
 import javafx.stage.*;
 import data.game.GameEntry;
 import ui.Main;
+import ui.dialog.ProgressDialog;
 
 import javax.swing.*;
 import java.awt.*;
@@ -59,6 +63,8 @@ public class MainScene extends BaseScene {
 
     private TilePane tilePane = new TilePane();
 
+    private Label statusLabel;
+
     public MainScene(Stage parentStage) {
         super(new StackPane(), parentStage);
         setCursor(Cursor.DEFAULT);
@@ -85,6 +91,8 @@ public class MainScene extends BaseScene {
     void initAndAddWrappingPaneToRoot() {
         wrappingPane = new BorderPane();
         getRootStackPane().getChildren().add(wrappingPane);
+        statusLabel = new Label();
+        getRootStackPane().getChildren().addAll(statusLabel);
     }
 
     private void initCenter() {
@@ -93,24 +101,43 @@ public class MainScene extends BaseScene {
         tilePane.setPrefTileWidth(SCREEN_WIDTH / 4);
         tilePane.setPrefTileHeight(tilePane.getPrefTileWidth() * COVER_HEIGHT_WIDTH_RATIO);
 
-        ArrayList<UUID> uuids = Main.ALL_GAMES_ENTRIES.readUUIDS();
-        for (UUID uuid : uuids) {
-            Runnable scanGames = new Runnable() {
-                @Override
-                public void run() {
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
+        /*ProgressDialog dialog = new ProgressDialog();
+        dialog.getDialogStage().setAlwaysOnTop(true);*/
+        statusLabel.setText(RESSOURCE_BUNDLE.getString("loading")+"...");
+        wrappingPane.setOpacity(0);
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        ArrayList<UUID> uuids = Main.ALL_GAMES_ENTRIES.readUUIDS();
+                        int i=0;
+                        for (UUID uuid : uuids) {
+                            statusLabel.setText(RESSOURCE_BUNDLE.getString("loading")+" "+(i+1)+"/"+uuids.size()+"...");
+                            updateProgress(i,uuids.size()-1);
                             addGame(new GameEntry(uuid));
+                            i++;
                         }
-                    });
-                }
-            };
 
-            Thread th = new Thread(scanGames);
-            th.setDaemon(true);
-            th.start();
-        }
+                    }
+                });
+                return null;
+            }
+        };
+        task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent event) {
+                //dialog.getDialogStage().close();
+                statusLabel.setText("");
+                fadeTransitionTo(MainScene.this, getParentStage());
+            }
+        });
+        //dialog.activateProgressBar(task);
+
+        Thread th = new Thread(task);
+        th.setDaemon(true);
+        th.start();
 
         ScrollPane centerPane = new ScrollPane();
         remapArrowKeys(centerPane);
@@ -261,11 +288,12 @@ public class MainScene extends BaseScene {
         }
         return index;
     }
-    private void refreshTrayMenu(){
+
+    private void refreshTrayMenu() {
         Main.startMenu.removeAll();
 
-        for(Node tgb : tilePane.getChildren()){
-            GameEntry entry = ((TileGameButton)tgb).getEntry();
+        for (Node tgb : tilePane.getChildren()) {
+            GameEntry entry = ((TileGameButton) tgb).getEntry();
             java.awt.MenuItem gameItem = new java.awt.MenuItem(entry.getName());
             gameItem.addActionListener(new ActionListener() {
                 @Override
@@ -285,15 +313,33 @@ public class MainScene extends BaseScene {
             Main.startMenu.add(gameItem);
         }
     }
+
     public void removeGame(GameEntry entry) {
         Main.logger.debug("Removed game : " + entry.getName());
         tilePane.getChildren().remove(indexOf(entry));
+
+        int indexToRemove = -1;
+        for (int i = 0; i < AllGameEntries.ENTRIES_LIST.size(); i++) {
+            if (entry.getUuid().equals(AllGameEntries.ENTRIES_LIST.get(i))) {
+                indexToRemove = i;
+                break;
+            }
+        }
+        AllGameEntries.ENTRIES_LIST.remove(indexToRemove);
         refreshTrayMenu();
     }
 
     public void updateGame(GameEntry entry) {
         Main.logger.debug("Updated game : " + entry.getName());
         tilePane.getChildren().set(indexOf(entry), new TileGameButton(entry, tilePane, this));
+
+        for (int i = 0; i < AllGameEntries.ENTRIES_LIST.size(); i++) {
+            if (entry.getUuid().equals(AllGameEntries.ENTRIES_LIST.get(i))) {
+                AllGameEntries.ENTRIES_LIST.set(i, entry);
+                break;
+            }
+        }
+        AllGameEntries.ENTRIES_LIST.add(entry);
         refreshTrayMenu();
     }
 
@@ -301,6 +347,7 @@ public class MainScene extends BaseScene {
         Main.logger.debug("Added game : " + entry.getName());
         tilePane.getChildren().add(new TileGameButton(entry, tilePane, this));
         sortByName();
+        AllGameEntries.ENTRIES_LIST.add(entry);
         refreshTrayMenu();
     }
 

@@ -11,6 +11,7 @@ import java.util.UUID;
  * Created by LM on 03/07/2016.
  */
 public class AllGameEntries {
+    public static final ArrayList<GameEntry> ENTRIES_LIST = new ArrayList<>();
 
     public void appendEntry(GameEntry entry) throws IOException {
         File file = entriesFile();

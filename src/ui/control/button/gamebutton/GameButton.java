@@ -1,6 +1,7 @@
 package ui.control.button.gamebutton;
 
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.scene.BaseScene;
@@ -53,7 +54,7 @@ public abstract class GameButton extends BorderPane {
 
     public final static double FADE_IN_OUT_TIME = 0.1;
 
-    public final static double COVER_HEIGHT_WIDTH_RATIO = 127.0/90.0;
+    public final static double COVER_HEIGHT_WIDTH_RATIO = 127.0 / 90.0;
 
     protected static double COVER_SCALE_EFFECT_FACTOR = 1.1;
     private final static double COVER_BLUR_EFFECT_RADIUS = 10;
@@ -84,8 +85,9 @@ public abstract class GameButton extends BorderPane {
 
         initAll();
     }
-    protected void initAll(){
-        if(coverPane!=null){
+
+    protected void initAll() {
+        if (coverPane != null) {
             coverPane.getChildren().clear();
         }
 
@@ -93,17 +95,18 @@ public abstract class GameButton extends BorderPane {
         initContextMenu();
         initNameText(entry);
 
-        setOnKeyPressed(ke->{
-            if(ke.getCode() == KeyCode.ENTER){
+        setOnKeyPressed(ke -> {
+            if (ke.getCode() == KeyCode.ENTER) {
                 playButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
             }
         });
         setCenter(coverPane);
         setBottom(nameLabel);
     }
+
     private void initNameText(GameEntry entry) {
         nameLabel = new Label(entry.getName());
-        BorderPane.setMargin(nameLabel, new Insets(10*GENERAL_SETTINGS.getWindowHeight()/1080, 0, 0, 0));
+        BorderPane.setMargin(nameLabel, new Insets(10 * GENERAL_SETTINGS.getWindowHeight() / 1080, 0, 0, 0));
         setAlignment(nameLabel, Pos.CENTER);
 
         nameLabel.setScaleX(0.90f);
@@ -120,11 +123,11 @@ public abstract class GameButton extends BorderPane {
         });
         contextMenu.getItems().add(cmItem1);
         MenuItem cmItem2 = new MenuItem(RESSOURCE_BUNDLE.getString("edit"));
-        cmItem2.setOnAction(eh ->{
+        cmItem2.setOnAction(eh -> {
         });
         contextMenu.getItems().add(cmItem2);
         MenuItem cmItem3 = new MenuItem(RESSOURCE_BUNDLE.getString("About"));
-        cmItem3.setOnAction(nh->{
+        cmItem3.setOnAction(nh -> {
             infoButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
         });
         contextMenu.getItems().add(cmItem3);
@@ -155,10 +158,10 @@ public abstract class GameButton extends BorderPane {
     private void initCoverPane(GameEntry entry) {
         coverPane = new StackPane();
 
-        if(DEFAULT_PLAY_IMAGE == null){
+        if (DEFAULT_PLAY_IMAGE == null) {
             DEFAULT_PLAY_IMAGE = new Image("res/ui/playButton.png", getPlayButtonWidth(), getPlayButtonHeight(), true, true);
         }
-        if(DEFAULT_INFO_IMAGE == null){
+        if (DEFAULT_INFO_IMAGE == null) {
             DEFAULT_INFO_IMAGE = new Image("res/ui/infoButton.png", getInfoButtonWidth(), getInfoButtonHeight(), true, true);
         }
         playButton = new ImageButton(DEFAULT_PLAY_IMAGE);
@@ -173,25 +176,28 @@ public abstract class GameButton extends BorderPane {
         playTimeLabel.setFocusTraversable(false);
         playTimeLabel.setMouseTransparent(true);
 
-        if(DEFAULT_COVER_IMAGE == null){
-            for(int i = 256; i<1025;i*=2){
-                if(i>getCoverHeight()){
-                    DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover"+i+".jpg");
+        /*if (DEFAULT_COVER_IMAGE == null) {
+            for (int i = 256; i < 1025; i *= 2) {
+                if (i > getCoverHeight()) {
+                    DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover" + i + ".jpg", getCoverWidth(), getCoverHeight(), false, true);
                     break;
                 }
             }
-            if(DEFAULT_COVER_IMAGE == null){
-                DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover.jpg");
+            if (DEFAULT_COVER_IMAGE == null) {
+                DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover.jpg", getCoverWidth(), getCoverHeight(), false, true);
             }
-        }
-        coverView = new ImageView(DEFAULT_COVER_IMAGE);
-        Platform.runLater(new Runnable() {
+        }*/
+        coverView = new ImageView(entry.getImage(0, getCoverWidth(), getCoverHeight(), false, true));
+        /*Platform.runLater(new Runnable() {
             @Override
             public void run() {
                 //TODO implement real multithreading loading
-                coverView.setImage( entry.getImage(0, getCoverWidth(), getCoverHeight(), false, true));
+                Image img = entry.getImage(0, getCoverWidth(), getCoverHeight(), false, true);
+                coverView.setImage(img);
+
             }
-        });
+        });*/
+
         coverView.setPreserveRatio(true);
 
         playButton.setOnMouseClicked(mc -> {
@@ -286,7 +292,7 @@ public abstract class GameButton extends BorderPane {
             }
         });
         coverPane.setOnMouseMoved(e -> {
-            if(MainScene.INPUT_MODE == MainScene.INPUT_MODE_MOUSE) {
+            if (MainScene.INPUT_MODE == MainScene.INPUT_MODE_MOUSE) {
                 if (this.contains(new Point2D(e.getX(), e.getY()))) {
                     requestFocus();
                 }
@@ -314,7 +320,7 @@ public abstract class GameButton extends BorderPane {
             }
         });
         infoButton.addMouseEnteredHandler(e -> {
-            if(getCursor() == null){
+            if (getCursor() == null) {
                 setCursor(Cursor.DEFAULT);
             }
             if (getCursor() != null && !getCursor().equals(Cursor.NONE)) {
@@ -324,7 +330,7 @@ public abstract class GameButton extends BorderPane {
                 Timeline fadeInTimeline = new Timeline(
                         new KeyFrame(Duration.seconds(0),
                                 new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_IN)),
-                        new KeyFrame(Duration.seconds(5*FADE_IN_OUT_TIME),
+                        new KeyFrame(Duration.seconds(5 * FADE_IN_OUT_TIME),
                                 new KeyValue(playTimeLabel.opacityProperty(), 1, Interpolator.EASE_IN)
                         ));
                 fadeInTimeline.setCycleCount(1);
@@ -335,7 +341,7 @@ public abstract class GameButton extends BorderPane {
         });
         infoButton.addMouseExitedHandler(e -> {
             playTimeLabel.setText(entry.getPlayTimeFormatted(false));
-            if(getCursor() == null){
+            if (getCursor() == null) {
                 setCursor(Cursor.DEFAULT);
             }
             if (getCursor() != null && !getCursor().equals(Cursor.NONE)) {
@@ -380,15 +386,17 @@ public abstract class GameButton extends BorderPane {
         return entry;
     }
 
-    public void disableInfoButton(){
+    public void disableInfoButton() {
         infoButton.setDisable(true);
         infoButton.setVisible(false);
     }
-    public void disableTitle(){
+
+    public void disableTitle() {
         nameLabel.setDisable(true);
         nameLabel.setVisible(false);
     }
-    public void disablePlayTimeLabel(){
+
+    public void disablePlayTimeLabel() {
         playTimeLabel.setDisable(true);
         playTimeLabel.setVisible(false);
     }
