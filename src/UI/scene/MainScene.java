@@ -5,9 +5,7 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.input.ScrollEvent;
 import ui.control.button.ImageButton;
 import ui.dialog.ChoiceDialog;
 import ui.control.button.gamebutton.TileGameButton;
@@ -29,17 +27,10 @@ import javafx.scene.layout.*;
 import javafx.stage.*;
 import data.game.GameEntry;
 import ui.Main;
-import ui.dialog.ProgressDialog;
 
-import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.*;
 import java.util.List;
 
@@ -290,7 +281,7 @@ public class MainScene extends BaseScene {
     }
 
     private void refreshTrayMenu() {
-        Main.startMenu.removeAll();
+        Main.START_TRAY_MENU.removeAll();
 
         for (Node tgb : tilePane.getChildren()) {
             GameEntry entry = ((TileGameButton) tgb).getEntry();
@@ -310,7 +301,7 @@ public class MainScene extends BaseScene {
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }*/
-            Main.startMenu.add(gameItem);
+            Main.START_TRAY_MENU.add(gameItem);
         }
     }
 

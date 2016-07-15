@@ -1,9 +1,7 @@
 package ui;
 
-import com.sun.javafx.iio.ImageStorage;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.WindowEvent;
@@ -22,8 +20,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -43,7 +39,8 @@ public class Main extends Application {
     public static final Logger logger = LogManager.getLogger(Main.class);
     public static final File CACHE_FOLDER = new File("cache");
 
-    public static Menu startMenu = new Menu();
+    public static Menu START_TRAY_MENU = new Menu();
+    public static TrayIcon TRAY_ICON;
 
     private int trayMessageCount = 0;
 
@@ -121,8 +118,8 @@ public class Main extends Application {
 
         final PopupMenu popup = new PopupMenu();
         Image fxImage = new Image("res/ui/icon/icon16.png");
-        final TrayIcon trayIcon = new TrayIcon(SwingFXUtils.fromFXImage(fxImage,null));
-        trayIcon.addMouseListener(new MouseListener() {
+        TRAY_ICON = new TrayIcon(SwingFXUtils.fromFXImage(fxImage,null));
+        TRAY_ICON.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
@@ -150,7 +147,7 @@ public class Main extends Application {
 
             }
         });
-        trayIcon.setImageAutoSize(true);
+        TRAY_ICON.setImageAutoSize(true);
         Platform.setImplicitExit(!GENERAL_SETTINGS.isAlwaysInBackground());
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -159,7 +156,7 @@ public class Main extends Application {
                     if (event.getEventType().equals(WindowEvent.WINDOW_CLOSE_REQUEST)) {
                         stage.hide();
                         if (trayMessageCount < 2 && !GENERAL_SETTINGS.isNoMoreTrayMessage()) {
-                            trayIcon.displayMessage("GameRoom"
+                            TRAY_ICON.displayMessage("GameRoom"
                                     , RESSOURCE_BUNDLE.getString("tray_icon_still_running_1")
                                             + RESSOURCE_BUNDLE.getString("always_in_background")
                                             + RESSOURCE_BUNDLE.getString("tray_icon_still_running_2"), TrayIcon.MessageType.INFO);
@@ -193,7 +190,7 @@ public class Main extends Application {
         });
         //CheckboxMenuItem cb1 = new CheckboxMenuItem("Set auto size");
         //CheckboxMenuItem cb2 = new CheckboxMenuItem("Set tooltip");
-        startMenu.setLabel(RESSOURCE_BUNDLE.getString("start"));
+        START_TRAY_MENU.setLabel(RESSOURCE_BUNDLE.getString("start"));
         MenuItem exitItem = new MenuItem(RESSOURCE_BUNDLE.getString("exit"));
 
         exitItem.addActionListener(new ActionListener() {
@@ -205,16 +202,16 @@ public class Main extends Application {
 
         //Add components to pop-up menu
         popup.add(openItem);
-        popup.add(startMenu);
+        popup.add(START_TRAY_MENU);
         popup.addSeparator();
         popup.add(settingsItem);
         popup.addSeparator();
         popup.add(exitItem);
 
-        trayIcon.setPopupMenu(popup);
+        TRAY_ICON.setPopupMenu(popup);
 
         try {
-            tray.add(trayIcon);
+            tray.add(TRAY_ICON);
         } catch (AWTException e) {
             System.out.println("TrayIcon could not be added.");
         }

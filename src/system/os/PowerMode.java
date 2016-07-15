@@ -94,7 +94,7 @@ public class PowerMode {
             ArrayList<PowerMode> powerModes = readFromLines(result);
 
             for(PowerMode pm : powerModes){
-                Main.logger.info("Active power mode : "+pm.getAlias());
+                Main.logger.info("Current power mode : "+pm.getAlias());
                 return pm;
             }
         } catch (IOException e1) {

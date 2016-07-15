@@ -29,6 +29,7 @@ public class GameEntry {
     private String publisher = "";
     private String path = "";
     private UUID uuid;
+    private boolean alreadyStartedInGameRoom = false;
 
     private File[] imagesPaths = new File[IMAGES_NUMBER];
     private long playTime = 0; //Time in seconds
@@ -239,7 +240,7 @@ public class GameEntry {
         this.playTime+=seconds;
         saveEntry();
     }
-    public String getPlayTimeFormatted(boolean fullFormat){
+    public static String getPlayTimeFormatted(long playTime,boolean fullFormat){
         String result  = "";
         long seconds=playTime, minutes=0,hours=0;
 
@@ -253,7 +254,19 @@ public class GameEntry {
             }
         }
         if(fullFormat){
-            result = hours + "h" + minutes + "m" + seconds + "s";
+            result = "";
+            if(hours> 0){
+                result+= hours+ "h";
+                result+=minutes + "m";
+                result+=seconds+"s";
+            }else{
+                if(minutes>0){
+                    result+=minutes + "m";
+                    result+=seconds+"s";
+                }else{
+                    result+=seconds+"s";
+                }
+            }
         }else{
             if(hours>0){
                 result = hours + "h";
@@ -265,6 +278,9 @@ public class GameEntry {
         }
         return result;
 
+    }
+    public String getPlayTimeFormatted(boolean fullFormat){
+        return getPlayTimeFormatted(playTime,fullFormat);
     }
 
     public void setSavedLocaly(boolean savedLocaly) {
@@ -320,6 +336,14 @@ public class GameEntry {
     }
     public void setIgdb_imageURL(int index, String url){
         igdb_imageURL[index] = url;
+    }
+
+    public boolean isAlreadyStartedInGameRoom() {
+        return alreadyStartedInGameRoom;
+    }
+
+    public void setAlreadyStartedInGameRoom(boolean alreadyStartedInGameRoom) {
+        this.alreadyStartedInGameRoom = alreadyStartedInGameRoom;
     }
 
     public void startGame(){
