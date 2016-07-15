@@ -32,14 +32,22 @@ public class Launcher extends Application{
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-
         MAIN_SCENE = new MainScene(primaryStage);
         initIcons(primaryStage);
 
         primaryStage.setTitle("GameRoom");
         primaryStage.setScene(MAIN_SCENE);
         primaryStage.setFullScreen(GENERAL_SETTINGS.isFullScreen());
+
+        //TODO replace false by setting "start minimized"
+        if(false) {
+            primaryStage.setOpacity(0);
+        }
         primaryStage.show();
+        if(false) {
+            primaryStage.hide();
+            primaryStage.setOpacity(1);
+        }
         Platform.runLater(() -> {
             primaryStage.setWidth(primaryStage.getWidth());
             primaryStage.setHeight(primaryStage.getHeight());
@@ -56,25 +64,6 @@ public class Launcher extends Application{
         GENERAL_SETTINGS.saveSettings();
 
         System.exit(0);
-    }
-    public static void forceStop(Stage stage){
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                Platform.setImplicitExit(true);
-                stage.close();
-                Platform.exit();
-                //
-            }
-        });
-    }
-    public static void open(Stage stage){
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                stage.show();
-            }
-        });
     }
     private void initIcons(Stage stage){
 

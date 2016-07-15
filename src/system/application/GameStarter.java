@@ -9,6 +9,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
+import sun.misc.Launcher;
 import system.os.PowerMode;
 import ui.Main;
 
@@ -20,6 +21,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 import static ui.Main.GENERAL_SETTINGS;
+import static ui.Main.MAIN_SCENE;
 
 
 /**
@@ -42,7 +44,9 @@ public class GameStarter {
             @Override
             protected Object call() throws Exception {
                 Process process = new ProcessBuilder(entry.getPath()).start();
-
+                if(GENERAL_SETTINGS.isCloseOnLaunch()){
+                    Main.forceStop(MAIN_SCENE.getParentStage());
+                }
                 //This condition means that some thread is already monitoring and waiting for the game to be restarted, no need to monitor
                 if(!entry.isAlreadyStartedInGameRoom()){
                     entry.setAlreadyStartedInGameRoom(true);

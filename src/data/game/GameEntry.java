@@ -12,6 +12,7 @@ import java.util.UUID;
  * Created by LM on 02/07/2016.
  */
 public class GameEntry {
+    public final static File ENTRIES_FOLDER = new File("Games");
     private final static File[] DEFAULT_IMAGES_PATHS = {new File("res/defaultImages/cover.jpg")};
     private final static int IMAGES_NUMBER = 3;
 
@@ -49,11 +50,11 @@ public class GameEntry {
     }
 
     private File propertyFile() throws IOException {
-        File dir = new File(uuid.toString());
+        File dir = new File(ENTRIES_FOLDER+File.separator+uuid.toString());
         if (!dir.exists()) {
-            dir.mkdir();
+            dir.mkdirs();
         }
-        File configFile = new File(uuid.toString() + File.separator + "entry.properties");
+        File configFile = new File(ENTRIES_FOLDER+File.separator+uuid.toString() + File.separator + "entry.properties");
         if (!configFile.exists()) {
             configFile.createNewFile();
         }

@@ -22,7 +22,7 @@ public class GeneralSettings {
     private boolean fullScreen = false; //TODO fix fullscreen exiting after changing scene, see https://bugs.openjdk.java.net/browse/JDK-8089209
     private int windowWidth=640;
     private int windowHeight =480;
-    private PowerMode gamingPowerMode;
+    private PowerMode gamingPowerMode=PowerMode.getActivePowerMode();
     private boolean enablePowerGamingMode = false;
     private boolean alwaysInBackground = true;
     private boolean noMoreTrayMessage = false;

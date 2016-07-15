@@ -98,7 +98,7 @@ public class GameEditScene extends BaseScene {
             @Override
             public void handle(ActionEvent event) {
                 if(chosenImageFile!=null) {
-                    File localCoverFile = new File(entry.getUuid().toString() + File.separator + "cover." + getExtension(chosenImageFile.getName()));
+                    File localCoverFile = new File(GameEntry.ENTRIES_FOLDER+File.separator+entry.getUuid().toString() + File.separator + "cover." + getExtension(chosenImageFile.getName()));
                     try {
                         if (!localCoverFile.exists()) {
                             localCoverFile.mkdirs();
@@ -169,7 +169,7 @@ public class GameEditScene extends BaseScene {
                                                    coverView.setImage(new Image("file:" + File.separator + File.separator + File.separator + outputFile.getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true));
                                                }
                                                chosenImageFile = outputFile;
-                                               File localImageFile = new File(entry.getUuid().toString()+File.separator+"cover."+GameEditScene.getExtension(imageURL));
+                                               File localImageFile = new File(GameEntry.ENTRIES_FOLDER+File.separator+entry.getUuid().toString()+File.separator+"cover."+GameEditScene.getExtension(imageURL));
                                                entry.setImagePath(0,localImageFile);
                                            }
                                        });
@@ -320,7 +320,7 @@ public class GameEditScene extends BaseScene {
                         new FileChooser.ExtensionFilter("PNG", "*.png")
                 );
                 chosenImageFile = imageChooser.showOpenDialog(getParentStage());
-                File localCoverFile = new File(entry.getUuid().toString() + File.separator + "cover." + getExtension(chosenImageFile.getName()));
+                File localCoverFile = new File(GameEntry.ENTRIES_FOLDER+File.separator+entry.getUuid().toString() + File.separator + "cover." + getExtension(chosenImageFile.getName()));
                 coverView.setImage(new Image("file:" + File.separator + File.separator + File.separator + chosenImageFile.getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true));
                 entry.setImagePath(0, localCoverFile);
             }

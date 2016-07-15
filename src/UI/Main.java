@@ -1,5 +1,6 @@
 package ui;
 
+import data.game.GameEntry;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.scene.image.Image;
@@ -52,6 +53,27 @@ public class Main{
         RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", Locale.forLanguageTag(GENERAL_SETTINGS.getLocale()));
 
         CACHE_FOLDER.mkdirs();
+        GameEntry.ENTRIES_FOLDER.mkdirs();
+    }
+
+    public static void forceStop(Stage stage){
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                Platform.setImplicitExit(true);
+                stage.close();
+                Platform.exit();
+                //
+            }
+        });
+    }
+    public static void open(Stage stage){
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                stage.show();
+            }
+        });
     }
 
 }
