@@ -5,7 +5,6 @@ import system.os.PowerMode;
 import ui.Main;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
@@ -79,6 +78,7 @@ public class GeneralSettings {
                 gamingPowerMode = new PowerMode(UUID.fromString(prop.getProperty("gamingPowerMode")));
             }else{
                 gamingPowerMode = PowerMode.getActivePowerMode();
+                Main.logger.debug(gamingPowerMode);
             }
             if(prop.getProperty("enablePowerGamingMode")!=null){
                 enablePowerGamingMode = Boolean.valueOf(prop.getProperty("enablePowerGamingMode"));

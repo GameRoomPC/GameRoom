@@ -1,6 +1,5 @@
 package system.os;
 
-import data.game.GameEntry;
 import system.application.GeneralSettings;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -8,14 +7,11 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import ui.Main;
-import ui.dialog.SearchDialog;
 
 import java.awt.*;
 import java.io.IOException;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.stream.Stream;
 
 import static ui.Main.*;
 

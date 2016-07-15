@@ -197,7 +197,7 @@ public class SearchDialog extends Dialog<GameEntry> {
         topBox.getChildren().addAll(searchField, searchButton);
 
         resultsPane.setPrefHeight(Main.SCREEN_HEIGHT / 3);
-        //resultsPane.setPrefWidth(Main.SCREEN_WIDTH);
+        //resultsPane.setPrefWidth(ui.Main.SCREEN_WIDTH);
 
         StackPane centerPane = new StackPane();
         centerPane.setFocusTraversable(false);
@@ -211,7 +211,7 @@ public class SearchDialog extends Dialog<GameEntry> {
         HBox buttonBox = new HBox();
         buttonBox.setSpacing(30 * SCREEN_WIDTH / 1920);
 
-        //ButtonType cancelButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        //ButtonType cancelButton = new ButtonType(ui.Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType nextButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("next"), ButtonBar.ButtonData.OK_DONE);
 
         dialogPane.getButtonTypes().addAll(nextButton);

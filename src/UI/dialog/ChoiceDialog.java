@@ -32,7 +32,7 @@ public class ChoiceDialog extends Dialog<ButtonType> {
 
         VBox choicesBox = new VBox();
         choicesBox.setFillWidth(true);
-        choicesBox.setSpacing(10*Main.SCREEN_HEIGHT /1080);
+        choicesBox.setSpacing(10* Main.SCREEN_HEIGHT /1080);
         choicesBox.getChildren().addAll(choiceDialogButtons);
         choicesBox.getStyleClass().add("vbox");
         for(ChoiceDialogButton db : choiceDialogButtons){
@@ -55,7 +55,7 @@ public class ChoiceDialog extends Dialog<ButtonType> {
         Label header = new Label(text);
         header.setStyle("-fx-font-size: 26.0px;");
         mainPane.setTop(header);
-        BorderPane.setMargin(header, new Insets(20*Main.SCREEN_WIDTH /1920, 20*Main.SCREEN_HEIGHT /1080,40*Main.SCREEN_WIDTH /1920, 20*Main.SCREEN_HEIGHT /1080));
+        BorderPane.setMargin(header, new Insets(20* Main.SCREEN_WIDTH /1920, 20* Main.SCREEN_HEIGHT /1080,40* Main.SCREEN_WIDTH /1920, 20* Main.SCREEN_HEIGHT /1080));
     }
 
 

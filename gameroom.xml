@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="gameroom" default="all">
+  
+  
+  <property file="gameroom.properties"/>
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- 
+  <property name="skip.tests" value="true"/>
+   -->
+  
+  <!-- Compiler options -->
+  
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="700m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/*.hprof/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/*.rbc/**"/>
+    <exclude name="**/*.yarb/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/RCS/**"/>
+    <exclude name="**/SCCS/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/rcs/**"/>
+    <exclude name="**/vssver.scc/**"/>
+    <exclude name="**/vssver2.scc/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.war"/>
+    <include name="*.swc"/>
+    <include name="*.apk"/>
+    <include name="*.zip"/>
+    <include name="*.ear"/>
+    <include name="*.egg"/>
+    <include name="*.ane"/>
+    <include name="*.jar"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <exclude name="**/?*.java"/>
+    <exclude name="**/?*.form"/>
+    <exclude name="**/?*.class"/>
+    <exclude name="**/?*.groovy"/>
+    <exclude name="**/?*.scala"/>
+    <exclude name="**/?*.flex"/>
+    <exclude name="**/?*.kt"/>
+    <exclude name="**/?*.clj"/>
+  </patternset>
+  
+  <!-- JDK definitions -->
+  
+  <property name="jdk.bin.1.8" value="${jdk.home.1.8}/bin"/>
+  <path id="jdk.classpath.1.8">
+    <fileset dir="${jdk.home.1.8}">
+      <include name="jre/lib/charsets.jar"/>
+      <include name="jre/lib/deploy.jar"/>
+      <include name="jre/lib/ext/access-bridge-64.jar"/>
+      <include name="jre/lib/ext/cldrdata.jar"/>
+      <include name="jre/lib/ext/dnsns.jar"/>
+      <include name="jre/lib/ext/jaccess.jar"/>
+      <include name="jre/lib/ext/jfxrt.jar"/>
+      <include name="jre/lib/ext/localedata.jar"/>
+      <include name="jre/lib/ext/nashorn.jar"/>
+      <include name="jre/lib/ext/sunec.jar"/>
+      <include name="jre/lib/ext/sunjce_provider.jar"/>
+      <include name="jre/lib/ext/sunmscapi.jar"/>
+      <include name="jre/lib/ext/sunpkcs11.jar"/>
+      <include name="jre/lib/ext/zipfs.jar"/>
+      <include name="jre/lib/javaws.jar"/>
+      <include name="jre/lib/jce.jar"/>
+      <include name="jre/lib/jfr.jar"/>
+      <include name="jre/lib/jfxswt.jar"/>
+      <include name="jre/lib/jsse.jar"/>
+      <include name="jre/lib/management-agent.jar"/>
+      <include name="jre/lib/plugin.jar"/>
+      <include name="jre/lib/resources.jar"/>
+      <include name="jre/lib/rt.jar"/>
+    </fileset>
+  </path>
+  
+  <property name="project.jdk.home" value="${jdk.home.1.8}"/>
+  <property name="project.jdk.bin" value="${jdk.bin.1.8}"/>
+  <property name="project.jdk.classpath" value="jdk.classpath.1.8"/>
+  
+  
+  <!-- Project Libraries -->
+  
+  <path id="library.com.mashape.unirest:unirest-java:1.4.9.classpath">
+    <pathelement location="${path.variable.maven_repository}/com/mashape/unirest/unirest-java/1.4.9/unirest-java-1.4.9.jar"/>
+    <pathelement location="${path.variable.maven_repository}/commons-codec/commons-codec/1.9/commons-codec-1.9.jar"/>
+    <pathelement location="${path.variable.maven_repository}/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"/>
+    <pathelement location="${path.variable.maven_repository}/org/apache/httpcomponents/httpasyncclient/4.1.1/httpasyncclient-4.1.1.jar"/>
+    <pathelement location="${path.variable.maven_repository}/org/apache/httpcomponents/httpclient/4.5.2/httpclient-4.5.2.jar"/>
+    <pathelement location="${path.variable.maven_repository}/org/apache/httpcomponents/httpcore-nio/4.4.4/httpcore-nio-4.4.4.jar"/>
+    <pathelement location="${path.variable.maven_repository}/org/apache/httpcomponents/httpcore/4.4.4/httpcore-4.4.4.jar"/>
+    <pathelement location="${path.variable.maven_repository}/org/apache/httpcomponents/httpmime/4.5.2/httpmime-4.5.2.jar"/>
+    <pathelement location="${path.variable.maven_repository}/org/json/json/20160212/json-20160212.jar"/>
+  </path>
+  
+  <path id="library.org.apache.logging.log4j:log4j-api:2.6.1.classpath">
+    <pathelement location="${path.variable.maven_repository}/org/apache/logging/log4j/log4j-api/2.6.1/log4j-api-2.6.1.jar"/>
+    <pathelement location="${path.variable.maven_repository}/org/osgi/org.osgi.core/4.3.1/org.osgi.core-4.3.1.jar"/>
+  </path>
+  
+  <path id="library.org.apache.logging.log4j:log4j-core:2.1.classpath">
+    <pathelement location="${path.variable.maven_repository}/org/apache/logging/log4j/log4j-api/2.1/log4j-api-2.1.jar"/>
+    <pathelement location="${path.variable.maven_repository}/org/apache/logging/log4j/log4j-core/2.1/log4j-core-2.1.jar"/>
+    <pathelement location="${path.variable.maven_repository}/org/osgi/org.osgi.core/4.3.1/org.osgi.core-4.3.1.jar"/>
+  </path>
+  
+  <path id="library.org.controlsfx:controlsfx:8.40.11.classpath">
+    <pathelement location="${path.variable.maven_repository}/org/controlsfx/controlsfx/8.40.11/controlsfx-8.40.11.jar"/>
+  </path>
+  <!-- Register Custom Compiler Taskdefs -->
+  <property name="javac2.home" value="${idea.home}/lib"/>
+  <path id="javac2.classpath">
+    <pathelement location="${javac2.home}/javac2.jar"/>
+    <pathelement location="${javac2.home}/jdom.jar"/>
+    <pathelement location="${javac2.home}/asm-all.jar"/>
+    <pathelement location="${javac2.home}/jgoodies-forms.jar"/>
+  </path>
+  <target name="register.custom.compilers">
+    <taskdef name="javac2" classname="com.intellij.ant.Javac2" classpathref="javac2.classpath"/>
+    <taskdef name="instrumentIdeaExtensions" classname="com.intellij.ant.InstrumentIdeaExtensions" classpathref="javac2.classpath"/>
+  </target>
+  
+  <!-- Modules -->
+  
+  <import file="${basedir}/module_gameroom.xml"/>
+  
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" depends="clean.module.gameroom, clean.artifact.gameroom" description="cleanup all"/>
+  
+  <target name="build.modules" depends="init, clean, compile.module.gameroom" description="build all modules"/>
+  
+  <target name="init.artifacts">
+    <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
+    <property name="artifact.output.gameroom" value="${basedir}/out/artifacts/GameRoom"/>
+    <mkdir dir="${artifacts.temp.dir}"/>
+    <property name="artifact.temp.output.GameRoom" value="${artifacts.temp.dir}/GameRoom.jar"/>
+    <taskdef resource="com/sun/javafx/tools/ant/antlib.xml" uri="javafx:com.sun.javafx.tools.ant" classpath="${jdk.home.1.8}/lib/ant-javafx.jar"/>
+  </target>
+  
+  <target name="clean.artifact.gameroom" description="clean GameRoom artifact output">
+    <delete dir="${artifact.output.gameroom}"/>
+  </target>
+  
+  <target name="artifact.gameroom" depends="init.artifacts, compile.module.gameroom" description="Build &#39;GameRoom&#39; artifact" xmlns:fx="javafx:com.sun.javafx.tools.ant">
+    <mkdir dir="${artifact.output.gameroom}"/>
+    <copy todir="${artifact.temp.output.GameRoom}">
+      <fileset dir="${gameroom.output.dir}"/>
+    </copy>
+    <fx:fileset id="all_but_GameRoom" dir="${artifact.temp.output.GameRoom}" includes="**/*.jar">
+      <exclude name="GameRoom.jar"/>
+    </fx:fileset>
+    <fx:fileset id="all_GameRoom" dir="${artifact.temp.output.GameRoom}" includes="**/*.jar"/>
+    <fx:application id="GameRoom_id" name="GameRoom" mainClass="ui.Main"/>
+    <fx:jar destfile="${artifact.temp.output.GameRoom}\GameRoom.jar">
+      <fx:application refid="GameRoom_id"/>
+      <fileset dir="${artifact.temp.output.GameRoom}" excludes="**/*.jar"/>
+      <fx:resources>
+        <fx:fileset refid="all_but_GameRoom"/>
+      </fx:resources>
+      <manifest/>
+    </fx:jar>
+    <fx:deploy width="600" height="400" updatemode="background" outdir="${artifact.temp.output.GameRoom}\deploy" outfile="GameRoom">
+      <fx:application refid="GameRoom_id"/>
+      <fx:info title="GameRoom" vendor="n0xsoft" description="GameRoom is an game library manager that offers multitude of functionnality"/>
+      <fx:resources>
+        <fx:fileset refid="all_GameRoom"/>
+      </fx:resources>
+    </fx:deploy>
+    <copy todir="${artifact.output.gameroom}">
+      <fileset dir="${artifact.temp.output.GameRoom}/deploy"/>
+    </copy>
+    <delete includeemptydirs="true">
+      <fileset dir="${artifact.temp.output.GameRoom}"/>
+    </delete>
+  </target>
+  
+  <target name="build.all.artifacts" depends="artifact.gameroom" description="Build all artifacts">
+    
+    <!-- Delete temporary files -->
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+  
+  <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
+</project>

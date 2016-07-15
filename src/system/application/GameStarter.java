@@ -19,7 +19,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-import static ui.Main.*;
+import static ui.Main.GENERAL_SETTINGS;
+
 
 /**
  * Created by LM on 14/07/2016.
@@ -54,14 +55,14 @@ public class GameStarter {
             @Override
             public void changed(ObservableValue<? extends Long> observable, Long oldValue, Long newValue) {
                 if(!newValue.equals(new Long(-1))){
-                    logger.debug("Adding "+Math.round(newValue/1000.0)+"s to game "+entry.getName());
+                    Main.logger.debug("Adding "+Math.round(newValue/1000.0)+"s to game "+entry.getName());
                     entry.setAlreadyStartedInGameRoom(false);
                     entry.setSavedLocaly(true);
                     entry.addPlayTimeSeconds(Math.round(newValue/1000.0));
                     entry.setSavedLocaly(false);
-                    TRAY_ICON.displayMessage("GameRoom"
+                    Main.TRAY_ICON.displayMessage("GameRoom"
                             , GameEntry.getPlayTimeFormatted(Math.round(newValue/1000.0),true)+ " "
-                                    +RESSOURCE_BUNDLE.getString("tray_icon_time_recorded")+" "
+                                    +Main.RESSOURCE_BUNDLE.getString("tray_icon_time_recorded")+" "
                                     + entry.getName(), TrayIcon.MessageType.INFO);
                 }else{
                     //No need to add playtime as if we are here, it means that some thread is already monitoring play time
@@ -87,12 +88,12 @@ public class GameStarter {
             }
         }
         long startTime = System.currentTimeMillis();
-        logger.info("Monitoring "+ entry.getProcessName());
+        Main.logger.info("Monitoring "+ entry.getProcessName());
         while (keepRunning) {
 
             keepRunning = isProcessRunning(entry.getProcessName());
             if(!keepRunning){
-                logger.info(entry.getProcessName()+" killed");
+                Main.logger.info(entry.getProcessName()+" killed");
             }
             try {
                 Thread.sleep(MONITOR_REFRESH);
@@ -112,9 +113,9 @@ public class GameStarter {
                     alert.getDialogPane().getStylesheets().add("res/flatterfx.css");
                     alert.initModality(Modality.WINDOW_MODAL);
                     alert.setContentText(entry.getName()+" "
-                            +RESSOURCE_BUNDLE.getString("monitor_wait_dialog_1")+" "
+                            +Main.RESSOURCE_BUNDLE.getString("monitor_wait_dialog_1")+" "
                             +(stopTime-startTime)/1000+"s"
-                            +RESSOURCE_BUNDLE.getString("monitor_wait_dialog_2"));
+                            +Main.RESSOURCE_BUNDLE.getString("monitor_wait_dialog_2"));
 
                     Optional<ButtonType> dialogResult = alert.showAndWait();
                     if (dialogResult.get() == ButtonType.OK) {

@@ -1,8 +1,5 @@
 package data.game;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Task;
 import system.application.GameStarter;
 import ui.Main;
 import javafx.scene.image.Image;
@@ -10,8 +7,6 @@ import javafx.scene.image.Image;
 import java.io.*;
 import java.util.Properties;
 import java.util.UUID;
-
-import static ui.Main.logger;
 
 /**
  * Created by LM on 02/07/2016.

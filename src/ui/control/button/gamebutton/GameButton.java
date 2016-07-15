@@ -1,8 +1,5 @@
 package ui.control.button.gamebutton;
 
-import javafx.application.Platform;
-import javafx.concurrent.Task;
-import ui.Main;
 import ui.control.button.ImageButton;
 import ui.scene.BaseScene;
 import ui.scene.GameInfoScene;
@@ -36,8 +33,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static ui.Main.*;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
