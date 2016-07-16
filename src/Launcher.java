@@ -26,6 +26,9 @@ public class Launcher extends Application{
     private int trayMessageCount = 0;
 
     public static void main(String[] args){
+        if(args.length>0){
+            Main.DEV_MODE = args[0].equals("dev");
+        }
         Main.main(args);
         launch(args);
     }
@@ -109,21 +112,23 @@ public class Launcher extends Application{
             }
         });
         TRAY_ICON.setImageAutoSize(true);
-        Platform.setImplicitExit(false);
+        Platform.setImplicitExit(DEV_MODE);
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
                     if (event.getEventType().equals(WindowEvent.WINDOW_CLOSE_REQUEST)) {
-                        stage.hide();
-                        if (trayMessageCount < 2 && !GENERAL_SETTINGS.isNoMoreTrayMessage() && !GENERAL_SETTINGS.isDisableAllNotifications()) {
-                            TRAY_ICON.displayMessage("GameRoom"
-                                    , RESSOURCE_BUNDLE.getString("tray_icon_still_running_1")
-                                            + RESSOURCE_BUNDLE.getString("always_in_background")
-                                            + RESSOURCE_BUNDLE.getString("tray_icon_still_running_2"), TrayIcon.MessageType.INFO);
-                            trayMessageCount++;
-                        } else {
-                            if (!GENERAL_SETTINGS.isNoMoreTrayMessage()) {
-                                GENERAL_SETTINGS.setNoMoreTrayMessage(true);
+                        if(!DEV_MODE) {
+                            stage.hide();
+                            if (trayMessageCount < 2 && !GENERAL_SETTINGS.isNoMoreTrayMessage() && !GENERAL_SETTINGS.isDisableAllNotifications()) {
+                                TRAY_ICON.displayMessage("GameRoom"
+                                        , RESSOURCE_BUNDLE.getString("tray_icon_still_running_1")
+                                                + RESSOURCE_BUNDLE.getString("always_in_background")
+                                                + RESSOURCE_BUNDLE.getString("tray_icon_still_running_2"), TrayIcon.MessageType.INFO);
+                                trayMessageCount++;
+                            } else {
+                                if (!GENERAL_SETTINGS.isNoMoreTrayMessage()) {
+                                    GENERAL_SETTINGS.setNoMoreTrayMessage(true);
+                                }
                             }
                         }
                     }

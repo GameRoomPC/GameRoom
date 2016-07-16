@@ -6,6 +6,7 @@ import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.ImageView;
 import ui.control.button.ImageButton;
 import ui.dialog.ChoiceDialog;
 import ui.control.button.gamebutton.TileGameButton;
@@ -262,8 +263,21 @@ public class MainScene extends BaseScene {
         hbox.setAlignment(Pos.CENTER_LEFT);
 
         //HBox.setMargin(sizeSlider, new Insets(15, 12, 15, 12));
+        StackPane topPane = new StackPane();
+        topPane.setFocusTraversable(false);
+        ImageView titleView = new ImageView(new Image("res/ui/title-medium.png", 500*SCREEN_WIDTH/1920,94*SCREEN_HEIGHT/1080,true,true));
+        titleView.setMouseTransparent(true);
+        titleView.setFocusTraversable(false);
+        StackPane.setAlignment(titleView, Pos.BOTTOM_CENTER);
+        topPane.getChildren().add(titleView);
+        /*StackPane.setMargin(titleView, new Insets(55 * Main.SCREEN_HEIGHT / 1080
+                , 12 * Main.SCREEN_WIDTH / 1920
+                , 15 * Main.SCREEN_HEIGHT / 1080
+                , 15 * Main.SCREEN_WIDTH / 1920));*/
+        topPane.getChildren().add(hbox);
+        StackPane.setAlignment(hbox, Pos.CENTER_LEFT);
 
-        wrappingPane.setTop(hbox);
+        wrappingPane.setTop(topPane);
     }
 
     private int indexOf(GameEntry entry) {

@@ -26,6 +26,7 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class Main{
+    public static boolean DEV_MODE = false;
     public static double SCREEN_WIDTH;
     public static double SCREEN_HEIGHT;
 

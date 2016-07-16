@@ -104,6 +104,7 @@ public abstract class BaseScene extends Scene {
         Image leftArrowImage = new Image("res/ui/arrowLeft.png", SCREEN_WIDTH /45, SCREEN_WIDTH /45,true,true);
         ImageButton backButton = new ImageButton(leftArrowImage);
         backButton.setOnMouseClicked(eventHandler);
+        backButton.setId("backButton");
         addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             switch (event.getCode()){
                 case ESCAPE:
@@ -119,6 +120,7 @@ public abstract class BaseScene extends Scene {
         Label titleLabel = new Label(title);
         titleLabel.setScaleX(2.5);
         titleLabel.setScaleY(2.5);
+        titleLabel.setId("titleLabel");
         return titleLabel;
     }
     protected StackPane createTop(EventHandler<MouseEvent> backButtonEventHandler, String title){
