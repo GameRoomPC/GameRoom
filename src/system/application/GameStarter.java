@@ -44,8 +44,16 @@ public class GameStarter {
             @Override
             protected Object call() throws Exception {
                 Process process = new ProcessBuilder(entry.getPath()).start();
-                if(GENERAL_SETTINGS.isCloseOnLaunch()){
+                if(GENERAL_SETTINGS.getOnLaunchAction().equals(OnLaunchAction.CLOSE)){
                     Main.forceStop(MAIN_SCENE.getParentStage());
+                }else if(GENERAL_SETTINGS.getOnLaunchAction().equals(OnLaunchAction.HIDE)){
+                    Main.logger.debug("Hiding");
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            MAIN_SCENE.getParentStage().hide();
+                        }
+                    });
                 }
                 //This condition means that some thread is already monitoring and waiting for the game to be restarted, no need to monitor
                 if(!entry.isAlreadyStartedInGameRoom()){
@@ -64,10 +72,12 @@ public class GameStarter {
                     entry.setSavedLocaly(true);
                     entry.addPlayTimeSeconds(Math.round(newValue/1000.0));
                     entry.setSavedLocaly(false);
-                    Main.TRAY_ICON.displayMessage("GameRoom"
-                            , GameEntry.getPlayTimeFormatted(Math.round(newValue/1000.0),true)+ " "
-                                    +Main.RESSOURCE_BUNDLE.getString("tray_icon_time_recorded")+" "
-                                    + entry.getName(), TrayIcon.MessageType.INFO);
+                    if(!GENERAL_SETTINGS.isDisableAllNotifications()) {
+                        Main.TRAY_ICON.displayMessage("GameRoom"
+                                , GameEntry.getPlayTimeFormatted(Math.round(newValue / 1000.0), true) + " "
+                                        + Main.RESSOURCE_BUNDLE.getString("tray_icon_time_recorded") + " "
+                                        + entry.getName(), TrayIcon.MessageType.INFO);
+                    }
                 }else{
                     //No need to add playtime as if we are here, it means that some thread is already monitoring play time
                 }

@@ -40,11 +40,11 @@ public class Launcher extends Application{
         primaryStage.setFullScreen(GENERAL_SETTINGS.isFullScreen());
 
         //TODO replace false by setting "start minimized"
-        if(false) {
+        if(GENERAL_SETTINGS.isMinimizeOnStart()) {
             primaryStage.setOpacity(0);
         }
         primaryStage.show();
-        if(false) {
+        if(GENERAL_SETTINGS.isMinimizeOnStart()) {
             primaryStage.hide();
             primaryStage.setOpacity(1);
         }
@@ -109,14 +109,13 @@ public class Launcher extends Application{
             }
         });
         TRAY_ICON.setImageAutoSize(true);
-        Platform.setImplicitExit(!GENERAL_SETTINGS.isAlwaysInBackground());
+        Platform.setImplicitExit(false);
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
-                if(GENERAL_SETTINGS.isAlwaysInBackground()) {
                     if (event.getEventType().equals(WindowEvent.WINDOW_CLOSE_REQUEST)) {
                         stage.hide();
-                        if (trayMessageCount < 2 && !GENERAL_SETTINGS.isNoMoreTrayMessage()) {
+                        if (trayMessageCount < 2 && !GENERAL_SETTINGS.isNoMoreTrayMessage() && !GENERAL_SETTINGS.isDisableAllNotifications()) {
                             TRAY_ICON.displayMessage("GameRoom"
                                     , RESSOURCE_BUNDLE.getString("tray_icon_still_running_1")
                                             + RESSOURCE_BUNDLE.getString("always_in_background")
@@ -128,7 +127,6 @@ public class Launcher extends Application{
                             }
                         }
                     }
-                }
             }
         });
         final SystemTray tray = SystemTray.getSystemTray();

@@ -1,5 +1,11 @@
 package ui.scene;
 
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
+import javafx.stage.Modality;
+import javafx.stage.StageStyle;
+import sun.java2d.windows.GDIRenderer;
+import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
 import javafx.beans.value.ChangeListener;
@@ -16,16 +22,14 @@ import javafx.util.StringConverter;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.RESSOURCE_BUNDLE;
+import static ui.Main.*;
 
 /**
  * Created by LM on 03/07/2016.
  */
 public class SettingsScene extends BaseScene {
     private BorderPane wrappingPane;
-    private GridPane contentPane = new GridPane();
-    private int row_count = 0;
+    private TilePane contentPane = new TilePane();
 
     public SettingsScene(StackPane root, Stage parentStage, BaseScene previousScene){
         super(root, parentStage);
@@ -36,7 +40,6 @@ public class SettingsScene extends BaseScene {
         initTop();
         initCenter();
         initBottom();
-        wrappingPane.setCenter(contentPane);
     }
     private void initBottom(){
         Label igdbLabel = new Label(RESSOURCE_BUNDLE.getString("credit_igdb"));
@@ -46,9 +49,13 @@ public class SettingsScene extends BaseScene {
         BorderPane.setMargin(igdbLabel, new Insets(15, 15, 15, 15));
     }
     private void initCenter(){
-        BorderPane.setMargin(contentPane, new Insets(50,50,50,50));
         contentPane.setHgap(30);
         contentPane.setVgap(15);
+        contentPane.setPrefColumns(2);
+        contentPane.setAlignment(Pos.TOP_LEFT);
+        contentPane.setOrientation(Orientation.HORIZONTAL);
+        contentPane.setTileAlignment(Pos.CENTER_LEFT);
+
 
 
         /*****************************LOCALE*********************************/
@@ -74,40 +81,68 @@ public class SettingsScene extends BaseScene {
                 Main.GENERAL_SETTINGS.setLocale(localeComboBox.getValue().toLanguageTag());
             }
         });
-        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("Language")+" :"),0,row_count);
-        contentPane.add(localeComboBox,1,row_count);
-        row_count++;
+        contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("Language")+" :"));
+        contentPane.getChildren().add(localeComboBox);
 
 
         /*****************************CLOSE ON LAUNCH*********************************/
-
-        CheckBox closeOnLaunchBox = new CheckBox();
-        closeOnLaunchBox.setSelected(Main.GENERAL_SETTINGS.isCloseOnLaunch());
-        closeOnLaunchBox.setWrapText(true);
-        closeOnLaunchBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+        ComboBox<OnLaunchAction> onLaunchActionComboBox = new ComboBox<>();
+        onLaunchActionComboBox.getItems().addAll(OnLaunchAction.values());
+        onLaunchActionComboBox.setConverter(new StringConverter<OnLaunchAction>() {
             @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Main.GENERAL_SETTINGS.setCloseOnLaunch(newValue);
+            public String toString(OnLaunchAction object) {
+                return object.toString();
+            }
+
+            @Override
+            public OnLaunchAction fromString(String string) {
+                return OnLaunchAction.fromString(string);
             }
         });
-        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("Close_on_launch")+" :"),0,row_count);
-        contentPane.add(closeOnLaunchBox,1,row_count);
-        row_count++;
-
-
-        CheckBox alwaysBackGroundBox = new CheckBox();
-        alwaysBackGroundBox.setSelected(Main.GENERAL_SETTINGS.isAlwaysInBackground());
-        alwaysBackGroundBox.setWrapText(true);
-        alwaysBackGroundBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+        onLaunchActionComboBox.setValue(GENERAL_SETTINGS.getOnLaunchAction());
+        onLaunchActionComboBox.setOnAction(new EventHandler<ActionEvent>() {
             @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Main.GENERAL_SETTINGS.setAlwaysInBackground(newValue);
+            public void handle(ActionEvent event) {
+                Main.GENERAL_SETTINGS.setOnLaunchAction(onLaunchActionComboBox.getValue());
+                if(onLaunchActionComboBox.getValue().equals(OnLaunchAction.CLOSE)){
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setHeaderText(null);
+                    alert.initStyle(StageStyle.UNDECORATED);
+                    alert.getDialogPane().getStylesheets().add("res/flatterfx.css");
+                    alert.initModality(Modality.APPLICATION_MODAL);
+                    alert.setContentText(RESSOURCE_BUNDLE.getString("onLaunch_close_dialog_warning"));
+                    alert.showAndWait();
+                }
             }
         });
-        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("always_in_background")+" :"),0,row_count);
-        contentPane.add(alwaysBackGroundBox,1,row_count);
-        row_count++;
+        contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("onLaunch_action")+" :"));
+        contentPane.getChildren().add(onLaunchActionComboBox);
 
+        /*******************************NOTIFICATIONS*******************************/
+        CheckBox noNotifCheckBox = new CheckBox();
+        noNotifCheckBox.setSelected(Main.GENERAL_SETTINGS.isDisableAllNotifications());
+        noNotifCheckBox.setWrapText(true);
+        noNotifCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                Main.GENERAL_SETTINGS.setDisableAllNotifications(newValue);
+            }
+        });
+        contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("disable_tray_icon_notifications")+" :"));
+        contentPane.getChildren().add(noNotifCheckBox);
+
+        /*******************************MINIMIZE ON START*******************************/
+        CheckBox minimizeOnStartCheckBox = new CheckBox();
+        minimizeOnStartCheckBox.setSelected(Main.GENERAL_SETTINGS.isMinimizeOnStart());
+        minimizeOnStartCheckBox.setWrapText(true);
+        minimizeOnStartCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                Main.GENERAL_SETTINGS.setMinimizeOnStart(newValue);
+            }
+        });
+        contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("minimize_on_start")+" :"));
+        contentPane.getChildren().add(minimizeOnStartCheckBox);
 
         /*****************************POWER MODE*********************************/
         ComboBox<PowerMode> powerModeComboBox = new ComboBox<>();
@@ -141,13 +176,20 @@ public class SettingsScene extends BaseScene {
                 powerModeComboBox.setDisable(!newValue);
             }
         });
-        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("enable_gaming_power_mode")+" :"),0,row_count);
-        contentPane.add(enablePowerMode,1,row_count);
-        row_count++;
+        contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("enable_gaming_power_mode")+" :"));
+        contentPane.getChildren().add(enablePowerMode);
 
-        contentPane.add(new Label(Main.RESSOURCE_BUNDLE.getString("gaming_power_mode")+" :"),0,row_count);
-        contentPane.add(powerModeComboBox,1,row_count);
-        row_count++;
+        contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("gaming_power_mode")+" :"));
+        contentPane.getChildren().add(powerModeComboBox);
+
+        /***********************ROW CONSTRAINTS****************************/
+        /**********************NO CONTROL INIT BELOW THIS*******************/
+        GridPane pane = new GridPane();
+        pane.add(contentPane,0,0);
+        GridPane.setFillWidth(contentPane,false);
+        wrappingPane.setCenter(pane);
+        BorderPane.setMargin(pane, new Insets(50*SCREEN_HEIGHT/1080,50*SCREEN_WIDTH/1920,50*SCREEN_HEIGHT/1080,50*SCREEN_WIDTH/1920));
+
     }
     private void initTop(){
         wrappingPane.setTop(createTop(RESSOURCE_BUNDLE.getString("Settings")));

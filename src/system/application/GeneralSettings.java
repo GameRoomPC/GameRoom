@@ -17,15 +17,17 @@ import static ui.scene.MainScene.MIN_SCALE_FACTOR;
  */
 public class GeneralSettings {
     private String locale = Locale.getDefault().toLanguageTag();
-    private boolean closeOnLaunch = false;
+    //private boolean closeOnLaunch = false;
+    private OnLaunchAction onLaunchAction = OnLaunchAction.DO_NOTHING;
     private double tileZoom = 0.4;
     private boolean fullScreen = false; //TODO fix fullscreen exiting after changing scene, see https://bugs.openjdk.java.net/browse/JDK-8089209
     private int windowWidth=640;
     private int windowHeight =480;
     private PowerMode gamingPowerMode=PowerMode.getActivePowerMode();
     private boolean enablePowerGamingMode = false;
-    private boolean alwaysInBackground = true;
     private boolean noMoreTrayMessage = false;
+    private boolean minimizeOnStart = false;
+    private boolean disableAllNotifications = false;
 
     public GeneralSettings(){
         loadSettings();
@@ -48,10 +50,6 @@ public class GeneralSettings {
 
             if(prop.getProperty("locale")!=null){
                 locale = prop.getProperty("locale");
-            }
-            if(prop.getProperty("closeOnLaunch")!= null){
-                closeOnLaunch = Boolean.parseBoolean(prop.getProperty("closeOnLaunch"));
-
             }
             if(prop.getProperty("tileZoom")!=null){
                 tileZoom = Double.parseDouble(prop.getProperty("tileZoom"));
@@ -83,11 +81,18 @@ public class GeneralSettings {
             if(prop.getProperty("enablePowerGamingMode")!=null){
                 enablePowerGamingMode = Boolean.valueOf(prop.getProperty("enablePowerGamingMode"));
             }
-            if(prop.getProperty("alwaysInBackground")!=null){
-                alwaysInBackground = Boolean.valueOf(prop.getProperty("alwaysInBackground"));
-            }
             if(prop.getProperty("noMoreTrayMessage")!=null){
                 noMoreTrayMessage = Boolean.valueOf(prop.getProperty("noMoreTrayMessage"));
+            }
+
+            if(prop.getProperty("onLaunchAction")!= null){
+                onLaunchAction = OnLaunchAction.fromString(prop.getProperty("onLaunchAction"));
+            }
+            if(prop.getProperty("disableAllNotifications")!=null){
+                disableAllNotifications = Boolean.valueOf(prop.getProperty("disableAllNotifications"));
+            }
+            if(prop.getProperty("minimizeOnStart")!=null){
+                minimizeOnStart = Boolean.valueOf(prop.getProperty("minimizeOnStart"));
             }
 
 
@@ -118,12 +123,12 @@ public class GeneralSettings {
         saveSettings();
     }
 
-    public boolean isCloseOnLaunch() {
-        return closeOnLaunch;
+    public OnLaunchAction getOnLaunchAction() {
+        return onLaunchAction;
     }
 
-    public void setCloseOnLaunch(boolean closeOnLaunch) {
-        this.closeOnLaunch = closeOnLaunch;
+    public void setOnLaunchAction(OnLaunchAction onLaunchAction) {
+        this.onLaunchAction = onLaunchAction;
         saveSettings();
     }
 
@@ -153,23 +158,30 @@ public class GeneralSettings {
         this.enablePowerGamingMode = enablePowerGamingMode;
         saveSettings();
     }
-
-    public boolean isAlwaysInBackground() {
-        return alwaysInBackground;
-    }
-
-    public void setAlwaysInBackground(boolean alwaysInBackground) {
-        this.alwaysInBackground = alwaysInBackground;
-        Platform.setImplicitExit(!alwaysInBackground);
-        saveSettings();
-    }
-
     public boolean isNoMoreTrayMessage() {
         return noMoreTrayMessage;
     }
 
     public void setNoMoreTrayMessage(boolean noMoreTrayMessage) {
         this.noMoreTrayMessage = noMoreTrayMessage;
+        saveSettings();
+    }
+
+    public boolean isMinimizeOnStart() {
+        return minimizeOnStart;
+    }
+
+    public void setMinimizeOnStart(boolean minimizeOnStart) {
+        this.minimizeOnStart = minimizeOnStart;
+        saveSettings();
+    }
+
+    public boolean isDisableAllNotifications() {
+        return disableAllNotifications;
+    }
+
+    public void setDisableAllNotifications(boolean disableAllNotifications) {
+        this.disableAllNotifications = disableAllNotifications;
         saveSettings();
     }
 
@@ -192,15 +204,17 @@ public class GeneralSettings {
 
             // set the properties value
             prop.setProperty("locale", locale);
-            prop.setProperty("closeOnLaunch", Boolean.toString(closeOnLaunch));
+            prop.setProperty("onLaunchAction", onLaunchAction.getRessourceKey());
             prop.setProperty("tileZoom", Double.toString(tileZoom));
             prop.setProperty("fullScreen", Boolean.toString(fullScreen));
             prop.setProperty("windowWidth", Integer.toString(windowWidth));
             prop.setProperty("windowHeight", Integer.toString(windowHeight));
             prop.setProperty("gamingPowerMode", gamingPowerMode.getUuid().toString());
             prop.setProperty("enablePowerGamingMode", Boolean.toString(enablePowerGamingMode));
-            prop.setProperty("alwaysInBackground", Boolean.toString(alwaysInBackground));
             prop.setProperty("noMoreTrayMessage", Boolean.toString(noMoreTrayMessage));
+            prop.setProperty("disableAllNotifications", Boolean.toString(disableAllNotifications));
+            prop.setProperty("minimizeOnStart", Boolean.toString(minimizeOnStart));
+
 
 
             // save properties to project root folder
