@@ -203,9 +203,9 @@ public class MainScene extends BaseScene {
             @Override
             public void handle(MouseEvent event) {
                 if (event.isPrimaryButtonDown()) {
-                    ui.dialog.ChoiceDialog choiceDialog = new ChoiceDialog(
+                   ChoiceDialog choiceDialog = new ChoiceDialog(
                             new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_exe"), RESSOURCE_BUNDLE.getString("add_exe_long")),
-                            new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_folder_ink"), RESSOURCE_BUNDLE.getString("add_symlink_long"))
+                            new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_folder"), RESSOURCE_BUNDLE.getString("add_symlink_long"))
                     );
                     choiceDialog.setTitle(RESSOURCE_BUNDLE.getString("add_a_game"));
                     choiceDialog.setHeader(RESSOURCE_BUNDLE.getString("choose_action"));
@@ -239,15 +239,20 @@ public class MainScene extends BaseScene {
                                 alert.setContentText(RESSOURCE_BUNDLE.getString("warning_internet_shortcut"));
                                 alert.showAndWait();
                             }
-                        } else if (letter.getText().equals(RESSOURCE_BUNDLE.getString("Add_folder_ink"))) {
+                        } else if (letter.getText().equals(RESSOURCE_BUNDLE.getString("Add_folder"))) {
                             DirectoryChooser directoryChooser = new DirectoryChooser();
                             directoryChooser.setTitle(RESSOURCE_BUNDLE.getString("Select_folder_ink"));
                             directoryChooser.setInitialDirectory(
                                     new File(System.getProperty("user.home"))
                             );
-                            File selectedFile = directoryChooser.showDialog(getParentStage());
-                            if (selectedFile != null) {
+                            File selectedFolder = directoryChooser.showDialog(getParentStage());
+                            if (selectedFolder != null) {
                                 //TODO implement import of folder of links
+                                Stack<File> files = new Stack<File>();
+                                files.addAll(Arrays.asList(selectedFolder.listFiles()));
+                                if(!files.empty()) {
+                                    createMultiEntriesExitAction(files).run();
+                                }
                             }
                         }
                     });
@@ -371,6 +376,27 @@ public class MainScene extends BaseScene {
         });
         tilePane.getChildren().setAll(nodes);
     }
+    private Runnable createMultiEntriesExitAction(Stack<File> files){
+        if(!files.empty()) {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    GameEditScene nextEditScene = new GameEditScene(new StackPane(), (int) SCREEN_WIDTH, (int) SCREEN_HEIGHT, getParentStage(), MainScene.this, files.pop());
+
+                    nextEditScene.disableBackButton();
+                    nextEditScene.setOnExitAction(createMultiEntriesExitAction(files));
+                    fadeTransitionTo(nextEditScene, getParentStage());
+                }
+            };
+        }else{
+            return new Runnable() {
+                @Override
+                public void run() {
+                    fadeTransitionTo(MAIN_SCENE, getParentStage());
+                }
+            };
+        }
+    }
 
     private void remapArrowKeys(ScrollPane scrollPane) {
         List<KeyEvent> mappedEvents = new ArrayList<>();
@@ -411,5 +437,4 @@ public class MainScene extends BaseScene {
             }
         });
     }
-
 }

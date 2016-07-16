@@ -21,8 +21,8 @@ public class GeneralSettings {
     private OnLaunchAction onLaunchAction = OnLaunchAction.DO_NOTHING;
     private double tileZoom = 0.4;
     private boolean fullScreen = false; //TODO fix fullscreen exiting after changing scene, see https://bugs.openjdk.java.net/browse/JDK-8089209
-    private int windowWidth=640;
-    private int windowHeight =480;
+    private int windowWidth=1366;
+    private int windowHeight =768;
     private PowerMode gamingPowerMode=PowerMode.getActivePowerMode();
     private boolean enablePowerGamingMode = false;
     private boolean noMoreTrayMessage = false;
@@ -66,6 +66,7 @@ public class GeneralSettings {
                 windowWidth = Integer.parseInt(prop.getProperty("windowWidth"));
             }else{
                 windowWidth = (int) Main.SCREEN_WIDTH;
+                //TODO fix first launch not fullscreen no border but initial value of this parameter
             }
             if(prop.getProperty("windowHeight")!=null){
                 windowHeight = Integer.parseInt(prop.getProperty("windowHeight"));

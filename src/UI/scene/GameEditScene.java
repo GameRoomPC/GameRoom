@@ -62,11 +62,19 @@ public class GameEditScene extends BaseScene {
     private GameEntry entry;
     private int mode;
 
+    private Runnable onExitAction;
+
     private int row_count = 0;
 
     public GameEditScene(StackPane stackPane, int width, int height, Stage parentStage, BaseScene previousScene, File chosenFile) {
         super(stackPane, parentStage);
         mode = MODE_ADD;
+        onExitAction = new Runnable() {
+            @Override
+            public void run() {
+                fadeTransitionTo(MAIN_SCENE, getParentStage());
+            }
+        };
         entry = new GameEntry(chosenFile.getName());
         entry.setPath(chosenFile.getAbsolutePath());
         this.previousScene = previousScene;
@@ -78,6 +86,12 @@ public class GameEditScene extends BaseScene {
     public GameEditScene(StackPane stackPane, int width, int height, Stage parentStage, BaseScene previousScene, GameEntry entry) {
         super(stackPane, parentStage);
         mode = MODE_EDIT;
+        onExitAction = new Runnable() {
+            @Override
+            public void run() {
+                fadeTransitionTo(MAIN_SCENE, getParentStage());
+            }
+        };
         this.entry = entry;
         this.entry.setSavedLocaly(false);
         this.chosenImageFile = entry.getImagePath(0);
@@ -120,7 +134,8 @@ public class GameEditScene extends BaseScene {
                     default:
                         break;
                 }
-                fadeTransitionTo(MAIN_SCENE, getParentStage());
+                //fadeTransitionTo(MAIN_SCENE, getParentStage());
+                onExitAction.run();
             }
         });
         Button igdbButton = new Button(RESSOURCE_BUNDLE.getString("fetch_from_igdb"));
@@ -453,4 +468,8 @@ public class GameEditScene extends BaseScene {
             return filename.substring(index + 1);
         }
     }
+    protected void setOnExitAction(Runnable onExitAction){
+        this.onExitAction = onExitAction;
+    }
+
 }

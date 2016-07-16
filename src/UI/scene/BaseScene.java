@@ -35,6 +35,8 @@ public abstract class BaseScene extends Scene {
     private Stage parentStage;
     protected BaseScene previousScene;
 
+    private ImageButton backButton;
+
     public BaseScene(StackPane stackPane,Stage parentStage){
         super(stackPane, Main.GENERAL_SETTINGS.getWindowWidth(), Main.GENERAL_SETTINGS.getWindowHeight());
         this.rootStackPane = stackPane;
@@ -116,7 +118,7 @@ public abstract class BaseScene extends Scene {
         });
         return backButton;
     }
-    private Label createTitleLabel(String title){
+    protected static Label createTitleLabel(String title){
         Label titleLabel = new Label(title);
         titleLabel.setScaleX(2.5);
         titleLabel.setScaleY(2.5);
@@ -125,7 +127,7 @@ public abstract class BaseScene extends Scene {
     }
     protected StackPane createTop(EventHandler<MouseEvent> backButtonEventHandler, String title){
         StackPane topPane = new StackPane();
-        ImageButton backButton = createBackButton(backButtonEventHandler);
+        backButton = createBackButton(backButtonEventHandler);
         Label titleLabel = createTitleLabel(title);
 
         topPane.getChildren().addAll(backButton, titleLabel);
@@ -141,5 +143,9 @@ public abstract class BaseScene extends Scene {
         return createTop(event -> {
             fadeTransitionTo(previousScene,parentStage);
         },title);
+    }
+    protected void disableBackButton(){
+        backButton.setDisable(true);
+        backButton.setVisible(false);
     }
 }
