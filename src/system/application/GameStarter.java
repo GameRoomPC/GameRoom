@@ -43,7 +43,12 @@ public class GameStarter {
         Task<Long> monitor = new Task() {
             @Override
             protected Object call() throws Exception {
-                Process process = new ProcessBuilder(entry.getPath()).start();
+                File gameLog = new File("log"+File.separator+entry.getProcessName()+".log");
+                ProcessBuilder builder = new ProcessBuilder('"'+entry.getPath()+'"').inheritIO();
+                builder.directory(new File(new File(entry.getPath()).getParent()));
+                builder.redirectError(gameLog);
+                Process process = builder.start();
+
                 if(GENERAL_SETTINGS.getOnLaunchAction().equals(OnLaunchAction.CLOSE)){
                     Main.forceStop(MAIN_SCENE.getParentStage());
                 }else if(GENERAL_SETTINGS.getOnLaunchAction().equals(OnLaunchAction.HIDE)){
