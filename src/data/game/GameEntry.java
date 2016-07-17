@@ -281,18 +281,11 @@ public class GameEntry {
 
     public void setSavedLocaly(boolean savedLocaly) {
         this.savedLocaly = savedLocaly;
-        if(savedLocaly) {
-            try {
-                Main.ALL_GAMES_ENTRIES.appendEntry(this);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
         saveEntry();
     }
 
     public void deleteFiles() {
-        File file = new File(getUuid().toString());
+        File file = new File(ENTRIES_FOLDER+File.separator+getUuid().toString());
         String[] entries = file.list();
         if(entries!=null) {
             for (String s : entries) {
@@ -300,11 +293,6 @@ public class GameEntry {
                 currentFile.delete();
             }
             file.delete();
-            try {
-                Main.ALL_GAMES_ENTRIES.removeEntry(this);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
     public String getProcessName(){

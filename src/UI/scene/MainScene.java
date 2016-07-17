@@ -7,6 +7,7 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
+import system.os.WindowsShortcut;
 import ui.control.button.ImageButton;
 import ui.dialog.ChoiceDialog;
 import ui.control.button.gamebutton.TileGameButton;
@@ -28,10 +29,16 @@ import javafx.scene.layout.*;
 import javafx.stage.*;
 import data.game.GameEntry;
 import ui.Main;
+import ui.scene.exitaction.ClassicExitAction;
+import ui.scene.exitaction.ExitAction;
+import ui.scene.exitaction.MultiAddExitAction;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.text.ParseException;
 import java.util.*;
 import java.util.List;
 
@@ -248,10 +255,11 @@ public class MainScene extends BaseScene {
                             File selectedFolder = directoryChooser.showDialog(getParentStage());
                             if (selectedFolder != null) {
                                 //TODO implement import of folder of links
-                                Stack<File> files = new Stack<File>();
+                                ArrayList<File> files = new ArrayList<File>();
                                 files.addAll(Arrays.asList(selectedFolder.listFiles()));
-                                if(!files.empty()) {
-                                    createMultiEntriesExitAction(files).run();
+                                if(files.size() != 0) {
+                                    createFolderAddExitAction(files,0).run();
+                                    //startMultiAddScenes(files);
                                 }
                             }
                         }
@@ -312,14 +320,6 @@ public class MainScene extends BaseScene {
                 }
             });
             File file = new File(entry.getPath());
-
-            // Get metadata and create an icon
-            /*try {
-                sun.awt.shell.ShellFolder sf = sun.awt.shell.ShellFolder.getShellFolder(file);
-                Icon icon = new ImageIcon(sf.getIcon(true));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }*/
             Main.START_TRAY_MENU.add(gameItem);
         }
     }
@@ -330,7 +330,7 @@ public class MainScene extends BaseScene {
 
         int indexToRemove = -1;
         for (int i = 0; i < AllGameEntries.ENTRIES_LIST.size(); i++) {
-            if (entry.getUuid().equals(AllGameEntries.ENTRIES_LIST.get(i))) {
+            if (entry.getUuid().equals(AllGameEntries.ENTRIES_LIST.get(i).getUuid())) {
                 indexToRemove = i;
                 break;
             }
@@ -376,28 +376,32 @@ public class MainScene extends BaseScene {
         });
         tilePane.getChildren().setAll(nodes);
     }
-    private Runnable createMultiEntriesExitAction(Stack<File> files){
-        if(!files.empty()) {
-            return new Runnable() {
+    private ExitAction createFolderAddExitAction(ArrayList<File> files, int fileCount){
+        if(fileCount<files.size()) {
+            File currentFile = files.get(fileCount);
+            try {
+                WindowsShortcut shortcut = new WindowsShortcut(currentFile);
+                currentFile = new File(shortcut.getRealFilename());
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            GameEditScene gameEditScene = new GameEditScene(new StackPane(), (int) SCREEN_WIDTH, (int) SCREEN_HEIGHT, getParentStage(), MainScene.this, currentFile);
+            gameEditScene.disableBackButton();
+            return new MultiAddExitAction(new Runnable() {
                 @Override
                 public void run() {
-                    GameEditScene nextEditScene = new GameEditScene(new StackPane(), (int) SCREEN_WIDTH, (int) SCREEN_HEIGHT, getParentStage(), MainScene.this, files.pop());
-
-                    nextEditScene.disableBackButton();
-                    nextEditScene.setOnExitAction(createMultiEntriesExitAction(files));
-                    fadeTransitionTo(nextEditScene, getParentStage());
+                    ExitAction action = createFolderAddExitAction(files,fileCount+1);
+                        gameEditScene.setOnExitAction( action); //create interface runnable to access property GameEditScene
+                        gameEditScene.addCancelButton(action);
+                    fadeTransitionTo(gameEditScene, getParentStage());
                 }
-            };
+            },gameEditScene);
         }else{
-            return new Runnable() {
-                @Override
-                public void run() {
-                    fadeTransitionTo(MAIN_SCENE, getParentStage());
-                }
-            };
+            return new ClassicExitAction(this,getParentStage(),MAIN_SCENE);
         }
     }
-
     private void remapArrowKeys(ScrollPane scrollPane) {
         List<KeyEvent> mappedEvents = new ArrayList<>();
         scrollPane.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {

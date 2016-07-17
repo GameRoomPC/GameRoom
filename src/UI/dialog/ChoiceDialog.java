@@ -36,6 +36,7 @@ public class ChoiceDialog extends Dialog<ButtonType> {
         choicesBox.getChildren().addAll(choiceDialogButtons);
         choicesBox.getStyleClass().add("vbox");
         for(ChoiceDialogButton db : choiceDialogButtons){
+            db.setPadding(new Insets(15* Main.SCREEN_WIDTH /1920, 15* Main.SCREEN_HEIGHT /1080,15* Main.SCREEN_WIDTH /1920, 15* Main.SCREEN_HEIGHT /1080));
             db.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<Event>() {
                 @Override
                 public void handle(Event event) {

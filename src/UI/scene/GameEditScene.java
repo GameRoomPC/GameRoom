@@ -33,6 +33,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import ui.scene.exitaction.ClassicExitAction;
+import ui.scene.exitaction.ExitAction;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +43,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 import static ui.Main.*;
+import static ui.Main.GENERAL_SETTINGS;
 
 /**
  * Created by LM on 03/07/2016.
@@ -52,9 +55,12 @@ public class GameEditScene extends BaseScene {
     private final static double COVER_SCALE_EFFECT_FACTOR = 1.1;
     private final static double COVER_BLUR_EFFECT_RADIUS = 10;
     private final static double COVER_BRIGHTNESS_EFFECT_FACTOR = 0.1;
+    private static Image DEFAULT_COVER_IMAGE;
 
     private BorderPane wrappingPane;
     private GridPane contentPane;
+
+    private HBox buttonsBox;
 
     private ImageView coverView;
     private File chosenImageFile;
@@ -62,19 +68,14 @@ public class GameEditScene extends BaseScene {
     private GameEntry entry;
     private int mode;
 
-    private Runnable onExitAction;
+    private ExitAction onExitAction;
 
     private int row_count = 0;
 
     public GameEditScene(StackPane stackPane, int width, int height, Stage parentStage, BaseScene previousScene, File chosenFile) {
         super(stackPane, parentStage);
         mode = MODE_ADD;
-        onExitAction = new Runnable() {
-            @Override
-            public void run() {
-                fadeTransitionTo(MAIN_SCENE, getParentStage());
-            }
-        };
+        onExitAction = new ClassicExitAction(this,parentStage,previousScene);
         entry = new GameEntry(chosenFile.getName());
         entry.setPath(chosenFile.getAbsolutePath());
         this.previousScene = previousScene;
@@ -86,12 +87,7 @@ public class GameEditScene extends BaseScene {
     public GameEditScene(StackPane stackPane, int width, int height, Stage parentStage, BaseScene previousScene, GameEntry entry) {
         super(stackPane, parentStage);
         mode = MODE_EDIT;
-        onExitAction = new Runnable() {
-            @Override
-            public void run() {
-                fadeTransitionTo(MAIN_SCENE, getParentStage());
-            }
-        };
+        onExitAction = new ClassicExitAction(this,parentStage,previousScene);
         this.entry = entry;
         this.entry.setSavedLocaly(false);
         this.chosenImageFile = entry.getImagePath(0);
@@ -102,8 +98,8 @@ public class GameEditScene extends BaseScene {
     }
 
     private void initBottom() {
-        HBox hBox = new HBox();
-        hBox.setSpacing(30 * SCREEN_WIDTH / 1920);
+        buttonsBox = new HBox();
+        buttonsBox.setSpacing(30 * SCREEN_WIDTH / 1920);
         Button addButton = new Button(RESSOURCE_BUNDLE.getString("add") + "!");
         if (mode == MODE_EDIT) {
             addButton.setText(RESSOURCE_BUNDLE.getString("save") + "!");
@@ -194,11 +190,11 @@ public class GameEditScene extends BaseScene {
 
         );
 
-        hBox.getChildren().addAll(igdbButton, addButton);
+        buttonsBox.getChildren().addAll(igdbButton, addButton);
 
-        BorderPane.setMargin(hBox, new Insets(10 * SCREEN_WIDTH / 1920, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_WIDTH / 1920));
-        hBox.setAlignment(Pos.BOTTOM_RIGHT);
-        wrappingPane.setBottom(hBox);
+        BorderPane.setMargin(buttonsBox, new Insets(10 * SCREEN_WIDTH / 1920, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_WIDTH / 1920));
+        buttonsBox.setAlignment(Pos.BOTTOM_RIGHT);
+        wrappingPane.setBottom(buttonsBox);
 
     }
 
@@ -316,7 +312,34 @@ public class GameEditScene extends BaseScene {
 
     private Pane createLeft() {
         StackPane pane = new StackPane();
-        coverView = new ImageView(entry.getImage(0, GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true));
+        double coverWidth = GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO);
+        double coverHeight = GENERAL_SETTINGS.getWindowHeight() * 2 / 3;
+
+        coverView = new ImageView(entry.getImage(0, coverWidth, coverHeight, false, true));
+        if (DEFAULT_COVER_IMAGE == null) {
+            for (int i = 256; i < 1025; i *= 2) {
+                if (i > coverHeight) {
+                    DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover" + i + ".jpg", coverWidth,coverHeight, false, true);
+                    break;
+                }
+            }
+            if (DEFAULT_COVER_IMAGE == null) {
+                DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover.jpg", coverWidth,coverHeight, false, true);
+            }
+        }
+        coverView = new ImageView(DEFAULT_COVER_IMAGE);
+
+        /*Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                //TODO implement real multithreading loading
+                Image img = entry.getImage(0,  coverWidth,coverHeight, false, true);
+                coverView.setImage(img);
+
+            }
+        });*/
+
+
         ImageButton changeImageButton = new ImageButton(new Image("res/ui/folderButton.png", GENERAL_SETTINGS.getWindowWidth() / 12, GENERAL_SETTINGS.getWindowWidth() / 12, false, true));
         changeImageButton.setOpacity(0);
         changeImageButton.setFocusTraversable(false);
@@ -468,8 +491,56 @@ public class GameEditScene extends BaseScene {
             return filename.substring(index + 1);
         }
     }
-    protected void setOnExitAction(Runnable onExitAction){
+    protected void setOnExitAction(ExitAction onExitAction){
         this.onExitAction = onExitAction;
+    }
+    protected void addCancelButton(ExitAction onAction){
+        boolean alreadyExists = false;
+        for(Node n : buttonsBox.getChildren()){
+            if(n.getId()!=null && n.getId().equals("cancelButton")){
+                alreadyExists = true;
+                break;
+            }
+        }
+        if(!alreadyExists) {
+            Button cancelButton = new Button(RESSOURCE_BUNDLE.getString("cancel"));
+            cancelButton.setId("cancelButton");
+            cancelButton.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                    alert.setHeaderText(null);
+                    alert.initStyle(StageStyle.UNDECORATED);
+                    alert.getDialogPane().getStylesheets().add("res/flatterfx.css");
+                    alert.initModality(Modality.APPLICATION_MODAL);
+                    alert.setContentText(RESSOURCE_BUNDLE.getString("ignore_changes?"));
+
+                    Optional<ButtonType> result = alert.showAndWait();
+                    if (result.get() == ButtonType.OK) {
+                        switch (mode) {
+                            case MODE_ADD:
+                                entry.deleteFiles(); //just in case, should not be useful in any way
+                                break;
+                            case MODE_EDIT:
+                                try {
+                                    entry.loadEntry();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    break;
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                        onAction.run();
+                    } else {
+                        // ... user chose CANCEL or closed the dialog
+                    }
+                    onAction.run();
+                }
+            });
+            buttonsBox.getChildren().add(cancelButton);
+        }
     }
 
 }

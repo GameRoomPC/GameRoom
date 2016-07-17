@@ -44,7 +44,6 @@ public class GameInfoScene extends BaseScene {
             }
         });
         Button deleteButton = new Button(RESSOURCE_BUNDLE.getString("delete"));
-        deleteButton.setStyle("-fx-background-color: -flatter-red;");
         deleteButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {

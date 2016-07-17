@@ -13,31 +13,15 @@ import java.util.UUID;
 public class AllGameEntries {
     public static final ArrayList<GameEntry> ENTRIES_LIST = new ArrayList<>();
 
-    public void appendEntry(GameEntry entry) throws IOException {
-        File file = entriesFile();
-        Scanner scanner = new Scanner(file);
-        //now read the file line by line...
-        boolean containsUUID = false;
-        while (scanner.hasNextLine() && !containsUUID) {
-            String line = scanner.nextLine();
-            containsUUID = line.contains(entry.getUuid().toString());
-        }
-        scanner.close();
-        if(!containsUUID){
-            FileWriter writer = new FileWriter(file,true);
-            writer.write(entry.getUuid().toString() + System.getProperty("line.separator"));
-            writer.close();
-        }
-    }
     public ArrayList<UUID> readUUIDS(){
         ArrayList<UUID> uuids = new ArrayList<>();
-        File file = null;
+        File entriesFolder = null;
         try {
-            file = entriesFile();
+            entriesFolder = entriesFile();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Scanner scanner = null;
+        /*Scanner scanner = null;
         try {
             scanner = new Scanner(file);
         } catch (FileNotFoundException e) {
@@ -49,42 +33,27 @@ public class AllGameEntries {
             String line = scanner.nextLine();
             uuids.add(UUID.fromString(line));
             lineNum++;
+        }*/
+        for(File gameFolder : entriesFolder.listFiles()){
+            String name = gameFolder.getName();
+            try{
+                if(gameFolder.isDirectory()){
+                    uuids.add(UUID.fromString(name));
+                }
+            }catch (IllegalArgumentException iae){
+                Main.logger.warn("Folder "+name+" is not a valid UUID, ignoring");
+            }
         }
         Main.logger.info("Loaded " + uuids.size()+" uuids.");
         return uuids;
     }
 
-    public boolean removeEntry(GameEntry entry) throws IOException {
-        File inputFile = entriesFile();
-        File tempFile = new File("temp_entries");
-
-        BufferedReader reader = new BufferedReader(new FileReader(inputFile));
-        BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
-
-        String lineToRemove = entry.getUuid().toString();
-        String currentLine;
-
-        while ((currentLine = reader.readLine()) != null) {
-            // trim newline when comparing with lineToRemove
-            String trimmedLine = currentLine.trim();
-            if (trimmedLine.contains(lineToRemove)) continue;
-            writer.write(currentLine + System.getProperty("line.separator"));
-        }
-        writer.close();
-        reader.close();
-        inputFile.delete();
-        return tempFile.renameTo(inputFile);
-    }
 
     private File entriesFile() throws IOException {
-        File file = new File("entries");
+        File file = new File("games");
         if (!file.exists()) {
-            file.createNewFile();
+            file.mkdirs();
         }
         return file;
-    }
-
-    public static void main(String[] args) {
-
     }
 }
