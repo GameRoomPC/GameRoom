@@ -1,9 +1,11 @@
 package ui.scene;
 
+import javafx.geometry.HPos;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.textfield.PathTextField;
+import ui.control.textfield.PlayTimeField;
 import ui.dialog.SearchDialog;
 import data.game.GameEntry;
 import data.io.HTTPDownloader;
@@ -204,12 +206,13 @@ public class GameEditScene extends BaseScene {
         contentPane.setVgap(20 * SCREEN_WIDTH / 1920);
         contentPane.setHgap(10 * SCREEN_WIDTH / 1920);
         ColumnConstraints cc1 = new ColumnConstraints();
-        cc1.setPercentWidth(15);
+        cc1.setPercentWidth(20);
         contentPane.getColumnConstraints().add(cc1);
         ColumnConstraints cc2 = new ColumnConstraints();
-        cc2.setPercentWidth(85);
+        cc2.setPercentWidth(80);
         contentPane.getColumnConstraints().add(cc2);
 
+        /**************************NAME*********************************************/
         createLineForProperty("game_name", entry.getName(), new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -217,6 +220,7 @@ public class GameEditScene extends BaseScene {
             }
         });
 
+        /**************************PATH*********************************************/
         contentPane.add(new Label(RESSOURCE_BUNDLE.getString("game_path") + " :"), 0, row_count);
         PathTextField gamePathField = new PathTextField(entry.getPath(),this);
         gamePathField.getTextField().setPrefColumnCount(50);
@@ -230,6 +234,22 @@ public class GameEditScene extends BaseScene {
         contentPane.add(gamePathField, 1, row_count);
         row_count++;
 
+        /**************************PLAYTIME*********************************************/
+        Label titlePlayTimeLabel = new Label(RESSOURCE_BUNDLE.getString("play_time") + " :");
+        titlePlayTimeLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("play_time")));
+        contentPane.add(titlePlayTimeLabel, 0, row_count);
+        PlayTimeField playTimeField = new PlayTimeField(entry);
+
+        playTimeField.setId("play_time");
+        contentPane.add(playTimeField, 1, row_count);
+        row_count++;
+
+        /***************************SEPARATORS******************************************/
+        Separator s1 = new Separator();
+        contentPane.add(s1,0,row_count);
+        row_count++;
+
+        /**************************YEAR*********************************************/
         createLineForProperty("year", entry.getYear(), new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -237,6 +257,7 @@ public class GameEditScene extends BaseScene {
             }
         });
 
+        /**************************DEVELOPER*********************************************/
         createLineForProperty("developer", entry.getDeveloper(), new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -244,13 +265,18 @@ public class GameEditScene extends BaseScene {
             }
         });
 
+        /**************************PUBLISHER*********************************************/
         createLineForProperty("publisher", entry.getPublisher(), new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 entry.setPublisher(newValue);
             }
         });
-        contentPane.add(new Label(RESSOURCE_BUNDLE.getString("game_description") + " :"), 0, row_count);
+
+        /**************************DESCRIPTION*********************************************/
+        Label titleDescriptionLabel = new Label(RESSOURCE_BUNDLE.getString("game_description") + " :");
+        titleDescriptionLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("game_description")));
+        contentPane.add(titleDescriptionLabel, 0, row_count);
         TextArea gameDescriptionField = new TextArea(entry.getDescription());
         gameDescriptionField.setWrapText(true);
         gameDescriptionField.setId("game_description");
@@ -264,6 +290,8 @@ public class GameEditScene extends BaseScene {
         contentPane.add(gameDescriptionField, 1, row_count);
         row_count++;
 
+        /********************END FOR PROPERTIES********************************************/
+
         GridPane coverAndPropertiesPane = new GridPane();
 
         coverAndPropertiesPane.setVgap(20 * SCREEN_WIDTH / 1920);
@@ -271,20 +299,23 @@ public class GameEditScene extends BaseScene {
 
         Pane coverPane = createLeft();
         coverAndPropertiesPane.add(coverPane, 0, 0);
-        coverAndPropertiesPane.add(contentPane, 1, 0);
         coverAndPropertiesPane.setPadding(new Insets(50 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920, 20 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920));
 
-        ScrollPane centerPane = new ScrollPane();
-        centerPane.setFitToWidth(true);
-        centerPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        centerPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        centerPane.setContent(coverAndPropertiesPane);
+        contentPane.setPadding(new Insets(30 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920));
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setContent(contentPane);
+        coverAndPropertiesPane.add(scrollPane, 1, 0);
 
-        wrappingPane.setCenter(centerPane);
+        wrappingPane.setCenter(coverAndPropertiesPane);
     }
 
     private void createLineForProperty(String property, String initialValue, ChangeListener<String> changeListener) {
-        contentPane.add(new Label(RESSOURCE_BUNDLE.getString(property) + " :"), 0, row_count);
+        Label titleLabel = new Label(RESSOURCE_BUNDLE.getString(property) + " :");
+        titleLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString(property)));
+        contentPane.add(titleLabel, 0, row_count);
         TextField textField = new TextField(initialValue);
         textField.setPrefColumnCount(50);
         textField.setId(property);
@@ -329,7 +360,7 @@ public class GameEditScene extends BaseScene {
         }
         coverView = new ImageView(DEFAULT_COVER_IMAGE);
 
-        /*Platform.runLater(new Runnable() {
+        Platform.runLater(new Runnable() {
             @Override
             public void run() {
                 //TODO implement real multithreading loading
@@ -337,7 +368,7 @@ public class GameEditScene extends BaseScene {
                 coverView.setImage(img);
 
             }
-        });*/
+        });
 
 
         ImageButton changeImageButton = new ImageButton(new Image("res/ui/folderButton.png", GENERAL_SETTINGS.getWindowWidth() / 12, GENERAL_SETTINGS.getWindowWidth() / 12, false, true));

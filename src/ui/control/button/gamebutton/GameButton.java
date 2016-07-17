@@ -162,7 +162,7 @@ public abstract class GameButton extends BorderPane {
         playButton = new ImageButton(DEFAULT_PLAY_IMAGE);
         infoButton = new ImageButton(DEFAULT_INFO_IMAGE);
 
-        playTimeLabel = new Label(entry.getPlayTimeFormatted(false));
+        playTimeLabel = new Label(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_SHORT_HMS));
         playButton.setOpacity(0);
         infoButton.setOpacity(0);
         playTimeLabel.setOpacity(0);
@@ -335,7 +335,7 @@ public abstract class GameButton extends BorderPane {
             }
         });
         infoButton.addMouseExitedHandler(e -> {
-            playTimeLabel.setText(entry.getPlayTimeFormatted(false));
+            playTimeLabel.setText(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_SHORT_HMS));
             if (getCursor() == null) {
                 setCursor(Cursor.DEFAULT);
             }

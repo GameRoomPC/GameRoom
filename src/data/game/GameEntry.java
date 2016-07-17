@@ -1,12 +1,13 @@
 package data.game;
 
 import system.application.GameStarter;
-import ui.Main;
 import javafx.scene.image.Image;
+import ui.Main;
 
 import java.io.*;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * Created by LM on 02/07/2016.
@@ -15,6 +16,11 @@ public class GameEntry {
     public final static File ENTRIES_FOLDER = new File("Games");
     private final static File[] DEFAULT_IMAGES_PATHS = {new File("res/defaultImages/cover.jpg")};
     private final static int IMAGES_NUMBER = 3;
+
+    public final static int TIME_FORMAT_FULL_HMS = 0; // 0h12m0s, 0h5m13s
+    public final static int TIME_FORMAT_FULL_DOUBLEDOTS = 1; //00:12:00, 00:05:13
+    public final static int TIME_FORMAT_HALF_FULL_HMS = 2; // 12m0s, 5m13s
+    public final static int TIME_FORMAT_SHORT_HMS = 3; // 12m, 5m
 
     private boolean savedLocaly = false;
 
@@ -236,47 +242,103 @@ public class GameEntry {
         this.playTime+=seconds;
         saveEntry();
     }
-    public static String getPlayTimeFormatted(long playTime,boolean fullFormat){
+    private static String getPlayTimeFormatted(long playTime, int format){
         String result  = "";
         long seconds=playTime, minutes=0,hours=0;
 
         if(seconds > 60){
             minutes = seconds /60;
-            seconds = (long)(seconds/60.0 - seconds/60)*60;
+            seconds = seconds%60;
 
             if(minutes > 60){
                 hours = minutes/60;
-                minutes = (long)(minutes/60.0 - minutes/60)*60;
+                minutes = minutes%60;
             }
         }
-        if(fullFormat){
-            result = "";
-            if(hours> 0){
+        switch (format){
+            case TIME_FORMAT_FULL_DOUBLEDOTS :
+                if(hours<10){
+                    result+="0";
+                }
+                result+=hours+":";
+                if(minutes<10){
+                    result+="0";
+                }
+                result+=minutes+":";
+                if(seconds<10){
+                    result+="0";
+                }
+                result+=seconds;
+                //Main.logger.debug("TIME computed : "+result);
+                break;
+            case TIME_FORMAT_FULL_HMS:
                 result+= hours+ "h";
                 result+=minutes + "m";
                 result+=seconds+"s";
-            }else{
-                if(minutes>0){
+                break;
+            case TIME_FORMAT_HALF_FULL_HMS:
+                if(hours> 0){
+                    result+= hours+ "h";
                     result+=minutes + "m";
                     result+=seconds+"s";
                 }else{
-                    result+=seconds+"s";
+                    if(minutes>0){
+                        result+=minutes + "m";
+                        result+=seconds+"s";
+                    }else{
+                        result+=seconds+"s";
+                    }
                 }
-            }
-        }else{
-            if(hours>0){
-                result = hours + "h";
-            }else if(minutes > 0){
-                result = minutes + "m";
-            }else{
-                result = seconds + "s";
-            }
+                break;
+            case TIME_FORMAT_SHORT_HMS:
+                if(hours>0){
+                    result = hours + "h";
+                }else if(minutes > 0){
+                    result = minutes + "m";
+                }else{
+                    result = seconds + "s";
+                }
+                break;
+            default:
+                result = getPlayTimeFormatted(playTime,TIME_FORMAT_FULL_HMS);
+                break;
         }
         return result;
 
     }
-    public String getPlayTimeFormatted(boolean fullFormat){
-        return getPlayTimeFormatted(playTime,fullFormat);
+    public void setPlayTimeFormatted(String time, int format){
+        switch (format){
+            case TIME_FORMAT_FULL_DOUBLEDOTS:
+                Pattern timePattern = Pattern.compile("\\d*:\\d\\d:\\d\\d");
+                if (!timePattern.matcher(time).matches()) {
+                    throw new IllegalArgumentException("Invalid time: " + time);
+                }
+                String[] tokens = time.split(":");
+                assert tokens.length == 3;
+                try {
+                    int hours = Integer.parseInt(tokens[0]);
+                    int mins = Integer.parseInt(tokens[1]);
+                    int secs = Integer.parseInt(tokens[2]);
+                    if (hours < 0) {
+                        throw new IllegalArgumentException("Invalid time: " + time);
+                    }
+                    if (mins < 0 || mins > 59) {
+                        throw new IllegalArgumentException("Invalid time: " + time);
+                    }
+                    setPlayTimeSeconds(hours*3600+mins*60+secs);
+                } catch (NumberFormatException nfe) {
+                    // regex matching should assure we never reach this catch block
+                    assert false;
+                    throw new IllegalArgumentException("Invalid time: " + time);
+                }
+                break;
+            default:
+                break;
+        }
+
+    }
+    public String getPlayTimeFormatted(int format){
+        return getPlayTimeFormatted(playTime,format);
     }
 
     public void setSavedLocaly(boolean savedLocaly) {

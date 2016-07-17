@@ -1,5 +1,7 @@
 package ui.scene;
 
+import javafx.geometry.HPos;
+import sun.java2d.windows.GDIRenderer;
 import ui.control.button.gamebutton.InfoGameButton;
 import data.game.GameEntry;
 import javafx.event.ActionEvent;
@@ -72,10 +74,10 @@ public class GameInfoScene extends BaseScene {
         wrappingPane.setTop(createTop(entry.getName()));
     }
     private void initCenter(){
-        ScrollPane centerPane = new ScrollPane();
-        centerPane.setFitToWidth(true);
-        centerPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        centerPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
         GridPane propertiesPane = new GridPane();
 
@@ -83,15 +85,22 @@ public class GameInfoScene extends BaseScene {
         propertiesPane.setHgap(20* SCREEN_WIDTH /1920);
 
         ColumnConstraints cc1 = new ColumnConstraints();
-        cc1.setPercentWidth(15);
+        cc1.setPercentWidth(20);
         propertiesPane.getColumnConstraints().add(cc1);
         ColumnConstraints cc2 = new ColumnConstraints();
-        cc2.setPercentWidth(85);
+        cc2.setPercentWidth(80);
         propertiesPane.getColumnConstraints().add(cc2);
 
         propertiesPane.setAlignment(Pos.TOP_LEFT);
-        addProperty(RESSOURCE_BUNDLE.getString("play_time"), entry.getPlayTimeFormatted(false), propertiesPane).setStyle("-fx-font-size: 34.0px;");
+        addProperty(RESSOURCE_BUNDLE.getString("play_time"), entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS), propertiesPane).setStyle("-fx-font-size: 34.0px;");
         addProperty(RESSOURCE_BUNDLE.getString("game_path"), entry.getPath(),propertiesPane);
+
+        /***************************SEPARATORS******************************************/
+        Separator s1 = new Separator();
+        propertiesPane.add(s1,0,row_count);
+        row_count++;
+        /****************************END SEPARATORS************************************/
+
         addProperty(RESSOURCE_BUNDLE.getString("year"), entry.getYear(),propertiesPane);
         addProperty(RESSOURCE_BUNDLE.getString("developer"), entry.getDeveloper(),propertiesPane);
         addProperty(RESSOURCE_BUNDLE.getString("publisher"), entry.getPublisher(),propertiesPane);
@@ -106,8 +115,9 @@ public class GameInfoScene extends BaseScene {
         coverAndPropertiesPane.add(button,0,0);
         coverAndPropertiesPane.setPadding(new Insets(50* SCREEN_HEIGHT /1080,50* SCREEN_WIDTH /1920,20* SCREEN_HEIGHT /1080,50* SCREEN_WIDTH /1920));
 
-        centerPane.setContent(propertiesPane);
-        coverAndPropertiesPane.add(centerPane,1,0);
+        propertiesPane.setPadding(new Insets(30 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920));
+        scrollPane.setContent(propertiesPane);
+        coverAndPropertiesPane.add(scrollPane,1,0);
 
         wrappingPane.setCenter(coverAndPropertiesPane);
 
@@ -116,6 +126,7 @@ public class GameInfoScene extends BaseScene {
         Label titleLabel = new Label(title+" :");
         titleLabel.setAlignment(Pos.TOP_LEFT);
         titleLabel.setStyle("-fx-font-weight: lighter;");
+        titleLabel.setTooltip(new Tooltip(title));
         contentPane.add(titleLabel,0,row_count);
         Label valueLabel = new Label(value);
         if(value.equals("")){

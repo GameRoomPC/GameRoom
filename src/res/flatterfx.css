@@ -585,33 +585,12 @@
 .search-result-row:armed{
     -fx-background-color: derive(-flatter-red, -20.0%);
 }
-/*
-.progress-indicator:indeterminate .segment {
-    -fx-shape:"M 71.079865,1.4240656 A 12.821762,12.821762 0 0 1 58.258103,14.245828 l -10e-7,-12.8217624 z";
-    -fx-scale-shape: false;
-}
-.progress-indicator:indeterminate .segment0 {
-     -fx-translate-x: -0.7em;
-     -fx-translate-y: -0.03em;
-}
-.progress-indicator:indeterminate .segment1 {
-    -fx-rotate: 90;
-    -fx-translate-x: 0.177em;
-    -fx-translate-y: -1.333em;
 
-}
-.progress-indicator:indeterminate .segment2 {
-    -fx-rotate: 180;
-    -fx-translate-x: 1.5em;
-    -fx-translate-y: -0.5em;
-}
-.progress-indicator:indeterminate .segment3 {
-    -fx-rotate: 270;
-    -fx-translate-x: 0.67em;
-    -fx-translate-y: 0.8em;
-
-}
-.progress-indicator:indeterminate .segment4 {-fx-shape:null;}
-.progress-indicator:indeterminate .segment5 {-fx-shape:null;}
-.progress-indicator:indeterminate .segment6 {-fx-shape:null;}
-.progress-indicator:indeterminate .segment7 {-fx-shape:null;} */
+/*******************************************************************************
+ *                                                                             *
+ * Separators                                                         *
+ *                                                                             *
+ ******************************************************************************/
+ .separator .line {
+    -fx-background: -flatter-red;
+ }

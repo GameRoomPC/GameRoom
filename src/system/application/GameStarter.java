@@ -9,7 +9,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
-import sun.misc.Launcher;
 import system.os.PowerMode;
 import ui.Main;
 
@@ -79,7 +78,7 @@ public class GameStarter {
                     entry.setSavedLocaly(false);
                     if(!GENERAL_SETTINGS.isDisableAllNotifications()) {
                         Main.TRAY_ICON.displayMessage("GameRoom"
-                                , GameEntry.getPlayTimeFormatted(Math.round(newValue / 1000.0), true) + " "
+                                , entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_SHORT_HMS) + " "
                                         + Main.RESSOURCE_BUNDLE.getString("tray_icon_time_recorded") + " "
                                         + entry.getName(), TrayIcon.MessageType.INFO);
                     }
