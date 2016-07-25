@@ -7,7 +7,6 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
-import org.lwjgl.glfw.GLFWKeyCallback;
 import system.os.WindowsShortcut;
 import ui.control.button.ImageButton;
 import ui.dialog.ChoiceDialog;
@@ -45,7 +44,6 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.List;
 
-import static org.lwjgl.glfw.GLFW.*;
 import static ui.Main.*;
 import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
 
