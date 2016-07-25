@@ -6,29 +6,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/res" type="java-resource" />
       <excludeFolder url="file://$MODULE_DIR$/${logPath}" />
-      <excludeFolder url="file://$MODULE_DIR$/06f273ca-5c24-47c5-a328-a51f4236a42e" />
-      <excludeFolder url="file://$MODULE_DIR$/0c76091b-5b59-49e1-bda6-331700c35014" />
-      <excludeFolder url="file://$MODULE_DIR$/13ff5681-7165-4226-9d9c-a8071ed94045" />
-      <excludeFolder url="file://$MODULE_DIR$/2d2bedef-0c75-4e9f-a674-59674b5dfc05" />
-      <excludeFolder url="file://$MODULE_DIR$/5301cb14-b239-4b3b-8449-2b37448ede23" />
-      <excludeFolder url="file://$MODULE_DIR$/56177f0f-78f6-432a-9582-0cc975b69eea" />
-      <excludeFolder url="file://$MODULE_DIR$/59305e66-ecf6-4c62-9b6c-23f9ab1c7cf5" />
-      <excludeFolder url="file://$MODULE_DIR$/5c954827-b718-4c55-9cd8-be02a02286da" />
-      <excludeFolder url="file://$MODULE_DIR$/61a00711-167d-4c98-8b75-c0dc63dd47fb" />
-      <excludeFolder url="file://$MODULE_DIR$/62a597f1-17ed-4d21-a6ed-add627d5759c" />
-      <excludeFolder url="file://$MODULE_DIR$/72e62cb3-56ab-4692-a29a-896cdd9ac98a" />
-      <excludeFolder url="file://$MODULE_DIR$/7c5c4ade-8b71-48a0-a152-a6750ffa93d6" />
-      <excludeFolder url="file://$MODULE_DIR$/812c339e-8eb9-43fa-a79a-ce9e1184ccd3" />
-      <excludeFolder url="file://$MODULE_DIR$/8943494d-8db8-4d43-a61a-85ec72eb0202" />
-      <excludeFolder url="file://$MODULE_DIR$/898878e4-ac36-46d1-a3aa-38ad47a067fd" />
       <excludeFolder url="file://$MODULE_DIR$/Games" />
-      <excludeFolder url="file://$MODULE_DIR$/a0d6a71b-ee6f-42bb-8b84-a84c6fb3422d" />
-      <excludeFolder url="file://$MODULE_DIR$/af521865-0412-4f58-a587-e94858d6bc84" />
-      <excludeFolder url="file://$MODULE_DIR$/ba617d8e-8324-4f45-8b98-efd7fe41ba61" />
-      <excludeFolder url="file://$MODULE_DIR$/c5bc6e88-61fa-4179-8024-082ec9a18658" />
       <excludeFolder url="file://$MODULE_DIR$/cache" />
-      <excludeFolder url="file://$MODULE_DIR$/d8a7b21d-e7c3-44a2-ba6c-64754590b5a3" />
-      <excludeFolder url="file://$MODULE_DIR$/dd3b43e1-a096-4cc7-a5c8-12c54d746d7e" />
       <excludeFolder url="file://$MODULE_DIR$/log" />
     </content>
     <orderEntry type="inheritedJdk" />
@@ -37,5 +16,7 @@
     <orderEntry type="library" exported="" name="org.controlsfx:controlsfx:8.40.11" level="project" />
     <orderEntry type="library" exported="" name="org.apache.logging.log4j:log4j-api:2.6.1" level="project" />
     <orderEntry type="library" exported="" name="org.apache.logging.log4j:log4j-core:2.1" level="project" />
+    <orderEntry type="library" name="org.lwjgl:lwjgl:3.0.0b" level="project" />
+    <orderEntry type="library" name="net.java.dev.jna:jna-platform:4.2.2" level="project" />
   </component>
 </module>

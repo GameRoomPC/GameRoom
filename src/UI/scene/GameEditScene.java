@@ -77,7 +77,7 @@ public class GameEditScene extends BaseScene {
     public GameEditScene(StackPane stackPane, int width, int height, Stage parentStage, BaseScene previousScene, File chosenFile) {
         super(stackPane, parentStage);
         mode = MODE_ADD;
-        onExitAction = new ClassicExitAction(this,parentStage,previousScene);
+        onExitAction = new ClassicExitAction(this, parentStage, previousScene);
         entry = new GameEntry(chosenFile.getName());
         entry.setPath(chosenFile.getAbsolutePath());
         this.previousScene = previousScene;
@@ -89,7 +89,7 @@ public class GameEditScene extends BaseScene {
     public GameEditScene(StackPane stackPane, int width, int height, Stage parentStage, BaseScene previousScene, GameEntry entry) {
         super(stackPane, parentStage);
         mode = MODE_EDIT;
-        onExitAction = new ClassicExitAction(this,parentStage,previousScene);
+        onExitAction = new ClassicExitAction(this, parentStage, previousScene);
         this.entry = entry;
         this.entry.setSavedLocaly(false);
         this.chosenImageFile = entry.getImagePath(0);
@@ -109,8 +109,8 @@ public class GameEditScene extends BaseScene {
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if(chosenImageFile!=null) {
-                    File localCoverFile = new File(GameEntry.ENTRIES_FOLDER+File.separator+entry.getUuid().toString() + File.separator + "cover." + getExtension(chosenImageFile.getName()));
+                if (chosenImageFile != null) {
+                    File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + "cover." + getExtension(chosenImageFile.getName()));
                     try {
                         if (!localCoverFile.exists()) {
                             localCoverFile.mkdirs();
@@ -133,6 +133,14 @@ public class GameEditScene extends BaseScene {
                         break;
                 }
                 //fadeTransitionTo(MAIN_SCENE, getParentStage());
+                if(previousScene instanceof GameInfoScene){
+                    ((GameInfoScene) previousScene).updateProperty("play_time",entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS));
+                    ((GameInfoScene) previousScene).updateProperty("game_path",entry.getPath());
+                    ((GameInfoScene) previousScene).updateProperty("year",entry.getYear());
+                    ((GameInfoScene) previousScene).updateProperty("developer",entry.getDeveloper());
+                    ((GameInfoScene) previousScene).updateProperty("publisher",entry.getPublisher());
+                    ((GameInfoScene) previousScene).updateProperty("description",entry.getDescription());
+                }
                 onExitAction.run();
             }
         });
@@ -153,7 +161,7 @@ public class GameEditScene extends BaseScene {
 
                                                String imageURL = gameEntry.getIgdb_imageURL(0);
                                                String fileName = gameEntry.getIgdb_ID() + "_cover_big_2x." + GameEditScene.getExtension(imageURL);
-                                               File outputFile = new File(Main.CACHE_FOLDER+File.separator+fileName);
+                                               File outputFile = new File(Main.CACHE_FOLDER + File.separator + fileName);
                                                outputFile.deleteOnExit();
 
                                                if (!outputFile.exists()) {
@@ -161,12 +169,12 @@ public class GameEditScene extends BaseScene {
                                                        @Override
                                                        protected String call() throws Exception {
                                                            Main.logger.debug("Downloading " + imageURL);
-                                                           HTTPDownloader.downloadFile(imageURL, Main.CACHE_FOLDER.getAbsolutePath(),fileName);
+                                                           HTTPDownloader.downloadFile(imageURL, Main.CACHE_FOLDER.getAbsolutePath(), fileName);
                                                            Main.logger.debug("Cover downloaded");
                                                            return null;
                                                        }
                                                    };
-                                                   task.setOnSucceeded(eh->{
+                                                   task.setOnSucceeded(eh -> {
                                                        Platform.runLater(new Runnable() {
                                                            @Override
                                                            public void run() {
@@ -178,12 +186,12 @@ public class GameEditScene extends BaseScene {
                                                    Thread th = new Thread(task);
                                                    th.setDaemon(true);
                                                    th.start();
-                                               }else{
+                                               } else {
                                                    coverView.setImage(new Image("file:" + File.separator + File.separator + File.separator + outputFile.getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true));
                                                }
                                                chosenImageFile = outputFile;
-                                               File localImageFile = new File(GameEntry.ENTRIES_FOLDER+File.separator+entry.getUuid().toString()+File.separator+"cover."+GameEditScene.getExtension(imageURL));
-                                               entry.setImagePath(0,localImageFile);
+                                               File localImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + "cover." + GameEditScene.getExtension(imageURL));
+                                               entry.setImagePath(0, localImageFile);
                                            }
                                        });
 
@@ -222,7 +230,7 @@ public class GameEditScene extends BaseScene {
 
         /**************************PATH*********************************************/
         contentPane.add(new Label(RESSOURCE_BUNDLE.getString("game_path") + " :"), 0, row_count);
-        PathTextField gamePathField = new PathTextField(new File(entry.getPath()).toPath(),this);
+        PathTextField gamePathField = new PathTextField(new File(entry.getPath()).toPath(), this);
         gamePathField.getTextField().setPrefColumnCount(50);
         gamePathField.setId("game_path");
         gamePathField.getTextField().textProperty().addListener(new ChangeListener<String>() {
@@ -246,7 +254,7 @@ public class GameEditScene extends BaseScene {
 
         /***************************SEPARATORS******************************************/
         Separator s1 = new Separator();
-        contentPane.add(s1,0,row_count);
+        contentPane.add(s1, 0, row_count);
         row_count++;
 
         /**************************YEAR*********************************************/
@@ -328,11 +336,11 @@ public class GameEditScene extends BaseScene {
         if (!newValue.equals("")) {
             for (Node node : contentPane.getChildren()) {
                 if (node.getId() != null && node.getId().equals(property)) {
-                    if(node instanceof TextField) {
+                    if (node instanceof TextField) {
                         ((TextField) node).setText(newValue);
-                    }else if(node instanceof  TextArea) {
+                    } else if (node instanceof TextArea) {
                         ((TextArea) node).setText(newValue);
-                    }else if(node instanceof  PathTextField) {
+                    } else if (node instanceof PathTextField) {
                         ((PathTextField) node).setText(newValue);
                     }
                     break;
@@ -350,12 +358,12 @@ public class GameEditScene extends BaseScene {
         if (DEFAULT_COVER_IMAGE == null) {
             for (int i = 256; i < 1025; i *= 2) {
                 if (i > coverHeight) {
-                    DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover" + i + ".jpg", coverWidth,coverHeight, false, true);
+                    DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover" + i + ".jpg", coverWidth, coverHeight, false, true);
                     break;
                 }
             }
             if (DEFAULT_COVER_IMAGE == null) {
-                DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover.jpg", coverWidth,coverHeight, false, true);
+                DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover.jpg", coverWidth, coverHeight, false, true);
             }
         }
         coverView = new ImageView(DEFAULT_COVER_IMAGE);
@@ -364,7 +372,7 @@ public class GameEditScene extends BaseScene {
             @Override
             public void run() {
                 //TODO implement real multithreading loading
-                Image img = entry.getImage(0,  coverWidth,coverHeight, false, true);
+                Image img = entry.getImage(0, coverWidth, coverHeight, false, true);
                 coverView.setImage(img);
 
             }
@@ -389,7 +397,7 @@ public class GameEditScene extends BaseScene {
                         new FileChooser.ExtensionFilter("PNG", "*.png")
                 );
                 chosenImageFile = imageChooser.showOpenDialog(getParentStage());
-                File localCoverFile = new File(GameEntry.ENTRIES_FOLDER+File.separator+entry.getUuid().toString() + File.separator + "cover." + getExtension(chosenImageFile.getName()));
+                File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + "cover." + getExtension(chosenImageFile.getName()));
                 coverView.setImage(new Image("file:" + File.separator + File.separator + File.separator + chosenImageFile.getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true));
                 entry.setImagePath(0, localCoverFile);
             }
@@ -489,11 +497,11 @@ public class GameEditScene extends BaseScene {
             }
         };
         String title = RESSOURCE_BUNDLE.getString("add_a_game");
-        if(mode == MODE_EDIT){
+        if (mode == MODE_EDIT) {
             title = RESSOURCE_BUNDLE.getString("edit_a_game");
         }
 
-        wrappingPane.setTop(createTop(backButtonHandler,title));
+        wrappingPane.setTop(createTop(backButtonHandler, title));
     }
 
     @Override
@@ -522,18 +530,20 @@ public class GameEditScene extends BaseScene {
             return filename.substring(index + 1);
         }
     }
-    protected void setOnExitAction(ExitAction onExitAction){
+
+    protected void setOnExitAction(ExitAction onExitAction) {
         this.onExitAction = onExitAction;
     }
-    protected void addCancelButton(ExitAction onAction){
+
+    protected void addCancelButton(ExitAction onAction) {
         boolean alreadyExists = false;
-        for(Node n : buttonsBox.getChildren()){
-            if(n.getId()!=null && n.getId().equals("cancelButton")){
+        for (Node n : buttonsBox.getChildren()) {
+            if (n.getId() != null && n.getId().equals("cancelButton")) {
                 alreadyExists = true;
                 break;
             }
         }
-        if(!alreadyExists) {
+        if (!alreadyExists) {
             Button cancelButton = new Button(RESSOURCE_BUNDLE.getString("cancel"));
             cancelButton.setId("cancelButton");
             cancelButton.setOnAction(new EventHandler<ActionEvent>() {

@@ -1,3 +1,5 @@
+import com.sun.jna.platform.win32.Shell32;
+import com.sun.jna.platform.win32.Shell32Util;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -9,6 +11,12 @@ import javafx.stage.WindowEvent;
 import ui.Main;
 import ui.scene.MainScene;
 import ui.scene.SettingsScene;
+
+import com.sun.jna.Native;
+import com.sun.jna.NativeLong;
+import com.sun.jna.Pointer;
+import com.sun.jna.WString;
+import com.sun.jna.ptr.PointerByReference;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -22,11 +30,13 @@ import static ui.Main.*;
 /**
  * Created by LM on 15/07/2016.
  */
-public class Launcher extends Application{
+public class Launcher extends Application {
     private int trayMessageCount = 0;
 
-    public static void main(String[] args){
-        if(args.length>0){
+    public static void main(String[] args) {
+        setCurrentProcessExplicitAppUserModelID("GameRoom");
+
+        if (args.length > 0) {
             Main.DEV_MODE = args[0].equals("dev");
         }
         Main.main(args);
@@ -43,11 +53,11 @@ public class Launcher extends Application{
         primaryStage.setFullScreen(GENERAL_SETTINGS.isFullScreen());
 
         //TODO replace false by setting "start minimized"
-        if(GENERAL_SETTINGS.isMinimizeOnStart()) {
+        if (GENERAL_SETTINGS.isMinimizeOnStart()) {
             primaryStage.setOpacity(0);
         }
         primaryStage.show();
-        if(GENERAL_SETTINGS.isMinimizeOnStart()) {
+        if (GENERAL_SETTINGS.isMinimizeOnStart()) {
             primaryStage.hide();
             primaryStage.setOpacity(1);
         }
@@ -58,9 +68,9 @@ public class Launcher extends Application{
     }
 
     @Override
-    public void stop(){
+    public void stop() {
         Main.logger.info("Closing app, saving settings.");
-        for(int i = 0; i< CACHE_FOLDER.listFiles().length; i++){
+        for (int i = 0; i < CACHE_FOLDER.listFiles().length; i++) {
             File temp = CACHE_FOLDER.listFiles()[i];
             temp.delete();
         }
@@ -68,10 +78,11 @@ public class Launcher extends Application{
 
         System.exit(0);
     }
-    private void initIcons(Stage stage){
 
-        for(int i = 32; i<513;i*=2){
-            stage.getIcons().add(new Image("res/ui/icon/icon"+i+".png"));
+    private void initIcons(Stage stage) {
+
+        for (int i = 32; i < 513; i *= 2) {
+            stage.getIcons().add(new Image("res/ui/icon/icon" + i + ".png"));
         }
 
         //Check the SystemTray is supported
@@ -82,7 +93,7 @@ public class Launcher extends Application{
 
         final PopupMenu popup = new PopupMenu();
         Image fxImage = new Image("res/ui/icon/icon16.png");
-        TRAY_ICON = new TrayIcon(SwingFXUtils.fromFXImage(fxImage,null));
+        TRAY_ICON = new TrayIcon(SwingFXUtils.fromFXImage(fxImage, null));
         TRAY_ICON.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -116,22 +127,22 @@ public class Launcher extends Application{
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
-                    if (event.getEventType().equals(WindowEvent.WINDOW_CLOSE_REQUEST)) {
-                        if(!DEV_MODE) {
-                            stage.hide();
-                            if (trayMessageCount < 2 && !GENERAL_SETTINGS.isNoMoreTrayMessage() && !GENERAL_SETTINGS.isDisableAllNotifications()) {
-                                TRAY_ICON.displayMessage("GameRoom"
-                                        , RESSOURCE_BUNDLE.getString("tray_icon_still_running_1")
-                                                + RESSOURCE_BUNDLE.getString("always_in_background")
-                                                + RESSOURCE_BUNDLE.getString("tray_icon_still_running_2"), TrayIcon.MessageType.INFO);
-                                trayMessageCount++;
-                            } else {
-                                if (!GENERAL_SETTINGS.isNoMoreTrayMessage()) {
-                                    GENERAL_SETTINGS.setNoMoreTrayMessage(true);
-                                }
+                if (event.getEventType().equals(WindowEvent.WINDOW_CLOSE_REQUEST)) {
+                    if (!DEV_MODE) {
+                        stage.hide();
+                        if (trayMessageCount < 2 && !GENERAL_SETTINGS.isNoMoreTrayMessage() && !GENERAL_SETTINGS.isDisableAllNotifications()) {
+                            TRAY_ICON.displayMessage("GameRoom"
+                                    , RESSOURCE_BUNDLE.getString("tray_icon_still_running_1")
+                                            + RESSOURCE_BUNDLE.getString("always_in_background")
+                                            + RESSOURCE_BUNDLE.getString("tray_icon_still_running_2"), TrayIcon.MessageType.INFO);
+                            trayMessageCount++;
+                        } else {
+                            if (!GENERAL_SETTINGS.isNoMoreTrayMessage()) {
+                                GENERAL_SETTINGS.setNoMoreTrayMessage(true);
                             }
                         }
                     }
+                }
             }
         });
         final SystemTray tray = SystemTray.getSystemTray();
@@ -148,7 +159,7 @@ public class Launcher extends Application{
         settingsItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                MAIN_SCENE.fadeTransitionTo(new SettingsScene(new StackPane(),stage,MAIN_SCENE),stage);
+                MAIN_SCENE.fadeTransitionTo(new SettingsScene(new StackPane(), stage, MAIN_SCENE), stage);
                 open(stage);
             }
         });
@@ -180,4 +191,16 @@ public class Launcher extends Application{
             System.out.println("TrayIcon could not be added.");
         }
     }
+
+    public static void setCurrentProcessExplicitAppUserModelID(final String appID) {
+        if (SetCurrentProcessExplicitAppUserModelID(new WString(appID)).longValue() != 0)
+            throw new RuntimeException("unable to set current process explicit AppUserModelID to: " + appID);
+    }
+
+    private static native NativeLong SetCurrentProcessExplicitAppUserModelID(WString appID);
+
+    static {
+        Native.register("shell32");
+    }
+
 }

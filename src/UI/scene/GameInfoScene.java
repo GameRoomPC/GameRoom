@@ -1,6 +1,7 @@
 package ui.scene;
 
 import javafx.geometry.HPos;
+import javafx.scene.Node;
 import sun.java2d.windows.GDIRenderer;
 import ui.control.button.gamebutton.InfoGameButton;
 import data.game.GameEntry;
@@ -24,6 +25,7 @@ import static ui.Main.*;
 public class GameInfoScene extends BaseScene {
     private BorderPane wrappingPane;
     private GameEntry entry;
+    private GridPane propertiesPane = new GridPane();
 
     private int row_count=0;
 
@@ -79,8 +81,6 @@ public class GameInfoScene extends BaseScene {
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
-        GridPane propertiesPane = new GridPane();
-
         propertiesPane.setVgap(20* SCREEN_WIDTH /1920);
         propertiesPane.setHgap(20* SCREEN_WIDTH /1920);
 
@@ -92,8 +92,8 @@ public class GameInfoScene extends BaseScene {
         propertiesPane.getColumnConstraints().add(cc2);
 
         propertiesPane.setAlignment(Pos.TOP_LEFT);
-        addProperty(RESSOURCE_BUNDLE.getString("play_time"), entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS), propertiesPane).setStyle("-fx-font-size: 34.0px;");
-        addProperty(RESSOURCE_BUNDLE.getString("game_path"), entry.getPath(),propertiesPane);
+        addProperty("play_time", entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS)).setStyle("-fx-font-size: 34.0px;");
+        addProperty("game_path", entry.getPath());
 
         /***************************SEPARATORS******************************************/
         Separator s1 = new Separator();
@@ -101,10 +101,10 @@ public class GameInfoScene extends BaseScene {
         row_count++;
         /****************************END SEPARATORS************************************/
 
-        addProperty(RESSOURCE_BUNDLE.getString("year"), entry.getYear(),propertiesPane);
-        addProperty(RESSOURCE_BUNDLE.getString("developer"), entry.getDeveloper(),propertiesPane);
-        addProperty(RESSOURCE_BUNDLE.getString("publisher"), entry.getPublisher(),propertiesPane);
-        addProperty(RESSOURCE_BUNDLE.getString("description"), entry.getDescription(),propertiesPane);
+        addProperty("year", entry.getYear());
+        addProperty("developer", entry.getDeveloper());
+        addProperty("publisher", entry.getPublisher());
+        addProperty("description", entry.getDescription());
 
         GridPane coverAndPropertiesPane = new GridPane();
 
@@ -122,21 +122,30 @@ public class GameInfoScene extends BaseScene {
         wrappingPane.setCenter(coverAndPropertiesPane);
 
     }
-    private Label addProperty(String title, String value, GridPane contentPane){
-        Label titleLabel = new Label(title+" :");
+    private Label addProperty(String title, String value){
+        Label titleLabel = new Label(RESSOURCE_BUNDLE.getString(title)+" :");
         titleLabel.setAlignment(Pos.TOP_LEFT);
         titleLabel.setStyle("-fx-font-weight: lighter;");
-        titleLabel.setTooltip(new Tooltip(title));
-        contentPane.add(titleLabel,0,row_count);
+        titleLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString(title)));
+        propertiesPane.add(titleLabel,0,row_count);
         Label valueLabel = new Label(value);
         if(value.equals("")){
             valueLabel.setText("-");
         }
         valueLabel.setStyle("-fx-font-weight: normal;");
-        contentPane.add(valueLabel, 1,row_count);
+        propertiesPane.add(valueLabel, 1,row_count);
         valueLabel.setWrapText(true);
+        valueLabel.setId(title);
         row_count++;
         return valueLabel;
+    }
+
+    protected void updateProperty(String title, String value){
+        for(Node node : propertiesPane.getChildren()){
+            if(node!=null && node instanceof Label && node.getId()!=null && node.getId().equals(title)){
+                ((Label)node).setText(value);
+            }
+        }
     }
 
     @Override

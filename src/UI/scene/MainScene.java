@@ -7,6 +7,7 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
+import org.lwjgl.glfw.GLFWKeyCallback;
 import system.os.WindowsShortcut;
 import ui.control.button.ImageButton;
 import ui.dialog.ChoiceDialog;
@@ -33,15 +34,18 @@ import ui.scene.exitaction.ClassicExitAction;
 import ui.scene.exitaction.ExitAction;
 import ui.scene.exitaction.MultiAddExitAction;
 
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.*;
 import java.util.List;
 
+import static org.lwjgl.glfw.GLFW.*;
 import static ui.Main.*;
 import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
 
@@ -139,7 +143,11 @@ public class MainScene extends BaseScene {
         th.start();
 
         ScrollPane centerPane = new ScrollPane();
-        remapArrowKeys(centerPane);
+        try {
+            remapArrowKeys(centerPane);
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
         centerPane.setFitToWidth(true);
         centerPane.setFitToHeight(true);
         //centerPane.setPrefViewportHeight(tilePane.getPrefHeight());
@@ -402,7 +410,55 @@ public class MainScene extends BaseScene {
             return new ClassicExitAction(this,getParentStage(),MAIN_SCENE);
         }
     }
-    private void remapArrowKeys(ScrollPane scrollPane) {
+    private void remapArrowKeys(ScrollPane scrollPane) throws AWTException {
+        /*Robot r = new Robot();
+
+        Runnable controllerTask = new Runnable() {
+            @Override
+            public void run() {
+                glfwPollEvents();
+                //Main.logger.debug("Joystick connected : "+glfwJoystickPresent(0));
+
+                while (true){
+                     byte[] buttonBuffer = glfwGetJoystickButtons(GLFW_JOYSTICK_1).array();
+                     if(buttonBuffer[0]==1){
+                         r.keyPress(java.awt.event.KeyEvent.VK_ENTER);
+                     }
+                     if(buttonBuffer[1]==1){
+                         r.keyPress(java.awt.event.KeyEvent.VK_ESCAPE);
+                     }
+                     if(buttonBuffer[3]==1){
+                         r.keyPress(java.awt.event.KeyEvent.VK_I);
+                     }
+                     if(buttonBuffer[10]==1){
+                         r.keyPress(java.awt.event.KeyEvent.VK_UP);
+                     }
+                     if(buttonBuffer[11]==1){
+                         r.keyPress(java.awt.event.KeyEvent.VK_RIGHT);
+                     }
+                     if(buttonBuffer[12]==1){
+                         r.keyPress(java.awt.event.KeyEvent.VK_DOWN);
+                     }
+                     if(buttonBuffer[13]==1){
+                         r.keyPress(java.awt.event.KeyEvent.VK_LEFT);
+                     }
+                     try {
+                         Thread.sleep(50);
+                     } catch (InterruptedException e) {
+                         e.printStackTrace();
+                     }
+                     try {
+                         Thread.sleep(50);
+                     } catch (InterruptedException e) {
+                         e.printStackTrace();
+                     }
+                 }
+            }
+        };
+        Thread controllerThread = new Thread(controllerTask);
+        controllerThread.setDaemon(true);
+        controllerThread.start();*/
+
         List<KeyEvent> mappedEvents = new ArrayList<>();
         scrollPane.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
             @Override
