@@ -14,6 +14,7 @@ import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import static ui.Main.*;
 
@@ -24,10 +25,12 @@ public class PathTextField extends StackPane {
     private TextField field;
     private ImageButton button;
     private BaseScene parentScene;
+    private Path initialPath;
 
-    public PathTextField(String initialText, BaseScene parentScene){
+    public PathTextField(Path initialPath, BaseScene parentScene){
         super();
-        field = new TextField(initialText);
+        this.initialPath = initialPath;
+        field = new TextField(initialPath.toString());
         Image folderImage = new Image("res/ui/folderButton.png", 50*SCREEN_WIDTH/1920, 50*SCREEN_HEIGHT/1080, false, true);
         button = new ImageButton(folderImage);
         button.setFocusTraversable(false);
@@ -40,10 +43,8 @@ public class PathTextField extends StackPane {
             @Override
             public void handle(ActionEvent event) {
                 FileChooser fileChooser = new FileChooser();
+                fileChooser.setInitialDirectory(initialPath.getParent().toFile());
                 fileChooser.setTitle(RESSOURCE_BUNDLE.getString("select_picture"));
-                fileChooser.setInitialDirectory(
-                        new File(System.getProperty("user.home"))
-                );
                 fileChooser.getExtensionFilters().addAll(
                         new FileChooser.ExtensionFilter("EXE", "*.exe"),
                         new FileChooser.ExtensionFilter("JAR", "*.jar"),
