@@ -315,6 +315,7 @@ public abstract class GameButton extends BorderPane {
             }
         });
         infoButton.addMouseEnteredHandler(e -> {
+            playTimeLabel.setText(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_SHORT_HMS));
             if (getCursor() == null) {
                 setCursor(Cursor.DEFAULT);
             }
@@ -335,7 +336,6 @@ public abstract class GameButton extends BorderPane {
             }
         });
         infoButton.addMouseExitedHandler(e -> {
-            playTimeLabel.setText(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_SHORT_HMS));
             if (getCursor() == null) {
                 setCursor(Cursor.DEFAULT);
             }
