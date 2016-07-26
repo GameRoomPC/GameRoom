@@ -251,7 +251,7 @@ public abstract class GameButton extends BorderPane {
                     fadeInTimeline.play();
 
                     //coverPane.fireEvent(new MouseEvent(MOUSE_ENTERED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
-                    if (MainScene.INPUT_MODE == MainScene.INPUT_MODE_KEYBOARD) {
+                    if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
                         playButton.fireEvent(new MouseEvent(MOUSE_ENTERED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
                     }
                 } else {
@@ -283,14 +283,14 @@ public abstract class GameButton extends BorderPane {
                         fadeOutTimeline.play();
                     }
                     //coverPane.fireEvent(new MouseEvent(MOUSE_EXITED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
-                    if (MainScene.INPUT_MODE == MainScene.INPUT_MODE_KEYBOARD) {
+                    if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
                         playButton.fireEvent(new MouseEvent(MOUSE_EXITED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
                     }
                 }
             }
         });
         coverPane.setOnMouseMoved(e -> {
-            if (MainScene.INPUT_MODE == MainScene.INPUT_MODE_MOUSE) {
+            if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_MOUSE) {
                 if (this.contains(new Point2D(e.getX(), e.getY()))) {
                     requestFocus();
                 }

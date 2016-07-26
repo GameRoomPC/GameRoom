@@ -53,8 +53,7 @@ import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
  * Created by LM on 03/07/2016.
  */
 public class MainScene extends BaseScene {
-    public static boolean SCROLLING = false;
-    public static int INPUT_MODE = 0;
+    private int input_mode = 0;
 
     public final static int INPUT_MODE_MOUSE = 0;
     public final static int INPUT_MODE_KEYBOARD = 1;
@@ -75,9 +74,8 @@ public class MainScene extends BaseScene {
 
             @Override
             public void handle(MouseEvent event) {
-                if (MainScene.INPUT_MODE == MainScene.INPUT_MODE_KEYBOARD) {
-                    MainScene.INPUT_MODE = MainScene.INPUT_MODE_MOUSE;
-                    setCursor(Cursor.DEFAULT);
+                if (getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
+                    setInputMode(MainScene.INPUT_MODE_MOUSE);
                 }
             }
         });
@@ -451,53 +449,6 @@ public class MainScene extends BaseScene {
 
             }
         });
-        /*Robot r = new Robot();
-
-        Runnable controllerTask = new Runnable() {
-            @Override
-            public void run() {
-                glfwPollEvents();
-                //Main.logger.debug("Joystick connected : "+glfwJoystickPresent(0));
-
-                while (true){
-                     byte[] buttonBuffer = glfwGetJoystickButtons(GLFW_JOYSTICK_1).array();
-                     if(buttonBuffer[0]==1){
-                         r.keyPress(java.awt.event.KeyEvent.VK_ENTER);
-                     }
-                     if(buttonBuffer[1]==1){
-                         r.keyPress(java.awt.event.KeyEvent.VK_ESCAPE);
-                     }
-                     if(buttonBuffer[3]==1){
-                         r.keyPress(java.awt.event.KeyEvent.VK_I);
-                     }
-                     if(buttonBuffer[10]==1){
-                         r.keyPress(java.awt.event.KeyEvent.VK_UP);
-                     }
-                     if(buttonBuffer[11]==1){
-                         r.keyPress(java.awt.event.KeyEvent.VK_RIGHT);
-                     }
-                     if(buttonBuffer[12]==1){
-                         r.keyPress(java.awt.event.KeyEvent.VK_DOWN);
-                     }
-                     if(buttonBuffer[13]==1){
-                         r.keyPress(java.awt.event.KeyEvent.VK_LEFT);
-                     }
-                     try {
-                         Thread.sleep(50);
-                     } catch (InterruptedException e) {
-                         e.printStackTrace();
-                     }
-                     try {
-                         Thread.sleep(50);
-                     } catch (InterruptedException e) {
-                         e.printStackTrace();
-                     }
-                 }
-            }
-        };
-        Thread controllerThread = new Thread(controllerTask);
-        controllerThread.setDaemon(true);
-        controllerThread.start();*/
 
         List<KeyEvent> mappedEvents = new ArrayList<>();
         scrollPane.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
@@ -512,8 +463,8 @@ public class MainScene extends BaseScene {
                     case LEFT:
                     case RIGHT:
                     case ENTER:
-                        INPUT_MODE = INPUT_MODE_KEYBOARD;
-                        setCursor(Cursor.NONE);
+                        setInputMode(INPUT_MODE_KEYBOARD);
+
                         KeyEvent newEvent = remap(event);
                         mappedEvents.add(newEvent);
                         event.consume();
@@ -536,5 +487,23 @@ public class MainScene extends BaseScene {
                 return newEvent.copyFor(event.getSource(), event.getTarget());
             }
         });
+    }
+    public int getInputMode(){
+        return input_mode;
+    }
+    public void setInputMode(int input_mode){
+        this.input_mode = input_mode;
+        switch(input_mode){
+            case INPUT_MODE_KEYBOARD:
+                setCursor(Cursor.NONE);
+                wrappingPane.setMouseTransparent(true);
+                break;
+
+            default:
+            case INPUT_MODE_MOUSE:
+                setCursor(Cursor.DEFAULT);
+                wrappingPane.setMouseTransparent(false);
+                break;
+        }
     }
 }
