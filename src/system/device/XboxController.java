@@ -37,6 +37,9 @@ public class XboxController {
                 break;
             }
         }
+        if(controller==null){
+            return;
+        }
 
         if (controller.poll()) {
             Main.logger.debug("Components");
@@ -47,8 +50,8 @@ public class XboxController {
         Thread th = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true) {
-                    controller.poll();
+                while (controller.poll()) {
+
                     EventQueue queue = controller.getEventQueue();
                     Event event = new Event();
                     while (queue.getNextEvent(event)) {
@@ -67,7 +70,7 @@ public class XboxController {
                         }
 
                         try {
-                            Thread.sleep(10);
+                            Thread.sleep(20);
                         } catch (InterruptedException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();

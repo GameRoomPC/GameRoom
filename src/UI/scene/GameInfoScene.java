@@ -2,7 +2,12 @@ package ui.scene;
 
 import javafx.geometry.HPos;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
 import sun.java2d.windows.GDIRenderer;
+import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.InfoGameButton;
 import data.game.GameEntry;
 import javafx.event.ActionEvent;
@@ -15,6 +20,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 
 import static ui.Main.*;
@@ -88,12 +96,27 @@ public class GameInfoScene extends BaseScene {
         cc1.setPercentWidth(20);
         propertiesPane.getColumnConstraints().add(cc1);
         ColumnConstraints cc2 = new ColumnConstraints();
-        cc2.setPercentWidth(80);
+        cc2.setPercentWidth(70);
         propertiesPane.getColumnConstraints().add(cc2);
 
         propertiesPane.setAlignment(Pos.TOP_LEFT);
         addProperty("play_time", entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS)).setStyle("-fx-font-size: 34.0px;");
+
+        /***************************PATH******************************************/
         addProperty("game_path", entry.getPath());
+        Image folderImage = new Image("res/ui/folderButton.png", 50*SCREEN_WIDTH/1920, 50*SCREEN_HEIGHT/1080, false, true);
+        ImageButton folderButton = new ImageButton(folderImage);
+        folderButton.setOnAction(event -> {
+            try {
+                Desktop.getDesktop().open(new File(entry.getPath()).getParentFile());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        propertiesPane.add(folderButton,2,row_count-1);
+        /***************************END PATH******************************************/
+
+
 
         /***************************SEPARATORS******************************************/
         Separator s1 = new Separator();
