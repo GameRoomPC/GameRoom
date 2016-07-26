@@ -7,6 +7,8 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
+import system.device.ControllerButtonListener;
+import system.device.XboxController;
 import system.os.WindowsShortcut;
 import ui.control.button.ImageButton;
 import ui.dialog.ChoiceDialog;
@@ -409,6 +411,46 @@ public class MainScene extends BaseScene {
         }
     }
     private void remapArrowKeys(ScrollPane scrollPane) throws AWTException {
+        Robot r = new Robot();
+        XboxController controller = new XboxController(new ControllerButtonListener() {
+            @Override
+            public void onButtonPressed(String buttonId) {
+                switch (buttonId) {
+                    case XboxController.BUTTON_A:
+                        r.keyPress(java.awt.event.KeyEvent.VK_ENTER);
+                        break;
+                    case XboxController.BUTTON_B:
+                        r.keyPress(java.awt.event.KeyEvent.VK_ESCAPE);
+                        break;
+                    case XboxController.BUTTON_X:
+                        //Main.logger.debug("X pressed");
+                        break;
+                    case XboxController.BUTTON_Y:
+                        r.keyPress(java.awt.event.KeyEvent.VK_I);
+                        break;
+                    case XboxController.BUTTON_DPAD_UP:
+                        r.keyPress(java.awt.event.KeyEvent.VK_UP);
+                        break;
+                    case XboxController.BUTTON_DPAD_LEFt:
+                        r.keyPress(java.awt.event.KeyEvent.VK_LEFT);
+                        break;
+                    case XboxController.BUTTON_DPAD_DOWN:
+                        r.keyPress(java.awt.event.KeyEvent.VK_DOWN);
+                        break;
+                    case XboxController.BUTTON_DPAD_RIGHT:
+                        r.keyPress(java.awt.event.KeyEvent.VK_RIGHT);
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+
+            @Override
+            public void onButtonReleased(String buttonId) {
+
+            }
+        });
         /*Robot r = new Robot();
 
         Runnable controllerTask = new Runnable() {

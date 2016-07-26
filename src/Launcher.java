@@ -1,5 +1,3 @@
-import com.sun.jna.platform.win32.Shell32;
-import com.sun.jna.platform.win32.Shell32Util;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -8,15 +6,11 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import system.device.ControllerButtonListener;
+import system.device.XboxController;
 import ui.Main;
 import ui.scene.MainScene;
 import ui.scene.SettingsScene;
-
-import com.sun.jna.Native;
-import com.sun.jna.NativeLong;
-import com.sun.jna.Pointer;
-import com.sun.jna.WString;
-import com.sun.jna.ptr.PointerByReference;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -34,7 +28,7 @@ public class Launcher extends Application {
     private int trayMessageCount = 0;
 
     public static void main(String[] args) {
-        setCurrentProcessExplicitAppUserModelID("GameRoom");
+        //setCurrentProcessExplicitAppUserModelID("GameRoom");
 
         if (args.length > 0) {
             Main.DEV_MODE = args[0].equals("dev");
@@ -192,7 +186,7 @@ public class Launcher extends Application {
         }
     }
 
-    public static void setCurrentProcessExplicitAppUserModelID(final String appID) {
+    /*public static void setCurrentProcessExplicitAppUserModelID(final String appID) {
         if (SetCurrentProcessExplicitAppUserModelID(new WString(appID)).longValue() != 0)
             throw new RuntimeException("unable to set current process explicit AppUserModelID to: " + appID);
     }
@@ -201,6 +195,6 @@ public class Launcher extends Application {
 
     static {
         Native.register("shell32");
-    }
+    }*/
 
 }
