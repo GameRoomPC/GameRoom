@@ -3,6 +3,9 @@ package system.device;
 import net.java.games.input.*;
 import ui.Main;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
 /**
  * Created by LM on 26/07/2016.
  */
@@ -25,32 +28,16 @@ public class XboxController {
     private Component[] components;
     private ControllerButtonListener controllerButtonListener;
 
+    private Runnable pollingTask;
+    private Runnable controllerDiscoverTask;
+
+    private volatile boolean runThreads = true;
 
     public XboxController(ControllerButtonListener controllerButtonListener) {
-        ControllerEnvironment controllerEnvironment = ControllerEnvironment.getDefaultEnvironment();
-        Controller[] controllers = controllerEnvironment.getControllers();
-        for (Controller controller : controllers) {
-            if (controller.getType().equals(Controller.Type.GAMEPAD) && controller.getName().contains("XBOX 360")) {
-                this.controller = controller;
-                this.components = controller.getComponents();
-                Main.logger.debug("Found gamepad [" + controller.getName() + "]");
-                break;
-            }
-        }
-        if(controller==null){
-            return;
-        }
-
-        if (controller.poll()) {
-            Main.logger.debug("Components");
-            for (Component component : components) {
-                Main.logger.debug("\t name=" + component.getName());
-            }
-        }
-        Thread th = new Thread(new Runnable() {
+        pollingTask = new Runnable() {
             @Override
             public void run() {
-                while (controller.poll()) {
+                while (controller.poll() && runThreads) {
 
                     EventQueue queue = controller.getEventQueue();
                     Event event = new Event();
@@ -70,7 +57,7 @@ public class XboxController {
                         }
 
                         try {
-                            Thread.sleep(20);
+                            Thread.sleep(25);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -78,8 +65,87 @@ public class XboxController {
 
                 }
             }
+        };
+
+        //TODO call this thread again when gamepad disconnected
+        controllerDiscoverTask = new Runnable() {
+            @Override
+            public void run() {
+
+                Controller foundController = null;
+                Component[] foundComponents = null;
+
+                while (foundController == null && runThreads) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    ControllerEnvironment controllerEnvironment = ControllerEnvironment.getDefaultEnvironment();
+                    Controller[] controllers = controllerEnvironment.getControllers();
+
+
+                    for (Controller controller : controllers) {
+                        if (controller.getType().equals(Controller.Type.GAMEPAD) && controller.getName().contains("XBOX 360")) {
+                            foundController = controller;
+                            foundComponents = controller.getComponents();
+                            Main.logger.debug("Found gamepad [" + controller.getName() + "]");
+                            break;
+                        }
+                    }
+                }
+                setController(foundController);
+                setComponents(foundComponents);
+
+                Thread th = new Thread(pollingTask);
+                th.setDaemon(true);
+                th.start();
+            }
+        };
+        startThreads();
+    }
+    private void setController(Controller controller){
+        this.controller = controller;
+    }
+    private void setComponents(Component[] components){
+        this.components = components;
+    }
+
+    /**
+     * Fix windows 8 warnings by defining a working plugin
+     */
+    static {
+
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            public Object run() {
+                String os = System.getProperty("os.name", "").trim();
+                if (os.startsWith("Windows 8") || os.startsWith("Windows 10")) {  // 8, 8.1 etc.
+
+                    // disable default plugin lookup
+                    System.setProperty("jinput.useDefaultPlugin", "false");
+
+                    // set to same as windows 7 (tested for windows 8 and 8.1)
+                    System.setProperty("net.java.games.input.plugins", "net.java.games.input.DirectAndRawInputEnvironmentPlugin");
+
+                }
+                return null;
+            }
         });
+
+    }
+    public void stopThreads(){
+        runThreads = false;
+        Main.logger.debug("Stopping xbox controller threads");
+    }
+    public void restartThreads(){
+        runThreads = true;
+        startThreads();
+        Main.logger.debug("Restarting xbox controller threads");
+    }
+    private void startThreads(){
+        Thread th = new Thread(controllerDiscoverTask);
         th.setDaemon(true);
         th.start();
     }
+
 }

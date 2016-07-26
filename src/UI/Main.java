@@ -6,6 +6,8 @@ import javafx.event.EventHandler;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.WindowEvent;
+import system.device.ControllerButtonListener;
+import system.device.XboxController;
 import ui.scene.MainScene;
 import data.game.AllGameEntries;
 import system.application.GeneralSettings;
@@ -42,6 +44,9 @@ public class Main{
     public static final File CACHE_FOLDER = new File("cache");
 
     public static Menu START_TRAY_MENU = new Menu();
+
+    public static XboxController xboxController;
+
     public static TrayIcon TRAY_ICON;
 
     public static void main(String[] args) {
@@ -55,6 +60,7 @@ public class Main{
 
         CACHE_FOLDER.mkdirs();
         GameEntry.ENTRIES_FOLDER.mkdirs();
+
     }
 
     public static void forceStop(Stage stage){

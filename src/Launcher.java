@@ -1,5 +1,7 @@
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.scene.image.Image;
@@ -41,6 +43,7 @@ public class Launcher extends Application {
     public void start(Stage primaryStage) throws Exception {
         MAIN_SCENE = new MainScene(primaryStage);
         initIcons(primaryStage);
+        initXboxController(primaryStage);
 
         primaryStage.setTitle("GameRoom");
         primaryStage.setScene(MAIN_SCENE);
@@ -57,6 +60,64 @@ public class Launcher extends Application {
         Platform.runLater(() -> {
             primaryStage.setWidth(primaryStage.getWidth());
             primaryStage.setHeight(primaryStage.getHeight());
+        });
+    }
+
+    private void initXboxController(Stage primaryStage) {
+        try {
+            Robot r = new Robot();
+            xboxController = new XboxController(new ControllerButtonListener() {
+                @Override
+                public void onButtonPressed(String buttonId) {
+                    switch (buttonId) {
+                        case XboxController.BUTTON_A:
+                            r.keyPress(java.awt.event.KeyEvent.VK_ENTER);
+                            break;
+                        case XboxController.BUTTON_B:
+                            r.keyPress(java.awt.event.KeyEvent.VK_ESCAPE);
+                            break;
+                        case XboxController.BUTTON_X:
+                            //Main.logger.debug("X pressed");
+                            break;
+                        case XboxController.BUTTON_Y:
+                            r.keyPress(java.awt.event.KeyEvent.VK_I);
+                            break;
+                        case XboxController.BUTTON_DPAD_UP:
+                            r.keyPress(java.awt.event.KeyEvent.VK_UP);
+                            break;
+                        case XboxController.BUTTON_DPAD_LEFt:
+                            r.keyPress(java.awt.event.KeyEvent.VK_LEFT);
+                            break;
+                        case XboxController.BUTTON_DPAD_DOWN:
+                            r.keyPress(java.awt.event.KeyEvent.VK_DOWN);
+                            break;
+                        case XboxController.BUTTON_DPAD_RIGHT:
+                            r.keyPress(java.awt.event.KeyEvent.VK_RIGHT);
+                            break;
+                        default:
+                            break;
+                    }
+
+                }
+
+                @Override
+                public void onButtonReleased(String buttonId) {
+
+                }
+            });
+
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
+        primaryStage.focusedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if(newValue){
+                   xboxController.restartThreads();
+                }else{
+                    xboxController.stopThreads();
+                }
+            }
         });
     }
 
@@ -117,6 +178,7 @@ public class Launcher extends Application {
         });
         TRAY_ICON.setImageAutoSize(true);
         Platform.setImplicitExit(DEV_MODE);
+
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
