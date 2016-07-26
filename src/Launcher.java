@@ -1,3 +1,6 @@
+import com.sun.jna.Native;
+import com.sun.jna.NativeLong;
+import com.sun.jna.WString;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -20,6 +23,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.PrintStream;
+import java.net.URISyntaxException;
 
 import static ui.Main.*;
 
@@ -29,9 +34,20 @@ import static ui.Main.*;
 public class Launcher extends Application {
     private int trayMessageCount = 0;
 
-    public static void main(String[] args) {
-        //setCurrentProcessExplicitAppUserModelID("GameRoom");
-
+    public static void main(String[] args) throws URISyntaxException {
+        setCurrentProcessExplicitAppUserModelID("GameRoom");
+        System.setErr(new PrintStream(System.err){
+            public void print(final String string) {
+                //System.err.print(string);
+                logger.error(string);
+            }
+        });
+        System.setOut(new PrintStream(System.out){
+            public void print(final String string) {
+                //System.out.print(string);
+                logger.debug(string);
+            }
+        });
         if (args.length > 0) {
             Main.DEV_MODE = args[0].equals("dev");
         }
@@ -247,7 +263,7 @@ public class Launcher extends Application {
         }
     }
 
-    /*public static void setCurrentProcessExplicitAppUserModelID(final String appID) {
+    public static void setCurrentProcessExplicitAppUserModelID(final String appID) {
         if (SetCurrentProcessExplicitAppUserModelID(new WString(appID)).longValue() != 0)
             throw new RuntimeException("unable to set current process explicit AppUserModelID to: " + appID);
     }
@@ -256,6 +272,6 @@ public class Launcher extends Application {
 
     static {
         Native.register("shell32");
-    }*/
+    }
 
 }
