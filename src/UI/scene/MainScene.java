@@ -260,7 +260,6 @@ public class MainScene extends BaseScene {
                             );
                             File selectedFolder = directoryChooser.showDialog(getParentStage());
                             if (selectedFolder != null) {
-                                //TODO implement import of folder of links
                                 ArrayList<File> files = new ArrayList<File>();
                                 files.addAll(Arrays.asList(selectedFolder.listFiles()));
                                 if(files.size() != 0) {

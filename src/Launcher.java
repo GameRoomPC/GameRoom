@@ -46,7 +46,6 @@ public class Launcher extends Application {
         primaryStage.setScene(MAIN_SCENE);
         primaryStage.setFullScreen(GENERAL_SETTINGS.isFullScreen());
 
-        //TODO replace false by setting "start minimized"
         if (GENERAL_SETTINGS.isMinimizeOnStart()) {
             primaryStage.setOpacity(0);
         }
