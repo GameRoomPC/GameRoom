@@ -31,7 +31,7 @@ public class XboxController {
     private Runnable pollingTask;
     private Runnable controllerDiscoverTask;
 
-    private volatile boolean runThreads = true;
+    private volatile boolean runThreads = false;
 
     public XboxController(ControllerButtonListener controllerButtonListener) {
         pollingTask = new Runnable() {
@@ -102,7 +102,6 @@ public class XboxController {
                 th.start();
             }
         };
-        startThreads();
     }
     private void setController(Controller controller){
         this.controller = controller;
@@ -137,12 +136,9 @@ public class XboxController {
         runThreads = false;
         Main.logger.debug("Stopping xbox controller threads");
     }
-    public void restartThreads(){
+    public void startThreads(){
         runThreads = true;
-        startThreads();
         Main.logger.debug("Restarting xbox controller threads");
-    }
-    private void startThreads(){
         Thread th = new Thread(controllerDiscoverTask);
         th.setDaemon(true);
         th.start();

@@ -144,6 +144,21 @@ public class SettingsScene extends BaseScene {
         contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("minimize_on_start")+" :"));
         contentPane.getChildren().add(minimizeOnStartCheckBox);
 
+        /*******************************XBOX CONTROLLER SUPPORT*******************************/
+        CheckBox xboxControllerCheckBox = new CheckBox();
+        xboxControllerCheckBox.setSelected(Main.GENERAL_SETTINGS.isMinimizeOnStart());
+        xboxControllerCheckBox.setWrapText(true);
+        xboxControllerCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                Main.GENERAL_SETTINGS.setActivateXboxControllerSupport(newValue);
+            }
+        });
+        Label xboxControllerLabel= new Label(Main.RESSOURCE_BUNDLE.getString("xbox_controller_support")+" :");
+        xboxControllerLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("xbox_controller_support_tooltip")));
+        contentPane.getChildren().add(xboxControllerLabel);
+        contentPane.getChildren().add(xboxControllerCheckBox);
+
         /*****************************POWER MODE*********************************/
         ComboBox<PowerMode> powerModeComboBox = new ComboBox<>();
         powerModeComboBox.getItems().addAll(PowerMode.getPowerModesAvailable());

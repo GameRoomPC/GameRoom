@@ -121,6 +121,9 @@ public class Launcher extends Application {
 
                 }
             });
+            if(Main.GENERAL_SETTINGS.isActivateXboxControllerSupport()) {
+                xboxController.startThreads();
+            }
 
         } catch (AWTException e) {
             e.printStackTrace();
@@ -128,9 +131,9 @@ public class Launcher extends Application {
         primaryStage.focusedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                if(newValue){
-                   xboxController.restartThreads();
-                }else{
+                if(newValue && Main.GENERAL_SETTINGS.isActivateXboxControllerSupport()){
+                   xboxController.startThreads();
+                }else if(!newValue && Main.GENERAL_SETTINGS.isActivateXboxControllerSupport()){
                     xboxController.stopThreads();
                 }
             }

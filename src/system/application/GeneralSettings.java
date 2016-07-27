@@ -28,6 +28,7 @@ public class GeneralSettings {
     private boolean noMoreTrayMessage = false;
     private boolean minimizeOnStart = false;
     private boolean disableAllNotifications = false;
+    private boolean activateXboxControllerSupport = false;
 
     public GeneralSettings(){
         loadSettings();
@@ -95,6 +96,9 @@ public class GeneralSettings {
             if(prop.getProperty("minimizeOnStart")!=null){
                 minimizeOnStart = Boolean.valueOf(prop.getProperty("minimizeOnStart"));
             }
+            if(prop.getProperty("activateXboxControllerSupport")!=null){
+                activateXboxControllerSupport = Boolean.valueOf(prop.getProperty("activateXboxControllerSupport"));
+            }
 
 
         } catch (IOException ex) {
@@ -113,6 +117,66 @@ public class GeneralSettings {
                     +", windowHeight="+ windowHeight
                     +", locale="+locale);
         }
+    }
+
+    public void saveSettings(){
+        Properties prop = new Properties();
+        OutputStream output = null;
+
+        try {
+
+            output = new FileOutputStream("config.properties");
+
+            // set the properties value
+            prop.setProperty("locale", locale);
+            prop.setProperty("onLaunchAction", onLaunchAction.getRessourceKey());
+            prop.setProperty("tileZoom", Double.toString(tileZoom));
+            prop.setProperty("fullScreen", Boolean.toString(fullScreen));
+            prop.setProperty("windowWidth", Integer.toString(windowWidth));
+            prop.setProperty("windowHeight", Integer.toString(windowHeight));
+            prop.setProperty("gamingPowerMode", gamingPowerMode.getUuid().toString());
+            prop.setProperty("enablePowerGamingMode", Boolean.toString(enablePowerGamingMode));
+            prop.setProperty("noMoreTrayMessage", Boolean.toString(noMoreTrayMessage));
+            prop.setProperty("disableAllNotifications", Boolean.toString(disableAllNotifications));
+            prop.setProperty("minimizeOnStart", Boolean.toString(minimizeOnStart));
+            prop.setProperty("activateXboxControllerSupport", Boolean.toString(activateXboxControllerSupport));
+
+
+
+
+            // save properties to project root folder
+            prop.store(output, null);
+
+        } catch (IOException io) {
+            io.printStackTrace();
+        } finally {
+            if (output != null) {
+                try {
+                    output.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+    }
+
+    /***************************SETTERS AND GETTERS*******************************/
+
+    public int getWindowWidth() {
+        return windowWidth;
+    }
+
+    public void setWindowWidth(int windowWidth) {
+        this.windowWidth = windowWidth;
+    }
+
+    public int getWindowHeight() {
+        return windowHeight;
+    }
+
+    public void setWindowHeight(int windowHeight) {
+        this.windowHeight = windowHeight;
     }
 
     public String getLocale() {
@@ -195,60 +259,17 @@ public class GeneralSettings {
         saveSettings();
     }
 
-    public void saveSettings(){
-        Properties prop = new Properties();
-        OutputStream output = null;
+    public boolean isActivateXboxControllerSupport() {
+        return activateXboxControllerSupport;
+    }
 
-        try {
-
-            output = new FileOutputStream("config.properties");
-
-            // set the properties value
-            prop.setProperty("locale", locale);
-            prop.setProperty("onLaunchAction", onLaunchAction.getRessourceKey());
-            prop.setProperty("tileZoom", Double.toString(tileZoom));
-            prop.setProperty("fullScreen", Boolean.toString(fullScreen));
-            prop.setProperty("windowWidth", Integer.toString(windowWidth));
-            prop.setProperty("windowHeight", Integer.toString(windowHeight));
-            prop.setProperty("gamingPowerMode", gamingPowerMode.getUuid().toString());
-            prop.setProperty("enablePowerGamingMode", Boolean.toString(enablePowerGamingMode));
-            prop.setProperty("noMoreTrayMessage", Boolean.toString(noMoreTrayMessage));
-            prop.setProperty("disableAllNotifications", Boolean.toString(disableAllNotifications));
-            prop.setProperty("minimizeOnStart", Boolean.toString(minimizeOnStart));
-
-
-
-            // save properties to project root folder
-            prop.store(output, null);
-
-        } catch (IOException io) {
-            io.printStackTrace();
-        } finally {
-            if (output != null) {
-                try {
-                    output.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
+    public void setActivateXboxControllerSupport(boolean activateXboxControllerSupport) {
+        this.activateXboxControllerSupport = activateXboxControllerSupport;
+        if(activateXboxControllerSupport){
+            Main.xboxController.startThreads();
+        }else{
+            Main.xboxController.stopThreads();
         }
+        saveSettings();
     }
-
-    public int getWindowWidth() {
-        return windowWidth;
-    }
-
-    public void setWindowWidth(int windowWidth) {
-        this.windowWidth = windowWidth;
-    }
-
-    public int getWindowHeight() {
-        return windowHeight;
-    }
-
-    public void setWindowHeight(int windowHeight) {
-        this.windowHeight = windowHeight;
-    }
-
 }
