@@ -23,6 +23,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
 
@@ -229,6 +230,19 @@ public class Launcher extends Application {
                 open(stage);
             }
         });
+        MenuItem gameRoomFolderItem = new MenuItem(RESSOURCE_BUNDLE.getString("gameroom_folder"));
+        gameRoomFolderItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    Desktop.getDesktop().open(new File(Launcher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()));
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                } catch (URISyntaxException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
         MenuItem settingsItem = new MenuItem(RESSOURCE_BUNDLE.getString("Settings"));
         settingsItem.addActionListener(new ActionListener() {
             @Override
@@ -253,6 +267,7 @@ public class Launcher extends Application {
         popup.add(openItem);
         popup.add(START_TRAY_MENU);
         popup.addSeparator();
+        popup.add(gameRoomFolderItem);
         popup.add(settingsItem);
         popup.addSeparator();
         popup.add(exitItem);
