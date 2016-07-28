@@ -6,6 +6,7 @@ import javafx.event.EventHandler;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.WindowEvent;
+import system.application.InternalAppNetworkManager;
 import system.device.ControllerButtonListener;
 import system.device.XboxController;
 import ui.scene.MainScene;
@@ -24,6 +25,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -50,6 +52,17 @@ public class Main{
     public static TrayIcon TRAY_ICON;
 
     public static void main(String[] args) {
+
+        /*Runtime commandPrompt = Runtime.getRuntime();
+        try {
+            Process powershell = commandPrompt.exec("powershell -Command \"get-winevent -FilterHashTable @{ logname = 'Microsoft-Windows-PrintService/Operational';StartTime = '"+givenDate+" 12:00:01 AM'; EndTime = '"+beforeDay+" 23:59:59 ';  ID = 307 ;} | ConvertTo-csv| Out-file "+ file +"\"");
+            powershell.waitFor();
+        } catch (IOException e) { } catch (InterruptedException e) {
+            e.printStackTrace();
+        }*/
+        InternalAppNetworkManager networkManager = new InternalAppNetworkManager();
+        networkManager.connect();
+
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Main.SCREEN_WIDTH = (int) screenSize.getWidth();
         Main.SCREEN_HEIGHT = (int) screenSize.getHeight();
