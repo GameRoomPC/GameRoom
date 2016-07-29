@@ -99,9 +99,9 @@ public class Main {
                 currentDir = currentDir.substring(1); //Remove first '/' symbol
             }
             LOGGER.info("Starting updater");
-            ProcessBuilder builder = new ProcessBuilder("java",
-                    "-jar"
-                    , "\"" + currentDir + "Updater.jar\""
+            ProcessBuilder builder = new ProcessBuilder("java"
+                    ,"-jar"
+                    ,"\"" + currentDir + "Updater.jar\""
                     , getVersion()
                     , VERSION_XML_URL
                     , CHANGELOG_MD_URL
