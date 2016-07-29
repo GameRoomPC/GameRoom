@@ -7,8 +7,6 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
-import system.device.ControllerButtonListener;
-import system.device.XboxController;
 import system.os.WindowsShortcut;
 import ui.control.button.ImageButton;
 import ui.dialog.ChoiceDialog;
@@ -40,8 +38,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.*;
 import java.util.List;
@@ -234,8 +230,7 @@ public class MainScene extends BaseScene {
                             //TODO fix internet shorcuts problem (bug submitted)
                             fileChooser.getExtensionFilters().addAll(
                                     new FileChooser.ExtensionFilter("EXE", "*.exe"),
-                                    new FileChooser.ExtensionFilter("JAR", "*.jar"),
-                                    new FileChooser.ExtensionFilter("URL", "*.url")
+                                    new FileChooser.ExtensionFilter("JAR", "*.jar")
                             );
                             try {
                                 File selectedFile = fileChooser.showOpenDialog(getParentStage());
@@ -330,7 +325,7 @@ public class MainScene extends BaseScene {
     }
 
     public void removeGame(GameEntry entry) {
-        Main.logger.debug("Removed game : " + entry.getName());
+        Main.LOGGER.debug("Removed game : " + entry.getName());
         tilePane.getChildren().remove(indexOf(entry));
 
         int indexToRemove = -1;
@@ -345,7 +340,7 @@ public class MainScene extends BaseScene {
     }
 
     public void updateGame(GameEntry entry) {
-        Main.logger.debug("Updated game : " + entry.getName());
+        Main.LOGGER.debug("Updated game : " + entry.getName());
         tilePane.getChildren().set(indexOf(entry), new TileGameButton(entry, tilePane, this));
 
         for (int i = 0; i < AllGameEntries.ENTRIES_LIST.size(); i++) {
@@ -359,7 +354,7 @@ public class MainScene extends BaseScene {
     }
 
     public void addGame(GameEntry entry) {
-        Main.logger.debug("Added game : " + entry.getName());
+        Main.LOGGER.debug("Added game : " + entry.getName());
         tilePane.getChildren().add(new TileGameButton(entry, tilePane, this));
         sortByName();
         AllGameEntries.ENTRIES_LIST.add(entry);

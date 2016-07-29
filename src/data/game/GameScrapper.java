@@ -91,7 +91,7 @@ public class GameScrapper {
             entry.setDescription(game_data.getJSONObject("esrb").getString("synopsis"));
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.logger.warn(entry.getName()+" : no synopsis");
+                Main.LOGGER.warn(entry.getName()+" : no synopsis");
             }else{
                 je.printStackTrace();
             }
@@ -115,7 +115,7 @@ public class GameScrapper {
             entry.setYear(years.get(0));
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.logger.warn(entry.getName()+" : no year");
+                Main.LOGGER.warn(entry.getName()+" : no year");
             }else{
                 je.printStackTrace();
             }
@@ -139,7 +139,7 @@ public class GameScrapper {
             entry.setPublisher(publishers);
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.logger.warn(entry.getName()+" : no publishers");
+                Main.LOGGER.warn(entry.getName()+" : no publishers");
             }else{
                 je.printStackTrace();
             }
@@ -162,7 +162,7 @@ public class GameScrapper {
             entry.setDeveloper(developers);
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.logger.warn(entry.getName()+" : no developers");
+                Main.LOGGER.warn(entry.getName()+" : no developers");
             }else{
                 je.printStackTrace();
             }
@@ -171,7 +171,7 @@ public class GameScrapper {
             entry.setIgdb_imageURL(0, GameScrapper.getCoverImage("cover_big_2x", game_data));
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.logger.warn(entry.getName()+" : no cover");
+                Main.LOGGER.warn(entry.getName()+" : no cover");
             }else{
                 je.printStackTrace();
             }
@@ -180,7 +180,7 @@ public class GameScrapper {
             entry.setIgdb_ID(game_data.getInt("id"));
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.logger.warn(entry.getName()+" : no id");
+                Main.LOGGER.warn(entry.getName()+" : no id");
             }else{
                 je.printStackTrace();
             }

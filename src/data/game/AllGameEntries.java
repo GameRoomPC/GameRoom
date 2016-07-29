@@ -4,7 +4,6 @@ import ui.Main;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.UUID;
 
 /**
@@ -41,10 +40,10 @@ public class AllGameEntries {
                     uuids.add(UUID.fromString(name));
                 }
             }catch (IllegalArgumentException iae){
-                Main.logger.warn("Folder "+name+" is not a valid UUID, ignoring");
+                Main.LOGGER.warn("Folder "+name+" is not a valid UUID, ignoring");
             }
         }
-        Main.logger.info("Loaded " + uuids.size()+" uuids.");
+        Main.LOGGER.info("Loaded " + uuids.size()+" uuids.");
         return uuids;
     }
 

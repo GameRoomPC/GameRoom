@@ -34,7 +34,7 @@ public class Terminal {
         String s="";
         // read any errors from the attempted command
         while ((s = stdError.readLine()) != null) {
-            Main.logger.error("[cmd="+command+"] "+s);
+            Main.LOGGER.error("[cmd="+command+"] "+s);
         }
         String[] result = stdInput.lines().toArray(size -> new String[size]);
 

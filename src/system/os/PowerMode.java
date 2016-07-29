@@ -32,7 +32,7 @@ public class PowerMode {
     public void activate(){
         Terminal terminal = new Terminal();
         try {
-            Main.logger.info("Activating power mode : "+alias);
+            Main.LOGGER.info("Activating power mode : "+alias);
             terminal.execute("powercfg", "-setactive", uuid.toString());
         } catch (IOException e1) {
             e1.printStackTrace();
@@ -76,9 +76,9 @@ public class PowerMode {
             String[] result = terminal.execute("powercfg", "-list");
             ArrayList<PowerMode> powerModes = readFromLines(result);
 
-            Main.logger.info("Available power modes : ");
+            Main.LOGGER.info("Available power modes : ");
             for(PowerMode pm : powerModes){
-                Main.logger.debug("\t-"+pm);
+                Main.LOGGER.debug("\t-"+pm);
             }
             return powerModes;
 
@@ -94,7 +94,7 @@ public class PowerMode {
             ArrayList<PowerMode> powerModes = readFromLines(result);
 
             for(PowerMode pm : powerModes){
-                Main.logger.info("Current power mode : "+pm.getAlias());
+                Main.LOGGER.info("Current power mode : "+pm.getAlias());
                 return pm;
             }
         } catch (IOException e1) {

@@ -269,7 +269,7 @@ public class GameEntry {
                     result+="0";
                 }
                 result+=seconds;
-                //Main.logger.debug("TIME computed : "+result);
+                //Main.LOGGER.debug("TIME computed : "+result);
                 break;
             case TIME_FORMAT_FULL_HMS:
                 result+= hours+ "h";

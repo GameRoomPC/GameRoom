@@ -5,19 +5,11 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.stage.Modality;
-import javafx.stage.StageStyle;
 import system.os.PowerMode;
 import ui.Main;
 
 import java.awt.*;
 import java.io.*;
-import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.MAIN_SCENE;
@@ -55,7 +47,7 @@ public class GameStarter {
                 if(GENERAL_SETTINGS.getOnLaunchAction().equals(OnLaunchAction.CLOSE)){
                     Main.forceStop(MAIN_SCENE.getParentStage());
                 }else if(GENERAL_SETTINGS.getOnLaunchAction().equals(OnLaunchAction.HIDE)){
-                    Main.logger.debug("Hiding");
+                    Main.LOGGER.debug("Hiding");
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
@@ -76,7 +68,7 @@ public class GameStarter {
             @Override
             public void changed(ObservableValue<? extends Long> observable, Long oldValue, Long newValue) {
                 if(!newValue.equals(new Long(-1))){
-                    Main.logger.debug("Adding "+Math.round(newValue/1000.0)+"s to game "+entry.getName());
+                    Main.LOGGER.debug("Adding "+Math.round(newValue/1000.0)+"s to game "+entry.getName());
                     entry.setAlreadyStartedInGameRoom(false);
                     entry.setSavedLocaly(true);
                     entry.addPlayTimeSeconds(Math.round(newValue/1000.0));

@@ -1,6 +1,5 @@
 package ui.scene;
 
-import javafx.geometry.HPos;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
@@ -168,9 +167,9 @@ public class GameEditScene extends BaseScene {
                                                    Task<String> task = new Task<String>() {
                                                        @Override
                                                        protected String call() throws Exception {
-                                                           Main.logger.debug("Downloading " + imageURL);
+                                                           Main.LOGGER.debug("Downloading " + imageURL);
                                                            HTTPDownloader.downloadFile(imageURL, Main.CACHE_FOLDER.getAbsolutePath(), fileName);
-                                                           Main.logger.debug("Cover downloaded");
+                                                           Main.LOGGER.debug("Cover downloaded");
                                                            return null;
                                                        }
                                                    };
@@ -178,7 +177,7 @@ public class GameEditScene extends BaseScene {
                                                        Platform.runLater(new Runnable() {
                                                            @Override
                                                            public void run() {
-                                                               Main.logger.info(outputFile.getAbsolutePath());
+                                                               //Main.LOGGER.info(outputFile.getAbsolutePath());
                                                                coverView.setImage(new Image("file:" + File.separator + File.separator + File.separator + outputFile.getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true));
                                                            }
                                                        });

@@ -1,6 +1,5 @@
 package system.application;
 
-import javafx.application.Platform;
 import system.os.PowerMode;
 import ui.Main;
 
@@ -78,7 +77,7 @@ public class GeneralSettings {
                 gamingPowerMode = new PowerMode(UUID.fromString(prop.getProperty("gamingPowerMode")));
             }else{
                 gamingPowerMode = PowerMode.getActivePowerMode();
-                Main.logger.debug(gamingPowerMode);
+                Main.LOGGER.debug(gamingPowerMode);
             }
             if(prop.getProperty("enablePowerGamingMode")!=null){
                 enablePowerGamingMode = Boolean.valueOf(prop.getProperty("enablePowerGamingMode"));
@@ -112,7 +111,7 @@ public class GeneralSettings {
                     e.printStackTrace();
                 }
             }
-            Main.logger.info("Loaded settings : "
+            Main.LOGGER.info("Loaded settings : "
                     +"windowWidth="+windowWidth
                     +", windowHeight="+ windowHeight
                     +", locale="+locale);

@@ -170,7 +170,7 @@ public class SearchDialog extends Dialog<GameEntry> {
                                     }
                                 }
 
-                                Main.logger.debug(gameList.substring(0, gameList.length() - 3));
+                                Main.LOGGER.debug(gameList.substring(0, gameList.length() - 3));
                                 return null;
                             }
                         };

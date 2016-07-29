@@ -78,7 +78,7 @@ public class Monitor {
                 e.printStackTrace();
             }
         }
-        Main.logger.info("Monitoring " + gameStarter.getGameEntry().getProcessName());
+        Main.LOGGER.info("Monitoring " + gameStarter.getGameEntry().getProcessName());
         while (isProcessRunning()) {
             long result = computeTrueRunningTime();
             gameStarter.getGameEntry().setSavedLocaly(true);
@@ -90,10 +90,10 @@ public class Monitor {
                 e.printStackTrace();
             }
         }
-        Main.logger.info(gameStarter.getGameEntry().getProcessName() + " killed");
+        Main.LOGGER.info(gameStarter.getGameEntry().getProcessName() + " killed");
 
         long result = computeTrueRunningTime();
-        Main.logger.debug("\tComputed playtime : "+ GameEntry.getPlayTimeFormatted(Math.round(result/1000),GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
+        Main.LOGGER.debug("\tComputed playtime : "+ GameEntry.getPlayTimeFormatted(Math.round(result/1000),GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
 
         if (result < MIN_MONITOR_TIME) {
             final FutureTask<Long> query = new FutureTask(new Callable() {
@@ -111,7 +111,7 @@ public class Monitor {
 
                     Optional<ButtonType> dialogResult = alert.showAndWait();
                     if (dialogResult.get() == ButtonType.OK) {
-                        Main.logger.info(gameStarter.getGameEntry().getProcessName() + " : waiting for until next launch to count playtime.");
+                        Main.LOGGER.info(gameStarter.getGameEntry().getProcessName() + " : waiting for until next launch to count playtime.");
                         return new Long(-1);
                     }
                     gameStarter.onStop();
@@ -172,8 +172,8 @@ public class Monitor {
                 "    Wscript.Echo objEvent.EventCode & \""+TIME_TAG+"\" & objEvent.TimeWritten\n"+
                 "Next";
         //TODO fix incorrect timezone in uppper script
-        //Main.logger.debug("\tOriginal date : "+ DATE_FORMAT.format(creationDate.getTime()));
-        //Main.logger.debug("\tCorrected date : "+ DATE_FORMAT.format(creationDate.getTime()-3600000*2));
+        //Main.LOGGER.debug("\tOriginal date : "+ DATE_FORMAT.format(creationDate.getTime()));
+        //Main.LOGGER.debug("\tCorrected date : "+ DATE_FORMAT.format(creationDate.getTime()-3600000*2));
 
         File standbyWatcher = File.createTempFile("event_watcher", ".vbs");
         standbyWatcher.deleteOnExit();
@@ -223,11 +223,11 @@ public class Monitor {
                 new BufferedReader
                         (new InputStreamReader(p.getErrorStream()));
         while ((line = errors.readLine()) != null) {
-            Main.logger.error(line);
+            Main.LOGGER.error(line);
         }
         errors.close();
 
-        //Main.logger.debug("\tComputed result : "+ GameEntry.getPlayTimeFormatted(result/1000,GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
+        //Main.LOGGER.debug("\tComputed result : "+ GameEntry.getPlayTimeFormatted(result/1000,GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
 
         return result;
     }
@@ -245,7 +245,7 @@ public class Monitor {
                 String dateString = line.substring(TIME_TAG.length(), line.indexOf('.'));
                 try {
                     resultDate = DATE_FORMAT.parse(dateString);
-                    Main.logger.debug("Found creation date of process : "+ DEBUG_DATE_FORMAT.format(resultDate));
+                    Main.LOGGER.debug("Found creation date of process : "+ DEBUG_DATE_FORMAT.format(resultDate));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }

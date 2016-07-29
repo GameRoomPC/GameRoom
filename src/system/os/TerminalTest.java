@@ -34,7 +34,7 @@ public class TerminalTest extends Application {
                     try {
                         String[] result = terminal.execute("powercfg", "-list");
                         for(String s : result){
-                            Main.logger.debug("[cmd powercfg] "+s);
+                            Main.LOGGER.debug("[cmd powercfg] "+s);
                         }
                     } catch (IOException e1) {
                         e1.printStackTrace();

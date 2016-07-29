@@ -46,13 +46,13 @@ public abstract class BaseScene extends Scene {
 
         widthProperty().addListener(new ChangeListener<Number>() {
             @Override public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneWidth, Number newSceneWidth) {
-                //ui.Main.logger.debug("New window's width : "+ newSceneWidth);
+                //ui.Main.LOGGER.debug("New window's width : "+ newSceneWidth);
                 Main.GENERAL_SETTINGS.setWindowWidth(newSceneWidth.intValue());
             }
         });
         heightProperty().addListener(new ChangeListener<Number>() {
             @Override public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneHeight, Number newSceneHeight) {
-                //ui.Main.logger.debug("New window's height : "+ newSceneHeight);
+                //ui.Main.LOGGER.debug("New window's height : "+ newSceneHeight);
                 Main.GENERAL_SETTINGS.setWindowHeight(newSceneHeight.intValue());
             }
         });

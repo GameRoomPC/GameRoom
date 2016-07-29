@@ -1,10 +1,13 @@
 package ui.scene;
 
+import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 import sun.java2d.windows.GDIRenderer;
+import system.application.MessageListener;
+import system.application.MessageTag;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
@@ -196,6 +199,32 @@ public class SettingsScene extends BaseScene {
 
         contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("gaming_power_mode")+" :"));
         contentPane.getChildren().add(powerModeComboBox);
+
+        /***********************VERSION CHECK****************************/
+        Label versionLabel = new Label(Main.RESSOURCE_BUNDLE.getString("version")+": "+Main.getVersion());
+        Button checkUpdatesButton = new Button(Main.RESSOURCE_BUNDLE.getString("check_now"));
+
+        NETWORK_MANAGER.addMessageListener(new MessageListener() {
+            @Override
+            public void onMessageReceived(MessageTag tag, String payload) {
+                if(tag.equals(MessageTag.ERROR)){
+                    Platform.runLater(() -> checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("error")));
+                }else if(tag.equals(MessageTag.NO_UPDATE)){
+                    Platform.runLater(() -> checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("up_to_date!")));
+                }else if(tag.equals(MessageTag.NEW_UPDATE)){
+                    Platform.runLater(() -> checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("new_version")+": "+payload));
+                }
+            }
+        });
+        checkUpdatesButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("loading")+"...");
+                Main.startUpdater();
+            }
+        });
+        contentPane.getChildren().add(versionLabel);
+        contentPane.getChildren().add(checkUpdatesButton);
 
         /***********************ROW CONSTRAINTS****************************/
         /**********************NO CONTROL INIT BELOW THIS*******************/

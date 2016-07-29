@@ -6,18 +6,21 @@ import org.jgroups.ReceiverAdapter;
 import org.jgroups.View;
 import ui.Main;
 
-import java.io.File;
+import java.util.ArrayList;
 
-import static ui.Main.MAIN_SCENE;
+import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 28/07/2016.
  */
 public class InternalAppNetworkManager {
     private final static String CLOSE_APP_MESSAGE = "CLOSE_APP";
+    private final static String NO_UPDATES = "NO_UPDATES";
+
+    private ArrayList<MessageListener> messageListeners = new ArrayList<>();
     private JChannel channel = null;
 
-    public InternalAppNetworkManager(){
+    public InternalAppNetworkManager() {
         try {
             channel = new JChannel();
         } catch (Exception e) {
@@ -25,34 +28,51 @@ public class InternalAppNetworkManager {
         }
 
     }
-    public void connect(){
+
+    public void connect() {
         try {
             channel.connect("GameRoomNetwork");
             channel.setReceiver(new ReceiverAdapter() {
                 @Override
                 public void viewAccepted(View newView) {
-                    Main.logger.info("Update in internal network cluster, "+newView);
+                    Main.LOGGER.info("Update in internal network cluster, " + newView);
                 }
 
                 @Override
                 public void receive(Message msg) {
-                    Main.logger.info("Received internal network message : "+(String)msg.getObject());
-                    if(msg.getObject() instanceof String){
-                        switch ((String)msg.getObject()){
-                            case CLOSE_APP_MESSAGE:
-                                Main.forceStop(MAIN_SCENE.getParentStage());
-                                break;
-                            default:
-                                break;
+                    if (msg.getObject() instanceof String) {
+                        String message = (String) msg.getObject();
+                        boolean isValid = false;
+                        for(MessageTag messageTag : MessageTag.values()){
+                            if(message.startsWith(messageTag.toString())){
+                                isValid = true;
+                                String payload = null;
+                                if(messageTag.hasPayload() && message.length() > messageTag.toString().length()){
+                                    payload = message.substring(messageTag.toString().length());
+                                }
+                                LOGGER.debug("Received message with tag \""+messageTag+"\" and payload \""+payload+"\"");
+                                for(MessageListener listener : messageListeners){
+                                    listener.onMessageReceived(messageTag, payload);
+                                }
+                            }
+                        }
+                        if(isValid){
+                            return;
                         }
                     }
+                    Main.LOGGER.warn("Received unvalid message : " + msg.getObject());
                 }
             });
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    public void disconnect(){
+
+    public void disconnect() {
         channel.disconnect();
+    }
+
+    public void addMessageListener(MessageListener messageListener) {
+        messageListeners.add(messageListener);
     }
 }

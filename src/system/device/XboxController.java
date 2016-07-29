@@ -67,7 +67,6 @@ public class XboxController {
             }
         };
 
-        //TODO call this thread again when gamepad disconnected
         controllerDiscoverTask = new Runnable() {
             @Override
             public void run() {
@@ -89,7 +88,7 @@ public class XboxController {
                         if (controller.getType().equals(Controller.Type.GAMEPAD) && controller.getName().contains("XBOX 360")) {
                             foundController = controller;
                             foundComponents = controller.getComponents();
-                            Main.logger.debug("Found gamepad [" + controller.getName() + "]");
+                            Main.LOGGER.debug("Found gamepad [" + controller.getName() + "]");
                             break;
                         }
                     }
@@ -134,11 +133,11 @@ public class XboxController {
     }
     public void stopThreads(){
         runThreads = false;
-        Main.logger.debug("Stopping xbox controller threads");
+        Main.LOGGER.debug("Stopping xbox controller threads");
     }
     public void startThreads(){
         runThreads = true;
-        Main.logger.debug("Restarting xbox controller threads");
+        Main.LOGGER.debug("Restarting xbox controller threads");
         Thread th = new Thread(controllerDiscoverTask);
         th.setDaemon(true);
         th.start();

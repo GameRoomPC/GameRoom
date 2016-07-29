@@ -40,13 +40,13 @@ public class Launcher extends Application {
         System.setErr(new PrintStream(System.err){
             public void print(final String string) {
                 //System.err.print(string);
-                logger.error(string);
+                LOGGER.error(string);
             }
         });
         System.setOut(new PrintStream(System.out){
             public void print(final String string) {
                 //System.out.print(string);
-                logger.debug(string);
+                LOGGER.debug(string);
             }
         });
         if (args.length > 0) {
@@ -94,7 +94,7 @@ public class Launcher extends Application {
                             r.keyPress(java.awt.event.KeyEvent.VK_ESCAPE);
                             break;
                         case XboxController.BUTTON_X:
-                            //Main.logger.debug("X pressed");
+                            //Main.LOGGER.debug("X pressed");
                             break;
                         case XboxController.BUTTON_Y:
                             r.keyPress(java.awt.event.KeyEvent.VK_I);
@@ -143,7 +143,7 @@ public class Launcher extends Application {
 
     @Override
     public void stop() {
-        Main.logger.info("Closing app, saving settings.");
+        Main.LOGGER.info("Closing app, saving settings.");
         for (int i = 0; i < CACHE_FOLDER.listFiles().length; i++) {
             File temp = CACHE_FOLDER.listFiles()[i];
             temp.delete();
@@ -161,7 +161,7 @@ public class Launcher extends Application {
 
         //Check the SystemTray is supported
         if (!SystemTray.isSupported()) {
-            Main.logger.error("SystemTray not supported");
+            Main.LOGGER.error("SystemTray not supported");
             return;
         }
 
