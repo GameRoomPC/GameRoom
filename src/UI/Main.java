@@ -150,6 +150,8 @@ public class Main {
     private static void initNetworkManager() {
         NETWORK_MANAGER = new InternalAppNetworkManager();
         NETWORK_MANAGER.connect();
+        //NETWORK_MANAGER.sendMessage(MessageTag.CLOSE_APP);
+
 
         NETWORK_MANAGER.addMessageListener(new MessageListener() {
             @Override

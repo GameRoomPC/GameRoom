@@ -49,6 +49,13 @@ public class Launcher extends Application {
                 LOGGER.debug(string);
             }
         });
+        System.out.println("\n\n==========================================NEW START============================================");
+
+        Main.LOGGER.debug("Received args : ");
+        for(String arg : args){
+            Main.LOGGER.debug("\t\""+arg+"\"");
+        }
+
         if (args.length > 0) {
             Main.DEV_MODE = args[0].equals("dev");
         }

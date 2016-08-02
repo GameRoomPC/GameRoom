@@ -75,4 +75,23 @@ public class InternalAppNetworkManager {
     public void addMessageListener(MessageListener messageListener) {
         messageListeners.add(messageListener);
     }
+
+    public void sendMessage(MessageTag tag, String payload){
+        if(!channel.isConnected()){
+            connect();
+        }
+        String messageToString = tag.toString();
+        if(payload!=null){
+            messageToString+=payload;
+        }
+        Message m = new Message(null,null,messageToString);
+        try {
+            channel.send(m);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public void sendMessage(MessageTag tag) {
+        sendMessage(tag, null);
+    }
 }
