@@ -4,6 +4,7 @@ import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
 import org.jgroups.View;
+import org.jgroups.util.UUID;
 import ui.Main;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ public class InternalAppNetworkManager {
 
     private ArrayList<MessageListener> messageListeners = new ArrayList<>();
     private JChannel channel = null;
+    private UUID uuid = UUID.randomUUID();
 
     public InternalAppNetworkManager() {
         try {
@@ -84,7 +86,7 @@ public class InternalAppNetworkManager {
         if(payload!=null){
             messageToString+=payload;
         }
-        Message m = new Message(null,null,messageToString);
+        Message m = new Message(null,uuid,messageToString);
         try {
             channel.send(m);
         } catch (Exception e) {

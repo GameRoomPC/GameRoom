@@ -23,6 +23,8 @@ import java.util.ResourceBundle;
 import java.util.jar.Manifest;
 
 public class Main {
+    private final static String TEMP_UPDATER_JAR_NAME=  "Updater.jar.temp";
+    private final static String UPDATER_JAR_NAME=  "Updater.jar";
     private final static String VERSION_XML_URL = "http://s639232867.onlinehome.fr/software/version.xml";
     private final static String CHANGELOG_MD_URL = "http://s639232867.onlinehome.fr/software/changelog.md";
 
@@ -73,6 +75,7 @@ public class Main {
             @Override
             public void run() {
                 Platform.setImplicitExit(true);
+                NETWORK_MANAGER.disconnect();
                 stage.close();
                 Platform.exit();
                 //
@@ -93,15 +96,22 @@ public class Main {
         try {
             String currentDir = Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
             File currentDirFile = new File(currentDir);
+
             if(!currentDirFile.isDirectory()){
                 currentDir = currentDirFile.getParent()+File.separator;
             }else{
                 currentDir = currentDir.substring(1); //Remove first '/' symbol
             }
+            File currentUpdater = new File(currentDir+UPDATER_JAR_NAME);
+            File tempUpdater = new File(currentDir+TEMP_UPDATER_JAR_NAME);
+            if(tempUpdater.exists()){
+                currentUpdater.delete();
+                tempUpdater.renameTo(currentUpdater);
+            }
             LOGGER.info("Starting updater");
             ProcessBuilder builder = new ProcessBuilder("java"
                     ,"-jar"
-                    ,"\"" + currentDir + "Updater.jar\""
+                    ,currentUpdater.getAbsolutePath()
                     , getVersion()
                     , VERSION_XML_URL
                     , CHANGELOG_MD_URL
@@ -122,14 +132,14 @@ public class Main {
                                 new InputStreamReader(process.getInputStream()));
                         String line = null;
                         while ((line = reader.readLine()) != null) {
-                            Main.LOGGER.debug("Updater.jar : "+ line);
+                            Main.LOGGER.debug(UPDATER_JAR_NAME+": "+ line);
                         }
                         reader.close();
 
                         final BufferedReader errorReader = new BufferedReader(
                                 new InputStreamReader(process.getErrorStream()));
                         while ((line = errorReader.readLine()) != null) {
-                            Main.LOGGER.error("Updater.jar : "+ line);
+                            Main.LOGGER.error(UPDATER_JAR_NAME+": "+ line);
                         }
                         errorReader.close();
 
@@ -150,7 +160,9 @@ public class Main {
     private static void initNetworkManager() {
         NETWORK_MANAGER = new InternalAppNetworkManager();
         NETWORK_MANAGER.connect();
-        //NETWORK_MANAGER.sendMessage(MessageTag.CLOSE_APP);
+
+        //close other possible instances of GameRoom
+        NETWORK_MANAGER.sendMessage(MessageTag.CLOSE_APP);
 
 
         NETWORK_MANAGER.addMessageListener(new MessageListener() {
