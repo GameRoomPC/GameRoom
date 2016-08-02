@@ -212,6 +212,7 @@ public class MainScene extends BaseScene {
             @Override
             public void handle(MouseEvent event) {
                 if (event.isPrimaryButtonDown()) {
+                    getRootStackPane().setMouseTransparent(true);
                    ChoiceDialog choiceDialog = new ChoiceDialog(
                             new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_exe"), RESSOURCE_BUNDLE.getString("add_exe_long")),
                             new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_folder"), RESSOURCE_BUNDLE.getString("add_symlink_long"))
@@ -264,7 +265,7 @@ public class MainScene extends BaseScene {
                             }
                         }
                     });
-                    //dialog.show();
+                    getRootStackPane().setMouseTransparent(false);
                 }
             }
         });

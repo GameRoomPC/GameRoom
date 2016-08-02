@@ -20,7 +20,6 @@ public class InternalAppNetworkManager {
 
     private ArrayList<MessageListener> messageListeners = new ArrayList<>();
     private JChannel channel = null;
-    private UUID uuid = UUID.randomUUID();
 
     public InternalAppNetworkManager() {
         try {
@@ -42,27 +41,29 @@ public class InternalAppNetworkManager {
 
                 @Override
                 public void receive(Message msg) {
-                    if (msg.getObject() instanceof String) {
-                        String message = (String) msg.getObject();
-                        boolean isValid = false;
-                        for(MessageTag messageTag : MessageTag.values()){
-                            if(message.startsWith(messageTag.toString())){
-                                isValid = true;
-                                String payload = null;
-                                if(messageTag.hasPayload() && message.length() > messageTag.toString().length()){
-                                    payload = message.substring(messageTag.toString().length());
-                                }
-                                LOGGER.debug("Received message with tag \""+messageTag+"\" and payload \""+payload+"\"");
-                                for(MessageListener listener : messageListeners){
-                                    listener.onMessageReceived(messageTag, payload);
+                    if(!msg.getSrc().equals(channel.getAddress())) {
+                        if (msg.getObject() instanceof String) {
+                            String message = (String) msg.getObject();
+                            boolean isValid = false;
+                            for (MessageTag messageTag : MessageTag.values()) {
+                                if (message.startsWith(messageTag.toString())) {
+                                    isValid = true;
+                                    String payload = null;
+                                    if (messageTag.hasPayload() && message.length() > messageTag.toString().length()) {
+                                        payload = message.substring(messageTag.toString().length());
+                                    }
+                                    LOGGER.debug("Received message with tag \"" + messageTag + "\" and payload \"" + payload + "\"");
+                                    for (MessageListener listener : messageListeners) {
+                                        listener.onMessageReceived(messageTag, payload);
+                                    }
                                 }
                             }
+                            if (isValid) {
+                                return;
+                            }
                         }
-                        if(isValid){
-                            return;
-                        }
+                        Main.LOGGER.warn("Received unvalid message : " + msg.getObject());
                     }
-                    Main.LOGGER.warn("Received unvalid message : " + msg.getObject());
                 }
             });
         } catch (Exception e) {
@@ -86,7 +87,7 @@ public class InternalAppNetworkManager {
         if(payload!=null){
             messageToString+=payload;
         }
-        Message m = new Message(null,uuid,messageToString);
+        Message m = new Message(null,channel.getAddress(),messageToString);
         try {
             channel.send(m);
         } catch (Exception e) {

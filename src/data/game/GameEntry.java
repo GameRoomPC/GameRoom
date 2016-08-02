@@ -185,7 +185,7 @@ public class GameEntry {
     public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth){
         File currFile = getImagePath(index);
         if(DEFAULT_IMAGES_PATHS.length > index && currFile.equals(DEFAULT_IMAGES_PATHS[index])){
-            return new Image(currFile.getPath(), width,height,preserveRatio,smooth);
+            return new Image(currFile.getPath().replace("\\","/"), width,height,preserveRatio,smooth);
         }else{
             return new Image("file:" + File.separator + File.separator + File.separator +  currFile.getAbsolutePath(), width,height,preserveRatio,smooth);
         }
