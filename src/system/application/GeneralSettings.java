@@ -28,6 +28,7 @@ public class GeneralSettings {
     private boolean minimizeOnStart = false;
     private boolean disableAllNotifications = false;
     private boolean activateXboxControllerSupport = false;
+    private String gamesFolder = "";
 
     public GeneralSettings(){
         loadSettings();
@@ -98,6 +99,9 @@ public class GeneralSettings {
             if(prop.getProperty("activateXboxControllerSupport")!=null){
                 activateXboxControllerSupport = Boolean.valueOf(prop.getProperty("activateXboxControllerSupport"));
             }
+            if(prop.getProperty("gamesFolder")!=null){
+                gamesFolder = prop.getProperty("gamesFolder");
+            }
 
 
         } catch (IOException ex) {
@@ -139,8 +143,7 @@ public class GeneralSettings {
             prop.setProperty("disableAllNotifications", Boolean.toString(disableAllNotifications));
             prop.setProperty("minimizeOnStart", Boolean.toString(minimizeOnStart));
             prop.setProperty("activateXboxControllerSupport", Boolean.toString(activateXboxControllerSupport));
-
-
+            prop.setProperty("gamesFolder", gamesFolder);
 
 
             // save properties to project root folder
@@ -269,6 +272,15 @@ public class GeneralSettings {
         }else{
             Main.xboxController.stopThreads();
         }
+        saveSettings();
+    }
+
+    public String getGamesFolder() {
+        return gamesFolder;
+    }
+
+    public void setGamesFolder(String gamesFolder) {
+        this.gamesFolder = gamesFolder;
         saveSettings();
     }
 }

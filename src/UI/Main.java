@@ -123,33 +123,6 @@ public class Main {
 
             builder.redirectError(ProcessBuilder.Redirect.PIPE);
             Process process = builder.start();
-            Thread th = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        //TODO there may be a better way read Updater.jar logs than in a new thread
-                        final BufferedReader reader = new BufferedReader(
-                                new InputStreamReader(process.getInputStream()));
-                        String line = null;
-                        while ((line = reader.readLine()) != null) {
-                            Main.LOGGER.debug(UPDATER_JAR_NAME+": "+ line);
-                        }
-                        reader.close();
-
-                        final BufferedReader errorReader = new BufferedReader(
-                                new InputStreamReader(process.getErrorStream()));
-                        while ((line = errorReader.readLine()) != null) {
-                            Main.LOGGER.error(UPDATER_JAR_NAME+": "+ line);
-                        }
-                        errorReader.close();
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            th.setDaemon(true);
-            th.start();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         } catch (IOException e) {

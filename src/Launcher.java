@@ -250,6 +250,17 @@ public class Launcher extends Application {
                 }
             }
         });
+        MenuItem gamesFolderItem = new MenuItem(RESSOURCE_BUNDLE.getString("games_folder"));
+        gamesFolderItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    Desktop.getDesktop().open(new File(GENERAL_SETTINGS.getGamesFolder()));
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
         MenuItem settingsItem = new MenuItem(RESSOURCE_BUNDLE.getString("Settings"));
         settingsItem.addActionListener(new ActionListener() {
             @Override
@@ -275,6 +286,10 @@ public class Launcher extends Application {
         popup.add(START_TRAY_MENU);
         popup.addSeparator();
         popup.add(gameRoomFolderItem);
+
+        if(!GENERAL_SETTINGS.getGamesFolder().equals("") && new File(GENERAL_SETTINGS.getGamesFolder()).isDirectory()){
+            popup.add(gamesFolderItem);
+        }
         popup.add(settingsItem);
         popup.addSeparator();
         popup.add(exitItem);

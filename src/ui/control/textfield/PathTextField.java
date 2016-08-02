@@ -1,5 +1,6 @@
 package ui.control.textfield;
 
+import javafx.stage.DirectoryChooser;
 import ui.control.button.ImageButton;
 import ui.scene.BaseScene;
 import javafx.event.ActionEvent;
@@ -15,6 +16,8 @@ import javafx.stage.StageStyle;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static ui.Main.*;
 
@@ -22,12 +25,15 @@ import static ui.Main.*;
  * Created by LM on 14/07/2016.
  */
 public class PathTextField extends StackPane {
+    public final static int FILE_CHOOSER_APPS = 0;
+    public final static int FILE_CHOOSER_FOLDER = 1;
+
     private TextField field;
     private ImageButton button;
     private BaseScene parentScene;
-    private Path initialPath;
+    private String initialPath;
 
-    public PathTextField(Path initialPath, BaseScene parentScene){
+    public PathTextField(String initialPath, BaseScene parentScene, int fileChooserCode, String fileChooserTitle){
         super();
         this.initialPath = initialPath;
         field = new TextField(initialPath.toString());
@@ -42,19 +48,44 @@ public class PathTextField extends StackPane {
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                FileChooser fileChooser = new FileChooser();
-                fileChooser.setInitialDirectory(initialPath.getParent().toFile());
-                fileChooser.setTitle(RESSOURCE_BUNDLE.getString("select_picture"));
-                fileChooser.getExtensionFilters().addAll(
-                        new FileChooser.ExtensionFilter("EXE", "*.exe"),
-                        new FileChooser.ExtensionFilter("JAR", "*.jar"),
-                        new FileChooser.ExtensionFilter("URL", "*.url")
-                );
                 try {
-                    File selectedFile = fileChooser.showOpenDialog(parentScene.getParentStage());
-                    if (selectedFile != null) {
-                        field.setText(selectedFile.getAbsolutePath());
-                    }
+                    File initialDir = new File(initialPath);
+                    switch (fileChooserCode){
+                    case FILE_CHOOSER_APPS:
+                        FileChooser fileChooser = new FileChooser();
+
+                        if(initialPath.equals("")){
+                            initialDir = new File(System.getProperty("user.home"));
+                        }else{
+                            initialDir = initialDir.getParentFile();
+                        }
+
+                        fileChooser.setInitialDirectory(initialDir);
+                        fileChooser.setTitle(fileChooserTitle);
+                        fileChooser.getExtensionFilters().addAll(
+                                new FileChooser.ExtensionFilter("EXE", "*.exe"),
+                                new FileChooser.ExtensionFilter("JAR", "*.jar")
+                        );
+                        File selectedFile = fileChooser.showOpenDialog(parentScene.getParentStage());
+                        if (selectedFile != null) {
+                            field.setText(selectedFile.getAbsolutePath());
+                        }
+                        break;
+                    case FILE_CHOOSER_FOLDER:
+                        DirectoryChooser folderChooser = new DirectoryChooser();
+                        folderChooser.setTitle(fileChooserTitle);
+
+                        if(initialPath.equals("")){
+                            initialDir = new File(System.getProperty("user.home"));
+                        }
+                        folderChooser.setInitialDirectory(initialDir);
+                        File selectedFolder = folderChooser.showDialog(parentScene.getParentStage());
+                        if (selectedFolder != null) {
+                            field.setText(selectedFolder.getAbsolutePath());
+                        }
+                }
+
+
                 }catch (NullPointerException ne){
                     ne.printStackTrace();
                     Alert alert = new Alert(Alert.AlertType.WARNING);

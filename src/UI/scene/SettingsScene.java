@@ -21,7 +21,9 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
+import ui.control.textfield.PathTextField;
 
+import java.io.File;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -56,9 +58,8 @@ public class SettingsScene extends BaseScene {
         contentPane.setVgap(15);
         contentPane.setPrefColumns(2);
         contentPane.setAlignment(Pos.TOP_LEFT);
-        contentPane.setOrientation(Orientation.HORIZONTAL);
+        contentPane.setOrientation(Orientation.VERTICAL);
         contentPane.setTileAlignment(Pos.CENTER_LEFT);
-
 
 
         /*****************************LOCALE*********************************/
@@ -84,8 +85,7 @@ public class SettingsScene extends BaseScene {
                 Main.GENERAL_SETTINGS.setLocale(localeComboBox.getValue().toLanguageTag());
             }
         });
-        contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("Language")+" :"));
-        contentPane.getChildren().add(localeComboBox);
+        addLine(new Label(Main.RESSOURCE_BUNDLE.getString("Language")+" :"), localeComboBox);
 
 
         /*****************************CLOSE ON LAUNCH*********************************/
@@ -118,8 +118,7 @@ public class SettingsScene extends BaseScene {
                 }
             }
         });
-        contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("onLaunch_action")+" :"));
-        contentPane.getChildren().add(onLaunchActionComboBox);
+        addLine(new Label(Main.RESSOURCE_BUNDLE.getString("onLaunch_action")+" :"),onLaunchActionComboBox);
 
         /*******************************NOTIFICATIONS*******************************/
         CheckBox noNotifCheckBox = new CheckBox();
@@ -131,8 +130,7 @@ public class SettingsScene extends BaseScene {
                 Main.GENERAL_SETTINGS.setDisableAllNotifications(newValue);
             }
         });
-        contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("disable_tray_icon_notifications")+" :"));
-        contentPane.getChildren().add(noNotifCheckBox);
+        addLine(new Label(Main.RESSOURCE_BUNDLE.getString("disable_tray_icon_notifications")+" :"),noNotifCheckBox);
 
         /*******************************MINIMIZE ON START*******************************/
         CheckBox minimizeOnStartCheckBox = new CheckBox();
@@ -144,8 +142,7 @@ public class SettingsScene extends BaseScene {
                 Main.GENERAL_SETTINGS.setMinimizeOnStart(newValue);
             }
         });
-        contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("minimize_on_start")+" :"));
-        contentPane.getChildren().add(minimizeOnStartCheckBox);
+        addLine(new Label(Main.RESSOURCE_BUNDLE.getString("minimize_on_start")+" :"),minimizeOnStartCheckBox);
 
         /*******************************XBOX CONTROLLER SUPPORT*******************************/
         CheckBox xboxControllerCheckBox = new CheckBox();
@@ -159,8 +156,7 @@ public class SettingsScene extends BaseScene {
         });
         Label xboxControllerLabel= new Label(Main.RESSOURCE_BUNDLE.getString("xbox_controller_support")+" :");
         xboxControllerLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("xbox_controller_support_tooltip")));
-        contentPane.getChildren().add(xboxControllerLabel);
-        contentPane.getChildren().add(xboxControllerCheckBox);
+        addLine(xboxControllerLabel,xboxControllerCheckBox);
 
         /*****************************POWER MODE*********************************/
         ComboBox<PowerMode> powerModeComboBox = new ComboBox<>();
@@ -194,11 +190,22 @@ public class SettingsScene extends BaseScene {
                 powerModeComboBox.setDisable(!newValue);
             }
         });
-        contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("enable_gaming_power_mode")+" :"));
-        contentPane.getChildren().add(enablePowerMode);
+        addLine(new Label(Main.RESSOURCE_BUNDLE.getString("enable_gaming_power_mode")+" :"),enablePowerMode);
+        addLine(new Label(Main.RESSOURCE_BUNDLE.getString("gaming_power_mode")+" :"),powerModeComboBox);
 
-        contentPane.getChildren().add(new Label(Main.RESSOURCE_BUNDLE.getString("gaming_power_mode")+" :"));
-        contentPane.getChildren().add(powerModeComboBox);
+
+        /*****************************GAMES FOLDER*********************************/
+        PathTextField gamesFolderField = new PathTextField(GENERAL_SETTINGS.getGamesFolder(), this,PathTextField.FILE_CHOOSER_FOLDER,RESSOURCE_BUNDLE.getString("select_a_folder"));
+        gamesFolderField.setId("games_folder");
+        gamesFolderField.getTextField().textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                GENERAL_SETTINGS.setGamesFolder(newValue);
+            }
+        });
+        Label gamesFolderLabel= new Label(Main.RESSOURCE_BUNDLE.getString("games_folder")+" :");
+        gamesFolderLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("games_folder_tooltip")));
+        addLine(gamesFolderLabel,gamesFolderField);
 
         /***********************VERSION CHECK****************************/
         Label versionLabel = new Label(Main.RESSOURCE_BUNDLE.getString("version")+": "+Main.getVersion());
@@ -223,17 +230,39 @@ public class SettingsScene extends BaseScene {
                 Main.startUpdater();
             }
         });
-        contentPane.getChildren().add(versionLabel);
-        contentPane.getChildren().add(checkUpdatesButton);
+        addLine(versionLabel,checkUpdatesButton);
 
         /***********************ROW CONSTRAINTS****************************/
         /**********************NO CONTROL INIT BELOW THIS*******************/
-        GridPane pane = new GridPane();
-        pane.add(contentPane,0,0);
-        GridPane.setFillWidth(contentPane,false);
-        wrappingPane.setCenter(pane);
-        BorderPane.setMargin(pane, new Insets(50*SCREEN_HEIGHT/1080,50*SCREEN_WIDTH/1920,50*SCREEN_HEIGHT/1080,50*SCREEN_WIDTH/1920));
 
+
+        /*GridPane pane = new GridPane();
+        pane.add(contentPane,0,0);
+        GridPane.setFillWidth(contentPane,false);*/
+        wrappingPane.setCenter(contentPane);
+        BorderPane.setMargin(contentPane, new Insets(50*SCREEN_HEIGHT/1080,50*SCREEN_WIDTH/1920,50*SCREEN_HEIGHT/1080,50*SCREEN_WIDTH/1920));
+
+    }
+    private void addLine(Node nodeLeft, Node nodeRight){
+        HBox box = new HBox();
+
+        final HBox leftSection = new HBox( nodeLeft);
+        final HBox centerSection = new HBox(new Region());
+        final HBox rightSection = new HBox( nodeRight);
+
+
+    /* Center all sections and always grow them. Has the effect known as JUSTIFY. */
+        HBox.setHgrow( leftSection, Priority.ALWAYS );
+        HBox.setHgrow( centerSection, Priority.ALWAYS );
+        HBox.setHgrow( rightSection, Priority.ALWAYS );
+
+        leftSection.setAlignment( Pos.CENTER_LEFT );
+        centerSection.setAlignment( Pos.CENTER );
+        rightSection.setAlignment( Pos.CENTER_RIGHT );
+        box.getChildren().addAll(leftSection,centerSection,rightSection);
+        box.setSpacing(20*Main.SCREEN_WIDTH/1920);
+
+        contentPane.getChildren().add(box);
     }
     private void initTop(){
         wrappingPane.setTop(createTop(RESSOURCE_BUNDLE.getString("Settings")));
