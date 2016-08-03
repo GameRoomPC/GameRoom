@@ -1,6 +1,7 @@
 package ui;
 
 import data.game.GameEntry;
+import data.http.URLTools;
 import system.application.InternalAppNetworkManager;
 import system.application.MessageListener;
 import system.application.MessageTag;
@@ -15,18 +16,18 @@ import org.apache.logging.log4j.Logger;
 
 import java.awt.*;
 import java.io.*;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.net.*;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.jar.Manifest;
 
 public class Main {
     private final static String TEMP_UPDATER_JAR_NAME=  "Updater.jar.temp";
     private final static String UPDATER_JAR_NAME=  "Updater.jar";
-    private final static String VERSION_XML_URL = "http://s639232867.onlinehome.fr/software/version.xml";
-    private final static String CHANGELOG_MD_URL = "http://s639232867.onlinehome.fr/software/changelog.md";
+
+    private final static String HTTPS_HOST = "gameroom.me";
+    private final static String HTTP_HOST = "s639232867.onlinehome.fr";
+    private final static String URL_VERSION_XML_SUFFIX = "/software/version.xml";
+    private final static String URL_CHANGELOG_MD_SUFFIX = "/software/changelog.md";
 
     public static boolean DEV_MODE = false;
     public static double SCREEN_WIDTH;
@@ -109,12 +110,17 @@ public class Main {
                 tempUpdater.renameTo(currentUpdater);
             }
             LOGGER.info("Starting updater");
+
+            boolean httpsOnline = URLTools.pingHttps(HTTPS_HOST,2000);
+            String urlPrefix = httpsOnline? URLTools.HTTPS_PREFIX + HTTPS_HOST : URLTools.HTTP_PREFIX +HTTP_HOST;
+            Main.LOGGER.info("Using URL "+urlPrefix+" for updater.");
+
             ProcessBuilder builder = new ProcessBuilder("java"
                     ,"-jar"
                     ,currentUpdater.getAbsolutePath()
                     , getVersion()
-                    , VERSION_XML_URL
-                    , CHANGELOG_MD_URL
+                    , urlPrefix + URL_VERSION_XML_SUFFIX
+                    , urlPrefix + URL_CHANGELOG_MD_SUFFIX
                     , GENERAL_SETTINGS.getLocale()
             ).inheritIO();
 
@@ -156,5 +162,4 @@ public class Main {
         Main.LOGGER.info("App version : " + version);
         return version;
     }
-
 }
