@@ -10,6 +10,8 @@ import ui.Main;
 
 import java.awt.*;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.MAIN_SCENE;
@@ -19,6 +21,7 @@ import static ui.Main.MAIN_SCENE;
  * Created by LM on 14/07/2016.
  */
 public class GameStarter {
+    private static String STEAM_PREFIX = "steam";
     private GameEntry entry;
     private PowerMode originalPowerMode;
 
@@ -31,14 +34,25 @@ public class GameStarter {
         if(GENERAL_SETTINGS.isEnablePowerGamingMode() && !entry.isAlreadyStartedInGameRoom()){
             GENERAL_SETTINGS.getGamingPowerMode().activate();
         }
-        File gameLog = new File("log"+File.separator+entry.getProcessName()+".log");
-        ProcessBuilder builder = new ProcessBuilder('"'+entry.getPath()+'"').inheritIO();
-        builder.directory(new File(new File(entry.getPath()).getParent()));
-        builder.redirectError(gameLog);
-        try {
-            Process process = builder.start();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(entry.getPath().startsWith(STEAM_PREFIX)){
+            try {
+                Desktop.getDesktop().browse(new URI(entry.getPath()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+        }else{
+            File gameLog = new File("log"+File.separator+entry.getProcessName()+".log");
+            ProcessBuilder builder = new ProcessBuilder('"'+entry.getPath()+'"').inheritIO();
+            builder.directory(new File(new File(entry.getPath()).getParent()));
+            builder.redirectError(gameLog);
+            try {
+                Process process = builder.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
 
         Task<Long> monitor = new Task() {

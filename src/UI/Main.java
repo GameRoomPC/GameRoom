@@ -2,6 +2,7 @@ package ui;
 
 import data.game.GameEntry;
 import data.http.URLTools;
+import data.http.key.KeyChecker;
 import system.application.InternalAppNetworkManager;
 import system.application.MessageListener;
 import system.application.MessageTag;
@@ -30,6 +31,7 @@ public class Main {
     private final static String URL_CHANGELOG_MD_SUFFIX = "/software/changelog.md";
 
     public static boolean DEV_MODE = false;
+    public static boolean DONATOR = false;
     public static double SCREEN_WIDTH;
     public static double SCREEN_HEIGHT;
 
@@ -59,6 +61,8 @@ public class Main {
 
         LOGGER.info("Started app with resolution : " + (int) SCREEN_WIDTH + "x" + (int) SCREEN_HEIGHT);
         GENERAL_SETTINGS = new GeneralSettings();
+        DONATOR = !GENERAL_SETTINGS.getDonationKey().equals("") && KeyChecker.isKeyValid(GENERAL_SETTINGS.getDonationKey());
+        LOGGER.info("Donator mode : "+DONATOR);
         RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", Locale.forLanguageTag(GENERAL_SETTINGS.getLocale()));
 
         initNetworkManager();

@@ -1,10 +1,15 @@
 package ui.scene;
 
+import com.mashape.unirest.http.exceptions.UnirestException;
+import data.http.key.KeyChecker;
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
+import org.json.JSONObject;
 import sun.java2d.windows.GDIRenderer;
 import system.application.MessageListener;
 import system.application.MessageTag;
@@ -22,9 +27,15 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import ui.control.textfield.PathTextField;
+import ui.dialog.ActivationKeyDialog;
 
+import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import static ui.Main.*;
@@ -206,6 +217,100 @@ public class SettingsScene extends BaseScene {
         Label gamesFolderLabel= new Label(Main.RESSOURCE_BUNDLE.getString("games_folder")+" :");
         gamesFolderLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("games_folder_tooltip")));
         addLine(gamesFolderLabel,gamesFolderField);
+
+        /***********************DONATION KEY****************************/
+        String keyStatus = Main.DONATOR ? GENERAL_SETTINGS.getDonationKey() : Main.RESSOURCE_BUNDLE.getString("none");
+        String buttonText = Main.DONATOR ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
+
+        Label donationKeyLabel = new Label(Main.RESSOURCE_BUNDLE.getString("donation_key")+": "+ keyStatus);
+        Button actDeactButton = new Button(buttonText);
+
+        actDeactButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if(DONATOR){
+                    try {
+                        JSONObject response = KeyChecker.deactivateKey(GENERAL_SETTINGS.getDonationKey());
+                        if(response.getString(KeyChecker.FIELD_RESULT).equals(KeyChecker.RESULT_SUCCESS)){
+                            Alert successDialog = new Alert(Alert.AlertType.INFORMATION, Main.RESSOURCE_BUNDLE.getString("key_deactivated_message"));
+                            successDialog.getDialogPane().getStylesheets().add("res/flatterfx.css");
+                            successDialog.getDialogPane().getStyleClass().add("custom-choice-dialog");
+                            successDialog.initModality(Modality.APPLICATION_MODAL);
+                            successDialog.initStyle(StageStyle.UNDECORATED);
+                            successDialog.setHeaderText(null);
+                            successDialog.showAndWait();
+
+                            GENERAL_SETTINGS.setDonationKey("");
+                            DONATOR = false;
+                            String keyStatus = Main.DONATOR ? GENERAL_SETTINGS.getDonationKey() : Main.RESSOURCE_BUNDLE.getString("none");
+                            String buttonText = Main.DONATOR ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
+                            actDeactButton.setText(buttonText);
+                            donationKeyLabel.setText(Main.RESSOURCE_BUNDLE.getString("donation_key")+": "+ keyStatus);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (UnirestException e) {
+                        e.printStackTrace();
+                    }
+                }else {
+                    ActivationKeyDialog dialog = new ActivationKeyDialog();
+
+                    Optional<ButtonType> result = dialog.showAndWait();
+                    result.ifPresent(letter -> {
+                        if (letter.getText().contains(Main.RESSOURCE_BUNDLE.getString("donation_key_buy_one"))) {
+                            try {
+                                Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/donation-key"));
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            } catch (URISyntaxException e1) {
+                                e1.printStackTrace();
+                            }
+                        } else if (letter.getText().equals(Main.RESSOURCE_BUNDLE.getString("activate"))) {
+                            try {
+                                JSONObject response = KeyChecker.activateKey(dialog.getDonationKey());
+                                String message = Main.RESSOURCE_BUNDLE.getString(response.getString(KeyChecker.FIELD_MESSAGE).replace(' ', '_'));
+
+                                switch (response.getString(KeyChecker.FIELD_RESULT)) {
+                                    case KeyChecker.RESULT_SUCCESS:
+                                        Alert successDialog = new Alert(Alert.AlertType.INFORMATION, message);
+                                        successDialog.getDialogPane().getStylesheets().add("res/flatterfx.css");
+                                        successDialog.getDialogPane().getStyleClass().add("custom-choice-dialog");
+                                        successDialog.initModality(Modality.APPLICATION_MODAL);
+                                        successDialog.initStyle(StageStyle.UNDECORATED);
+                                        successDialog.setHeaderText(null);
+                                        successDialog.showAndWait();
+
+                                        GENERAL_SETTINGS.setDonationKey(dialog.getDonationKey());
+                                        DONATOR = KeyChecker.isKeyValid(GENERAL_SETTINGS.getDonationKey());
+                                        String keyStatus = Main.DONATOR ? GENERAL_SETTINGS.getDonationKey() : Main.RESSOURCE_BUNDLE.getString("none");
+                                        String buttonText = Main.DONATOR ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
+                                        actDeactButton.setText(buttonText);
+                                        donationKeyLabel.setText(Main.RESSOURCE_BUNDLE.getString("donation_key")+": "+ keyStatus);
+                                        break;
+                                    case KeyChecker.RESULT_ERROR:
+                                        Alert errorDialog = new Alert(Alert.AlertType.ERROR, message);
+                                        errorDialog.getDialogPane().getStylesheets().add("res/flatterfx.css");
+                                        errorDialog.getDialogPane().getStyleClass().add("custom-choice-dialog");
+                                        errorDialog.initModality(Modality.APPLICATION_MODAL);
+                                        errorDialog.initStyle(StageStyle.UNDECORATED);
+                                        errorDialog.setHeaderText(null);
+                                        errorDialog.showAndWait();
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            } catch (UnirestException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        addLine(donationKeyLabel,actDeactButton);
 
         /***********************VERSION CHECK****************************/
         Label versionLabel = new Label(Main.RESSOURCE_BUNDLE.getString("version")+": "+Main.getVersion());
