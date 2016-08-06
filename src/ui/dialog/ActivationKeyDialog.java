@@ -10,23 +10,15 @@ import ui.Main;
 /**
  * Created by LM on 05/08/2016.
  */
-public class ActivationKeyDialog extends Dialog{
+public class ActivationKeyDialog extends GameRoomDialog{
     public static String BUY_ONE = "buy one";
 
     private String donationKey = "";
-    private BorderPane mainPane;
     private TextField keyField = new TextField();
 
     public ActivationKeyDialog(){
-        mainPane = new BorderPane();
-        DialogPane dialogPane = new DialogPane();
-        dialogPane.setContent(mainPane);
-        dialogPane.setPrefWidth(Main.SCREEN_WIDTH*(1/3.0)*Main.SCREEN_WIDTH/1920);
-        dialogPane.getStylesheets().add("res/flatterfx.css");
-        dialogPane.getStyleClass().add("custom-choice-dialog");
-        initStyle(StageStyle.UNDECORATED);
-        initModality(Modality.APPLICATION_MODAL);
-        setDialogPane(dialogPane);
+        super();
+        getDialogPane().setPrefWidth(Main.SCREEN_WIDTH*(1/3.0)*Main.SCREEN_WIDTH/1920);
 
         setTitle("Donation key");
         keyField.setPromptText(Main.RESSOURCE_BUNDLE.getString("donation_key_visit_gameroom_me"));
@@ -42,7 +34,7 @@ public class ActivationKeyDialog extends Dialog{
         ButtonType cancelButton = new ButtonType(ui.Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType activateButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("activate"), ButtonBar.ButtonData.OK_DONE);
 
-        dialogPane.getButtonTypes().addAll(buyButton,cancelButton,activateButton);
+        getDialogPane().getButtonTypes().addAll(buyButton,cancelButton,activateButton);
     }
 
     private void initTopPane() {

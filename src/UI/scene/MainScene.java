@@ -1,6 +1,7 @@
 package ui.scene;
 
 import data.game.AllGameEntries;
+import data.game.ImageUtils;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -35,6 +36,7 @@ import javafx.scene.layout.*;
 import javafx.stage.*;
 import data.game.GameEntry;
 import ui.Main;
+import ui.dialog.GameRoomAlert;
 import ui.scene.exitaction.ClassicExitAction;
 import ui.scene.exitaction.ExitAction;
 import ui.scene.exitaction.MultiAddExitAction;
@@ -64,10 +66,11 @@ public class MainScene extends BaseScene {
     public final static double MIN_SCALE_FACTOR = 0.1;
 
     private BorderPane wrappingPane;
-    private ImageView backgroundView;
     private TilePane tilePane = new TilePane();
 
     private Label statusLabel;
+
+    private boolean changeBackgroundNextTime = false;
 
     public MainScene(Stage parentStage) {
         super(new StackPane(), parentStage);
@@ -92,11 +95,9 @@ public class MainScene extends BaseScene {
 
     @Override
     void initAndAddWrappingPaneToRoot() {
-        backgroundView = new ImageView();
         GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
         backgroundView.setEffect(blur);
         backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
-        getRootStackPane().getChildren().add(backgroundView);
         wrappingPane = new BorderPane();
         getRootStackPane().getChildren().add(wrappingPane);
         statusLabel = new Label();
@@ -109,8 +110,6 @@ public class MainScene extends BaseScene {
         tilePane.setPrefTileWidth(SCREEN_WIDTH / 4);
         tilePane.setPrefTileHeight(tilePane.getPrefTileWidth() * COVER_HEIGHT_WIDTH_RATIO);
 
-        /*ProgressDialog dialog = new ProgressDialog();
-        dialog.getDialogStage().setAlwaysOnTop(true);*/
         statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + "...");
         wrappingPane.setOpacity(0);
         Task<Void> task = new Task<Void>() {
@@ -208,7 +207,7 @@ public class MainScene extends BaseScene {
             public void handle(MouseEvent event) {
                 if (event.isPrimaryButtonDown()) {
                     SettingsScene settingsScene = new SettingsScene(new StackPane(), getParentStage(), MainScene.this);
-                    fadeTransitionTo(settingsScene, getParentStage());
+                    fadeTransitionTo(settingsScene, getParentStage(),true);
                 }
             }
         });
@@ -251,11 +250,7 @@ public class MainScene extends BaseScene {
                                 }
                             } catch (NullPointerException ne) {
                                 ne.printStackTrace();
-                                Alert alert = new Alert(Alert.AlertType.WARNING);
-                                alert.setHeaderText(null);
-                                alert.initStyle(StageStyle.UNDECORATED);
-                                alert.getDialogPane().getStylesheets().add("res/flatterfx.css");
-                                alert.initModality(Modality.APPLICATION_MODAL);
+                                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
                                 alert.setContentText(RESSOURCE_BUNDLE.getString("warning_internet_shortcut"));
                                 alert.showAndWait();
                             }
@@ -475,34 +470,44 @@ public class MainScene extends BaseScene {
         }
     }
 
+    public void setChangeBackgroundNextTime(boolean changeBackgroundNextTime) {
+        this.changeBackgroundNextTime = changeBackgroundNextTime;
+    }
+
     public void setImageBackground(Image img) {
-        Timeline fadeOutTimeline = new Timeline(
-                new KeyFrame(Duration.seconds(0),
-                        new KeyValue(backgroundView.opacityProperty(), backgroundView.opacityProperty().getValue(), Interpolator.EASE_IN)),
-                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                        new KeyValue(backgroundView.opacityProperty(), 0, Interpolator.EASE_OUT)
-                ));
-        fadeOutTimeline.setCycleCount(1);
-        fadeOutTimeline.setAutoReverse(false);
-        fadeOutTimeline.setOnFinished(new EventHandler<javafx.event.ActionEvent>() {
-            @Override
-            public void handle(javafx.event.ActionEvent event) {
+        if(!GENERAL_SETTINGS.isDisableWallpaper()) {
+            if (!changeBackgroundNextTime) {
                 if (img != null) {
-                    backgroundView.setImage(img);
-                    Timeline fadeInTimeline = new Timeline(
-                            new KeyFrame(Duration.seconds(0),
-                                    new KeyValue(backgroundView.opacityProperty(), 0, Interpolator.EASE_IN)),
-                            new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                    new KeyValue(backgroundView.opacityProperty(), BACKGROUND_IMAGE_MAX_OPACITY, Interpolator.EASE_OUT)
-                            ));
-                    fadeInTimeline.setCycleCount(1);
-                    fadeInTimeline.setAutoReverse(false);
-                    fadeInTimeline.play();
+                    if (backgroundView.getImage() == null || !backgroundView.getImage().equals(img)) {
+                        //TODO fix the blinking issue where an identical image is being set twice. The above compareason does not work.
+                        ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+                    }
                 } else {
-                    backgroundView.setOpacity(0);
+                    Timeline fadeOutTimeline = new Timeline(
+                            new KeyFrame(Duration.seconds(0),
+                                    new KeyValue(backgroundView.opacityProperty(), backgroundView.opacityProperty().getValue(), Interpolator.EASE_IN)),
+                            new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                    new KeyValue(backgroundView.opacityProperty(), 0, Interpolator.EASE_OUT)
+                            ));
+                    fadeOutTimeline.setCycleCount(1);
+                    fadeOutTimeline.setAutoReverse(false);
+                    fadeOutTimeline.play();
                 }
+            } else {
+                changeBackgroundNextTime = false;
             }
-        });
-        fadeOutTimeline.play();
+        }else{
+            if(backgroundView.getOpacity()!=0){
+                Timeline fadeOutTimeline = new Timeline(
+                        new KeyFrame(Duration.seconds(0),
+                                new KeyValue(backgroundView.opacityProperty(), backgroundView.opacityProperty().getValue(), Interpolator.EASE_IN)),
+                        new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                new KeyValue(backgroundView.opacityProperty(), 0, Interpolator.EASE_OUT)
+                        ));
+                fadeOutTimeline.setCycleCount(1);
+                fadeOutTimeline.setAutoReverse(false);
+                fadeOutTimeline.play();
+            }
+        }
     }
 }

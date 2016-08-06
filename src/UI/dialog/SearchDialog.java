@@ -1,5 +1,7 @@
 package ui.dialog;
 
+import data.game.ImageUtils;
+import data.game.OnDLDoneHandler;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
@@ -16,7 +18,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -25,8 +26,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
-import javafx.stage.Modality;
-import javafx.stage.StageStyle;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,8 +46,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 /**
  * Created by LM on 12/07/2016.
  */
-public class SearchDialog extends Dialog<GameEntry> {
-    private BorderPane mainPane;
+public class SearchDialog extends GameRoomDialog<GameEntry> {
     private ArrayList<SearchResultRow> resultsList = new ArrayList<>();
     private HBox topBox;
     private VBox resultsPane;
@@ -62,14 +60,7 @@ public class SearchDialog extends Dialog<GameEntry> {
 
     public SearchDialog() {
         super();
-        DialogPane dialogPane = new DialogPane();
-        mainPane = new BorderPane();
-        dialogPane.setContent(mainPane);
-        dialogPane.getStylesheets().add("res/flatterfx.css");
-        initStyle(StageStyle.UNDECORATED);
-        initModality(Modality.APPLICATION_MODAL);
-        setDialogPane(dialogPane);
-        dialogPane.getStyleClass().add("search-dialog");
+        getDialogPane().getStyleClass().add("search-dialog");
 
         statusLabel = new Label(Main.RESSOURCE_BUNDLE.getString("search_a_game"));
         statusLabel.setWrapText(true);
@@ -134,40 +125,7 @@ public class SearchDialog extends Dialog<GameEntry> {
 
                                 {
                                     JSONObject jsob = ((JSONObject) obj);
-
-                                    try {
-                                        URL imageURL = new URL(GameScrapper.getCoverImage(jsob.getInt("id"), "cover_small", gamesDataArray));
-                                        String outputPath = Main.CACHE_FOLDER + File.separator + Integer.toString(jsob.getInt("id")) + "_cover_small." + GameEditScene.getExtension(imageURL.getPath());
-                                        File imageFile = new File(outputPath);
-                                        imageFile.deleteOnExit();
-
-                                        if (!imageFile.exists()) {
-                                            Task<String> task = new Task<String>() {
-                                                @Override
-                                                protected String call() throws Exception {
-                                                    ReadableByteChannel rbc = Channels.newChannel(imageURL.openStream());
-                                                    FileOutputStream fos = new FileOutputStream(outputPath);
-                                                    fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                                                    fos.close();
-                                                    addNewRow(jsob, imageFile);
-                                                    return null;
-                                                }
-                                            };
-                                            Thread th = new Thread(task);
-                                            th.setDaemon(true);
-                                            th.start();
-                                        } else {
-                                            addNewRow(jsob, imageFile);
-                                        }
-                                        gameList += jsob.getString("name") + ", ";
-
-                                    } catch (MalformedURLException e) {
-                                        e.printStackTrace();
-                                    } catch (JSONException je) {
-                                        if (je.toString().contains("cover")) {
-                                            addNewRow(jsob, null);
-                                        }
-                                    }
+                                    Platform.runLater(() -> addNewRow(jsob));
                                 }
 
                                 Main.LOGGER.debug(gameList.substring(0, gameList.length() - 3));
@@ -214,27 +172,26 @@ public class SearchDialog extends Dialog<GameEntry> {
         //ButtonType cancelButton = new ButtonType(ui.Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType nextButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("next"), ButtonBar.ButtonData.OK_DONE);
 
-        dialogPane.getButtonTypes().addAll(nextButton);
+        getDialogPane().getButtonTypes().addAll(nextButton);
     }
 
-    protected void addNewRow(JSONObject jsob, File imageFile) {
-        String path = null;
-        if (imageFile != null) {
-            path = imageFile.getAbsolutePath();
+    protected void addNewRow(JSONObject jsob) {
+        String coverHash = null;
+        try{
+            coverHash = GameScrapper.getCoverImageHash(jsob);
+        }catch (JSONException je){
+            Main.LOGGER.debug("No cover for game "+jsob.getString("name"));
+            if(!je.toString().contains("cover")){
+                je.printStackTrace();
+            }
         }
         SearchResultRow row = new SearchResultRow(jsob.getString("name")
                 , GameScrapper.getYear(jsob.getInt("id"), gamesDataArray)
                 , jsob.getInt("id")
-                , path);
+                , coverHash);
         row.setPrefWidth(topBox.getWidth() - topBox.getSpacing() * 2);
-        Platform.runLater(new Runnable() {
-                              @Override
-                              public void run() {
-                                  statusLabel.setText("");
-                                  resultsPane.getChildren().add(row);
-                              }
-                          }
-        );
+        statusLabel.setText("");
+        resultsPane.getChildren().add(row);
         setOnShown(new EventHandler<DialogEvent>() {
             @Override
             public void handle(DialogEvent event) {
@@ -272,26 +229,30 @@ public class SearchDialog extends Dialog<GameEntry> {
     static class SearchResultRow extends GridPane {
         private final static int COVER_WIDTH = 70;
         private StackPane coverPane = new StackPane();
-        private ImageView coverView;
-        private int id;
+        private ImageView coverView = new ImageView();
+
         protected RadioButton radioButton;
 
-        public SearchResultRow(String gameName, String year, int id, String imageURL) {
+        public SearchResultRow(String gameName, String year, int id, String coverHash) {
             super();
-            this.id = id;
             getStyleClass().addAll(new String[]{"search-result-row"});
-            if (imageURL != null) {
-                boolean keepRatio = true;
-                try {
-                    SimpleImageInfo imageInfo = new SimpleImageInfo(new File(imageURL));
-                    keepRatio = Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                coverView = new ImageView(new Image("file:" + File.separator + File.separator + File.separator + imageURL, COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, keepRatio, true));
-            } else {
-                coverView = new ImageView();
+            if(coverHash!=null) {
+                ImageUtils.downloadImageToCache(id, coverHash, ImageUtils.TYPE_COVER, ImageUtils.SIZE_SMALL, new OnDLDoneHandler() {
+                    @Override
+                    public void run(File outputfile) {
+                        boolean keepRatio = true;
+                        try {
+                            SimpleImageInfo imageInfo = new SimpleImageInfo(outputfile);
+                            keepRatio = Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        boolean finalKeepRatio = keepRatio;
+                        Platform.runLater(() -> {
+                            coverView.setImage(new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, finalKeepRatio, true));
+                        });
+                    }
+                });
             }
 
             setWidth(Double.MAX_VALUE);

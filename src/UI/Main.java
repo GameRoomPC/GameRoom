@@ -3,6 +3,7 @@ package ui;
 import data.game.GameEntry;
 import data.http.URLTools;
 import data.http.key.KeyChecker;
+import javafx.concurrent.Task;
 import system.application.InternalAppNetworkManager;
 import system.application.MessageListener;
 import system.application.MessageTag;
@@ -142,20 +143,27 @@ public class Main {
 
     private static void initNetworkManager() {
         NETWORK_MANAGER = new InternalAppNetworkManager();
-        NETWORK_MANAGER.connect();
-
-        //close other possible instances of GameRoom
-        NETWORK_MANAGER.sendMessage(MessageTag.CLOSE_APP);
-
-
-        NETWORK_MANAGER.addMessageListener(new MessageListener() {
+        Task initTask = new Task() {
             @Override
-            public void onMessageReceived(MessageTag tag, String payload) {
-                if (tag.equals(MessageTag.CLOSE_APP)) {
-                    forceStop(MAIN_SCENE.getParentStage());
-                }
+            protected Object call() throws Exception {
+                NETWORK_MANAGER.connect();
+                //close other possible instances of GameRoom
+                NETWORK_MANAGER.sendMessage(MessageTag.CLOSE_APP);
+                NETWORK_MANAGER.addMessageListener(new MessageListener() {
+                    @Override
+                    public void onMessageReceived(MessageTag tag, String payload) {
+                        if (tag.equals(MessageTag.CLOSE_APP)) {
+                            forceStop(MAIN_SCENE.getParentStage());
+                        }
+                    }
+                });
+                return null;
             }
-        });
+        };
+        Thread initThread = new Thread(initTask);
+        initThread.setDaemon(true);
+        initThread.start();
+
     }
 
     public static String getVersion() {

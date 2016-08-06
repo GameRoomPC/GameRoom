@@ -1,5 +1,6 @@
 package ui.scene;
 
+import javafx.scene.image.ImageView;
 import ui.Main;
 import ui.control.button.ImageButton;
 import javafx.animation.Interpolator;
@@ -37,7 +38,7 @@ public abstract class BaseScene extends Scene {
     private StackPane rootStackPane;
     private Stage parentStage;
     protected BaseScene previousScene;
-
+    protected ImageView backgroundView;
     private ImageButton backButton;
 
     public BaseScene(StackPane stackPane,Stage parentStage){
@@ -45,6 +46,8 @@ public abstract class BaseScene extends Scene {
         this.rootStackPane = stackPane;
         this.parentStage = parentStage;
         getStylesheets().add("res/flatterfx.css");
+        backgroundView = new ImageView();
+        rootStackPane.getChildren().add(backgroundView);
         initAndAddWrappingPaneToRoot();
 
         widthProperty().addListener(new ChangeListener<Number>() {
@@ -65,12 +68,20 @@ public abstract class BaseScene extends Scene {
         return rootStackPane;
     }
 
-    public void fadeTransitionTo(BaseScene scene2, Stage stage){
+    public void fadeTransitionTo(BaseScene scene2, Stage stage) {
+        fadeTransitionTo(scene2,stage,false);
+    }
+    public void fadeTransitionTo(BaseScene scene2, Stage stage, boolean backgroundViewToo){
+        if(scene2 instanceof MainScene){
+            ((MainScene)scene2).setChangeBackgroundNextTime(true);
+        }
         Timeline fadeOutTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
-                        new KeyValue(getWrappingPane().opacityProperty(), getWrappingPane().opacityProperty().getValue(), Interpolator.LINEAR)),
+                        new KeyValue(getWrappingPane().opacityProperty(), getWrappingPane().opacityProperty().getValue(), Interpolator.LINEAR),
+                        new KeyValue(backgroundView.opacityProperty(), backgroundView.opacityProperty().getValue(), Interpolator.LINEAR)),
                 new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                        new KeyValue(getWrappingPane().opacityProperty(), 0, Interpolator.LINEAR)
+                        new KeyValue(getWrappingPane().opacityProperty(), 0, Interpolator.LINEAR),
+                        new KeyValue(backgroundView.opacityProperty(), backgroundViewToo ? 0 : backgroundView.opacityProperty().getValue(), Interpolator.LINEAR)
                 ));
         fadeOutTimeline.setCycleCount(1);
         fadeOutTimeline.setAutoReverse(false);
@@ -81,9 +92,11 @@ public abstract class BaseScene extends Scene {
                 stage.setScene(scene2);
                 Timeline fadeInTimeline = new Timeline(
                         new KeyFrame(Duration.seconds(0),
-                                new KeyValue(scene2.getWrappingPane().opacityProperty(), 0, Interpolator.LINEAR)),
+                                new KeyValue(scene2.getWrappingPane().opacityProperty(), 0, Interpolator.LINEAR),
+                                new KeyValue(scene2.getBackgroundView().opacityProperty(), backgroundViewToo ? 0 : scene2.getBackgroundView().opacityProperty().getValue(), Interpolator.LINEAR)),
                         new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                new KeyValue(scene2.getWrappingPane().opacityProperty(), 1, Interpolator.LINEAR)
+                                new KeyValue(scene2.getWrappingPane().opacityProperty(), 1, Interpolator.LINEAR),
+                                new KeyValue(scene2.getBackgroundView().opacityProperty(), backgroundViewToo ? 1 : backgroundView.opacityProperty().getValue(), Interpolator.LINEAR)
                         ));
                 fadeInTimeline.setCycleCount(1);
                 fadeInTimeline.setAutoReverse(false);
@@ -150,5 +163,9 @@ public abstract class BaseScene extends Scene {
     protected void disableBackButton(){
         backButton.setDisable(true);
         backButton.setVisible(false);
+    }
+
+    public ImageView getBackgroundView() {
+        return backgroundView;
     }
 }

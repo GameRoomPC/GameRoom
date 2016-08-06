@@ -7,6 +7,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 import org.json.JSONObject;
@@ -28,6 +29,7 @@ import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ActivationKeyDialog;
+import ui.dialog.GameRoomAlert;
 
 import java.awt.*;
 import java.io.File;
@@ -65,10 +67,10 @@ public class SettingsScene extends BaseScene {
         BorderPane.setMargin(igdbLabel, new Insets(15, 15, 15, 15));
     }
     private void initCenter(){
-        contentPane.setHgap(30);
+        contentPane.setHgap(50);
         contentPane.setVgap(15);
         contentPane.setPrefColumns(2);
-        contentPane.setAlignment(Pos.TOP_LEFT);
+        //contentPane.setAlignment(Pos.TOP_LEFT);
         contentPane.setOrientation(Orientation.VERTICAL);
         contentPane.setTileAlignment(Pos.CENTER_LEFT);
 
@@ -119,11 +121,7 @@ public class SettingsScene extends BaseScene {
             public void handle(ActionEvent event) {
                 Main.GENERAL_SETTINGS.setOnLaunchAction(onLaunchActionComboBox.getValue());
                 if(onLaunchActionComboBox.getValue().equals(OnLaunchAction.CLOSE)){
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setHeaderText(null);
-                    alert.initStyle(StageStyle.UNDECORATED);
-                    alert.getDialogPane().getStylesheets().add("res/flatterfx.css");
-                    alert.initModality(Modality.APPLICATION_MODAL);
+                    GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
                     alert.setContentText(RESSOURCE_BUNDLE.getString("onLaunch_close_dialog_warning"));
                     alert.showAndWait();
                 }
@@ -155,9 +153,23 @@ public class SettingsScene extends BaseScene {
         });
         addLine(new Label(Main.RESSOURCE_BUNDLE.getString("minimize_on_start")+" :"),minimizeOnStartCheckBox);
 
+        /*******************************WALLPAPER*******************************/
+        CheckBox wallpaperCheckBox = new CheckBox();
+        wallpaperCheckBox.setSelected(Main.GENERAL_SETTINGS.isDisableWallpaper());
+        wallpaperCheckBox.setWrapText(true);
+        wallpaperCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                Main.GENERAL_SETTINGS.setDisableWallpaper(newValue);
+            }
+        });
+        Label wallpaperLabel= new Label(Main.RESSOURCE_BUNDLE.getString("disable_wallpaper")+" :");
+        wallpaperLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("disable_wallpaper_tooltip")));
+        addLine(wallpaperLabel,wallpaperCheckBox);
+
         /*******************************XBOX CONTROLLER SUPPORT*******************************/
         CheckBox xboxControllerCheckBox = new CheckBox();
-        xboxControllerCheckBox.setSelected(Main.GENERAL_SETTINGS.isMinimizeOnStart());
+        xboxControllerCheckBox.setSelected(Main.GENERAL_SETTINGS.isActivateXboxControllerSupport());
         xboxControllerCheckBox.setWrapText(true);
         xboxControllerCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -232,12 +244,7 @@ public class SettingsScene extends BaseScene {
                     try {
                         JSONObject response = KeyChecker.deactivateKey(GENERAL_SETTINGS.getDonationKey());
                         if(response.getString(KeyChecker.FIELD_RESULT).equals(KeyChecker.RESULT_SUCCESS)){
-                            Alert successDialog = new Alert(Alert.AlertType.INFORMATION, Main.RESSOURCE_BUNDLE.getString("key_deactivated_message"));
-                            successDialog.getDialogPane().getStylesheets().add("res/flatterfx.css");
-                            successDialog.getDialogPane().getStyleClass().add("custom-choice-dialog");
-                            successDialog.initModality(Modality.APPLICATION_MODAL);
-                            successDialog.initStyle(StageStyle.UNDECORATED);
-                            successDialog.setHeaderText(null);
+                            GameRoomAlert successDialog = new GameRoomAlert(Alert.AlertType.INFORMATION, Main.RESSOURCE_BUNDLE.getString("key_deactivated_message"));
                             successDialog.showAndWait();
 
                             GENERAL_SETTINGS.setDonationKey("");
@@ -272,12 +279,7 @@ public class SettingsScene extends BaseScene {
 
                                 switch (response.getString(KeyChecker.FIELD_RESULT)) {
                                     case KeyChecker.RESULT_SUCCESS:
-                                        Alert successDialog = new Alert(Alert.AlertType.INFORMATION, message);
-                                        successDialog.getDialogPane().getStylesheets().add("res/flatterfx.css");
-                                        successDialog.getDialogPane().getStyleClass().add("custom-choice-dialog");
-                                        successDialog.initModality(Modality.APPLICATION_MODAL);
-                                        successDialog.initStyle(StageStyle.UNDECORATED);
-                                        successDialog.setHeaderText(null);
+                                        GameRoomAlert successDialog = new GameRoomAlert(Alert.AlertType.INFORMATION, message);
                                         successDialog.showAndWait();
 
                                         GENERAL_SETTINGS.setDonationKey(dialog.getDonationKey());
@@ -288,12 +290,7 @@ public class SettingsScene extends BaseScene {
                                         donationKeyLabel.setText(Main.RESSOURCE_BUNDLE.getString("donation_key")+": "+ keyStatus);
                                         break;
                                     case KeyChecker.RESULT_ERROR:
-                                        Alert errorDialog = new Alert(Alert.AlertType.ERROR, message);
-                                        errorDialog.getDialogPane().getStylesheets().add("res/flatterfx.css");
-                                        errorDialog.getDialogPane().getStyleClass().add("custom-choice-dialog");
-                                        errorDialog.initModality(Modality.APPLICATION_MODAL);
-                                        errorDialog.initStyle(StageStyle.UNDECORATED);
-                                        errorDialog.setHeaderText(null);
+                                        GameRoomAlert errorDialog = new GameRoomAlert(Alert.AlertType.ERROR, message);
                                         errorDialog.showAndWait();
                                         break;
                                     default:
@@ -344,8 +341,14 @@ public class SettingsScene extends BaseScene {
         /*GridPane pane = new GridPane();
         pane.add(contentPane,0,0);
         GridPane.setFillWidth(contentPane,false);*/
-        wrappingPane.setCenter(contentPane);
-        BorderPane.setMargin(contentPane, new Insets(50*SCREEN_HEIGHT/1080,50*SCREEN_WIDTH/1920,50*SCREEN_HEIGHT/1080,50*SCREEN_WIDTH/1920));
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setContent(contentPane);
+        contentPane.maxWidthProperty().bind(scrollPane.widthProperty());
+        contentPane.setPrefRows(8);
+        wrappingPane.setCenter(scrollPane);
+        BorderPane.setMargin(scrollPane, new Insets(50*SCREEN_HEIGHT/1080,50*SCREEN_WIDTH/1920,20*SCREEN_HEIGHT/1080,50*SCREEN_WIDTH/1920));
 
     }
     private void addLine(Node nodeLeft, Node nodeRight){
@@ -370,7 +373,9 @@ public class SettingsScene extends BaseScene {
         contentPane.getChildren().add(box);
     }
     private void initTop(){
-        wrappingPane.setTop(createTop(RESSOURCE_BUNDLE.getString("Settings")));
+        wrappingPane.setTop(createTop(event -> {
+            fadeTransitionTo(previousScene,getParentStage(),true);
+        },RESSOURCE_BUNDLE.getString("Settings")));
     }
 
     @Override

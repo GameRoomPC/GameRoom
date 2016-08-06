@@ -73,20 +73,23 @@ public class GameScrapper {
         }
         return -1;
     }
-    public static String getScreenshotImage(String screenshot_size, JSONObject jsob){
-        //TODO implement multiple screenshots downloads?
-        String cloudinary_id = jsob.getJSONArray("screenshots").getJSONObject(0).getString("cloudinary_id");
-        return "https://res.cloudinary.com/igdb/image/upload/t_" + screenshot_size + "/" + cloudinary_id + ".jpg";
+    public static String[] getScreenshotHash(JSONObject jsob){
+        JSONArray screenshotsArray = jsob.getJSONArray("screenshots");
+        String[] result  = new String[screenshotsArray.length()];
+        for(int i = 0; i< screenshotsArray.length(); i++){
+            result[i]=screenshotsArray.getJSONObject(i).getString("cloudinary_id");
+        }
+        return result;
     }
-    public static String getCoverImage(String cover_size, JSONObject jsob){
+    public static String getCoverImageHash(JSONObject jsob){
         String cloudinary_id = jsob.getJSONObject("cover").getString("cloudinary_id");
-        return "https://res.cloudinary.com/igdb/image/upload/t_" + cover_size + "/" + cloudinary_id + ".jpg";
+        return cloudinary_id;
     }
-    public static String getScreenshotImage(int id, String screenshot_size, JSONArray gamesData) {
-        return getScreenshotImage(screenshot_size,gamesData.getJSONObject(indexOf(id, gamesData)));
+    public static String[] getScreenshotHash(int id, JSONArray gamesData) {
+        return getScreenshotHash(gamesData.getJSONObject(indexOf(id, gamesData)));
     }
-    public static String getCoverImage(int id, String cover_size, JSONArray gamesData) {
-        return getCoverImage(cover_size,gamesData.getJSONObject(indexOf(id, gamesData)));
+    public static String getCoverImageHash(int id, JSONArray gamesData) {
+        return getCoverImageHash(gamesData.getJSONObject(indexOf(id, gamesData)));
     }
     /*public static GameEntry getEntry(int id){
         JSONArray gamesData = getGamesData(new ArrayList<>(id));
@@ -178,8 +181,11 @@ public class GameScrapper {
             }
         }
         try {
-            entry.setIgdb_imageURL(0, GameScrapper.getCoverImage("cover_big_2x", game_data));
-            entry.setIgdb_imageURL(1, GameScrapper.getScreenshotImage("screenshot_big_2x", game_data));
+            entry.setIgdb_imageHash(0, GameScrapper.getCoverImageHash(game_data));
+            String[] screenshotsHashes = GameScrapper.getScreenshotHash(game_data);
+            for(int i = 0; i<screenshotsHashes.length;i++){
+                entry.setIgdb_imageHash(i+1,screenshotsHashes[i]);
+            }
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
                 Main.LOGGER.warn(entry.getName()+" : no cover");

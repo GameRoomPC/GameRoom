@@ -30,6 +30,7 @@ public class GeneralSettings {
     private boolean activateXboxControllerSupport = false;
     private String gamesFolder = "";
     private String donationKey = "";
+    private boolean disableWallpaper = false;
 
     public GeneralSettings(){
         loadSettings();
@@ -106,6 +107,9 @@ public class GeneralSettings {
             if(prop.getProperty("donationKey")!=null){
                 donationKey = prop.getProperty("donationKey");
             }
+            if(prop.getProperty("disableWallpaper")!=null){
+                disableWallpaper = Boolean.valueOf(prop.getProperty("disableWallpaper"));
+            }
 
 
         } catch (IOException ex) {
@@ -149,6 +153,8 @@ public class GeneralSettings {
             prop.setProperty("activateXboxControllerSupport", Boolean.toString(activateXboxControllerSupport));
             prop.setProperty("gamesFolder", gamesFolder);
             prop.setProperty("donationKey", donationKey);
+            prop.setProperty("disableWallpaper", Boolean.toString(disableWallpaper));
+
 
 
             // save properties to project root folder
@@ -294,5 +300,14 @@ public class GeneralSettings {
     }
     public String getDonationKey(){
         return donationKey;
+    }
+
+    public boolean isDisableWallpaper() {
+        return disableWallpaper;
+    }
+
+    public void setDisableWallpaper(boolean disableWallpaper) {
+        this.disableWallpaper = disableWallpaper;
+        saveSettings();
     }
 }

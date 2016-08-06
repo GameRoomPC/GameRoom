@@ -1,5 +1,6 @@
 package ui.scene;
 
+import data.game.ImageUtils;
 import javafx.geometry.HPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -13,6 +14,7 @@ import javafx.scene.image.ImageView;
 import sun.java2d.windows.GDIRenderer;
 import ui.Main;
 import ui.control.button.ImageButton;
+import ui.control.button.gamebutton.GameButton;
 import ui.control.button.gamebutton.InfoGameButton;
 import data.game.GameEntry;
 import javafx.event.ActionEvent;
@@ -24,6 +26,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import ui.dialog.GameRoomAlert;
 
 import java.awt.*;
 import java.io.File;
@@ -39,6 +42,7 @@ public class GameInfoScene extends BaseScene {
     private BorderPane wrappingPane;
     private GameEntry entry;
     private GridPane propertiesPane = new GridPane();
+    private InfoGameButton coverButton;
 
     private int row_count = 0;
 
@@ -65,11 +69,7 @@ public class GameInfoScene extends BaseScene {
         deleteButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setHeaderText(null);
-                alert.initStyle(StageStyle.UNDECORATED);
-                alert.getDialogPane().getStylesheets().add("res/flatterfx.css");
-                alert.initModality(Modality.APPLICATION_MODAL);
+                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION);
                 alert.setContentText(RESSOURCE_BUNDLE.getString("delete_entry?"));
 
                 Optional<ButtonType> result = alert.showAndWait();
@@ -91,13 +91,11 @@ public class GameInfoScene extends BaseScene {
                     Main.GENERAL_SETTINGS.getWindowWidth(),
                     Main.GENERAL_SETTINGS.getWindowHeight()
                     , false, true);
-            ImageView screenshotView = new ImageView(screenshotImage);
+            backgroundView.setImage(screenshotImage);
             GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
 
-            screenshotView.setEffect(blur);
-            screenshotView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
-
-            getRootStackPane().getChildren().add(0,screenshotView);
+            backgroundView.setEffect(blur);
+            backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
         }
 
     }
@@ -156,8 +154,8 @@ public class GameInfoScene extends BaseScene {
         coverAndPropertiesPane.setVgap(20 * SCREEN_WIDTH / 1920);
         coverAndPropertiesPane.setHgap(60 * SCREEN_WIDTH / 1920);
 
-        InfoGameButton button = new InfoGameButton(entry, this, wrappingPane);
-        coverAndPropertiesPane.add(button, 0, 0);
+        coverButton = new InfoGameButton(entry, this, wrappingPane);
+        coverAndPropertiesPane.add(coverButton, 0, 0);
         coverAndPropertiesPane.setPadding(new Insets(50 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920, 20 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920));
 
         propertiesPane.setPadding(new Insets(30 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920));
@@ -185,8 +183,18 @@ public class GameInfoScene extends BaseScene {
         row_count++;
         return valueLabel;
     }
-
-    protected void updateProperty(String title, String value) {
+    protected void updateWithEditedEntry(GameEntry editedEntry){
+        updateProperty("play_time", editedEntry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS));
+        updateProperty("game_path", editedEntry.getPath());
+        updateProperty("year", editedEntry.getYear());
+        updateProperty("developer", editedEntry.getDeveloper());
+        updateProperty("publisher", editedEntry.getPublisher());
+        updateProperty("description", editedEntry.getDescription());
+        Image backgroundImage = new Image("file:" + File.separator + File.separator + File.separator + editedEntry.getImagePath(1).getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
+        backgroundView.setImage(backgroundImage);
+        coverButton.setImage(editedEntry.getImagePath(0).getAbsolutePath());
+    }
+    private void updateProperty(String title, String value) {
         for (Node node : propertiesPane.getChildren()) {
             if (node != null && node instanceof Label && node.getId() != null && node.getId().equals(title)) {
                 ((Label) node).setText(value);

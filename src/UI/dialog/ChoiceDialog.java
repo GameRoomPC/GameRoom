@@ -16,19 +16,11 @@ import javafx.stage.StageStyle;
 /**
  * Created by LM on 05/07/2016.
  */
-public class ChoiceDialog extends Dialog<ButtonType> {
+public class ChoiceDialog extends GameRoomDialog<ButtonType> {
     private BorderPane mainPane;
 
     public ChoiceDialog(ChoiceDialogButton... choiceDialogButtons) {
         super();
-        DialogPane dialogPane = new DialogPane();
-        mainPane = new BorderPane();
-        dialogPane.setContent(mainPane);
-        dialogPane.getStylesheets().add("res/flatterfx.css");
-        dialogPane.getStyleClass().add("custom-choice-dialog");
-        initStyle(StageStyle.UNDECORATED);
-        initModality(Modality.APPLICATION_MODAL);
-        setDialogPane(dialogPane);
 
         VBox choicesBox = new VBox();
         choicesBox.setFillWidth(true);
@@ -49,7 +41,7 @@ public class ChoiceDialog extends Dialog<ButtonType> {
         mainPane.setCenter(choicesBox);
         mainPane.getStyleClass().add("container");
         ButtonType cancelButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialogPane.getButtonTypes().addAll(cancelButton);
+        getDialogPane().getButtonTypes().addAll(cancelButton);
 
     }
     public void setHeader(String text){

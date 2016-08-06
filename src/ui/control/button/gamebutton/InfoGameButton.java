@@ -1,8 +1,11 @@
 package ui.control.button.gamebutton;
 
+import javafx.scene.image.Image;
 import ui.scene.BaseScene;
 import data.game.GameEntry;
 import javafx.scene.layout.Pane;
+
+import java.io.File;
 
 import static ui.Main.GENERAL_SETTINGS;
 
@@ -57,5 +60,10 @@ public class InfoGameButton extends GameButton {
     @Override
     protected int getPlayButtonWidth() {
         return (int) (getCoverWidth()* RATIO_PLAYBUTTON_COVER);
+    }
+
+    public void setImage(String imagePath){
+        Image img = new Image("file:"+ File.separator+ File.separator+ File.separator+imagePath,getCoverWidth(),getCoverHeight(),false, true);
+        coverView.setImage(img);
     }
 }

@@ -1,10 +1,14 @@
 package ui.scene;
 
+import data.game.ImageUtils;
+import data.game.OnDLDoneHandler;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.textfield.PathTextField;
 import ui.control.textfield.PlayTimeField;
+import ui.dialog.GameRoomAlert;
+import ui.dialog.IGDBImageSelector;
 import ui.dialog.SearchDialog;
 import data.game.GameEntry;
 import data.io.HTTPDownloader;
@@ -30,9 +34,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import ui.scene.exitaction.ClassicExitAction;
 import ui.scene.exitaction.ExitAction;
@@ -60,7 +62,6 @@ public class GameEditScene extends BaseScene {
 
     private BorderPane wrappingPane;
     private GridPane contentPane;
-    private ImageView backgroundView;
 
     private HBox buttonsBox;
 
@@ -122,9 +123,9 @@ public class GameEditScene extends BaseScene {
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                for(int i =0; i< chosenImageFiles.length; i++) {
+                for (int i = 0; i < chosenImageFiles.length; i++) {
                     if (chosenImageFiles[i] != null) {
-                        String type = i==0 ? "cover." : "screenshot.";
+                        String type = i == 0 ? "cover." : "screenshot.";
                         File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + type + getExtension(chosenImageFiles[i].getName()));
                         try {
                             if (!localCoverFile.exists()) {
@@ -150,12 +151,7 @@ public class GameEditScene extends BaseScene {
                 }
                 //fadeTransitionTo(MAIN_SCENE, getParentStage());
                 if (previousScene instanceof GameInfoScene) {
-                    ((GameInfoScene) previousScene).updateProperty("play_time", entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS));
-                    ((GameInfoScene) previousScene).updateProperty("game_path", entry.getPath());
-                    ((GameInfoScene) previousScene).updateProperty("year", entry.getYear());
-                    ((GameInfoScene) previousScene).updateProperty("developer", entry.getDeveloper());
-                    ((GameInfoScene) previousScene).updateProperty("publisher", entry.getPublisher());
-                    ((GameInfoScene) previousScene).updateProperty("description", entry.getDescription());
+                    ((GameInfoScene)previousScene).updateWithEditedEntry(entry);
                 }
                 onExitAction.run();
             }
@@ -176,74 +172,44 @@ public class GameEditScene extends BaseScene {
                                                updateLineProperty("game_description", gameEntry.getDescription());
 
                                                /*****************COVER DOWNLOAD***************************/
-                                               String coverImageURL = gameEntry.getIgdb_imageURL(0);
-                                               String coverFileName = gameEntry.getIgdb_ID() + "_cover_big_2x." + GameEditScene.getExtension(coverImageURL);
-                                               File coverOutputFile = new File(Main.CACHE_FOLDER + File.separator + coverFileName);
-                                               coverOutputFile.deleteOnExit();
-
-                                               if (!coverOutputFile.exists()) {
-                                                   Task<String> coverDownloadTask = new Task<String>() {
-                                                       @Override
-                                                       protected String call() throws Exception {
-                                                           Main.LOGGER.debug("Downloading " + coverImageURL);
-                                                           HTTPDownloader.downloadFile(coverImageURL, Main.CACHE_FOLDER.getAbsolutePath(), coverFileName);
-                                                           Main.LOGGER.debug("Cover downloaded");
-                                                           return null;
-                                                       }
-                                                   };
-                                                   coverDownloadTask.setOnSucceeded(eh -> {
-                                                       Platform.runLater(new Runnable() {
+                                               ImageUtils.downloadImageToCache(gameEntry.getIgdb_ID()
+                                                       , gameEntry.getIgdb_imageHash(0)
+                                                       , ImageUtils.TYPE_COVER
+                                                       , ImageUtils.SIZE_BIG_2X
+                                                       , new OnDLDoneHandler() {
                                                            @Override
-                                                           public void run() {
-                                                               //Main.LOGGER.info(outputFile.getAbsolutePath());
-                                                               coverView.setImage(new Image("file:" + File.separator + File.separator + File.separator + coverOutputFile.getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true));
+                                                           public void run(File outputfile) {
+                                                                       Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
+                                                                       ImageUtils.transitionToImage(img, coverView);
+
+                                                                       chosenImageFiles[0] = outputfile;
+                                                                       File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_COVER + "." + ".jpg");
+                                                                       entry.setImagePath(0, coverLocalImageFile);
+
                                                            }
                                                        });
-                                                   });
-                                                   Thread th = new Thread(coverDownloadTask);
-                                                   th.setDaemon(true);
-                                                   th.start();
-                                               } else {
-                                                   coverView.setImage(new Image("file:" + File.separator + File.separator + File.separator + coverOutputFile.getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true));
-                                               }
-                                               chosenImageFiles[0] = coverOutputFile;
-                                               File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + "cover." + GameEditScene.getExtension(coverImageURL));
-                                               entry.setImagePath(0, coverLocalImageFile);
 
                                                /********************SCREENSHOT DOWNLOAD************************************/
-                                               String screenshotImageURL = gameEntry.getIgdb_imageURL(1);
-                                               String screenshotFileName = gameEntry.getIgdb_ID() + "_screenshot_big_2x." + GameEditScene.getExtension(screenshotImageURL);
-                                               File screenshotOutputFile = new File(Main.CACHE_FOLDER + File.separator + screenshotFileName);
-                                               screenshotOutputFile.deleteOnExit();
+                                               IGDBImageSelector screenshotSelector = new IGDBImageSelector(gameEntry);
+                                               Optional<String> screenShotSelectedHash = screenshotSelector.showAndWait();
+                                               screenShotSelectedHash.ifPresent(selectedHash -> {
+                                                   ImageUtils.downloadImageToCache(gameEntry.getIgdb_ID()
+                                                           , selectedHash
+                                                           , ImageUtils.TYPE_SCREENSHOT
+                                                           , ImageUtils.SIZE_BIG_2X
+                                                           , new OnDLDoneHandler() {
+                                                               @Override
+                                                               public void run(File outputfile) {
+                                                                   Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
+                                                                   ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
 
-                                               if (!screenshotOutputFile.exists()) {
-                                                   Task<String> screenshotDownloadTask = new Task<String>() {
-                                                       @Override
-                                                       protected String call() throws Exception {
-                                                           Main.LOGGER.debug("Downloading " + screenshotImageURL);
-                                                           HTTPDownloader.downloadFile(screenshotImageURL, Main.CACHE_FOLDER.getAbsolutePath(), screenshotFileName);
-                                                           Main.LOGGER.debug("Screenshot downloaded");
-                                                           return null;
-                                                       }
-                                                   };
-                                                   screenshotDownloadTask.setOnSucceeded(eh -> {
-                                                       Platform.runLater(new Runnable() {
-                                                           @Override
-                                                           public void run() {
-                                                               //Main.LOGGER.info(screenshotOutputFile.getAbsolutePath());
-                                                               backgroundView.setImage(new Image("file:" + File.separator + File.separator + File.separator + screenshotOutputFile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true));
-                                                           }
-                                                       });
-                                                   });
-                                                   Thread th = new Thread(screenshotDownloadTask);
-                                                   th.setDaemon(true);
-                                                   th.start();
-                                               }else {
-                                                   backgroundView.setImage(new Image("file:" + File.separator + File.separator + File.separator + screenshotOutputFile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true));
-                                               }
-                                               chosenImageFiles[1]=screenshotOutputFile;
-                                               File screenshotLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + "screenshot." + GameEditScene.getExtension(screenshotImageURL));
-                                               entry.setImagePath(1, screenshotLocalImageFile);
+                                                                   chosenImageFiles[1] = outputfile;
+                                                                   File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_SCREENSHOT + "." + ".jpg");
+                                                                   entry.setImagePath(1, coverLocalImageFile);
+
+                                                               }
+                                                           });
+                                               });
                                            }
                                        });
 
@@ -261,20 +227,17 @@ public class GameEditScene extends BaseScene {
     }
 
     private void initCenter() {
-        backgroundView = new ImageView();
+        GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
+
+        backgroundView.setEffect(blur);
+        backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
         if (entry.getImagePath(1) != null) {
             //Main.LOGGER.debug("Screenshot available : "+entry.getImagePath(1));
             Image screenshotImage = entry.getImage(1,
                     Main.GENERAL_SETTINGS.getWindowWidth(),
                     Main.GENERAL_SETTINGS.getWindowHeight()
                     , false, true);
-            backgroundView = new ImageView(screenshotImage);
-            GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
-
-            backgroundView.setEffect(blur);
-            backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
-
-            getRootStackPane().getChildren().add(0,backgroundView);
+            backgroundView.setImage(screenshotImage);
         }
 
         contentPane = new GridPane();
@@ -367,18 +330,69 @@ public class GameEditScene extends BaseScene {
         row_count++;
 
         /**************************SCREENSHOT*********************************************/
+        OnDLDoneHandler screenshotDlDoneHandler = new OnDLDoneHandler() {
+            @Override
+            public void run(File outputfile) {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
+                        ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+                        chosenImageFiles[1] = outputfile;
+                        File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_SCREENSHOT + ".jpg");
+                        entry.setImagePath(1, coverLocalImageFile);
+                    }
+                });
+            }
+        };
         Label screenshotLabel = new Label(RESSOURCE_BUNDLE.getString("wallpaper") + " :");
         screenshotLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("wallpaper")));
         contentPane.add(screenshotLabel, 0, row_count);
 
-        ImageButton screenshotButton = new ImageButton(new Image("res/ui/folderButton.png", GENERAL_SETTINGS.getWindowWidth() / 24, GENERAL_SETTINGS.getWindowWidth() / 24, false, true));
-        screenshotButton.setOnAction(event -> {
+        HBox screenShotButtonsBox = new HBox();
+        screenShotButtonsBox.setSpacing(20 * Main.SCREEN_WIDTH / 1920);
+        screenShotButtonsBox.setAlignment(Pos.CENTER_LEFT);
+
+        ImageButton screenshotFileButton = new ImageButton(new Image("res/ui/folderButton.png", GENERAL_SETTINGS.getWindowWidth() / 24, GENERAL_SETTINGS.getWindowWidth() / 24, false, true));
+        screenshotFileButton.setOnAction(event -> {
             chosenImageFiles[1] = imageChooser.showOpenDialog(getParentStage());
+            screenshotDlDoneHandler.run(chosenImageFiles[1]);
+            //backgroundView.setImage(new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true));
             File localScreenshotFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + "screenshot." + getExtension(chosenImageFiles[1].getName()));
-            backgroundView.setImage(new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true));
             entry.setImagePath(1, localScreenshotFile);
         });
-        contentPane.add(screenshotButton, 1, row_count);
+        Label orLabel = new Label(RESSOURCE_BUNDLE.getString("or"));
+
+        Button screenshotIGDBButton = new Button(Main.RESSOURCE_BUNDLE.getString("IGDB"));
+        screenshotIGDBButton.setOnAction(new EventHandler<ActionEvent>() {
+                                             @Override
+                                             public void handle(ActionEvent event) {
+                                                 SearchDialog dialog = new SearchDialog();
+                                                 Optional<GameEntry> result = dialog.showAndWait();
+                                                 result.ifPresent(val -> {
+                                                     GameEntry gameEntry = val;
+                                                     if (val != null) {
+                                                         /********************SCREENSHOT DOWNLOAD************************************/
+                                                         IGDBImageSelector screenshotSelector = new IGDBImageSelector(gameEntry);
+                                                         Optional<String> screenShotSelectedHash = screenshotSelector.showAndWait();
+                                                         screenShotSelectedHash.ifPresent(selectedHash -> {
+                                                             ImageUtils.downloadImageToCache(gameEntry.getIgdb_ID()
+                                                                     , selectedHash
+                                                                     , ImageUtils.TYPE_SCREENSHOT
+                                                                     , ImageUtils.SIZE_BIG_2X
+                                                                     , screenshotDlDoneHandler);
+                                                         });
+                                                     }
+                                                 });
+
+                                             }
+                                         }
+
+        );
+
+        screenShotButtonsBox.getChildren().addAll(screenshotFileButton, orLabel, screenshotIGDBButton);
+
+        contentPane.add(screenShotButtonsBox, 1, row_count);
         row_count++;
 
         /********************END FOR PROPERTIES********************************************/
@@ -438,29 +452,6 @@ public class GameEditScene extends BaseScene {
         double coverHeight = GENERAL_SETTINGS.getWindowHeight() * 2 / 3;
 
         coverView = new ImageView(entry.getImage(0, coverWidth, coverHeight, false, true));
-        if (DEFAULT_COVER_IMAGE == null) {
-            for (int i = 256; i < 1025; i *= 2) {
-                if (i > coverHeight) {
-                    DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover" + i + ".jpg", coverWidth, coverHeight, false, true);
-                    break;
-                }
-            }
-            if (DEFAULT_COVER_IMAGE == null) {
-                DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover.jpg", coverWidth, coverHeight, false, true);
-            }
-        }
-        coverView = new ImageView(DEFAULT_COVER_IMAGE);
-
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                //TODO implement real multithreading loading
-                Image img = entry.getImage(0, coverWidth, coverHeight, false, true);
-                coverView.setImage(img);
-
-            }
-        });
-
 
         ImageButton changeImageButton = new ImageButton(new Image("res/ui/folderButton.png", GENERAL_SETTINGS.getWindowWidth() / 12, GENERAL_SETTINGS.getWindowWidth() / 12, false, true));
         changeImageButton.setOpacity(0);
@@ -470,7 +461,9 @@ public class GameEditScene extends BaseScene {
             public void handle(ActionEvent event) {
                 chosenImageFiles[0] = imageChooser.showOpenDialog(getParentStage());
                 File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + "cover." + getExtension(chosenImageFiles[0].getName()));
-                coverView.setImage(new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true));
+                Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
+                ImageUtils.transitionToImage(img, coverView);
+
                 entry.setImagePath(0, localCoverFile);
             }
         });
@@ -538,11 +531,7 @@ public class GameEditScene extends BaseScene {
         EventHandler<MouseEvent> backButtonHandler = new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setHeaderText(null);
-                alert.initStyle(StageStyle.UNDECORATED);
-                alert.getDialogPane().getStylesheets().add("res/flatterfx.css");
-                alert.initModality(Modality.APPLICATION_MODAL);
+                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION);
                 alert.setContentText(RESSOURCE_BUNDLE.getString("ignore_changes?"));
 
                 Optional<ButtonType> result = alert.showAndWait();
@@ -621,11 +610,7 @@ public class GameEditScene extends BaseScene {
             cancelButton.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent event) {
-                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                    alert.setHeaderText(null);
-                    alert.initStyle(StageStyle.UNDECORATED);
-                    alert.getDialogPane().getStylesheets().add("res/flatterfx.css");
-                    alert.initModality(Modality.APPLICATION_MODAL);
+                    GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION);
                     alert.setContentText(RESSOURCE_BUNDLE.getString("ignore_changes?"));
 
                     Optional<ButtonType> result = alert.showAndWait();

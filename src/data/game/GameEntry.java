@@ -2,11 +2,11 @@ package data.game;
 
 import system.application.GameStarter;
 import javafx.scene.image.Image;
-import ui.Main;
 
 import java.io.*;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
 /**
@@ -39,7 +39,7 @@ public class GameEntry {
 
     /*FOR IGDB PURPOSE ONLY, should not be stored*/
     private int igdb_ID;
-    private String[] igdb_imageURL= new String[IMAGES_NUMBER];
+    private String[] igdb_imageHash = new String[IMAGES_NUMBER];
 
     public GameEntry(String name) {
         uuid = UUID.randomUUID();
@@ -379,11 +379,23 @@ public class GameEntry {
     public void setIgdb_ID(int igdb_ID) {
         this.igdb_ID = igdb_ID;
     }
-    public String getIgdb_imageURL(int index){
-        return igdb_imageURL[index];
+    public String getIgdb_imageHash(int index){
+        return igdb_imageHash[index];
     }
-    public void setIgdb_imageURL(int index, String url){
-        igdb_imageURL[index] = url;
+    public String[] getIgdb_imageHashs(){
+        return igdb_imageHash;
+    }
+    public void setIgdb_imageHash(int index, String hash){
+        if(index >= igdb_imageHash.length){
+            String[] copy = igdb_imageHash;
+            igdb_imageHash = new String[index+3]; //+3 to be large enough
+            int i=0;
+            for(String s : copy){
+                igdb_imageHash[i] = s;
+                i++;
+            }
+        }
+        igdb_imageHash[index] = hash;
     }
 
     public boolean isAlreadyStartedInGameRoom() {
