@@ -146,16 +146,18 @@ public class Main {
         Task initTask = new Task() {
             @Override
             protected Object call() throws Exception {
-                NETWORK_MANAGER.connect();
-                //close other possible instances of GameRoom
-                NETWORK_MANAGER.sendMessage(MessageTag.CLOSE_APP);
-                NETWORK_MANAGER.addMessageListener(new MessageListener() {
-                    @Override
-                    public void onMessageReceived(MessageTag tag, String payload) {
-                        if (tag.equals(MessageTag.CLOSE_APP)) {
-                            forceStop(MAIN_SCENE.getParentStage());
+                Platform.runLater(() -> {
+                    NETWORK_MANAGER.connect();
+                    //close other possible instances of GameRoom
+                    NETWORK_MANAGER.sendMessage(MessageTag.CLOSE_APP);
+                    NETWORK_MANAGER.addMessageListener(new MessageListener() {
+                        @Override
+                        public void onMessageReceived(MessageTag tag, String payload) {
+                            if (tag.equals(MessageTag.CLOSE_APP)) {
+                                forceStop(MAIN_SCENE.getParentStage());
+                            }
                         }
-                    }
+                    });
                 });
                 return null;
             }

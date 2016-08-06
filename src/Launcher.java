@@ -139,6 +139,7 @@ public class Launcher extends Application {
         primaryStage.focusedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                MAIN_SCENE.setChangeBackgroundNextTime(true);
                 if(newValue && Main.GENERAL_SETTINGS.isActivateXboxControllerSupport()){
                    xboxController.startThreads();
                 }else if(!newValue && Main.GENERAL_SETTINGS.isActivateXboxControllerSupport()){

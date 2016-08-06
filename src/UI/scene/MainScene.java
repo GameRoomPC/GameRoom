@@ -67,7 +67,6 @@ public class MainScene extends BaseScene {
 
     private BorderPane wrappingPane;
     private TilePane tilePane = new TilePane();
-
     private Label statusLabel;
 
     private boolean changeBackgroundNextTime = false;
@@ -98,6 +97,10 @@ public class MainScene extends BaseScene {
         GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
         backgroundView.setEffect(blur);
         backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
+
+        maskView.setOpacity(0);
+        setChangeBackgroundNextTime(true);
+
         wrappingPane = new BorderPane();
         getRootStackPane().getChildren().add(wrappingPane);
         statusLabel = new Label();
@@ -481,13 +484,26 @@ public class MainScene extends BaseScene {
                     if (backgroundView.getImage() == null || !backgroundView.getImage().equals(img)) {
                         //TODO fix the blinking issue where an identical image is being set twice. The above compareason does not work.
                         ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+                        if(maskView.getOpacity() !=1){
+                            Timeline fadeInTimeline = new Timeline(
+                                    new KeyFrame(Duration.seconds(0),
+                                            new KeyValue(maskView.opacityProperty(), maskView.opacityProperty().getValue(), Interpolator.EASE_IN)),
+                                    new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                            new KeyValue(maskView.opacityProperty(), 1, Interpolator.EASE_OUT)
+                                    ));
+                            fadeInTimeline.setCycleCount(1);
+                            fadeInTimeline.setAutoReverse(false);
+                            fadeInTimeline.play();
+                        }
                     }
                 } else {
                     Timeline fadeOutTimeline = new Timeline(
                             new KeyFrame(Duration.seconds(0),
-                                    new KeyValue(backgroundView.opacityProperty(), backgroundView.opacityProperty().getValue(), Interpolator.EASE_IN)),
+                                    new KeyValue(backgroundView.opacityProperty(), backgroundView.opacityProperty().getValue(), Interpolator.EASE_IN),
+                                    new KeyValue(maskView.opacityProperty(), maskView.opacityProperty().getValue(), Interpolator.EASE_IN)),
                             new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                    new KeyValue(backgroundView.opacityProperty(), 0, Interpolator.EASE_OUT)
+                                    new KeyValue(backgroundView.opacityProperty(), 0, Interpolator.EASE_OUT),
+                                    new KeyValue(maskView.opacityProperty(), 0, Interpolator.EASE_OUT)
                             ));
                     fadeOutTimeline.setCycleCount(1);
                     fadeOutTimeline.setAutoReverse(false);
@@ -500,9 +516,11 @@ public class MainScene extends BaseScene {
             if(backgroundView.getOpacity()!=0){
                 Timeline fadeOutTimeline = new Timeline(
                         new KeyFrame(Duration.seconds(0),
-                                new KeyValue(backgroundView.opacityProperty(), backgroundView.opacityProperty().getValue(), Interpolator.EASE_IN)),
+                                new KeyValue(backgroundView.opacityProperty(), backgroundView.opacityProperty().getValue(), Interpolator.EASE_IN),
+                                new KeyValue(maskView.opacityProperty(), maskView.opacityProperty().getValue(), Interpolator.EASE_IN)),
                         new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                new KeyValue(backgroundView.opacityProperty(), 0, Interpolator.EASE_OUT)
+                                new KeyValue(backgroundView.opacityProperty(), 0, Interpolator.EASE_OUT),
+                                new KeyValue(maskView.opacityProperty(), 0, Interpolator.EASE_OUT)
                         ));
                 fadeOutTimeline.setCycleCount(1);
                 fadeOutTimeline.setAutoReverse(false);

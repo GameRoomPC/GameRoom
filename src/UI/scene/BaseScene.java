@@ -31,6 +31,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
  * Created by LM on 03/07/2016.
  */
 public abstract class BaseScene extends Scene {
+    private static Image backgroundMaskImage;
     public final static double FADE_IN_OUT_TIME = 0.1;
     public final static double BACKGROUND_IMAGE_MAX_OPACITY = 0.6;
     public final static double BACKGROUND_IMAGE_BLUR = 5;
@@ -39,6 +40,7 @@ public abstract class BaseScene extends Scene {
     private Stage parentStage;
     protected BaseScene previousScene;
     protected ImageView backgroundView;
+    protected ImageView maskView;
     private ImageButton backButton;
 
     public BaseScene(StackPane stackPane,Stage parentStage){
@@ -46,8 +48,17 @@ public abstract class BaseScene extends Scene {
         this.rootStackPane = stackPane;
         this.parentStage = parentStage;
         getStylesheets().add("res/flatterfx.css");
-        backgroundView = new ImageView();
+        if(backgroundMaskImage == null || backgroundMaskImage.getWidth()!=Main.GENERAL_SETTINGS.getWindowWidth() || backgroundMaskImage.getHeight() != Main.GENERAL_SETTINGS.getWindowHeight()){
+            backgroundMaskImage = new Image("res/ui/backgroundMask.png"
+                    , Main.GENERAL_SETTINGS.getWindowWidth()
+                    , Main.GENERAL_SETTINGS.getWindowHeight()
+                    ,false
+                    ,true);
+        }
+        backgroundView = new ImageView(backgroundMaskImage);
+        maskView = new ImageView();
         rootStackPane.getChildren().add(backgroundView);
+        rootStackPane.getChildren().add(maskView);
         initAndAddWrappingPaneToRoot();
 
         widthProperty().addListener(new ChangeListener<Number>() {

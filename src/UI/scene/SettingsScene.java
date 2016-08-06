@@ -386,6 +386,7 @@ public class SettingsScene extends BaseScene {
     @Override
     void initAndAddWrappingPaneToRoot() {
         wrappingPane = new BorderPane();
+        maskView.setOpacity(0);
         getRootStackPane().getChildren().add(wrappingPane);
     }
 }
