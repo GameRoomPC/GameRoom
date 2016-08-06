@@ -22,19 +22,21 @@ import java.util.Date;
  */
 public class GameScrapper {
 
-    public static void main(String[] args) {
-        //JSONArray bf4_results = searchGame("Battlefield 4");
+    public static void main(String[] args) throws ConnectTimeoutException {
+        JSONArray bf4_results = searchGame("Battlefield 4");
         //System.out.println(bf4_results);
         //System.out.println(getYear(1979));
 
-        //JSONArray bf4_data = getGamesData(bf4_results.getJSONObject(0).getInt("id"));
-        //System.out.println(bf4_data);
+        ArrayList list = new ArrayList();
+        list.add(bf4_results.getJSONObject(0).getInt("id"));
+        JSONArray bf4_data = getGamesData(list);
+        System.out.println(bf4_data);
         //System.out.println(getEntry(bf4_data.getJSONObject(0)).getPublisher());
 
-        ArrayList<Integer> list = new ArrayList<>();
+        /*ArrayList<Integer> list = new ArrayList<>();
         list.add(1);
         JSONArray EA_data = getCompaniesData(list);
-        System.out.println(EA_data);
+        System.out.println(EA_data);*/
     }
 
     public static String getYear(int id, JSONArray gamesData) {
@@ -71,9 +73,17 @@ public class GameScrapper {
         }
         return -1;
     }
+    public static String getScreenshotImage(String screenshot_size, JSONObject jsob){
+        //TODO implement multiple screenshots downloads?
+        String cloudinary_id = jsob.getJSONArray("screenshots").getJSONObject(0).getString("cloudinary_id");
+        return "https://res.cloudinary.com/igdb/image/upload/t_" + screenshot_size + "/" + cloudinary_id + ".jpg";
+    }
     public static String getCoverImage(String cover_size, JSONObject jsob){
         String cloudinary_id = jsob.getJSONObject("cover").getString("cloudinary_id");
         return "https://res.cloudinary.com/igdb/image/upload/t_" + cover_size + "/" + cloudinary_id + ".jpg";
+    }
+    public static String getScreenshotImage(int id, String screenshot_size, JSONArray gamesData) {
+        return getScreenshotImage(screenshot_size,gamesData.getJSONObject(indexOf(id, gamesData)));
     }
     public static String getCoverImage(int id, String cover_size, JSONArray gamesData) {
         return getCoverImage(cover_size,gamesData.getJSONObject(indexOf(id, gamesData)));
@@ -169,6 +179,7 @@ public class GameScrapper {
         }
         try {
             entry.setIgdb_imageURL(0, GameScrapper.getCoverImage("cover_big_2x", game_data));
+            entry.setIgdb_imageURL(1, GameScrapper.getScreenshotImage("screenshot_big_2x", game_data));
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
                 Main.LOGGER.warn(entry.getName()+" : no cover");
@@ -217,7 +228,7 @@ public class GameScrapper {
             for (Integer id : ids) {
                 idsString += id + ",";
             }
-            HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + idsString.substring(0, idsString.length() - 1) + "?fields=name,release_dates,esrb.synopsis,rating,cover,developers,publishers")
+            HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + idsString.substring(0, idsString.length() - 1) + "?fields=name,release_dates,esrb.synopsis,rating,cover,developers,publishers,screenshots")
                     .header("X-Mashape-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
                     .header("Accept", "application/json")
                     .asString();

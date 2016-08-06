@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  */
 public class GameEntry {
     public final static File ENTRIES_FOLDER = new File("Games");
-    private final static File[] DEFAULT_IMAGES_PATHS = {new File("res/defaultImages/cover.jpg")};
+    public final static File[] DEFAULT_IMAGES_PATHS = {new File("res/defaultImages/cover.jpg"),null};
     private final static int IMAGES_NUMBER = 3;
 
     public final static int TIME_FORMAT_FULL_HMS = 0; // 0h12m0s, 0h5m13s
@@ -184,7 +184,9 @@ public class GameEntry {
 
     public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth){
         File currFile = getImagePath(index);
-        if(DEFAULT_IMAGES_PATHS.length > index && currFile.equals(DEFAULT_IMAGES_PATHS[index])){
+        if(currFile == null){
+            return null;
+        }else if(DEFAULT_IMAGES_PATHS.length > index && currFile.equals(DEFAULT_IMAGES_PATHS[index])){
             return new Image(currFile.getPath().replace("\\","/"), width,height,preserveRatio,smooth);
         }else{
             return new Image("file:" + File.separator + File.separator + File.separator +  currFile.getAbsolutePath(), width,height,preserveRatio,smooth);

@@ -1,5 +1,8 @@
 package ui.control.button.gamebutton;
 
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import ui.Main;
 import ui.control.button.ImageButton;
 import ui.scene.BaseScene;
 import ui.scene.GameInfoScene;
@@ -33,6 +36,10 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+
+import java.util.Stack;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static ui.Main.*;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -94,7 +101,7 @@ public abstract class GameButton extends BorderPane {
             if (ke.getCode() == KeyCode.ENTER) {
                 playButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
             }
-            if(ke.getCode() == KeyCode.I){
+            if (ke.getCode() == KeyCode.I) {
                 infoButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
             }
         });
@@ -254,6 +261,29 @@ public abstract class GameButton extends BorderPane {
                     if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
                         playButton.fireEvent(new MouseEvent(MOUSE_ENTERED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
                     }
+                    Task backGroundImageTask = new Task() {
+                        @Override
+                        protected Object call() throws Exception {
+                            Thread.currentThread().sleep(300);
+                            if (isFocused()) {
+                                Image screenshotImage = entry.getImage(1,
+                                        Main.GENERAL_SETTINGS.getWindowWidth(),
+                                        Main.GENERAL_SETTINGS.getWindowHeight()
+                                        , false, true);
+
+                                Platform.runLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        MAIN_SCENE.setImageBackground(screenshotImage);
+                                    }
+                                });
+                            }
+                            return null;
+                        }
+                    };
+                    Thread setBackgroundThread = new Thread(backGroundImageTask);
+                    setBackgroundThread.setDaemon(true);
+                    setBackgroundThread.start();
                 } else {
                     if (!inContextMenu) {
                         playButton.setMouseTransparent(true);

@@ -31,6 +31,9 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
  */
 public abstract class BaseScene extends Scene {
     public final static double FADE_IN_OUT_TIME = 0.1;
+    public final static double BACKGROUND_IMAGE_MAX_OPACITY = 0.6;
+    public final static double BACKGROUND_IMAGE_BLUR = 5;
+
     private StackPane rootStackPane;
     private Stage parentStage;
     protected BaseScene previousScene;

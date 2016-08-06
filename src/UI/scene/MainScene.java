@@ -1,12 +1,18 @@
 package ui.scene;
 
 import data.game.AllGameEntries;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.ImageView;
+import javafx.util.Duration;
 import system.os.WindowsShortcut;
 import ui.control.button.ImageButton;
 import ui.dialog.ChoiceDialog;
@@ -58,7 +64,7 @@ public class MainScene extends BaseScene {
     public final static double MIN_SCALE_FACTOR = 0.1;
 
     private BorderPane wrappingPane;
-
+    private ImageView backgroundView;
     private TilePane tilePane = new TilePane();
 
     private Label statusLabel;
@@ -86,10 +92,15 @@ public class MainScene extends BaseScene {
 
     @Override
     void initAndAddWrappingPaneToRoot() {
+        backgroundView = new ImageView();
+        GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
+        backgroundView.setEffect(blur);
+        backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
+        getRootStackPane().getChildren().add(backgroundView);
         wrappingPane = new BorderPane();
         getRootStackPane().getChildren().add(wrappingPane);
         statusLabel = new Label();
-        getRootStackPane().getChildren().addAll(statusLabel);
+        getRootStackPane().getChildren().add(statusLabel);
     }
 
     private void initCenter() {
@@ -100,7 +111,7 @@ public class MainScene extends BaseScene {
 
         /*ProgressDialog dialog = new ProgressDialog();
         dialog.getDialogStage().setAlwaysOnTop(true);*/
-        statusLabel.setText(RESSOURCE_BUNDLE.getString("loading")+"...");
+        statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + "...");
         wrappingPane.setOpacity(0);
         Task<Void> task = new Task<Void>() {
             @Override
@@ -109,10 +120,10 @@ public class MainScene extends BaseScene {
                     @Override
                     public void run() {
                         ArrayList<UUID> uuids = Main.ALL_GAMES_ENTRIES.readUUIDS();
-                        int i=0;
+                        int i = 0;
                         for (UUID uuid : uuids) {
-                            statusLabel.setText(RESSOURCE_BUNDLE.getString("loading")+" "+(i+1)+"/"+uuids.size()+"...");
-                            updateProgress(i,uuids.size()-1);
+                            statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + " " + (i + 1) + "/" + uuids.size() + "...");
+                            updateProgress(i, uuids.size() - 1);
                             addGame(new GameEntry(uuid));
                             i++;
                         }
@@ -213,7 +224,7 @@ public class MainScene extends BaseScene {
             public void handle(MouseEvent event) {
                 if (event.isPrimaryButtonDown()) {
                     getRootStackPane().setMouseTransparent(true);
-                   ChoiceDialog choiceDialog = new ChoiceDialog(
+                    ChoiceDialog choiceDialog = new ChoiceDialog(
                             new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_exe"), RESSOURCE_BUNDLE.getString("add_exe_long")),
                             new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_folder"), RESSOURCE_BUNDLE.getString("add_symlink_long"))
                     );
@@ -258,8 +269,8 @@ public class MainScene extends BaseScene {
                             if (selectedFolder != null) {
                                 ArrayList<File> files = new ArrayList<File>();
                                 files.addAll(Arrays.asList(selectedFolder.listFiles()));
-                                if(files.size() != 0) {
-                                    createFolderAddExitAction(files,0).run();
+                                if (files.size() != 0) {
+                                    createFolderAddExitAction(files, 0).run();
                                     //startMultiAddScenes(files);
                                 }
                             }
@@ -279,7 +290,7 @@ public class MainScene extends BaseScene {
         //HBox.setMargin(sizeSlider, new Insets(15, 12, 15, 12));
         StackPane topPane = new StackPane();
         topPane.setFocusTraversable(false);
-        ImageView titleView = new ImageView(new Image("res/ui/title-medium.png", 500*SCREEN_WIDTH/1920,94*SCREEN_HEIGHT/1080,true,true));
+        ImageView titleView = new ImageView(new Image("res/ui/title-medium.png", 500 * SCREEN_WIDTH / 1920, 94 * SCREEN_HEIGHT / 1080, true, true));
         titleView.setMouseTransparent(true);
         titleView.setFocusTraversable(false);
         StackPane.setAlignment(titleView, Pos.BOTTOM_CENTER);
@@ -320,7 +331,6 @@ public class MainScene extends BaseScene {
                     entry.startGame();
                 }
             });
-            File file = new File(entry.getPath());
             Main.START_TRAY_MENU.add(gameItem);
         }
     }
@@ -377,8 +387,9 @@ public class MainScene extends BaseScene {
         });
         tilePane.getChildren().setAll(nodes);
     }
-    private ExitAction createFolderAddExitAction(ArrayList<File> files, int fileCount){
-        if(fileCount<files.size()) {
+
+    private ExitAction createFolderAddExitAction(ArrayList<File> files, int fileCount) {
+        if (fileCount < files.size()) {
             File currentFile = files.get(fileCount);
             try {
                 WindowsShortcut shortcut = new WindowsShortcut(currentFile);
@@ -393,16 +404,17 @@ public class MainScene extends BaseScene {
             return new MultiAddExitAction(new Runnable() {
                 @Override
                 public void run() {
-                    ExitAction action = createFolderAddExitAction(files,fileCount+1);
-                        gameEditScene.setOnExitAction( action); //create interface runnable to access property GameEditScene
-                        gameEditScene.addCancelButton(action);
+                    ExitAction action = createFolderAddExitAction(files, fileCount + 1);
+                    gameEditScene.setOnExitAction(action); //create interface runnable to access property GameEditScene
+                    gameEditScene.addCancelButton(action);
                     fadeTransitionTo(gameEditScene, getParentStage());
                 }
-            },gameEditScene);
-        }else{
-            return new ClassicExitAction(this,getParentStage(),MAIN_SCENE);
+            }, gameEditScene);
+        } else {
+            return new ClassicExitAction(this, getParentStage(), MAIN_SCENE);
         }
     }
+
     private void remapArrowKeys(ScrollPane scrollPane) throws AWTException {
         List<KeyEvent> mappedEvents = new ArrayList<>();
         scrollPane.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
@@ -442,12 +454,14 @@ public class MainScene extends BaseScene {
             }
         });
     }
-    public int getInputMode(){
+
+    public int getInputMode() {
         return input_mode;
     }
-    public void setInputMode(int input_mode){
+
+    public void setInputMode(int input_mode) {
         this.input_mode = input_mode;
-        switch(input_mode){
+        switch (input_mode) {
             case INPUT_MODE_KEYBOARD:
                 setCursor(Cursor.NONE);
                 wrappingPane.setMouseTransparent(true);
@@ -459,5 +473,36 @@ public class MainScene extends BaseScene {
                 wrappingPane.setMouseTransparent(false);
                 break;
         }
+    }
+
+    public void setImageBackground(Image img) {
+        Timeline fadeOutTimeline = new Timeline(
+                new KeyFrame(Duration.seconds(0),
+                        new KeyValue(backgroundView.opacityProperty(), backgroundView.opacityProperty().getValue(), Interpolator.EASE_IN)),
+                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                        new KeyValue(backgroundView.opacityProperty(), 0, Interpolator.EASE_OUT)
+                ));
+        fadeOutTimeline.setCycleCount(1);
+        fadeOutTimeline.setAutoReverse(false);
+        fadeOutTimeline.setOnFinished(new EventHandler<javafx.event.ActionEvent>() {
+            @Override
+            public void handle(javafx.event.ActionEvent event) {
+                if (img != null) {
+                    backgroundView.setImage(img);
+                    Timeline fadeInTimeline = new Timeline(
+                            new KeyFrame(Duration.seconds(0),
+                                    new KeyValue(backgroundView.opacityProperty(), 0, Interpolator.EASE_IN)),
+                            new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                    new KeyValue(backgroundView.opacityProperty(), BACKGROUND_IMAGE_MAX_OPACITY, Interpolator.EASE_OUT)
+                            ));
+                    fadeInTimeline.setCycleCount(1);
+                    fadeInTimeline.setAutoReverse(false);
+                    fadeInTimeline.play();
+                } else {
+                    backgroundView.setOpacity(0);
+                }
+            }
+        });
+        fadeOutTimeline.play();
     }
 }
