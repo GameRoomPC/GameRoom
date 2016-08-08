@@ -327,14 +327,14 @@ public abstract class GameButton extends BorderPane {
             }
         });
         coverPane.setOnMouseEntered(e -> {
-            if (getCursor() != null && !getCursor().equals(Cursor.NONE)) {
+            if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_MOUSE) {
                 requestFocus();
             }
         });
 
         coverPane.setOnMouseExited(e -> {
-            if (getCursor() != null && !getCursor().equals(Cursor.NONE)) {
-                requestFocus();
+            if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_MOUSE) {
+                //requestFocus();
                 Timeline fadeOutTimeline = new Timeline(
                         new KeyFrame(Duration.seconds(0),
                                 new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT)),
@@ -347,13 +347,15 @@ public abstract class GameButton extends BorderPane {
                 fadeOutTimeline.play();
             }
         });
+        playButton.addMouseEnteredHandler(e -> {
+            if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_MOUSE) {
+                requestFocus();
+            }
+        });
         infoButton.addMouseEnteredHandler(e -> {
             playTimeLabel.setText(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_SHORT_HMS));
-            if (getCursor() == null) {
-                setCursor(Cursor.DEFAULT);
-            }
-            if (getCursor() != null && !getCursor().equals(Cursor.NONE)) {
-
+            if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_MOUSE) {
+                requestFocus();
                 playTimeLabel.setOpacity(0);
                 playTimeLabel.setVisible(true);
                 Timeline fadeInTimeline = new Timeline(
@@ -369,10 +371,7 @@ public abstract class GameButton extends BorderPane {
             }
         });
         infoButton.addMouseExitedHandler(e -> {
-            if (getCursor() == null) {
-                setCursor(Cursor.DEFAULT);
-            }
-            if (getCursor() != null && !getCursor().equals(Cursor.NONE)) {
+            if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_MOUSE) {
                 Timeline fadeOutTimeline = new Timeline(
                         new KeyFrame(Duration.seconds(0),
                                 new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT)),
