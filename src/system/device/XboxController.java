@@ -37,7 +37,7 @@ public class XboxController {
         pollingTask = new Runnable() {
             @Override
             public void run() {
-                while (controller.poll() && runThreads) {
+                while (controller!=null && controller.poll() && runThreads) {
 
                     EventQueue queue = controller.getEventQueue();
                     Event event = new Event();
@@ -74,6 +74,8 @@ public class XboxController {
                 Controller foundController = null;
                 Component[] foundComponents = null;
 
+                runThreads = true;
+
                 while (foundController == null && runThreads) {
                     try {
                         Thread.sleep(1000);
@@ -85,7 +87,7 @@ public class XboxController {
 
 
                     for (Controller controller : controllers) {
-                        if (controller.getType().equals(Controller.Type.GAMEPAD) && controller.getName().contains("XBOX 360")) {
+                        if (controller.getType().equals(Controller.Type.GAMEPAD)/* && controller.getName().contains("XBOX 360")*/) {
                             foundController = controller;
                             foundComponents = controller.getComponents();
                             Main.LOGGER.debug("Found gamepad [" + controller.getName() + "]");
@@ -136,7 +138,6 @@ public class XboxController {
         Main.LOGGER.debug("Stopping xbox controller threads");
     }
     public void startThreads(){
-        runThreads = true;
         Main.LOGGER.debug("Restarting xbox controller threads");
         Thread th = new Thread(controllerDiscoverTask);
         th.setDaemon(true);

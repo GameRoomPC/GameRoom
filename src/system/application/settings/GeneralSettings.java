@@ -1,21 +1,22 @@
-package system.application;
+package system.application.settings;
 
+import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
-import java.util.UUID;
-
-import static ui.scene.MainScene.MAX_SCALE_FACTOR;
-import static ui.scene.MainScene.MIN_SCALE_FACTOR;
 
 /**
  * Created by LM on 03/07/2016.
  */
 public class GeneralSettings {
-    private String locale = Locale.getDefault().toLanguageTag();
+    private HashMap<String, SettingValue> settingsMap = new HashMap<>();
+
+    /*private Locale locale = Locale.getDefault();
     //private boolean closeOnLaunch = false;
     private OnLaunchAction onLaunchAction = OnLaunchAction.DO_NOTHING;
     private double tileZoom = 0.4;
@@ -30,7 +31,7 @@ public class GeneralSettings {
     private boolean activateXboxControllerSupport = false;
     private String gamesFolder = "";
     private String donationKey = "";
-    private boolean disableWallpaper = false;
+    private boolean disableWallpaper = false;*/
 
     public GeneralSettings(){
         loadSettings();
@@ -51,67 +52,9 @@ public class GeneralSettings {
             // load a properties file
             prop.load(input);
 
-            if(prop.getProperty("locale")!=null){
-                locale = prop.getProperty("locale");
+            for(PredefinedSetting predefinedSetting : PredefinedSetting.values()){
+                SettingValue.loadSetting(settingsMap,prop, predefinedSetting);
             }
-            if(prop.getProperty("tileZoom")!=null){
-                tileZoom = Double.parseDouble(prop.getProperty("tileZoom"));
-                if(tileZoom>MAX_SCALE_FACTOR){
-                    tileZoom = MAX_SCALE_FACTOR;
-                }else if(tileZoom < MIN_SCALE_FACTOR){
-                    tileZoom = MIN_SCALE_FACTOR;
-                }
-            }
-            if(prop.getProperty("fullScreen")!= null){
-                fullScreen = Boolean.parseBoolean(prop.getProperty("fullScreen"));
-            }
-            if(prop.getProperty("windowWidth")!=null){
-                windowWidth = Integer.parseInt(prop.getProperty("windowWidth"));
-            }else{
-                windowWidth = (int) Main.SCREEN_WIDTH;
-                //TODO fix first launch not fullscreen no border but initial value of this parameter
-            }
-            if(prop.getProperty("windowHeight")!=null){
-                windowHeight = Integer.parseInt(prop.getProperty("windowHeight"));
-            }else{
-                windowHeight = (int) Main.SCREEN_HEIGHT;
-            }
-            if(prop.getProperty("gamingPowerMode")!=null){
-                gamingPowerMode = new PowerMode(UUID.fromString(prop.getProperty("gamingPowerMode")));
-            }else{
-                gamingPowerMode = PowerMode.getActivePowerMode();
-                Main.LOGGER.debug(gamingPowerMode);
-            }
-            if(prop.getProperty("enablePowerGamingMode")!=null){
-                enablePowerGamingMode = Boolean.valueOf(prop.getProperty("enablePowerGamingMode"));
-            }
-            if(prop.getProperty("noMoreTrayMessage")!=null){
-                noMoreTrayMessage = Boolean.valueOf(prop.getProperty("noMoreTrayMessage"));
-            }
-
-            if(prop.getProperty("onLaunchAction")!= null){
-                onLaunchAction = OnLaunchAction.fromString(prop.getProperty("onLaunchAction"));
-            }
-            if(prop.getProperty("disableAllNotifications")!=null){
-                disableAllNotifications = Boolean.valueOf(prop.getProperty("disableAllNotifications"));
-            }
-            if(prop.getProperty("minimizeOnStart")!=null){
-                minimizeOnStart = Boolean.valueOf(prop.getProperty("minimizeOnStart"));
-            }
-            if(prop.getProperty("activateXboxControllerSupport")!=null){
-                activateXboxControllerSupport = Boolean.valueOf(prop.getProperty("activateXboxControllerSupport"));
-            }
-            if(prop.getProperty("gamesFolder")!=null){
-                gamesFolder = prop.getProperty("gamesFolder");
-            }
-            if(prop.getProperty("donationKey")!=null){
-                donationKey = prop.getProperty("donationKey");
-            }
-            if(prop.getProperty("disableWallpaper")!=null){
-                disableWallpaper = Boolean.valueOf(prop.getProperty("disableWallpaper"));
-            }
-
-
         } catch (IOException ex) {
             ex.printStackTrace();
 
@@ -124,9 +67,9 @@ public class GeneralSettings {
                 }
             }
             Main.LOGGER.info("Loaded settings : "
-                    +"windowWidth="+windowWidth
-                    +", windowHeight="+ windowHeight
-                    +", locale="+locale);
+                    +"windowWidth="+getWindowWidth()
+                    +", windowHeight="+ getWindowHeight()
+                    +", locale="+getLocale(PredefinedSetting.LOCALE).getLanguage());
         }
     }
 
@@ -139,7 +82,7 @@ public class GeneralSettings {
             output = new FileOutputStream("config.properties");
 
             // set the properties value
-            prop.setProperty("locale", locale);
+           /* prop.setProperty("locale", locale);
             prop.setProperty("onLaunchAction", onLaunchAction.getRessourceKey());
             prop.setProperty("tileZoom", Double.toString(tileZoom));
             prop.setProperty("fullScreen", Boolean.toString(fullScreen));
@@ -153,7 +96,10 @@ public class GeneralSettings {
             prop.setProperty("activateXboxControllerSupport", Boolean.toString(activateXboxControllerSupport));
             prop.setProperty("gamesFolder", gamesFolder);
             prop.setProperty("donationKey", donationKey);
-            prop.setProperty("disableWallpaper", Boolean.toString(disableWallpaper));
+            prop.setProperty("disableWallpaper", Boolean.toString(disableWallpaper));*/
+            for(PredefinedSetting key : PredefinedSetting.values()){
+                prop.setProperty(key.toString(),settingsMap.get(key.getKey()).toString());
+            }
 
 
 
@@ -177,22 +123,54 @@ public class GeneralSettings {
     /***************************SETTERS AND GETTERS*******************************/
 
     public int getWindowWidth() {
-        return windowWidth;
-    }
-
-    public void setWindowWidth(int windowWidth) {
-        this.windowWidth = windowWidth;
+        SettingValue setting = settingsMap.get(PredefinedSetting.WINDOW_WIDTH.getKey());
+        return (int)setting.getSettingValue();
     }
 
     public int getWindowHeight() {
-        return windowHeight;
+        SettingValue setting = settingsMap.get(PredefinedSetting.WINDOW_HEIGHT.getKey());
+        return (int)setting.getSettingValue();
     }
 
-    public void setWindowHeight(int windowHeight) {
-        this.windowHeight = windowHeight;
+    public Boolean getBoolean(PredefinedSetting key){
+        SettingValue setting = settingsMap.get(key.getKey());
+        return (boolean) setting.getSettingValue();
+    }
+    public Locale getLocale(PredefinedSetting key){
+        SettingValue setting = settingsMap.get(key.getKey());
+        return (Locale) setting.getSettingValue();
+    }
+    public OnLaunchAction getOnLaunchAction(PredefinedSetting key){
+        SettingValue setting = settingsMap.get(key.getKey());
+        return (OnLaunchAction) setting.getSettingValue();
+    }
+    public PowerMode getPowerMode(PredefinedSetting key){
+        SettingValue setting = settingsMap.get(key.getKey());
+        return (PowerMode) setting.getSettingValue();
+    }
+    public int getInt(PredefinedSetting key){
+        SettingValue setting = settingsMap.get(key.getKey());
+        return (int) setting.getSettingValue();
+    }
+    public double getDouble(PredefinedSetting key){
+        SettingValue setting = settingsMap.get(key.getKey());
+        return (double) setting.getSettingValue();
+    }
+    public File getFile(PredefinedSetting key){
+        SettingValue setting = settingsMap.get(key.getKey());
+        return (File) setting.getSettingValue();
+    }
+    public String getString(PredefinedSetting key){
+        SettingValue setting = settingsMap.get(key.getKey());
+        return (String) setting.getSettingValue();
     }
 
-    public String getLocale() {
+    public void setSettingValue(PredefinedSetting key, Object value){
+        SettingValue settingValue = new SettingValue(value,value.getClass(),key.getDefaultValue().getCategory());
+        settingsMap.put(key.getKey(),settingValue);
+        saveSettings();
+    }
+    /*public String getLocale() {
         return locale;
     }
 
@@ -309,5 +287,5 @@ public class GeneralSettings {
     public void setDisableWallpaper(boolean disableWallpaper) {
         this.disableWallpaper = disableWallpaper;
         saveSettings();
-    }
+    }*/
 }

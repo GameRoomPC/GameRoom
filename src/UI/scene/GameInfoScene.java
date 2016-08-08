@@ -1,11 +1,15 @@
 package ui.scene;
 
+import javafx.event.EventType;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.InfoGameButton;
@@ -25,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static ui.Main.*;
 
 /**
@@ -35,6 +40,7 @@ public class GameInfoScene extends BaseScene {
     private GameEntry entry;
     private GridPane propertiesPane = new GridPane();
     private InfoGameButton coverButton;
+    private YoutubePlayerAndButton ytButton;
 
     private int row_count = 0;
 
@@ -45,6 +51,20 @@ public class GameInfoScene extends BaseScene {
         initTop();
         initCenter();
         initBottom();
+
+        addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            switch (event.getCode()){
+                case SPACE:
+                    if(ytButton!=null){
+                        if(!ytButton.getSoundMuteButton().isMouseTransparent()){
+                            ytButton.getSoundMuteButton().getOnAction().handle(new ActionEvent());
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        });
     }
 
     private void initBottom() {
@@ -95,7 +115,7 @@ public class GameInfoScene extends BaseScene {
     private void initTop() {
         StackPane topStackPane = createTop(entry.getName());
         try {
-            YoutubePlayerAndButton ytButton = new YoutubePlayerAndButton(entry);
+            ytButton = new YoutubePlayerAndButton(entry);
            topStackPane.getChildren().add(ytButton.getSoundMuteButton());
             StackPane.setAlignment(ytButton.getSoundMuteButton(), Pos.TOP_RIGHT);
             setOnSceneFadedOutAction(new Runnable() {

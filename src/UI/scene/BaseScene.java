@@ -1,6 +1,7 @@
 package ui.scene;
 
 import javafx.scene.image.ImageView;
+import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import javafx.animation.Interpolator;
@@ -67,13 +68,13 @@ public abstract class BaseScene extends Scene {
         widthProperty().addListener(new ChangeListener<Number>() {
             @Override public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneWidth, Number newSceneWidth) {
                 //ui.Main.LOGGER.debug("New window's width : "+ newSceneWidth);
-                Main.GENERAL_SETTINGS.setWindowWidth(newSceneWidth.intValue());
+                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.WINDOW_WIDTH,(int)newSceneWidth.intValue());
             }
         });
         heightProperty().addListener(new ChangeListener<Number>() {
             @Override public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneHeight, Number newSceneHeight) {
                 //ui.Main.LOGGER.debug("New window's height : "+ newSceneHeight);
-                Main.GENERAL_SETTINGS.setWindowHeight(newSceneHeight.intValue());
+                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.WINDOW_HEIGHT,(int)newSceneHeight.intValue());
             }
         });
 

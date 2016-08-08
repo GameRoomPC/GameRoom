@@ -14,6 +14,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
+import system.application.settings.PredefinedSetting;
 import system.os.WindowsShortcut;
 import ui.control.button.ImageButton;
 import ui.dialog.ChoiceDialog;
@@ -189,10 +190,10 @@ public class MainScene extends BaseScene {
         sizeSlider.setOnMouseReleased(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                Main.GENERAL_SETTINGS.setTileZoom(sizeSlider.getValue());
+                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM,sizeSlider.getValue());
             }
         });
-        sizeSlider.setValue(Main.GENERAL_SETTINGS.getTileZoom());
+        sizeSlider.setValue(Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.TILE_ZOOM));
 
         sizeSlider.setPrefWidth(Main.SCREEN_WIDTH / 8);
         sizeSlider.setMaxWidth(Main.SCREEN_WIDTH / 8);
@@ -478,7 +479,7 @@ public class MainScene extends BaseScene {
     }
 
     public void setImageBackground(Image img) {
-        if(!GENERAL_SETTINGS.isDisableWallpaper()) {
+        if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
             if (!changeBackgroundNextTime) {
                 if (img != null) {
                     if (backgroundView.getImage() == null || !backgroundView.getImage().equals(img)) {

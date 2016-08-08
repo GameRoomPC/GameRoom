@@ -1,12 +1,13 @@
 package ui.dialog;
 
 import data.game.GameEntry;
-import system.application.GeneralSettings;
+import system.application.settings.GeneralSettings;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import system.application.settings.PredefinedSetting;
 
 import java.awt.*;
 import java.util.Locale;
@@ -55,7 +56,7 @@ public class SearchDialogTest extends Application {
         SCREEN_WIDTH = (int) screenSize.getWidth();
         SCREEN_HEIGHT = (int) screenSize.getHeight();
         GENERAL_SETTINGS = new GeneralSettings();
-        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", Locale.forLanguageTag(GENERAL_SETTINGS.getLocale()));
+        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
 
 
         if(!CACHE_FOLDER.exists()){

@@ -7,10 +7,12 @@ import javafx.concurrent.Task;
 import system.application.InternalAppNetworkManager;
 import system.application.MessageListener;
 import system.application.MessageTag;
+import system.application.settings.PredefinedSetting;
+import system.application.settings.SettingValue;
 import system.device.XboxController;
 import ui.scene.MainScene;
 import data.game.AllGameEntries;
-import system.application.GeneralSettings;
+import system.application.settings.GeneralSettings;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
@@ -21,6 +23,8 @@ import java.io.*;
 import java.net.*;
 import java.util.Locale;
 import java.util.ResourceBundle;
+
+import static system.application.settings.PredefinedSetting.DONATION_KEY;
 
 public class Main {
     private final static String TEMP_UPDATER_JAR_NAME=  "Updater.jar.temp";
@@ -41,6 +45,8 @@ public class Main {
     public final static String DEFAULT_IMAGES_PATH = "res/defaultImages/";
 
     public static ResourceBundle RESSOURCE_BUNDLE;
+    public static ResourceBundle SETTINGS_BUNDLE;
+
     public static AllGameEntries ALL_GAMES_ENTRIES = new AllGameEntries();
     public static GeneralSettings GENERAL_SETTINGS;
 
@@ -59,12 +65,15 @@ public class Main {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Main.SCREEN_WIDTH = (int) screenSize.getWidth();
         Main.SCREEN_HEIGHT = (int) screenSize.getHeight();
+        PredefinedSetting.WINDOW_WIDTH.setDefaultValue(new SettingValue((int)SCREEN_WIDTH,Integer.class,PredefinedSetting.WINDOW_WIDTH.getDefaultValue().getCategory()));
+        PredefinedSetting.WINDOW_HEIGHT.setDefaultValue(new SettingValue((int)SCREEN_HEIGHT,Integer.class,PredefinedSetting.WINDOW_HEIGHT.getDefaultValue().getCategory()));
 
         LOGGER.info("Started app with resolution : " + (int) SCREEN_WIDTH + "x" + (int) SCREEN_HEIGHT);
         GENERAL_SETTINGS = new GeneralSettings();
-        DONATOR = !GENERAL_SETTINGS.getDonationKey().equals("") && KeyChecker.isKeyValid(GENERAL_SETTINGS.getDonationKey());
+        DONATOR = !GENERAL_SETTINGS.getString(DONATION_KEY).equals("") && KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(DONATION_KEY));
         LOGGER.info("Donator mode : "+DONATOR);
-        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", Locale.forLanguageTag(GENERAL_SETTINGS.getLocale()));
+        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
+        SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
 
         initNetworkManager();
         //if(!DEV_MODE){
@@ -126,7 +135,7 @@ public class Main {
                     , getVersion()
                     , urlPrefix + URL_VERSION_XML_SUFFIX
                     , urlPrefix + URL_CHANGELOG_MD_SUFFIX
-                    , GENERAL_SETTINGS.getLocale()
+                    , GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE).toLanguageTag()
             ).inheritIO();
 
             //Main.LOGGER.debug(dir);
@@ -143,6 +152,14 @@ public class Main {
 
     private static void initNetworkManager() {
         NETWORK_MANAGER = new InternalAppNetworkManager();
+        NETWORK_MANAGER.addMessageListener(new MessageListener() {
+            @Override
+            public void onMessageReceived(MessageTag tag, String payload) {
+                if (tag.equals(MessageTag.CLOSE_APP)) {
+                    forceStop(MAIN_SCENE.getParentStage());
+                }
+            }
+        });
         Task initTask = new Task() {
             @Override
             protected Object call() throws Exception {
@@ -150,14 +167,6 @@ public class Main {
                     NETWORK_MANAGER.connect();
                     //close other possible instances of GameRoom
                     NETWORK_MANAGER.sendMessage(MessageTag.CLOSE_APP);
-                    NETWORK_MANAGER.addMessageListener(new MessageListener() {
-                        @Override
-                        public void onMessageReceived(MessageTag tag, String payload) {
-                            if (tag.equals(MessageTag.CLOSE_APP)) {
-                                forceStop(MAIN_SCENE.getParentStage());
-                            }
-                        }
-                    });
                 });
                 return null;
             }

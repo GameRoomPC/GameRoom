@@ -8,13 +8,11 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.stage.Modality;
-import javafx.stage.StageStyle;
 import org.json.JSONObject;
-import sun.java2d.windows.GDIRenderer;
 import system.application.MessageListener;
 import system.application.MessageTag;
 import system.application.OnLaunchAction;
+import system.application.settings.PredefinedSetting;
 import system.os.PowerMode;
 import ui.Main;
 import javafx.beans.value.ChangeListener;
@@ -36,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -74,167 +73,31 @@ public class SettingsScene extends BaseScene {
         contentPane.setOrientation(Orientation.VERTICAL);
         contentPane.setTileAlignment(Pos.CENTER_LEFT);
 
-
-        /*****************************LOCALE*********************************/
-        //TODO Implement real modularized locale selection
-        ComboBox<Locale> localeComboBox = new ComboBox<>();
-        localeComboBox.getItems().addAll(Locale.FRENCH, Locale.ENGLISH);
-        localeComboBox.setConverter(new StringConverter<Locale>() {
+        addPropertyLine(PredefinedSetting.LOCALE);
+        addPropertyLine(PredefinedSetting.ON_GAME_LAUNCH_ACTION);
+        addPropertyLine(PredefinedSetting.NO_NOTIFICATIONS);
+        addPropertyLine(PredefinedSetting.START_MINIMIZED);
+        addPropertyLine(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER);
+        addPropertyLine(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT,new ChangeListener<Boolean>(){
             @Override
-            public String toString(Locale object) {
-                return object.getDisplayLanguage(object);
-            }
-
-            @Override
-            public Locale fromString(String string) {
-                return null;
-            }
-        });
-        localeComboBox.setValue(Locale.forLanguageTag(Main.GENERAL_SETTINGS.getLocale()));
-        localeComboBox.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                Main.RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", localeComboBox.getValue());
-                Main.GENERAL_SETTINGS.setLocale(localeComboBox.getValue().toLanguageTag());
-            }
-        });
-        addLine(new Label(Main.RESSOURCE_BUNDLE.getString("Language")+" :"), localeComboBox);
-
-
-        /*****************************CLOSE ON LAUNCH*********************************/
-        ComboBox<OnLaunchAction> onLaunchActionComboBox = new ComboBox<>();
-        onLaunchActionComboBox.getItems().addAll(OnLaunchAction.values());
-        onLaunchActionComboBox.setConverter(new StringConverter<OnLaunchAction>() {
-            @Override
-            public String toString(OnLaunchAction object) {
-                return object.toString();
-            }
-
-            @Override
-            public OnLaunchAction fromString(String string) {
-                return OnLaunchAction.fromString(string);
-            }
-        });
-        onLaunchActionComboBox.setValue(GENERAL_SETTINGS.getOnLaunchAction());
-        onLaunchActionComboBox.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                Main.GENERAL_SETTINGS.setOnLaunchAction(onLaunchActionComboBox.getValue());
-                if(onLaunchActionComboBox.getValue().equals(OnLaunchAction.CLOSE)){
-                    GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
-                    alert.setContentText(RESSOURCE_BUNDLE.getString("onLaunch_close_dialog_warning"));
-                    alert.showAndWait();
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if(newValue){
+                    Main.xboxController.startThreads();
+                }else{
+                    Main.xboxController.stopThreads();
                 }
             }
         });
-        addLine(new Label(Main.RESSOURCE_BUNDLE.getString("onLaunch_action")+" :"),onLaunchActionComboBox);
-
-        /*******************************NOTIFICATIONS*******************************/
-        CheckBox noNotifCheckBox = new CheckBox();
-        noNotifCheckBox.setSelected(Main.GENERAL_SETTINGS.isDisableAllNotifications());
-        noNotifCheckBox.setWrapText(true);
-        noNotifCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Main.GENERAL_SETTINGS.setDisableAllNotifications(newValue);
-            }
-        });
-        addLine(new Label(Main.RESSOURCE_BUNDLE.getString("disable_tray_icon_notifications")+" :"),noNotifCheckBox);
-
-        /*******************************MINIMIZE ON START*******************************/
-        CheckBox minimizeOnStartCheckBox = new CheckBox();
-        minimizeOnStartCheckBox.setSelected(Main.GENERAL_SETTINGS.isMinimizeOnStart());
-        minimizeOnStartCheckBox.setWrapText(true);
-        minimizeOnStartCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Main.GENERAL_SETTINGS.setMinimizeOnStart(newValue);
-            }
-        });
-        addLine(new Label(Main.RESSOURCE_BUNDLE.getString("minimize_on_start")+" :"),minimizeOnStartCheckBox);
-
-        /*******************************WALLPAPER*******************************/
-        CheckBox wallpaperCheckBox = new CheckBox();
-        wallpaperCheckBox.setSelected(Main.GENERAL_SETTINGS.isDisableWallpaper());
-        wallpaperCheckBox.setWrapText(true);
-        wallpaperCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Main.GENERAL_SETTINGS.setDisableWallpaper(newValue);
-            }
-        });
-        Label wallpaperLabel= new Label(Main.RESSOURCE_BUNDLE.getString("disable_wallpaper")+" :");
-        wallpaperLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("disable_wallpaper_tooltip")));
-        addLine(wallpaperLabel,wallpaperCheckBox);
-
-        /*******************************XBOX CONTROLLER SUPPORT*******************************/
-        CheckBox xboxControllerCheckBox = new CheckBox();
-        xboxControllerCheckBox.setSelected(Main.GENERAL_SETTINGS.isActivateXboxControllerSupport());
-        xboxControllerCheckBox.setWrapText(true);
-        xboxControllerCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Main.GENERAL_SETTINGS.setActivateXboxControllerSupport(newValue);
-            }
-        });
-        Label xboxControllerLabel= new Label(Main.RESSOURCE_BUNDLE.getString("xbox_controller_support")+" :");
-        xboxControllerLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("xbox_controller_support_tooltip")));
-        addLine(xboxControllerLabel,xboxControllerCheckBox);
-
-        /*****************************POWER MODE*********************************/
-        ComboBox<PowerMode> powerModeComboBox = new ComboBox<>();
-        powerModeComboBox.getItems().addAll(PowerMode.getPowerModesAvailable());
-        powerModeComboBox.setConverter(new StringConverter<PowerMode>() {
-            @Override
-            public String toString(PowerMode object) {
-                return object.getAlias();
-            }
-
-            @Override
-            public PowerMode fromString(String string) {
-                return null;
-            }
-        });
-        powerModeComboBox.setValue(GENERAL_SETTINGS.getGamingPowerMode());
-        powerModeComboBox.setDisable(!GENERAL_SETTINGS.isEnablePowerGamingMode());
-        powerModeComboBox.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                Main.GENERAL_SETTINGS.setGamingPowerMode(powerModeComboBox.getValue());
-            }
-        });
-        CheckBox enablePowerMode = new CheckBox();
-        enablePowerMode.setSelected(Main.GENERAL_SETTINGS.isEnablePowerGamingMode());
-        enablePowerMode.setWrapText(true);
-        enablePowerMode.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Main.GENERAL_SETTINGS.setEnablePowerGamingMode(newValue);
-                powerModeComboBox.setDisable(!newValue);
-            }
-        });
-        addLine(new Label(Main.RESSOURCE_BUNDLE.getString("enable_gaming_power_mode")+" :"),enablePowerMode);
-        addLine(new Label(Main.RESSOURCE_BUNDLE.getString("gaming_power_mode")+" :"),powerModeComboBox);
-
-
-        /*****************************GAMES FOLDER*********************************/
-        PathTextField gamesFolderField = new PathTextField(GENERAL_SETTINGS.getGamesFolder(), this,PathTextField.FILE_CHOOSER_FOLDER,RESSOURCE_BUNDLE.getString("select_a_folder"));
-        gamesFolderField.setId("games_folder");
-        gamesFolderField.getTextField().textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                GENERAL_SETTINGS.setGamesFolder(newValue);
-            }
-        });
-        Label gamesFolderLabel= new Label(Main.RESSOURCE_BUNDLE.getString("games_folder")+" :");
-        gamesFolderLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("games_folder_tooltip")));
-        addLine(gamesFolderLabel,gamesFolderField);
+        addPropertyLine(PredefinedSetting.ENABLE_GAMING_POWER_MODE);
+        addPropertyLine(PredefinedSetting.GAMING_POWER_MODE);
+        addPropertyLine(PredefinedSetting.GAMES_FOLDER);
 
         /***********************DONATION KEY****************************/
-        String keyStatus = Main.DONATOR ? GENERAL_SETTINGS.getDonationKey() : Main.RESSOURCE_BUNDLE.getString("none");
+        String keyStatus = Main.DONATOR ? GENERAL_SETTINGS.getString(PredefinedSetting.DONATION_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
         String buttonText = Main.DONATOR ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
 
-        Label donationKeyLabel = new Label(Main.RESSOURCE_BUNDLE.getString("donation_key")+": "+ keyStatus);
+        Label donationKeyLabel = new Label(PredefinedSetting.DONATION_KEY.getLabel()+": "+ keyStatus);
+        donationKeyLabel.setTooltip(new Tooltip(PredefinedSetting.DONATION_KEY.getTooltip()));
         Button actDeactButton = new Button(buttonText);
 
         actDeactButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -242,17 +105,17 @@ public class SettingsScene extends BaseScene {
             public void handle(ActionEvent event) {
                 if(DONATOR){
                     try {
-                        JSONObject response = KeyChecker.deactivateKey(GENERAL_SETTINGS.getDonationKey());
+                        JSONObject response = KeyChecker.deactivateKey(GENERAL_SETTINGS.getString(PredefinedSetting.DONATION_KEY));
                         if(response.getString(KeyChecker.FIELD_RESULT).equals(KeyChecker.RESULT_SUCCESS)){
                             GameRoomAlert successDialog = new GameRoomAlert(Alert.AlertType.INFORMATION, Main.RESSOURCE_BUNDLE.getString("key_deactivated_message"));
                             successDialog.showAndWait();
 
-                            GENERAL_SETTINGS.setDonationKey("");
+                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DONATION_KEY,"");
                             DONATOR = false;
-                            String keyStatus = Main.DONATOR ? GENERAL_SETTINGS.getDonationKey() : Main.RESSOURCE_BUNDLE.getString("none");
+                            String keyStatus = Main.DONATOR ? GENERAL_SETTINGS.getString(PredefinedSetting.DONATION_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
                             String buttonText = Main.DONATOR ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
                             actDeactButton.setText(buttonText);
-                            donationKeyLabel.setText(Main.RESSOURCE_BUNDLE.getString("donation_key")+": "+ keyStatus);
+                            donationKeyLabel.setText(PredefinedSetting.DONATION_KEY.getLabel()+": "+ keyStatus);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -282,12 +145,12 @@ public class SettingsScene extends BaseScene {
                                         GameRoomAlert successDialog = new GameRoomAlert(Alert.AlertType.INFORMATION, message);
                                         successDialog.showAndWait();
 
-                                        GENERAL_SETTINGS.setDonationKey(dialog.getDonationKey());
-                                        DONATOR = KeyChecker.isKeyValid(GENERAL_SETTINGS.getDonationKey());
-                                        String keyStatus = Main.DONATOR ? GENERAL_SETTINGS.getDonationKey() : Main.RESSOURCE_BUNDLE.getString("none");
+                                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DONATION_KEY,dialog.getDonationKey());
+                                        DONATOR = KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(PredefinedSetting.DONATION_KEY));
+                                        String keyStatus = Main.DONATOR ? GENERAL_SETTINGS.getString(PredefinedSetting.DONATION_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
                                         String buttonText = Main.DONATOR ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
                                         actDeactButton.setText(buttonText);
-                                        donationKeyLabel.setText(Main.RESSOURCE_BUNDLE.getString("donation_key")+": "+ keyStatus);
+                                        donationKeyLabel.setText(PredefinedSetting.DONATION_KEY.getLabel()+": "+ keyStatus);
                                         break;
                                     case KeyChecker.RESULT_ERROR:
                                         GameRoomAlert errorDialog = new GameRoomAlert(Alert.AlertType.ERROR, message);
@@ -307,7 +170,7 @@ public class SettingsScene extends BaseScene {
             }
         });
 
-        addLine(donationKeyLabel,actDeactButton);
+        contentPane.getChildren().add(createLine(donationKeyLabel,actDeactButton));
 
         /***********************VERSION CHECK****************************/
         Label versionLabel = new Label(Main.RESSOURCE_BUNDLE.getString("version")+": "+Main.getVersion());
@@ -332,7 +195,7 @@ public class SettingsScene extends BaseScene {
                 Main.startUpdater();
             }
         });
-        addLine(versionLabel,checkUpdatesButton);
+        contentPane.getChildren().add(createLine(versionLabel,checkUpdatesButton));
 
         /***********************ROW CONSTRAINTS****************************/
         /**********************NO CONTROL INIT BELOW THIS*******************/
@@ -351,7 +214,143 @@ public class SettingsScene extends BaseScene {
         BorderPane.setMargin(scrollPane, new Insets(50*SCREEN_HEIGHT/1080,50*SCREEN_WIDTH/1920,20*SCREEN_HEIGHT/1080,50*SCREEN_WIDTH/1920));
 
     }
-    private void addLine(Node nodeLeft, Node nodeRight){
+
+    private void addPropertyLine(PredefinedSetting setting){
+        addPropertyLine(setting,null);
+    }
+
+        /**Property line creator!
+         *
+         * @param setting the predifined settings to generate the line and the value linked that will be updated
+         * @return null if value class is not recognized, a line to edit the value otherwise
+         */
+    private void addPropertyLine(PredefinedSetting setting, ChangeListener changeListener){
+        Label label= new Label(setting.getLabel()+" :");
+        label.setTooltip(new Tooltip(setting.getTooltip()));
+
+        Node node2 = null;
+        if(setting.isClass(Boolean.class)){
+            /**************** BOOLEAN **************/
+            CheckBox checkBox = new CheckBox();
+            checkBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(setting));
+            checkBox.setWrapText(true);
+            checkBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+                @Override
+                public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                    Main.GENERAL_SETTINGS.setSettingValue(setting,newValue);
+                    if(changeListener!=null){
+                        changeListener.changed(observable,oldValue,newValue);
+                    }
+                }
+            });
+            node2 = checkBox;
+        }else if(setting.isClass(PowerMode.class)){
+            /**************** POWER MODE **************/
+            ComboBox<PowerMode> powerModeComboBox = new ComboBox<>();
+            powerModeComboBox.getItems().addAll(PowerMode.getPowerModesAvailable());
+            powerModeComboBox.setConverter(new StringConverter<PowerMode>() {
+                @Override
+                public String toString(PowerMode object) {
+                    return object.getAlias();
+                }
+
+                @Override
+                public PowerMode fromString(String string) {
+                    return null;
+                }
+            });
+            powerModeComboBox.setValue(GENERAL_SETTINGS.getPowerMode(PredefinedSetting.GAMING_POWER_MODE));
+            powerModeComboBox.setDisable(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE));
+            powerModeComboBox.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.GAMING_POWER_MODE,powerModeComboBox.getValue());
+                    if(changeListener!=null){
+                        changeListener.changed(null,null,powerModeComboBox.getValue());
+                    }
+                }
+            });
+            node2 = powerModeComboBox;
+        }else if(setting.isClass(OnLaunchAction.class)){
+            /**************** ON LAUNCH ACTION **************/
+            ComboBox<OnLaunchAction> onLaunchActionComboBox = new ComboBox<>();
+            onLaunchActionComboBox.getItems().addAll(OnLaunchAction.values());
+            onLaunchActionComboBox.setConverter(new StringConverter<OnLaunchAction>() {
+                @Override
+                public String toString(OnLaunchAction object) {
+                    return object.toString();
+                }
+
+                @Override
+                public OnLaunchAction fromString(String string) {
+                    return OnLaunchAction.fromString(string);
+                }
+            });
+            onLaunchActionComboBox.setValue(GENERAL_SETTINGS.getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION));
+            onLaunchActionComboBox.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ON_GAME_LAUNCH_ACTION,onLaunchActionComboBox.getValue());
+                    if(onLaunchActionComboBox.getValue().equals(OnLaunchAction.CLOSE)){
+                        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
+                        alert.setContentText(RESSOURCE_BUNDLE.getString("onLaunch_close_dialog_warning"));
+                        alert.showAndWait();
+                    }
+                    if(changeListener!=null){
+                        changeListener.changed(null,null,onLaunchActionComboBox.getValue());
+                    }
+                }
+            });
+            node2 = onLaunchActionComboBox;
+        }else if(setting.isClass(Locale.class)){
+            /**************** LOCALE **************/
+            ComboBox<Locale> localeComboBox = new ComboBox<>();
+            localeComboBox.getItems().addAll(Locale.FRENCH, Locale.ENGLISH);
+            localeComboBox.setConverter(new StringConverter<Locale>() {
+                @Override
+                public String toString(Locale object) {
+                    return object.getDisplayLanguage(object);
+                }
+
+                @Override
+                public Locale fromString(String string) {
+                    return null;
+                }
+            });
+            localeComboBox.setValue(Main.GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
+            localeComboBox.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    Main.RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", localeComboBox.getValue());
+                    Main.SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", localeComboBox.getValue());
+                    Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.LOCALE,localeComboBox.getValue());
+
+                    if(changeListener!=null){
+                        changeListener.changed(null,null,localeComboBox.getValue());
+                    }
+                }
+            });
+            node2 = localeComboBox;
+        }else if(setting.isClass(File.class)){
+            /**************** PATH **************/
+            File p = GENERAL_SETTINGS.getFile(setting);
+            PathTextField gamesFolderField = new PathTextField(p != null ? p.toString() : "", this,PathTextField.FILE_CHOOSER_FOLDER,RESSOURCE_BUNDLE.getString("select_a_folder"));
+            gamesFolderField.setId("games_folder");
+            gamesFolderField.getTextField().textProperty().addListener(new ChangeListener<String>() {
+                @Override
+                public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                    GENERAL_SETTINGS.setSettingValue(setting,new File(newValue).getAbsolutePath());
+
+                    if(changeListener!=null){
+                        changeListener.changed(observable,oldValue,newValue);
+                    }
+                }
+            });
+            node2 = gamesFolderField;
+        }
+        contentPane.getChildren().add(createLine(label,node2));
+    }
+    private Node createLine(Node nodeLeft, Node nodeRight){
         HBox box = new HBox();
 
         final HBox leftSection = new HBox( nodeLeft);
@@ -369,8 +368,7 @@ public class SettingsScene extends BaseScene {
         rightSection.setAlignment( Pos.CENTER_RIGHT );
         box.getChildren().addAll(leftSection,centerSection,rightSection);
         box.setSpacing(20*Main.SCREEN_WIDTH/1920);
-
-        contentPane.getChildren().add(box);
+        return box;
     }
     private void initTop(){
         wrappingPane.setTop(createTop(event -> {

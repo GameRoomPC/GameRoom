@@ -11,6 +11,7 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import system.application.settings.PredefinedSetting;
 import system.device.ControllerButtonListener;
 import system.device.XboxController;
 import ui.Main;
@@ -18,10 +19,7 @@ import ui.scene.MainScene;
 import ui.scene.SettingsScene;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -71,13 +69,13 @@ public class Launcher extends Application {
 
         primaryStage.setTitle("GameRoom");
         primaryStage.setScene(MAIN_SCENE);
-        primaryStage.setFullScreen(GENERAL_SETTINGS.isFullScreen());
+        primaryStage.setFullScreen(GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN));
 
-        if (GENERAL_SETTINGS.isMinimizeOnStart()) {
+        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.START_MINIMIZED)) {
             primaryStage.setOpacity(0);
         }
         primaryStage.show();
-        if (GENERAL_SETTINGS.isMinimizeOnStart()) {
+        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.START_MINIMIZED)) {
             primaryStage.hide();
             primaryStage.setOpacity(1);
         }
@@ -101,7 +99,7 @@ public class Launcher extends Application {
                             r.keyPress(java.awt.event.KeyEvent.VK_ESCAPE);
                             break;
                         case XboxController.BUTTON_X:
-                            //Main.LOGGER.debug("X pressed");
+                            r.keyPress(KeyEvent.VK_SPACE);
                             break;
                         case XboxController.BUTTON_Y:
                             r.keyPress(java.awt.event.KeyEvent.VK_I);
@@ -129,7 +127,7 @@ public class Launcher extends Application {
 
                 }
             });
-            if(Main.GENERAL_SETTINGS.isActivateXboxControllerSupport()) {
+            if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)) {
                 xboxController.startThreads();
             }
 
@@ -140,9 +138,9 @@ public class Launcher extends Application {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 MAIN_SCENE.setChangeBackgroundNextTime(true);
-                if(newValue && Main.GENERAL_SETTINGS.isActivateXboxControllerSupport()){
+                if(newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)){
                    xboxController.startThreads();
-                }else if(!newValue && Main.GENERAL_SETTINGS.isActivateXboxControllerSupport()){
+                }else if(!newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)){
                     xboxController.stopThreads();
                 }
             }
@@ -213,15 +211,15 @@ public class Launcher extends Application {
                 if (event.getEventType().equals(WindowEvent.WINDOW_CLOSE_REQUEST)) {
                     if (!DEV_MODE) {
                         stage.hide();
-                        if (trayMessageCount < 2 && !GENERAL_SETTINGS.isNoMoreTrayMessage() && !GENERAL_SETTINGS.isDisableAllNotifications()) {
+                        if (trayMessageCount < 2 && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING) && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS)) {
                             TRAY_ICON.displayMessage("GameRoom"
                                     , RESSOURCE_BUNDLE.getString("tray_icon_still_running_1")
                                             + RESSOURCE_BUNDLE.getString("always_in_background")
                                             + RESSOURCE_BUNDLE.getString("tray_icon_still_running_2"), TrayIcon.MessageType.INFO);
                             trayMessageCount++;
                         } else {
-                            if (!GENERAL_SETTINGS.isNoMoreTrayMessage()) {
-                                GENERAL_SETTINGS.setNoMoreTrayMessage(true);
+                            if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING)) {
+                                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING,true);
                             }
                         }
                     }
@@ -256,7 +254,7 @@ public class Launcher extends Application {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    Desktop.getDesktop().open(new File(GENERAL_SETTINGS.getGamesFolder()));
+                    Desktop.getDesktop().open(GENERAL_SETTINGS.getFile(PredefinedSetting.GAMES_FOLDER));
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -288,7 +286,7 @@ public class Launcher extends Application {
         popup.addSeparator();
         popup.add(gameRoomFolderItem);
 
-        if(!GENERAL_SETTINGS.getGamesFolder().equals("") && new File(GENERAL_SETTINGS.getGamesFolder()).isDirectory()){
+        if(GENERAL_SETTINGS.getFile(PredefinedSetting.GAMES_FOLDER) != null && GENERAL_SETTINGS.getFile(PredefinedSetting.GAMES_FOLDER).isDirectory()){
             popup.add(gamesFolderItem);
         }
         popup.add(settingsItem);

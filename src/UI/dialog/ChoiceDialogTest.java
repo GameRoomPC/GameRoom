@@ -10,6 +10,7 @@ import javafx.scene.layout.StackPane;
  */
 import javafx.application.Application;
 import javafx.stage.Stage;
+import system.application.settings.PredefinedSetting;
 
 import java.awt.*;
 import java.util.Locale;
@@ -61,7 +62,7 @@ public class ChoiceDialogTest extends Application {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         SCREEN_WIDTH = (int) 1920;
         SCREEN_HEIGHT = (int) 1080;
-        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", Locale.forLanguageTag(GENERAL_SETTINGS.getLocale()));
+        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         launch(args);
     }
 }

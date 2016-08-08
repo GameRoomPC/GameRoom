@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
+import system.application.settings.PredefinedSetting;
 import system.os.PowerMode;
 import ui.Main;
 
@@ -31,8 +32,8 @@ public class GameStarter {
     }
     public void start(){
         originalPowerMode = PowerMode.getActivePowerMode();
-        if(GENERAL_SETTINGS.isEnablePowerGamingMode() && !entry.isAlreadyStartedInGameRoom()){
-            GENERAL_SETTINGS.getGamingPowerMode().activate();
+        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isAlreadyStartedInGameRoom()){
+            GENERAL_SETTINGS.getPowerMode(PredefinedSetting.GAMING_POWER_MODE).activate();
         }
         if(entry.getPath().startsWith(STEAM_PREFIX)){
             try {
@@ -58,9 +59,9 @@ public class GameStarter {
         Task<Long> monitor = new Task() {
             @Override
             protected Object call() throws Exception {
-                if(GENERAL_SETTINGS.getOnLaunchAction().equals(OnLaunchAction.CLOSE)){
+                if(GENERAL_SETTINGS.getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.CLOSE)){
                     Main.forceStop(MAIN_SCENE.getParentStage());
-                }else if(GENERAL_SETTINGS.getOnLaunchAction().equals(OnLaunchAction.HIDE)){
+                }else if(GENERAL_SETTINGS.getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.HIDE)){
                     Main.LOGGER.debug("Hiding");
                     Platform.runLater(new Runnable() {
                         @Override
@@ -87,7 +88,7 @@ public class GameStarter {
                     entry.setSavedLocaly(true);
                     entry.addPlayTimeSeconds(Math.round(newValue/1000.0));
                     entry.setSavedLocaly(false);
-                    if(!GENERAL_SETTINGS.isDisableAllNotifications()) {
+                    if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS)) {
                         Main.TRAY_ICON.displayMessage("GameRoom"
                                 , GameEntry.getPlayTimeFormatted(Math.round(newValue/1000.0),GameEntry.TIME_FORMAT_SHORT_HMS) + " "
                                         + Main.RESSOURCE_BUNDLE.getString("tray_icon_time_recorded") + " "
@@ -104,7 +105,7 @@ public class GameStarter {
         th.start();
     }
     public void onStop(){
-        if(GENERAL_SETTINGS.isEnablePowerGamingMode())
+        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE))
             originalPowerMode.activate();
     }
 
