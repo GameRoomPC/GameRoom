@@ -98,8 +98,8 @@ public class YoutubePlayerAndButton {
     private String getHash(GameEntry entry) {
         try {
            return YoutubeSoundtrackScrapper.getThemeYoutubeHash(entry);
-        } catch (StringIndexOutOfBoundsException e) {
-        } catch (Exception e) {
+        }  catch (Exception e) {
+            e.printStackTrace();
             try {
                 Thread.currentThread().wait(100);
             } catch (InterruptedException e1) {
@@ -107,7 +107,6 @@ public class YoutubePlayerAndButton {
             }
             return getHash(entry);
         }
-        return null;
         }
         // JavaScript interface object
         public class ButtonToggler {

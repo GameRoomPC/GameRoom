@@ -52,7 +52,7 @@ import static ui.Main.GENERAL_SETTINGS;
  * Created by LM on 03/07/2016.
  */
 public class GameEditScene extends BaseScene {
-    private final static int MODE_ADD = 0;
+    public final static int MODE_ADD = 0;
     private final static int MODE_EDIT = 1;
 
     private final static double COVER_SCALE_EFFECT_FACTOR = 1.1;
@@ -76,13 +76,30 @@ public class GameEditScene extends BaseScene {
 
     private int row_count = 0;
 
-    public GameEditScene(StackPane stackPane, int width, int height, Stage parentStage, BaseScene previousScene, File chosenFile) {
-        super(stackPane, parentStage);
+    public GameEditScene(BaseScene previousScene, File chosenFile) {
+        super(new StackPane(), previousScene.getParentStage());
         mode = MODE_ADD;
-        onExitAction = new ClassicExitAction(this, parentStage, previousScene);
         entry = new GameEntry(chosenFile.getName());
         entry.setPath(chosenFile.getAbsolutePath());
-        this.previousScene = previousScene;
+        init(previousScene);
+    }
+
+    public GameEditScene(BaseScene previousScene, GameEntry entry) {
+        this(previousScene,entry,MODE_EDIT);
+    }
+    public GameEditScene(BaseScene previousScene, GameEntry entry, int mode){
+        super(new StackPane(),previousScene.getParentStage());
+        this.mode = mode;
+        this.entry = entry;
+        this.entry.setSavedLocaly(false);
+        this.chosenImageFiles[0] = entry.getImagePath(0);
+        this.chosenImageFiles[1] = entry.getImagePath(1);
+        init(previousScene);
+    }
+
+    private void init(BaseScene previousScene){
+        onExitAction = new ClassicExitAction(this, previousScene.getParentStage(), previousScene);
+
         imageChooser = new FileChooser();
         imageChooser.setTitle(RESSOURCE_BUNDLE.getString("select_picture"));
         imageChooser.setInitialDirectory(
@@ -94,19 +111,6 @@ public class GameEditScene extends BaseScene {
                 new FileChooser.ExtensionFilter("BMP", "*.bmp"),
                 new FileChooser.ExtensionFilter("PNG", "*.png")
         );
-        initTop();
-        initCenter();
-        initBottom();
-    }
-
-    public GameEditScene(StackPane stackPane, int width, int height, Stage parentStage, BaseScene previousScene, GameEntry entry) {
-        super(stackPane, parentStage);
-        mode = MODE_EDIT;
-        onExitAction = new ClassicExitAction(this, parentStage, previousScene);
-        this.entry = entry;
-        this.entry.setSavedLocaly(false);
-        this.chosenImageFiles[0] = entry.getImagePath(0);
-        this.chosenImageFiles[1] = entry.getImagePath(1);
         this.previousScene = previousScene;
         initTop();
         initCenter();
@@ -125,7 +129,7 @@ public class GameEditScene extends BaseScene {
             public void handle(ActionEvent event) {
                 for (int i = 0; i < chosenImageFiles.length; i++) {
                     if (chosenImageFiles[i] != null) {
-                        String type = i == 0 ? "cover." : "screenshot.";
+                        String type = i == 0 ? ImageUtils.TYPE_COVER : ImageUtils.TYPE_SCREENSHOT;
                         File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + type + "."+ getExtension(chosenImageFiles[i].getName()));
                         try {
                             if (!localCoverFile.exists()) {
@@ -358,7 +362,7 @@ public class GameEditScene extends BaseScene {
             chosenImageFiles[1] = imageChooser.showOpenDialog(getParentStage());
             screenshotDlDoneHandler.run(chosenImageFiles[1]);
             //backgroundView.setImage(new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true));
-            File localScreenshotFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + "screenshot." + getExtension(chosenImageFiles[1].getName()));
+            File localScreenshotFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_SCREENSHOT+"." + getExtension(chosenImageFiles[1].getName()));
             entry.setImagePath(1, localScreenshotFile);
         });
         Label orLabel = new Label(RESSOURCE_BUNDLE.getString("or"));
@@ -460,7 +464,7 @@ public class GameEditScene extends BaseScene {
             @Override
             public void handle(ActionEvent event) {
                 chosenImageFiles[0] = imageChooser.showOpenDialog(getParentStage());
-                File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + "cover." + getExtension(chosenImageFiles[0].getName()));
+                File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_COVER+"." + getExtension(chosenImageFiles[0].getName()));
                 Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
                 ImageUtils.transitionToImage(img, coverView);
 
@@ -576,10 +580,10 @@ public class GameEditScene extends BaseScene {
         getRootStackPane().getChildren().add(wrappingPane);
     }
 
-    public static String getExtension(File file){
+    private static String getExtension(File file){
         return getExtension(file.getAbsolutePath());
     }
-    public static String getExtension(String filename) {
+    private static String getExtension(String filename) {
         if (filename == null) {
             return null;
         }

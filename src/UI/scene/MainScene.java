@@ -2,6 +2,7 @@ package ui.scene;
 
 import data.game.AllGameEntries;
 import data.game.ImageUtils;
+import data.game.SteamScrapper;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -130,7 +131,6 @@ public class MainScene extends BaseScene {
                             addGame(new GameEntry(uuid));
                             i++;
                         }
-
                     }
                 });
                 return null;
@@ -142,6 +142,9 @@ public class MainScene extends BaseScene {
                 //dialog.getDialogStage().close();
                 statusLabel.setText("");
                 fadeTransitionTo(MainScene.this, getParentStage());
+                Platform.runLater(() -> {
+                    checkSteamGamesInstalled();
+                });
             }
         });
         //dialog.activateProgressBar(task);
@@ -190,7 +193,7 @@ public class MainScene extends BaseScene {
         sizeSlider.setOnMouseReleased(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM,sizeSlider.getValue());
+                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
             }
         });
         sizeSlider.setValue(Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.TILE_ZOOM));
@@ -211,7 +214,7 @@ public class MainScene extends BaseScene {
             public void handle(MouseEvent event) {
                 if (event.isPrimaryButtonDown()) {
                     SettingsScene settingsScene = new SettingsScene(new StackPane(), getParentStage(), MainScene.this);
-                    fadeTransitionTo(settingsScene, getParentStage(),true);
+                    fadeTransitionTo(settingsScene, getParentStage(), true);
                 }
             }
         });
@@ -250,7 +253,7 @@ public class MainScene extends BaseScene {
                             try {
                                 File selectedFile = fileChooser.showOpenDialog(getParentStage());
                                 if (selectedFile != null) {
-                                    fadeTransitionTo(new GameEditScene(new StackPane(), (int) SCREEN_WIDTH, (int) SCREEN_HEIGHT, getParentStage(), MainScene.this, selectedFile), getParentStage());
+                                    fadeTransitionTo(new GameEditScene(MainScene.this, selectedFile), getParentStage());
                                 }
                             } catch (NullPointerException ne) {
                                 ne.printStackTrace();
@@ -398,7 +401,7 @@ public class MainScene extends BaseScene {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            GameEditScene gameEditScene = new GameEditScene(new StackPane(), (int) SCREEN_WIDTH, (int) SCREEN_HEIGHT, getParentStage(), MainScene.this, currentFile);
+            GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentFile);
             gameEditScene.disableBackButton();
             return new MultiAddExitAction(new Runnable() {
                 @Override
@@ -411,6 +414,58 @@ public class MainScene extends BaseScene {
             }, gameEditScene);
         } else {
             return new ClassicExitAction(this, getParentStage(), MAIN_SCENE);
+        }
+    }
+
+    private ExitAction createSteamEntryAddExitAction(ArrayList<GameEntry> entries, int entryCount) {
+        if (entryCount < entries.size()) {
+            GameEntry currentEntry = entries.get(entryCount);
+            GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentEntry, GameEditScene.MODE_ADD);
+            gameEditScene.disableBackButton();
+            return new MultiAddExitAction(new Runnable() {
+                @Override
+                public void run() {
+                    ExitAction action = createSteamEntryAddExitAction(entries, entryCount + 1);
+                    gameEditScene.setOnExitAction(action); //create interface runnable to access property GameEditScene
+                    gameEditScene.addCancelButton(action);
+                    fadeTransitionTo(gameEditScene, getParentStage());
+                }
+            }, gameEditScene);
+        } else {
+            return new ClassicExitAction(this, getParentStage(), MAIN_SCENE);
+        }
+    }
+
+    private void checkSteamGamesInstalled() {
+        try {
+            ArrayList<GameEntry> steamEntries = SteamScrapper.getSteamApps();
+            ArrayList<GameEntry> steamEntriesToAdd = new ArrayList<GameEntry>();
+            for (GameEntry steamEntry : steamEntries) {
+                boolean alreadyAdded = false;
+                for (GameEntry entry : ALL_GAMES_ENTRIES.ENTRIES_LIST) {
+                    alreadyAdded = steamEntry.getSteam_id() == entry.getSteam_id();
+                    if (alreadyAdded) {
+                        break;
+                    }
+                }
+
+                if (!alreadyAdded) {
+                    steamEntriesToAdd.add(steamEntry);
+                }
+            }
+            Main.LOGGER.info(steamEntriesToAdd.size() + " steam games to add");
+            if (steamEntriesToAdd.size() != 0) {
+                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION, steamEntriesToAdd.size()+" "+Main.RESSOURCE_BUNDLE.getString("steam_games_to_add_detected"));
+                Optional<ButtonType> result = alert.showAndWait();
+                result.ifPresent(buttonType -> {
+                    if (!buttonType.getButtonData().isCancelButton()) {
+                        createSteamEntryAddExitAction(steamEntriesToAdd, 0).run();
+                    }
+                });
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -479,13 +534,13 @@ public class MainScene extends BaseScene {
     }
 
     public void setImageBackground(Image img) {
-        if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
+        if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
             if (!changeBackgroundNextTime) {
                 if (img != null) {
                     if (backgroundView.getImage() == null || !backgroundView.getImage().equals(img)) {
                         //TODO fix the blinking issue where an identical image is being set twice. The above compareason does not work.
                         ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
-                        if(maskView.getOpacity() !=1){
+                        if (maskView.getOpacity() != 1) {
                             Timeline fadeInTimeline = new Timeline(
                                     new KeyFrame(Duration.seconds(0),
                                             new KeyValue(maskView.opacityProperty(), maskView.opacityProperty().getValue(), Interpolator.EASE_IN)),
@@ -513,8 +568,8 @@ public class MainScene extends BaseScene {
             } else {
                 changeBackgroundNextTime = false;
             }
-        }else{
-            if(backgroundView.getOpacity()!=0){
+        } else {
+            if (backgroundView.getOpacity() != 0) {
                 Timeline fadeOutTimeline = new Timeline(
                         new KeyFrame(Duration.seconds(0),
                                 new KeyValue(backgroundView.opacityProperty(), backgroundView.opacityProperty().getValue(), Interpolator.EASE_IN),

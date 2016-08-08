@@ -460,7 +460,7 @@
     -fx-graphic: url("ui/dialogIcons/errorIcon.png");
 }
 .alert.confirmation.dialog-pane {
-   /* -fx-graphic: url("lock24.png");*/
+    -fx-graphic: url("ui/dialogIcons/confirmationIcon.png");
     -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
     -fx-border-width: 2px;
 }

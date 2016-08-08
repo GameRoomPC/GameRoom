@@ -74,7 +74,7 @@ public class GameInfoScene extends BaseScene {
         editButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                fadeTransitionTo(new GameEditScene(new StackPane(), (int) SCREEN_WIDTH, (int) SCREEN_HEIGHT, getParentStage(), GameInfoScene.this, entry), getParentStage());
+                fadeTransitionTo(new GameEditScene(GameInfoScene.this, entry), getParentStage());
             }
         });
         Button deleteButton = new Button(RESSOURCE_BUNDLE.getString("delete"));

@@ -41,6 +41,8 @@ public class GameEntry {
     private int igdb_ID;
     private String[] igdb_imageHash = new String[IMAGES_NUMBER];
 
+    private int steam_id;
+
     public GameEntry(String name) {
         uuid = UUID.randomUUID();
         this.name = name;
@@ -90,6 +92,8 @@ public class GameEntry {
                     }
                 }
                 prop.setProperty("playTime", Long.toString(playTime));
+                prop.setProperty("steam_id", Integer.toString(steam_id));
+
                 // save properties to project root folder
                 prop.store(output, null);
                 output.close();
@@ -128,6 +132,9 @@ public class GameEntry {
         }
         if (prop.getProperty("playTime") != null) {
             playTime = Long.parseLong(prop.getProperty("playTime"));
+        }
+        if (prop.getProperty("steam_id") != null) {
+            steam_id = Integer.parseInt(prop.getProperty("steam_id"));
         }
 
         for (int i = 0; i < IMAGES_NUMBER; i++) {
@@ -233,6 +240,20 @@ public class GameEntry {
         }
         saveEntry();
     }
+
+    public int getSteam_id() {
+        return steam_id;
+    }
+
+    public void setSteam_id(int steam_id) {
+        this.steam_id = steam_id;
+        saveEntry();
+    }
+
+    public boolean isSteamGame() {
+        return steam_id == -1;
+    }
+
     public long getPlayTimeSeconds() {
         return playTime;
     }

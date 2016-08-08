@@ -339,7 +339,7 @@ public class SettingsScene extends BaseScene {
             gamesFolderField.getTextField().textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                    GENERAL_SETTINGS.setSettingValue(setting,new File(newValue).getAbsolutePath());
+                    GENERAL_SETTINGS.setSettingValue(setting,new File(newValue));
 
                     if(changeListener!=null){
                         changeListener.changed(observable,oldValue,newValue);

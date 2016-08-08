@@ -166,11 +166,12 @@ public class Main {
                 Platform.runLater(() -> {
                     NETWORK_MANAGER.connect();
                     //close other possible instances of GameRoom
-                    NETWORK_MANAGER.sendMessage(MessageTag.CLOSE_APP);
                 });
                 return null;
             }
         };
+        NETWORK_MANAGER.sendMessage(MessageTag.CLOSE_APP);
+
         Thread initThread = new Thread(initTask);
         initThread.setDaemon(true);
         initThread.start();

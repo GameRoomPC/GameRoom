@@ -41,26 +41,35 @@ public class GameScrapper {
 
     public static String getYear(int id, JSONArray gamesData) {
         ArrayList<String> years = new ArrayList<>();
-        for (Object obj : gamesData.getJSONObject(indexOf(id,gamesData)).getJSONArray("release_dates")) {
-            //Windows platform is number 6
-            //if (((JSONObject) obj).getInt("platform") == 6) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
-            try {
-                years.add(sdf.format(new Date((long) ((JSONObject) obj).getLong("date"))));
-            }catch(JSONException je){
-                if(!je.toString().contains("date")){
-                    je.printStackTrace();
+        try {
+            for (Object obj : gamesData.getJSONObject(indexOf(id, gamesData)).getJSONArray("release_dates")) {
+                //Windows platform is number 6
+                //if (((JSONObject) obj).getInt("platform") == 6) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
+                try {
+                    years.add(sdf.format(new Date((long) ((JSONObject) obj).getLong("date"))));
+                } catch (JSONException je) {
+                    if (!je.toString().contains("date")) {
+                        je.printStackTrace();
+                    }
                 }
+                //}
             }
-            //}
+            years.sort(new Comparator<String>() {
+                @Override
+                public int compare(String o1, String o2) {
+                    return o1.compareTo(o2);
+                }
+            });
+            return ((years.size() > 0) ? years.get(0) : "");
+        }catch (JSONException jse){
+            if(jse.toString().contains("not found")){
+                Main.LOGGER.error("Year not found");
+            }else{
+                jse.printStackTrace();
+            }
         }
-        years.sort(new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
-                return o1.compareTo(o2);
-            }
-        });
-        return ((years.size() > 0) ? years.get(0) : "");
+        return "";
     }
 
     public static int indexOf(int id, JSONArray data) {

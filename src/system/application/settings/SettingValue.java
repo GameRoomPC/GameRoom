@@ -45,7 +45,7 @@ public class SettingValue<T> {
         if(prop.getProperty(predefinedSetting.getKey())!=null){
             try {
                 SettingValue settingValue = new SettingValue(GSON.fromJson(prop.getProperty(predefinedSetting.getKey()), predefinedSetting.getDefaultValue().getValueClass()),predefinedSetting.getDefaultValue().getValueClass(),predefinedSetting.getDefaultValue().category);
-                settingsMap.put(predefinedSetting.getKey(),settingValue);
+                settingsMap.put(predefinedSetting.getKey(),settingValue!=null?settingValue:predefinedSetting.getDefaultValue());
                 return;
             }catch (JsonSyntaxException jse){
                 Main.LOGGER.error("Wrong JSON syntax for setting \""+predefinedSetting.getKey()+"\", using value : "+predefinedSetting.getDefaultValue());
