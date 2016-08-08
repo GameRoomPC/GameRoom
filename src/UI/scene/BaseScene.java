@@ -23,6 +23,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import ui.scene.exitaction.ExitAction;
 
 import static ui.Main.SCREEN_WIDTH;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -35,6 +36,8 @@ public abstract class BaseScene extends Scene {
     public final static double FADE_IN_OUT_TIME = 0.1;
     public final static double BACKGROUND_IMAGE_MAX_OPACITY = 0.6;
     public final static double BACKGROUND_IMAGE_BLUR = 5;
+
+    private Runnable onSceneFadedOutAction;
 
     private StackPane rootStackPane;
     private Stage parentStage;
@@ -99,6 +102,9 @@ public abstract class BaseScene extends Scene {
         fadeOutTimeline.setOnFinished(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                if(onSceneFadedOutAction !=null){
+                    onSceneFadedOutAction.run();
+                }
                 scene2.getWrappingPane().setOpacity(0);
                 stage.setScene(scene2);
                 Timeline fadeInTimeline = new Timeline(
@@ -127,6 +133,10 @@ public abstract class BaseScene extends Scene {
 
     public Stage getParentStage() {
         return parentStage;
+    }
+
+    public void setOnSceneFadedOutAction(Runnable onSceneFadedOutAction) {
+        this.onSceneFadedOutAction = onSceneFadedOutAction;
     }
 
     private ImageButton createBackButton(EventHandler<MouseEvent> eventHandler){

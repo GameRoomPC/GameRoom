@@ -17,7 +17,6 @@ import javafx.stage.StageStyle;
  * Created by LM on 05/07/2016.
  */
 public class ChoiceDialog extends GameRoomDialog<ButtonType> {
-    private BorderPane mainPane;
 
     public ChoiceDialog(ChoiceDialogButton... choiceDialogButtons) {
         super();

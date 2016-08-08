@@ -126,7 +126,7 @@ public class GameEditScene extends BaseScene {
                 for (int i = 0; i < chosenImageFiles.length; i++) {
                     if (chosenImageFiles[i] != null) {
                         String type = i == 0 ? "cover." : "screenshot.";
-                        File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + type + getExtension(chosenImageFiles[i].getName()));
+                        File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + type + "."+ getExtension(chosenImageFiles[i].getName()));
                         try {
                             if (!localCoverFile.exists()) {
                                 localCoverFile.mkdirs();
@@ -183,7 +183,7 @@ public class GameEditScene extends BaseScene {
                                                                        ImageUtils.transitionToImage(img, coverView);
 
                                                                        chosenImageFiles[0] = outputfile;
-                                                                       File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_COVER + "." + ".jpg");
+                                                                       File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_COVER + "." + getExtension(outputfile));
                                                                        entry.setImagePath(0, coverLocalImageFile);
 
                                                            }
@@ -204,7 +204,7 @@ public class GameEditScene extends BaseScene {
                                                                    ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
 
                                                                    chosenImageFiles[1] = outputfile;
-                                                                   File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_SCREENSHOT + "." + ".jpg");
+                                                                   File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_SCREENSHOT + "." + getExtension(outputfile));
                                                                    entry.setImagePath(1, coverLocalImageFile);
 
                                                                }
@@ -339,7 +339,7 @@ public class GameEditScene extends BaseScene {
                         Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
                         ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
                         chosenImageFiles[1] = outputfile;
-                        File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_SCREENSHOT + ".jpg");
+                        File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_SCREENSHOT + "."+ getExtension(outputfile));
                         entry.setImagePath(1, coverLocalImageFile);
                     }
                 });
@@ -576,6 +576,9 @@ public class GameEditScene extends BaseScene {
         getRootStackPane().getChildren().add(wrappingPane);
     }
 
+    public static String getExtension(File file){
+        return getExtension(file.getAbsolutePath());
+    }
     public static String getExtension(String filename) {
         if (filename == null) {
             return null;

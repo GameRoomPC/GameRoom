@@ -1,20 +1,13 @@
 package ui.scene;
 
-import data.game.ImageUtils;
-import javafx.geometry.HPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.effect.Bloom;
-import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import sun.java2d.windows.GDIRenderer;
 import ui.Main;
 import ui.control.button.ImageButton;
-import ui.control.button.gamebutton.GameButton;
 import ui.control.button.gamebutton.InfoGameButton;
 import data.game.GameEntry;
 import javafx.event.ActionEvent;
@@ -23,9 +16,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import ui.control.specific.YoutubePlayerAndButton;
 import ui.dialog.GameRoomAlert;
 
 import java.awt.*;
@@ -101,7 +93,21 @@ public class GameInfoScene extends BaseScene {
     }
 
     private void initTop() {
-        wrappingPane.setTop(createTop(entry.getName()));
+        StackPane topStackPane = createTop(entry.getName());
+        try {
+            YoutubePlayerAndButton ytButton = new YoutubePlayerAndButton(entry);
+           topStackPane.getChildren().add(ytButton.getSoundMuteButton());
+            StackPane.setAlignment(ytButton.getSoundMuteButton(), Pos.TOP_RIGHT);
+            setOnSceneFadedOutAction(new Runnable() {
+                @Override
+                public void run() {
+                    ytButton.quitYoutube();
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        wrappingPane.setTop(topStackPane);
     }
 
     private void initCenter() {

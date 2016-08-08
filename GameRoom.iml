@@ -19,5 +19,6 @@
     <orderEntry type="library" name="net.java.dev.jna:jna-platform:4.2.2" level="project" />
     <orderEntry type="library" name="net.java.jinput:jinput:2.0.6" level="project" />
     <orderEntry type="library" name="org.jgroups:jgroups:3.6.10.Final" level="project" />
+    <orderEntry type="library" name="org.apache.directory.studio:org.apache.commons.lang:2.6" level="project" />
   </component>
 </module>
