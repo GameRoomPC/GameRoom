@@ -1,11 +1,14 @@
 package system.application.settings;
 
+import data.game.GameEntry;
+import javafx.util.Pair;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
@@ -132,6 +135,10 @@ public class GeneralSettings {
     public String getString(PredefinedSetting key){
         SettingValue setting = settingsMap.get(key.getKey());
         return (String) setting.getSettingValue();
+    }
+    public GameEntry[] getSteamAppsIgnored(){
+        SettingValue setting = settingsMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getKey());
+        return (GameEntry[]) setting.getSettingValue();
     }
 
     public void setSettingValue(PredefinedSetting key, Object value){

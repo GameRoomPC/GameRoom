@@ -1,4 +1,4 @@
-package ui.dialog;
+package ui.dialog.test;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.http.key.KeyChecker;
@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.json.JSONObject;
 import ui.Main;
+import ui.dialog.ActivationKeyDialog;
 
 import java.awt.*;
 import java.io.File;

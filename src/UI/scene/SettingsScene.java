@@ -28,13 +28,13 @@ import javafx.util.StringConverter;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ActivationKeyDialog;
 import ui.dialog.GameRoomAlert;
+import ui.dialog.SteamIgnoredSelector;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -91,6 +91,30 @@ public class SettingsScene extends BaseScene {
         addPropertyLine(PredefinedSetting.ENABLE_GAMING_POWER_MODE);
         addPropertyLine(PredefinedSetting.GAMING_POWER_MODE);
         addPropertyLine(PredefinedSetting.GAMES_FOLDER);
+
+        /***********************STEAM GAMES IGNORED****************************/
+        Label steamIgnoredGamesLabel = new Label(Main.SETTINGS_BUNDLE.getString("manage_ignored_steam_games_label")+": ");
+        steamIgnoredGamesLabel.setTooltip(new Tooltip(Main.SETTINGS_BUNDLE.getString("manage_ignored_steam_games_tooltip")));
+        Button manageSteamGamesIgnoredButton = new Button(Main.RESSOURCE_BUNDLE.getString("manage"));
+
+        manageSteamGamesIgnoredButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    SteamIgnoredSelector selector = new SteamIgnoredSelector();
+                    Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+                    ignoredOptionnal.ifPresent(pairs -> {
+                        if(pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS,selector.getSelectedEntries());
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        contentPane.getChildren().add(createLine(steamIgnoredGamesLabel,manageSteamGamesIgnoredButton));
 
         /***********************DONATION KEY****************************/
         String keyStatus = Main.DONATOR ? GENERAL_SETTINGS.getString(PredefinedSetting.DONATION_KEY) : Main.RESSOURCE_BUNDLE.getString("none");

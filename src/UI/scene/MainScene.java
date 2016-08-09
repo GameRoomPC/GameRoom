@@ -15,6 +15,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
+import javafx.util.Pair;
 import system.application.settings.PredefinedSetting;
 import system.os.WindowsShortcut;
 import ui.control.button.ImageButton;
@@ -39,6 +40,7 @@ import javafx.stage.*;
 import data.game.GameEntry;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
+import ui.dialog.SteamIgnoredSelector;
 import ui.scene.exitaction.ClassicExitAction;
 import ui.scene.exitaction.ExitAction;
 import ui.scene.exitaction.MultiAddExitAction;
@@ -441,25 +443,47 @@ public class MainScene extends BaseScene {
             ArrayList<GameEntry> steamEntries = SteamScrapper.getSteamApps();
             ArrayList<GameEntry> steamEntriesToAdd = new ArrayList<GameEntry>();
             for (GameEntry steamEntry : steamEntries) {
-                boolean alreadyAdded = false;
+                boolean doNotAdd = false;
                 for (GameEntry entry : ALL_GAMES_ENTRIES.ENTRIES_LIST) {
-                    alreadyAdded = steamEntry.getSteam_id() == entry.getSteam_id();
-                    if (alreadyAdded) {
+                    doNotAdd = steamEntry.getSteam_id() == entry.getSteam_id();
+                    if (doNotAdd) {
                         break;
                     }
                 }
-
-                if (!alreadyAdded) {
+                if(!doNotAdd) {
+                    GameEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
+                    for (GameEntry ignoredEntry : ignoredSteamApps) {
+                        doNotAdd = steamEntry.getSteam_id() == ignoredEntry.getSteam_id();
+                        if (doNotAdd) {
+                            break;
+                        }
+                    }
+                }
+                if (!doNotAdd) {
+                    Main.LOGGER.debug("To add : "+steamEntry.getName());
                     steamEntriesToAdd.add(steamEntry);
                 }
             }
             Main.LOGGER.info(steamEntriesToAdd.size() + " steam games to add");
             if (steamEntriesToAdd.size() != 0) {
                 GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION, steamEntriesToAdd.size()+" "+Main.RESSOURCE_BUNDLE.getString("steam_games_to_add_detected"));
+                alert.getButtonTypes().add(new ButtonType(RESSOURCE_BUNDLE.getString("ignore")+"...", ButtonBar.ButtonData.LEFT));
                 Optional<ButtonType> result = alert.showAndWait();
                 result.ifPresent(buttonType -> {
-                    if (!buttonType.getButtonData().isCancelButton()) {
+                    if(buttonType.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)){
                         createSteamEntryAddExitAction(steamEntriesToAdd, 0).run();
+                    }else if(buttonType.getButtonData().equals(ButtonBar.ButtonData.LEFT)){
+                        try {
+                            SteamIgnoredSelector selector = new SteamIgnoredSelector();
+                            Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+                            ignoredOptionnal.ifPresent(pairs -> {
+                                if(pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS,selector.getSelectedEntries());
+                                }
+                            });
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
             }

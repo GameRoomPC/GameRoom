@@ -1,11 +1,15 @@
 package system.application.settings;
 
+import com.google.gson.reflect.TypeToken;
+import data.game.GameEntry;
+import javafx.util.Pair;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Locale;
 
 import static system.application.settings.SettingValue.*;
@@ -29,6 +33,7 @@ public enum PredefinedSetting {
     ,GAMES_FOLDER("gamesFolder", new SettingValue(null,File.class,CATEGORY_GENERAL))
     ,DONATION_KEY("donationKey", new SettingValue("",String.class,CATEGORY_GENERAL))
     ,DISABLE_MAINSCENE_WALLPAPER("disableMainSceneWallpaper", new SettingValue(false,Boolean.class,CATEGORY_NONE))
+    ,IGNORED_STEAM_APPS("ignoredSteamApps",new SettingValue(new GameEntry[]{},GameEntry[].class,CATEGORY_NONE));
     ;
 
 

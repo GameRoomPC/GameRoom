@@ -1,4 +1,4 @@
-package ui.dialog;
+package ui.dialog.test;
 
 import data.game.GameEntry;
 import system.application.settings.GeneralSettings;
@@ -8,6 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import system.application.settings.PredefinedSetting;
+import ui.dialog.SearchDialog;
 
 import java.awt.*;
 import java.util.Locale;

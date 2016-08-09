@@ -2,6 +2,7 @@ package system.application.settings;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import ui.Main;
 
 import java.util.HashMap;
@@ -22,6 +23,13 @@ public class SettingValue<T> {
     private String category;
     private Class valueClass;
 
+    private TypeToken<T> typeToken;
+
+    public SettingValue(T settingValue, TypeToken<T> typeToken, String category){
+        this.settingValue = settingValue;
+        this.category = category;
+        this.typeToken = typeToken;
+    }
     public SettingValue(T settingValue, Class<T> valueClass, String category){
         this.settingValue = settingValue;
         this.category = category;
@@ -44,7 +52,12 @@ public class SettingValue<T> {
     public static void loadSetting(HashMap<String, SettingValue> settingsMap, Properties prop, PredefinedSetting predefinedSetting){
         if(prop.getProperty(predefinedSetting.getKey())!=null){
             try {
-                SettingValue settingValue = new SettingValue(GSON.fromJson(prop.getProperty(predefinedSetting.getKey()), predefinedSetting.getDefaultValue().getValueClass()),predefinedSetting.getDefaultValue().getValueClass(),predefinedSetting.getDefaultValue().category);
+                SettingValue settingValue = null;
+                if(predefinedSetting.getDefaultValue().getValueClass()!=null){
+                    settingValue = new SettingValue(GSON.fromJson(prop.getProperty(predefinedSetting.getKey()), predefinedSetting.getDefaultValue().getValueClass()),predefinedSetting.getDefaultValue().getValueClass(),predefinedSetting.getDefaultValue().category);
+                }else{
+                    settingValue = new SettingValue(GSON.fromJson(prop.getProperty(predefinedSetting.getKey()), predefinedSetting.getDefaultValue().typeToken.getType()),predefinedSetting.getDefaultValue().typeToken,predefinedSetting.getDefaultValue().category);
+                }
                 settingsMap.put(predefinedSetting.getKey(),settingValue!=null?settingValue:predefinedSetting.getDefaultValue());
                 return;
             }catch (JsonSyntaxException jse){

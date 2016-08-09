@@ -2,16 +2,15 @@ package ui.dialog;
 
 import data.game.ImageUtils;
 import data.game.OnDLDoneHandler;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
-import ui.scene.GameEditScene;
+import ui.pane.SelectListPane;
 import data.game.GameEntry;
 import data.game.GameScrapper;
 import data.http.SimpleImageInfo;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -19,12 +18,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONArray;
@@ -32,31 +28,22 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 
 import static ui.Main.SCREEN_WIDTH;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 
 /**
  * Created by LM on 12/07/2016.
  */
 public class SearchDialog extends GameRoomDialog<GameEntry> {
-    private ArrayList<SearchResultRow> resultsList = new ArrayList<>();
     private HBox topBox;
-    private VBox resultsPane;
     private TextField searchField;
     private Label statusLabel;
 
     private JSONArray gamesDataArray;
 
-    final ToggleGroup toggleGroup = new ToggleGroup();
-    private int selectedID = -1;
+    private SearchList searchListPane;
 
     public SearchDialog() {
         super();
@@ -66,10 +53,6 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
         statusLabel.setWrapText(true);
         statusLabel.setMouseTransparent(true);
 
-        ScrollPane scrollPane = new ScrollPane();
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-
         searchField = new TextField();
         searchField.setPromptText(Main.RESSOURCE_BUNDLE.getString("example_games"));
         searchField.setPrefColumnCount(20);
@@ -78,17 +61,17 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
 
         mainPane.getStyleClass().add("container");
 
-        resultsPane = new VBox();
+        topBox = new HBox();
+        topBox.setAlignment(Pos.CENTER);
+        topBox.setSpacing(15 * Main.SCREEN_WIDTH / 1920);
+        topBox.getChildren().addAll(searchField, searchButton);
 
-        resultsPane.setFillWidth(true);
-        resultsPane.setSpacing(10 * Main.SCREEN_HEIGHT / 1080);
-        resultsPane.getStyleClass().add("vbox");
+        searchListPane = new SearchList(Main.SCREEN_HEIGHT / 3.0,topBox.widthProperty());
 
         searchButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                selectedID = -1;
-                resultsPane.getChildren().clear();
+                searchListPane.clearItems();
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
@@ -121,12 +104,14 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
                             protected String call() throws Exception {
                                 gamesDataArray = GameScrapper.getGamesData(ids);
                                 String gameList = "SearchResult : ";
-                                for (Object obj : gamesDataArray)
-
-                                {
-                                    JSONObject jsob = ((JSONObject) obj);
-                                    Platform.runLater(() -> addNewRow(jsob));
-                                }
+                                searchListPane.setGamesDataArray(gamesDataArray);
+                                Platform.runLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        statusLabel.setText("");
+                                    }
+                                });
+                                Platform.runLater(() -> searchListPane.addItems(gamesDataArray.iterator()));
 
                                 Main.LOGGER.debug(gameList.substring(0, gameList.length() - 3));
                                 return null;
@@ -147,20 +132,14 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
                 }
             }
         });
-        resultsPane.setPadding(new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
+        searchListPane.setPadding(new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
-        topBox = new HBox();
-        topBox.setAlignment(Pos.CENTER);
-        topBox.setSpacing(15 * Main.SCREEN_WIDTH / 1920);
-        topBox.getChildren().addAll(searchField, searchButton);
-
-        resultsPane.setPrefHeight(Main.SCREEN_HEIGHT / 3);
         //resultsPane.setPrefWidth(ui.Main.SCREEN_WIDTH);
 
         StackPane centerPane = new StackPane();
         centerPane.setFocusTraversable(false);
-        scrollPane.setContent(resultsPane);
-        centerPane.getChildren().addAll(scrollPane, statusLabel);
+
+        centerPane.getChildren().addAll(searchListPane, statusLabel);
 
         mainPane.setTop(topBox);
         mainPane.setCenter(centerPane);
@@ -173,71 +152,71 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
         ButtonType nextButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("next"), ButtonBar.ButtonData.OK_DONE);
 
         getDialogPane().getButtonTypes().addAll(nextButton);
+        setOnHiding(event -> {
+            setResult(GameScrapper.getEntry(searchListPane.getSelectedValue()));
+        });
     }
 
-    protected void addNewRow(JSONObject jsob) {
-        String coverHash = null;
-        try{
-            coverHash = GameScrapper.getCoverImageHash(jsob);
-        }catch (JSONException je){
-            Main.LOGGER.debug("No cover for game "+jsob.getString("name"));
-            if(!je.toString().contains("cover")){
-                je.printStackTrace();
-            }
+
+
+    private static class SearchList extends SelectListPane<JSONObject> {
+        private JSONArray gamesDataArray;
+        private ReadOnlyDoubleProperty prefRowWidth;
+
+        public SearchList(double prefHeight, ReadOnlyDoubleProperty prefRowWidth) {
+            super(prefHeight);
+            this.prefRowWidth = prefRowWidth;
         }
-        SearchResultRow row = new SearchResultRow(jsob.getString("name")
-                , GameScrapper.getYear(jsob.getInt("id"), gamesDataArray)
-                , jsob.getInt("id")
-                , coverHash);
-        row.setPrefWidth(topBox.getWidth() - topBox.getSpacing() * 2);
-        statusLabel.setText("");
-        resultsPane.getChildren().add(row);
-        setOnShown(new EventHandler<DialogEvent>() {
-            @Override
-            public void handle(DialogEvent event) {
-                //TODO fix this method not being called
 
-                searchField.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
-                searchField.requestFocus();
-            }
-        });
+        public void setGamesDataArray(JSONArray gamesDataArray) {
+            this.gamesDataArray = gamesDataArray;
+        }
 
-        row.radioButton.setToggleGroup(toggleGroup);
-        row.radioButton.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                if (newValue) {
-                    row.setStyle("-fx-background-color: derive(-flatter-red, -20.0%);");
-                    selectedID = jsob.getInt("id");
-                } else {
-                    row.setStyle("-fx-background-color: derive(-dark, 20%);");
+        @Override
+        protected ListItem<JSONObject> createListItem(JSONObject value) {
+            String coverHash = null;
+            try {
+                coverHash = GameScrapper.getCoverImageHash(value);
+            } catch (JSONException je) {
+                Main.LOGGER.debug("No cover for game " + value.getString("name"));
+                if (!je.toString().contains("cover")) {
+                    je.printStackTrace();
                 }
             }
-        });
-        row.setOnMouseClicked(me -> {
-            row.radioButton.setSelected(true);
-            selectedID = jsob.getInt("id");
-        });
-        setOnHiding(ne -> {
-            if (selectedID != -1) {
-                JSONObject gameJson = this.gamesDataArray.getJSONObject(GameScrapper.indexOf(selectedID, this.gamesDataArray));
-                setResult(GameScrapper.getEntry(gameJson));
-            }
-        });
+            SearchItem row = new SearchItem(value,this,value.getString("name")
+                    , GameScrapper.getYear(value.getInt("id"), gamesDataArray)
+                    , value.getInt("id")
+                    , coverHash,prefRowWidth);
+            row.prefWidthProperty().bind(prefRowWidth);
+            return row;
+        }
     }
 
-    static class SearchResultRow extends GridPane {
+
+
+    private static class SearchItem<JSONObject> extends SelectListPane.ListItem {
         private final static int COVER_WIDTH = 70;
         private StackPane coverPane = new StackPane();
         private ImageView coverView = new ImageView();
+        private ReadOnlyDoubleProperty prefRowWidth;
 
-        protected RadioButton radioButton;
+        private String gameName,year,coverHash;
+        private int id;
+        private SearchItem(Object value,SelectListPane parentList, String gameName, String year, int id, String coverHash, ReadOnlyDoubleProperty prefRowWidth) {
+            super(value,parentList);
+            this.gameName = gameName;
+            this.year = year;
+            this.id = id;
+            this.coverHash = coverHash;
+            this.prefRowWidth = prefRowWidth;
 
-        public SearchResultRow(String gameName, String year, int id, String coverHash) {
-            super();
-            getStyleClass().addAll(new String[]{"search-result-row"});
-            if(coverHash!=null) {
-                ImageUtils.downloadImageToCache(id, coverHash, ImageUtils.TYPE_COVER, ImageUtils.SIZE_SMALL, new OnDLDoneHandler() {
+            addContent();
+        }
+
+        @Override
+        protected void addContent() {
+            if (coverHash != null) {
+                ImageUtils.downloadIGDBImageToCache(id, coverHash, ImageUtils.IGDB_TYPE_COVER, ImageUtils.IGDB_SIZE_SMALL, new OnDLDoneHandler() {
                     @Override
                     public void run(File outputfile) {
                         boolean keepRatio = true;
@@ -249,26 +228,21 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
                         }
                         boolean finalKeepRatio = keepRatio;
                         Platform.runLater(() -> {
-                            coverView.setImage(new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, finalKeepRatio, true));
+                            ImageUtils.transitionToImage(new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, finalKeepRatio, true),coverView);
                         });
                     }
                 });
             }
-
-            setWidth(Double.MAX_VALUE);
-            setAlignment(Pos.CENTER_RIGHT);
-            radioButton = new RadioButton();
-            add(radioButton, 0, 0);
-            GridPane.setMargin(radioButton, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
-
             coverPane.getChildren().add(new ImageView(new Image("res/defaultImages/cover.jpg", COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, false, true)));
             coverPane.getChildren().add(coverView);
             GridPane.setMargin(coverPane, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
-            add(coverPane, 1, 0);
+            add(coverPane,columnCount++,0);
 
             Label nameLabel = new Label(gameName);
+            nameLabel.setPrefWidth(Double.MAX_VALUE);
             nameLabel.setWrapText(true);
             Label yearLabel = new Label(year);
+
             yearLabel.setWrapText(true);
 
             yearLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
@@ -276,12 +250,10 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
                     "    -fx-font-weight: 600;" +
                     "    -fx-font-style: italic;");
             VBox box = new VBox();
+            box.prefWidthProperty().bind(prefRowWidth);
             box.getChildren().addAll(nameLabel, yearLabel);
-            add(box, 2, 0);
-            GridPane.setMargin(box, new Insets(20 * Main.SCREEN_HEIGHT / 1080, 30 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 30 * Main.SCREEN_WIDTH / 1920));
-            setAlignment(Pos.CENTER_LEFT);
-            setFocusTraversable(true);
+            add(box,columnCount++,0);
+            GridPane.setMargin(box, new Insets(20 * Main.SCREEN_HEIGHT / 1080, 30 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 30 * Main.SCREEN_WIDTH / 1920));;
         }
-
     }
 }

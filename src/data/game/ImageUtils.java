@@ -21,6 +21,8 @@ import static ui.scene.BaseScene.FADE_IN_OUT_TIME;
  * Created by LM on 06/08/2016.
  */
 public class ImageUtils {
+
+    /********************IGDB**************************/
     /* ABOUT FORMAT AND SIZE
     cover_small :Fit to 90 x 128
     screenshot_med : Lfill to 569 x 320 (Center gravity)
@@ -31,34 +33,53 @@ public class ImageUtils {
     thumb : Thumb to 90 x 90 (Center gravity)
     micro : Thumb to 35 x 35 (Center gravity)
      */
-    public final static String TYPE_COVER = "cover";
-    public final static String TYPE_SCREENSHOT = "screenshot";
+    public final static String IGDB_TYPE_COVER = "cover";
+    public final static String IGDB_TYPE_SCREENSHOT = "screenshot";
 
-    public final static String SIZE_BIG_2X = "_big_2x";
-    public final static String SIZE_SMALL = "_small";
-    public final static String SIZE_MED = "_med";
+    public final static String IGDB_SIZE_BIG_2X = "_big_2x";
+    public final static String IGDB_SIZE_SMALL = "_small";
+    public final static String IGDB_SIZE_MED = "_med";
+    private final static String IGDB_IMAGE_URL_PREFIX = "https://res.cloudinary.com/igdb/image/upload/t_";
 
+    /*******************STEAM ***************************/
+    private final static String STEAM_IMAGE_URL_PREFIX = "http://cdn.akamai.steamstatic.com/steam/apps/";
+    public final static String STEAM_TYPE_CAPSULE = "capsule";
+    public final static String STEAM_TYPE_HEADER = "header";
 
-    private final static String IMAGE_URL_PREFIX = "https://res.cloudinary.com/igdb/image/upload/t_";
+    public final static String STEAM_SIZE_SMALL = "_sm_120";
+    public final static String STEAM_SIZE_MEDIUM = "_616x353";
 
     /**
      * Simple queue implementation, so that image are downloaded as fast as possible but actions are done in order
      */
     //private static final ArrayList<Thread> threadsList = new ArrayList<>();
 
-    public static File downloadImageToCache(int igdb_id, String imageHash, String type, String size, OnDLDoneHandler dlDoneHandler) {
-        String imageURL = IMAGE_URL_PREFIX + type + size + "/" + imageHash + ".jpg";
+    public static File downloadSteamImageToCache(int steam_id,String type,String size,OnDLDoneHandler dlDoneHandler){
+        String imageURL = STEAM_IMAGE_URL_PREFIX + steam_id +"/"+ type + (type.equals(STEAM_TYPE_HEADER)? "":size)+".jpg";
+        String imageFileName = steam_id + "_" + type + (type.equals(STEAM_TYPE_HEADER)? "":size) + ".jpg";
+        return downloadImgToCache(imageURL,imageFileName,dlDoneHandler);
+    }
 
+    public static File downloadIGDBImageToCache(int igdb_id, String imageHash, String type, String size, OnDLDoneHandler dlDoneHandler) {
+        String imageURL = IGDB_IMAGE_URL_PREFIX + type + size + "/" + imageHash + ".jpg";
         String imageFileName = igdb_id + "_" + type + size + "_" + imageHash + ".jpg";
-        File imageOutputFile = new File(Main.CACHE_FOLDER + File.separator + imageFileName);
+        return downloadImgToCache(imageURL,imageFileName,dlDoneHandler);
+    }
+    private static File downloadImgToCache(String url, String filenameOutput, OnDLDoneHandler dlDoneHandler){
+        File imageOutputFile = new File(Main.CACHE_FOLDER + File.separator + filenameOutput);
         imageOutputFile.deleteOnExit();
         if (!imageOutputFile.exists()) {
             Task<String> imageDownloadTask = new Task<String>() {
                 @Override
                 protected String call() throws Exception {
-                    Main.LOGGER.debug("Downloading " + imageURL);
-                    HTTPDownloader.downloadFile(imageURL, Main.CACHE_FOLDER.getAbsolutePath(), imageFileName);
-                    Main.LOGGER.debug(type + " downloaded");
+                    try {
+                        Main.LOGGER.debug("Downloading " + url + " to " + imageOutputFile);
+                        HTTPDownloader.downloadFile(url, Main.CACHE_FOLDER.getAbsolutePath(), filenameOutput);
+                        Main.LOGGER.debug(filenameOutput + " downloaded");
+                    }catch (Exception e){
+                        Main.LOGGER.error(e.toString());
+                        throw e;
+                    }
                     return null;
                 }
             };
@@ -78,7 +99,9 @@ public class ImageUtils {
                 synchronized (threadsList) {
                     threadsList.remove(th);
                 }*/
-                dlDoneHandler.run(imageOutputFile);
+                if(dlDoneHandler!=null) {
+                    dlDoneHandler.run(imageOutputFile);
+                }
             });
             /*synchronized (threadsList){
                 threadsList.add(th);
@@ -123,4 +146,5 @@ public class ImageUtils {
     public static void transitionToImage(Image image2, ImageView imageView){
             transitionToImage(image2,imageView,1);
     }
+
 }

@@ -18,6 +18,7 @@ import java.net.URL;
  */
 public class HTTPDownloader {
     private static final int BUFFER_SIZE = 4096;
+    private final static String HTTPS = "https";
 
     /**
      * Downloads a file from a URL
@@ -27,8 +28,10 @@ public class HTTPDownloader {
      */
     public static void downloadFile(String fileURL, String saveDir, String fileName)
             throws IOException {
+
         URL url = new URL(fileURL);
-        HttpsURLConnection httpConn = (HttpsURLConnection) url.openConnection();
+
+        HttpURLConnection httpConn = fileURL.startsWith(HTTPS) ? (HttpsURLConnection) url.openConnection() : (HttpURLConnection) url.openConnection();
         int responseCode = httpConn.getResponseCode();
 
         // always check HTTP response code first

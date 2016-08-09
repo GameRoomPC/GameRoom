@@ -1,4 +1,4 @@
-package ui.dialog;
+package ui.dialog.test;
 
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -11,6 +11,7 @@ import javafx.scene.layout.StackPane;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import system.application.settings.PredefinedSetting;
+import ui.dialog.ChoiceDialog;
 
 import java.awt.*;
 import java.util.Locale;

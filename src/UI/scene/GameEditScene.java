@@ -11,7 +11,6 @@ import ui.dialog.GameRoomAlert;
 import ui.dialog.IGDBImageSelector;
 import ui.dialog.SearchDialog;
 import data.game.GameEntry;
-import data.io.HTTPDownloader;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -19,7 +18,6 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -34,7 +32,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 import ui.scene.exitaction.ClassicExitAction;
 import ui.scene.exitaction.ExitAction;
@@ -129,7 +126,7 @@ public class GameEditScene extends BaseScene {
             public void handle(ActionEvent event) {
                 for (int i = 0; i < chosenImageFiles.length; i++) {
                     if (chosenImageFiles[i] != null) {
-                        String type = i == 0 ? ImageUtils.TYPE_COVER : ImageUtils.TYPE_SCREENSHOT;
+                        String type = i == 0 ? ImageUtils.IGDB_TYPE_COVER : ImageUtils.IGDB_TYPE_SCREENSHOT;
                         File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + type + "."+ getExtension(chosenImageFiles[i].getName()));
                         try {
                             if (!localCoverFile.exists()) {
@@ -176,10 +173,10 @@ public class GameEditScene extends BaseScene {
                                                updateLineProperty("game_description", gameEntry.getDescription());
 
                                                /*****************COVER DOWNLOAD***************************/
-                                               ImageUtils.downloadImageToCache(gameEntry.getIgdb_ID()
+                                               ImageUtils.downloadIGDBImageToCache(gameEntry.getIgdb_ID()
                                                        , gameEntry.getIgdb_imageHash(0)
-                                                       , ImageUtils.TYPE_COVER
-                                                       , ImageUtils.SIZE_BIG_2X
+                                                       , ImageUtils.IGDB_TYPE_COVER
+                                                       , ImageUtils.IGDB_SIZE_BIG_2X
                                                        , new OnDLDoneHandler() {
                                                            @Override
                                                            public void run(File outputfile) {
@@ -187,7 +184,7 @@ public class GameEditScene extends BaseScene {
                                                                        ImageUtils.transitionToImage(img, coverView);
 
                                                                        chosenImageFiles[0] = outputfile;
-                                                                       File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_COVER + "." + getExtension(outputfile));
+                                                                       File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + getExtension(outputfile));
                                                                        entry.setImagePath(0, coverLocalImageFile);
 
                                                            }
@@ -197,10 +194,10 @@ public class GameEditScene extends BaseScene {
                                                IGDBImageSelector screenshotSelector = new IGDBImageSelector(gameEntry);
                                                Optional<String> screenShotSelectedHash = screenshotSelector.showAndWait();
                                                screenShotSelectedHash.ifPresent(selectedHash -> {
-                                                   ImageUtils.downloadImageToCache(gameEntry.getIgdb_ID()
+                                                   ImageUtils.downloadIGDBImageToCache(gameEntry.getIgdb_ID()
                                                            , selectedHash
-                                                           , ImageUtils.TYPE_SCREENSHOT
-                                                           , ImageUtils.SIZE_BIG_2X
+                                                           , ImageUtils.IGDB_TYPE_SCREENSHOT
+                                                           , ImageUtils.IGDB_SIZE_BIG_2X
                                                            , new OnDLDoneHandler() {
                                                                @Override
                                                                public void run(File outputfile) {
@@ -208,7 +205,7 @@ public class GameEditScene extends BaseScene {
                                                                    ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
 
                                                                    chosenImageFiles[1] = outputfile;
-                                                                   File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_SCREENSHOT + "." + getExtension(outputfile));
+                                                                   File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
                                                                    entry.setImagePath(1, coverLocalImageFile);
 
                                                                }
@@ -343,7 +340,7 @@ public class GameEditScene extends BaseScene {
                         Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
                         ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
                         chosenImageFiles[1] = outputfile;
-                        File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_SCREENSHOT + "."+ getExtension(outputfile));
+                        File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "."+ getExtension(outputfile));
                         entry.setImagePath(1, coverLocalImageFile);
                     }
                 });
@@ -362,7 +359,7 @@ public class GameEditScene extends BaseScene {
             chosenImageFiles[1] = imageChooser.showOpenDialog(getParentStage());
             screenshotDlDoneHandler.run(chosenImageFiles[1]);
             //backgroundView.setImage(new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true));
-            File localScreenshotFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_SCREENSHOT+"." + getExtension(chosenImageFiles[1].getName()));
+            File localScreenshotFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT +"." + getExtension(chosenImageFiles[1].getName()));
             entry.setImagePath(1, localScreenshotFile);
         });
         Label orLabel = new Label(RESSOURCE_BUNDLE.getString("or"));
@@ -380,10 +377,10 @@ public class GameEditScene extends BaseScene {
                                                          IGDBImageSelector screenshotSelector = new IGDBImageSelector(gameEntry);
                                                          Optional<String> screenShotSelectedHash = screenshotSelector.showAndWait();
                                                          screenShotSelectedHash.ifPresent(selectedHash -> {
-                                                             ImageUtils.downloadImageToCache(gameEntry.getIgdb_ID()
+                                                             ImageUtils.downloadIGDBImageToCache(gameEntry.getIgdb_ID()
                                                                      , selectedHash
-                                                                     , ImageUtils.TYPE_SCREENSHOT
-                                                                     , ImageUtils.SIZE_BIG_2X
+                                                                     , ImageUtils.IGDB_TYPE_SCREENSHOT
+                                                                     , ImageUtils.IGDB_SIZE_BIG_2X
                                                                      , screenshotDlDoneHandler);
                                                          });
                                                      }
@@ -464,7 +461,7 @@ public class GameEditScene extends BaseScene {
             @Override
             public void handle(ActionEvent event) {
                 chosenImageFiles[0] = imageChooser.showOpenDialog(getParentStage());
-                File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.TYPE_COVER+"." + getExtension(chosenImageFiles[0].getName()));
+                File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER +"." + getExtension(chosenImageFiles[0].getName()));
                 Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
                 ImageUtils.transitionToImage(img, coverView);
 
