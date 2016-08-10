@@ -10,6 +10,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.InfoGameButton;
@@ -114,18 +115,20 @@ public class GameInfoScene extends BaseScene {
 
     private void initTop() {
         StackPane topStackPane = createTop(entry.getName());
-        try {
-            ytButton = new YoutubePlayerAndButton(entry);
-           topStackPane.getChildren().add(ytButton.getSoundMuteButton());
-            StackPane.setAlignment(ytButton.getSoundMuteButton(), Pos.TOP_RIGHT);
-            setOnSceneFadedOutAction(new Runnable() {
-                @Override
-                public void run() {
-                    ytButton.quitYoutube();
-                }
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
+            try {
+                ytButton = new YoutubePlayerAndButton(entry);
+                topStackPane.getChildren().add(ytButton.getSoundMuteButton());
+                StackPane.setAlignment(ytButton.getSoundMuteButton(), Pos.TOP_RIGHT);
+                setOnSceneFadedOutAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        ytButton.quitYoutube();
+                    }
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         wrappingPane.setTop(topStackPane);
     }

@@ -77,7 +77,16 @@ public class SettingsScene extends BaseScene {
         addPropertyLine(PredefinedSetting.ON_GAME_LAUNCH_ACTION);
         addPropertyLine(PredefinedSetting.NO_NOTIFICATIONS);
         addPropertyLine(PredefinedSetting.START_MINIMIZED);
-        addPropertyLine(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER);
+        addPropertyLine(PredefinedSetting.DISABLE_GAME_MAIN_THEME);
+        addPropertyLine(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER, new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue observable, Boolean oldValue, Boolean newValue) {
+                if(newValue) {
+                    MAIN_SCENE.setChangeBackgroundNextTime(false);
+                    MAIN_SCENE.setImageBackground(null);
+                }
+            }
+        });
         addPropertyLine(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT,new ChangeListener<Boolean>(){
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {

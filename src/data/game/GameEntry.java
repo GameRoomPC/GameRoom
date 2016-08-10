@@ -4,6 +4,8 @@ import system.application.GameStarter;
 import javafx.scene.image.Image;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -33,6 +35,7 @@ public class GameEntry {
     private boolean alreadyStartedInGameRoom = false;
 
     private File[] imagesPaths = new File[IMAGES_NUMBER];
+    private HashMap<Integer,Image> createdImages = new HashMap<>();
     private long playTime = 0; //Time in seconds
 
 
@@ -41,7 +44,6 @@ public class GameEntry {
     private String[] igdb_imageHash = new String[IMAGES_NUMBER];
 
     private int steam_id=-1;
-    private String[] igdb_imageHashs;
 
     public GameEntry(String name) {
         uuid = UUID.randomUUID();
@@ -194,13 +196,22 @@ public class GameEntry {
     }
 
     public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth){
+        if(createdImages.get(index)!=null){
+            if(createdImages.get(index).getWidth() == width && createdImages.get(index).getHeight()==height){
+                return createdImages.get(index);
+            }
+        }
         File currFile = getImagePath(index);
         if(currFile == null){
             return null;
         }else if(DEFAULT_IMAGES_PATHS.length > index && currFile.equals(DEFAULT_IMAGES_PATHS[index])){
-            return new Image(currFile.getPath().replace("\\","/"), width,height,preserveRatio,smooth);
+            Image result = new Image(currFile.getPath().replace("\\","/"), width,height,preserveRatio,smooth);
+            createdImages.put(index,result);
+            return result;
         }else{
-            return new Image("file:" + File.separator + File.separator + File.separator +  currFile.getAbsolutePath(), width,height,preserveRatio,smooth);
+            Image result = new Image("file:" + File.separator + File.separator + File.separator +  currFile.getAbsolutePath(), width,height,preserveRatio,smooth);
+            createdImages.put(index,result);
+            return result;
         }
     }
 

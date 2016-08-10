@@ -62,8 +62,8 @@ public class MainScene extends BaseScene {
     public final static int INPUT_MODE_MOUSE = 0;
     public final static int INPUT_MODE_KEYBOARD = 1;
 
-    public final static double MAX_SCALE_FACTOR = 0.9;
-    public final static double MIN_SCALE_FACTOR = 0.1;
+    public final static double MAX_TILE_ZOOM = 0.675;
+    public final static double MIN_TILE_ZOOM = 0.25;
 
     private BorderPane wrappingPane;
     private TilePane tilePane = new TilePane();
@@ -176,8 +176,8 @@ public class MainScene extends BaseScene {
 
     private void initTop() {
         Slider sizeSlider = new Slider();
-        sizeSlider.setMin(MIN_SCALE_FACTOR);
-        sizeSlider.setMax(MAX_SCALE_FACTOR);
+        sizeSlider.setMin(MIN_TILE_ZOOM);
+        sizeSlider.setMax(MAX_TILE_ZOOM);
         sizeSlider.setBlockIncrement(0.1);
         sizeSlider.setFocusTraversable(false);
 

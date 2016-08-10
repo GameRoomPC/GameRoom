@@ -92,8 +92,9 @@ public class YoutubePlayerAndButton {
         return soundMuteButton;
     }
     public void quitYoutube(){
-        //webView.getEngine().executeScript("player.stopVideo()");
-        webView.getEngine().loadContent("");
+        webView.getEngine().load("about:blank");
+// Delete cookies
+        java.net.CookieHandler.setDefault(new java.net.CookieManager());
     }
     private String getHash(GameEntry entry) {
         try {

@@ -2,6 +2,7 @@ package ui.control.button.gamebutton;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.scene.BaseScene;
@@ -261,29 +262,32 @@ public abstract class GameButton extends BorderPane {
                     if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
                         playButton.fireEvent(new MouseEvent(MOUSE_ENTERED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
                     }
-                    Task backGroundImageTask = new Task() {
-                        @Override
-                        protected Object call() throws Exception {
-                            Thread.currentThread().sleep(300);
-                            if (isFocused()) {
-                                Image screenshotImage = entry.getImage(1,
-                                        Main.GENERAL_SETTINGS.getWindowWidth(),
-                                        Main.GENERAL_SETTINGS.getWindowHeight()
-                                        , false, true);
+                    if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
+                        Task backGroundImageTask = new Task() {
+                            @Override
+                            protected Object call() throws Exception {
+                                Thread.currentThread().sleep(300);
+                                if (isFocused()) {
+                                    Image screenshotImage = entry.getImage(1,
+                                            Main.GENERAL_SETTINGS.getWindowWidth(),
+                                            Main.GENERAL_SETTINGS.getWindowHeight()
+                                            , false, true);
 
-                                Platform.runLater(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        MAIN_SCENE.setImageBackground(screenshotImage);
-                                    }
-                                });
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            MAIN_SCENE.setImageBackground(screenshotImage);
+                                        }
+                                    });
+                                }
+                                return null;
                             }
-                            return null;
-                        }
-                    };
-                    Thread setBackgroundThread = new Thread(backGroundImageTask);
-                    setBackgroundThread.setDaemon(true);
-                    setBackgroundThread.start();
+                        };
+                        Thread setBackgroundThread = new Thread(backGroundImageTask);
+                        setBackgroundThread.setDaemon(true);
+                        setBackgroundThread.start();
+                    }
+
                 } else {
                     if (!inContextMenu) {
                         playButton.setMouseTransparent(true);

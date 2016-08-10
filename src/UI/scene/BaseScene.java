@@ -88,6 +88,7 @@ public abstract class BaseScene extends Scene {
     }
     public void fadeTransitionTo(BaseScene scene2, Stage stage, boolean backgroundViewToo){
         if(scene2 instanceof MainScene){
+
             ((MainScene)scene2).setChangeBackgroundNextTime(true);
         }
         Timeline fadeOutTimeline = new Timeline(
