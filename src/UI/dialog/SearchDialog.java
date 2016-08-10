@@ -8,7 +8,7 @@ import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.pane.SelectListPane;
 import data.game.GameEntry;
-import data.game.GameScrapper;
+import data.game.IGDBScrapper;
 import data.http.SimpleImageInfo;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -79,7 +79,7 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
                     }
                 });
                 try {
-                    JSONArray resultArray = GameScrapper.searchGame(searchField.getText());
+                    JSONArray resultArray = IGDBScrapper.searchGame(searchField.getText());
                     ArrayList<Integer> ids = new ArrayList<Integer>();
                     for (Object obj : resultArray) {
                         JSONObject jsob = ((JSONObject) obj);
@@ -102,7 +102,7 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
                         Task<String> scrapping = new Task<String>() {
                             @Override
                             protected String call() throws Exception {
-                                gamesDataArray = GameScrapper.getGamesData(ids);
+                                gamesDataArray = IGDBScrapper.getGamesData(ids);
                                 String gameList = "SearchResult : ";
                                 searchListPane.setGamesDataArray(gamesDataArray);
                                 Platform.runLater(new Runnable() {
@@ -148,12 +148,14 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
         HBox buttonBox = new HBox();
         buttonBox.setSpacing(30 * SCREEN_WIDTH / 1920);
 
-        //ButtonType cancelButton = new ButtonType(ui.Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType cancelButton = new ButtonType(ui.Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType nextButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("next"), ButtonBar.ButtonData.OK_DONE);
 
-        getDialogPane().getButtonTypes().addAll(nextButton);
+        getDialogPane().getButtonTypes().addAll(cancelButton,nextButton);
         setOnHiding(event -> {
-            setResult(GameScrapper.getEntry(searchListPane.getSelectedValue()));
+            if(searchListPane.getSelectedValue()!=null) {
+                setResult(IGDBScrapper.getEntry(searchListPane.getSelectedValue()));
+            }
         });
     }
 
@@ -176,7 +178,7 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
         protected ListItem<JSONObject> createListItem(JSONObject value) {
             String coverHash = null;
             try {
-                coverHash = GameScrapper.getCoverImageHash(value);
+                coverHash = IGDBScrapper.getCoverImageHash(value);
             } catch (JSONException je) {
                 Main.LOGGER.debug("No cover for game " + value.getString("name"));
                 if (!je.toString().contains("cover")) {
@@ -184,7 +186,7 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
                 }
             }
             SearchItem row = new SearchItem(value,this,value.getString("name")
-                    , GameScrapper.getYear(value.getInt("id"), gamesDataArray)
+                    , IGDBScrapper.getYear(value.getInt("id"), gamesDataArray)
                     , value.getInt("id")
                     , coverHash,prefRowWidth);
             row.prefWidthProperty().bind(prefRowWidth);

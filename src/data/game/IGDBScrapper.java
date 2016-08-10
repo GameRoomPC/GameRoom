@@ -20,7 +20,7 @@ import java.util.Date;
 /**
  * Created by LM on 03/07/2016.
  */
-public class GameScrapper {
+public class IGDBScrapper {
 
     public static void main(String[] args) throws ConnectTimeoutException {
         JSONArray bf4_results = searchGame("Battlefield 4");
@@ -190,8 +190,8 @@ public class GameScrapper {
             }
         }
         try {
-            entry.setIgdb_imageHash(0, GameScrapper.getCoverImageHash(game_data));
-            String[] screenshotsHashes = GameScrapper.getScreenshotHash(game_data);
+            entry.setIgdb_imageHash(0, IGDBScrapper.getCoverImageHash(game_data));
+            String[] screenshotsHashes = IGDBScrapper.getScreenshotHash(game_data);
             for(int i = 0; i<screenshotsHashes.length;i++){
                 entry.setIgdb_imageHash(i+1,screenshotsHashes[i]);
             }
@@ -203,7 +203,7 @@ public class GameScrapper {
             }
         }
         try {
-            entry.setIgdb_ID(game_data.getInt("id"));
+            entry.setIgdb_id(game_data.getInt("id"));
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
                 Main.LOGGER.warn(entry.getName()+" : no id");
@@ -236,7 +236,11 @@ public class GameScrapper {
         }
         return null;
     }
-
+    public static JSONObject getGameData(int id) {
+        ArrayList<Integer> list = new ArrayList<>();
+        list.add(id);
+        return getGamesData(list).getJSONObject(0);
+    }
     public static JSONArray getGamesData(Collection<Integer> ids) {
         try {
             String idsString = "";

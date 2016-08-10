@@ -1,8 +1,6 @@
 package ui.scene;
 
-import data.game.AllGameEntries;
-import data.game.ImageUtils;
-import data.game.SteamScrapper;
+import data.game.*;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -15,7 +13,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
-import javafx.util.Pair;
 import system.application.settings.PredefinedSetting;
 import system.os.WindowsShortcut;
 import ui.control.button.ImageButton;
@@ -37,7 +34,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.*;
-import data.game.GameEntry;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.SteamIgnoredSelector;
@@ -440,20 +436,20 @@ public class MainScene extends BaseScene {
 
     private void checkSteamGamesInstalled() {
         try {
-            ArrayList<GameEntry> steamEntries = SteamScrapper.getSteamApps();
+            ArrayList<SteamPreEntry> steamEntries = SteamScrapper.getSteamAppsInstalled();
             ArrayList<GameEntry> steamEntriesToAdd = new ArrayList<GameEntry>();
-            for (GameEntry steamEntry : steamEntries) {
+            for (SteamPreEntry steamEntry : steamEntries) {
                 boolean doNotAdd = false;
                 for (GameEntry entry : ALL_GAMES_ENTRIES.ENTRIES_LIST) {
-                    doNotAdd = steamEntry.getSteam_id() == entry.getSteam_id();
+                    doNotAdd = steamEntry.getId() == entry.getSteam_id();
                     if (doNotAdd) {
                         break;
                     }
                 }
                 if(!doNotAdd) {
-                    GameEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
-                    for (GameEntry ignoredEntry : ignoredSteamApps) {
-                        doNotAdd = steamEntry.getSteam_id() == ignoredEntry.getSteam_id();
+                    SteamPreEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
+                    for (SteamPreEntry ignoredEntry : ignoredSteamApps) {
+                        doNotAdd = steamEntry.getId() == ignoredEntry.getId();
                         if (doNotAdd) {
                             break;
                         }
@@ -461,7 +457,9 @@ public class MainScene extends BaseScene {
                 }
                 if (!doNotAdd) {
                     Main.LOGGER.debug("To add : "+steamEntry.getName());
-                    steamEntriesToAdd.add(steamEntry);
+                    GameEntry toAdd = new GameEntry(steamEntry.getName());
+                    toAdd.setSteam_id(steamEntry.getId());
+                    steamEntriesToAdd.add(toAdd);
                 }
             }
             Main.LOGGER.info(steamEntriesToAdd.size() + " steam games to add");

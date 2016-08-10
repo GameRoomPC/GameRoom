@@ -133,12 +133,13 @@
 
 .text-area:focused  .content {
      -fx-background-color: transparent;
+         -fx-fill: -dark;
 }
-
 .text-area:focused, .text-field:focused {
     -fx-background-color: -flatter-blue, derive(rgb(94.0, 203.0, 234.0), 80.0%);
     -fx-background-insets: 0.0, 0.2em;
     -fx-background-radius: 2.0;
+    -fx-fill: -dark;
 }
 
 .scroll-bar:vertical > .track-background,
@@ -455,9 +456,13 @@
 }
 .alert.information.dialog-pane {
    -fx-graphic: url("ui/dialogIcons/infoIcon.png");
+    -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
+    -fx-border-width: 2px;
 }
 .alert.error.dialog-pane {
     -fx-graphic: url("ui/dialogIcons/errorIcon.png");
+    -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
+    -fx-border-width: 2px;
 }
 .alert.confirmation.dialog-pane {
     -fx-graphic: url("ui/dialogIcons/confirmationIcon.png");

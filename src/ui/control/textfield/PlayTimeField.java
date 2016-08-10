@@ -89,6 +89,15 @@ public class PlayTimeField extends HBox{
             }
         });
         getChildren().addAll(hoursField,new Label(":"),minutesField,new Label(":"),secondsField);
+        styleProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                hoursField.setStyle(newValue);
+                minutesField.setStyle(newValue);
+                secondsField.setStyle(newValue);
+
+            }
+        });
 
     }
     private void updateEntryPlayTime(){

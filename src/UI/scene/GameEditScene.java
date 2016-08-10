@@ -1,8 +1,10 @@
 package ui.scene;
 
+import data.game.IGDBScrapper;
 import data.game.ImageUtils;
 import data.game.OnDLDoneHandler;
 import ui.Main;
+import ui.control.ValidEntryCondition;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.textfield.PathTextField;
@@ -40,7 +42,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static ui.Main.*;
 import static ui.Main.GENERAL_SETTINGS;
@@ -52,10 +56,8 @@ public class GameEditScene extends BaseScene {
     public final static int MODE_ADD = 0;
     private final static int MODE_EDIT = 1;
 
-    private final static double COVER_SCALE_EFFECT_FACTOR = 1.1;
     private final static double COVER_BLUR_EFFECT_RADIUS = 10;
     private final static double COVER_BRIGHTNESS_EFFECT_FACTOR = 0.1;
-    private static Image DEFAULT_COVER_IMAGE;
 
     private BorderPane wrappingPane;
     private GridPane contentPane;
@@ -65,6 +67,8 @@ public class GameEditScene extends BaseScene {
     private ImageView coverView;
     private File[] chosenImageFiles = new File[GameEntry.DEFAULT_IMAGES_PATHS.length];
     private FileChooser imageChooser = new FileChooser();
+
+    private ArrayList<ValidEntryCondition> validEntriesConditions = new ArrayList<>();
 
     private GameEntry entry;
     private int mode;
@@ -82,10 +86,11 @@ public class GameEditScene extends BaseScene {
     }
 
     public GameEditScene(BaseScene previousScene, GameEntry entry) {
-        this(previousScene,entry,MODE_EDIT);
+        this(previousScene, entry, MODE_EDIT);
     }
-    public GameEditScene(BaseScene previousScene, GameEntry entry, int mode){
-        super(new StackPane(),previousScene.getParentStage());
+
+    public GameEditScene(BaseScene previousScene, GameEntry entry, int mode) {
+        super(new StackPane(), previousScene.getParentStage());
         this.mode = mode;
         this.entry = entry;
         this.entry.setSavedLocaly(false);
@@ -94,7 +99,7 @@ public class GameEditScene extends BaseScene {
         init(previousScene);
     }
 
-    private void init(BaseScene previousScene){
+    private void init(BaseScene previousScene) {
         onExitAction = new ClassicExitAction(this, previousScene.getParentStage(), previousScene);
 
         imageChooser = new FileChooser();
@@ -124,37 +129,48 @@ public class GameEditScene extends BaseScene {
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                for (int i = 0; i < chosenImageFiles.length; i++) {
-                    if (chosenImageFiles[i] != null) {
-                        String type = i == 0 ? ImageUtils.IGDB_TYPE_COVER : ImageUtils.IGDB_TYPE_SCREENSHOT;
-                        File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + type + "."+ getExtension(chosenImageFiles[i].getName()));
-                        try {
-                            if (!localCoverFile.exists()) {
-                                localCoverFile.mkdirs();
-                                localCoverFile.createNewFile();
-                            }
-                            Files.copy(chosenImageFiles[i].toPath().toAbsolutePath(), localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                boolean allConditionsMet = true;
+                for(ValidEntryCondition condition : validEntriesConditions) {
+                    allConditionsMet = allConditionsMet&&condition.isValid();
+                    if(!condition.isValid()){
+                        condition.onInvalid();
+                        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR,condition.message.toString());
+                        alert.showAndWait();
                     }
                 }
-                entry.setSavedLocaly(true);
-                switch (mode) {
-                    case MODE_ADD:
-                        MAIN_SCENE.addGame(entry);
-                        break;
-                    case MODE_EDIT:
-                        MAIN_SCENE.updateGame(entry);
-                        break;
-                    default:
-                        break;
+                if(allConditionsMet){
+                    for (int i = 0; i < chosenImageFiles.length; i++) {
+                        if (chosenImageFiles[i] != null) {
+                            String type = i == 0 ? ImageUtils.IGDB_TYPE_COVER : ImageUtils.IGDB_TYPE_SCREENSHOT;
+                            File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + type + "." + getExtension(chosenImageFiles[i].getName()));
+                            try {
+                                if (!localCoverFile.exists()) {
+                                    localCoverFile.mkdirs();
+                                    localCoverFile.createNewFile();
+                                }
+                                Files.copy(chosenImageFiles[i].toPath().toAbsolutePath(), localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    entry.setSavedLocaly(true);
+                    switch (mode) {
+                        case MODE_ADD:
+                            MAIN_SCENE.addGame(entry);
+                            break;
+                        case MODE_EDIT:
+                            MAIN_SCENE.updateGame(entry);
+                            break;
+                        default:
+                            break;
+                    }
+                    //fadeTransitionTo(MAIN_SCENE, getParentStage());
+                    if (previousScene instanceof GameInfoScene) {
+                        ((GameInfoScene) previousScene).updateWithEditedEntry(entry);
+                    }
+                    onExitAction.run();
                 }
-                //fadeTransitionTo(MAIN_SCENE, getParentStage());
-                if (previousScene instanceof GameInfoScene) {
-                    ((GameInfoScene)previousScene).updateWithEditedEntry(entry);
-                }
-                onExitAction.run();
             }
         });
         Button igdbButton = new Button(RESSOURCE_BUNDLE.getString("fetch_from_igdb"));
@@ -163,56 +179,20 @@ public class GameEditScene extends BaseScene {
                                    public void handle(ActionEvent event) {
                                        SearchDialog dialog = new SearchDialog();
                                        Optional<GameEntry> result = dialog.showAndWait();
-                                       result.ifPresent(val -> {
-                                           GameEntry gameEntry = val;
-                                           if (val != null) {
-                                               updateLineProperty("game_name", gameEntry.getName());
-                                               updateLineProperty("year", gameEntry.getYear());
-                                               updateLineProperty("developer", gameEntry.getDeveloper());
-                                               updateLineProperty("publisher", gameEntry.getPublisher());
-                                               updateLineProperty("game_description", gameEntry.getDescription());
-
-                                               /*****************COVER DOWNLOAD***************************/
-                                               ImageUtils.downloadIGDBImageToCache(gameEntry.getIgdb_ID()
-                                                       , gameEntry.getIgdb_imageHash(0)
-                                                       , ImageUtils.IGDB_TYPE_COVER
-                                                       , ImageUtils.IGDB_SIZE_BIG_2X
-                                                       , new OnDLDoneHandler() {
-                                                           @Override
-                                                           public void run(File outputfile) {
-                                                                       Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
-                                                                       ImageUtils.transitionToImage(img, coverView);
-
-                                                                       chosenImageFiles[0] = outputfile;
-                                                                       File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + getExtension(outputfile));
-                                                                       entry.setImagePath(0, coverLocalImageFile);
-
-                                                           }
-                                                       });
-
-                                               /********************SCREENSHOT DOWNLOAD************************************/
-                                               IGDBImageSelector screenshotSelector = new IGDBImageSelector(gameEntry);
-                                               Optional<String> screenShotSelectedHash = screenshotSelector.showAndWait();
-                                               screenShotSelectedHash.ifPresent(selectedHash -> {
-                                                   ImageUtils.downloadIGDBImageToCache(gameEntry.getIgdb_ID()
-                                                           , selectedHash
-                                                           , ImageUtils.IGDB_TYPE_SCREENSHOT
-                                                           , ImageUtils.IGDB_SIZE_BIG_2X
-                                                           , new OnDLDoneHandler() {
-                                                               @Override
-                                                               public void run(File outputfile) {
-                                                                   Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
-                                                                   ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
-
-                                                                   chosenImageFiles[1] = outputfile;
-                                                                   File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
-                                                                   entry.setImagePath(1, coverLocalImageFile);
-
-                                                               }
-                                                           });
-                                               });
+                                       try {
+                                           result.ifPresent(val -> {
+                                               GameEntry gameEntry = val;
+                                               if (val != null) {
+                                                   onNewEntryData(gameEntry);
+                                               }
+                                           });
+                                       }catch (ClassCastException cce){
+                                           if(cce.toString().contains("javafx.scene.control.ButtonType")){
+                                                   Main.LOGGER.debug("Cancelled by user");
+                                           }else{
+                                               cce.printStackTrace();
                                            }
-                                       });
+                                       }
 
                                    }
                                }
@@ -259,6 +239,22 @@ public class GameEditScene extends BaseScene {
                 entry.setName(newValue);
             }
         });
+        validEntriesConditions.add(new ValidEntryCondition() {
+
+            @Override
+            public boolean isValid() {
+                if (entry.getName().equals("")) {
+                    message.replace(0,message.length(),Main.RESSOURCE_BUNDLE.getString("invalid_name_empty"));
+                    return false;
+                }
+                return true;
+            }
+
+            @Override
+            public void onInvalid() {
+                setLineInvalid("game_name");
+            }
+        });
 
         /**************************PATH*********************************************/
         contentPane.add(new Label(RESSOURCE_BUNDLE.getString("game_path") + " :"), 0, row_count);
@@ -271,6 +267,29 @@ public class GameEditScene extends BaseScene {
                 entry.setPath(newValue);
             }
         });
+        validEntriesConditions.add(new ValidEntryCondition() {
+            @Override
+            public boolean isValid() {
+                if (entry.getPath().equals("")) {
+                    message.replace(0,message.length(),Main.RESSOURCE_BUNDLE.getString("invalid_path_empty"));
+                    return false;
+                }
+                File file = new File(entry.getPath());
+                Pattern pattern = Pattern.compile("^steam:\\/\\/rungameid\\/\\d*$");
+
+                if (!pattern.matcher(entry.getPath().trim()).matches() && !file.exists()) {
+                    message.replace(0,message.length(),Main.RESSOURCE_BUNDLE.getString("invalid_path_not_file"));
+                    return false;
+                }
+                return true;
+            }
+
+            @Override
+            public void onInvalid() {
+                setLineInvalid("game_path");
+            }
+        });
+
         contentPane.add(gamePathField, 1, row_count);
         row_count++;
 
@@ -296,6 +315,24 @@ public class GameEditScene extends BaseScene {
                 entry.setYear(newValue);
             }
         });
+        validEntriesConditions.add(new ValidEntryCondition() {
+            @Override
+            public boolean isValid() {
+                Pattern pattern = Pattern.compile("^(\\d{4}|)$");
+
+                if (!pattern.matcher(entry.getYear().trim()).matches()) {
+                    message.replace(0,message.length(),Main.RESSOURCE_BUNDLE.getString("invalid_year"));
+                    return false;
+                }
+                return true;
+            }
+
+            @Override
+            public void onInvalid() {
+                setLineInvalid("year");
+            }
+        });
+
 
         /**************************DEVELOPER*********************************************/
         createLineForProperty("developer", entry.getDeveloper(), new ChangeListener<String>() {
@@ -340,7 +377,7 @@ public class GameEditScene extends BaseScene {
                         Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
                         ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
                         chosenImageFiles[1] = outputfile;
-                        File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "."+ getExtension(outputfile));
+                        File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
                         entry.setImagePath(1, coverLocalImageFile);
                     }
                 });
@@ -359,7 +396,7 @@ public class GameEditScene extends BaseScene {
             chosenImageFiles[1] = imageChooser.showOpenDialog(getParentStage());
             screenshotDlDoneHandler.run(chosenImageFiles[1]);
             //backgroundView.setImage(new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true));
-            File localScreenshotFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT +"." + getExtension(chosenImageFiles[1].getName()));
+            File localScreenshotFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(chosenImageFiles[1].getName()));
             entry.setImagePath(1, localScreenshotFile);
         });
         Label orLabel = new Label(RESSOURCE_BUNDLE.getString("or"));
@@ -368,24 +405,20 @@ public class GameEditScene extends BaseScene {
         screenshotIGDBButton.setOnAction(new EventHandler<ActionEvent>() {
                                              @Override
                                              public void handle(ActionEvent event) {
-                                                 SearchDialog dialog = new SearchDialog();
-                                                 Optional<GameEntry> result = dialog.showAndWait();
-                                                 result.ifPresent(val -> {
-                                                     GameEntry gameEntry = val;
-                                                     if (val != null) {
-                                                         /********************SCREENSHOT DOWNLOAD************************************/
-                                                         IGDBImageSelector screenshotSelector = new IGDBImageSelector(gameEntry);
-                                                         Optional<String> screenShotSelectedHash = screenshotSelector.showAndWait();
-                                                         screenShotSelectedHash.ifPresent(selectedHash -> {
-                                                             ImageUtils.downloadIGDBImageToCache(gameEntry.getIgdb_ID()
-                                                                     , selectedHash
-                                                                     , ImageUtils.IGDB_TYPE_SCREENSHOT
-                                                                     , ImageUtils.IGDB_SIZE_BIG_2X
-                                                                     , screenshotDlDoneHandler);
-                                                         });
-                                                     }
-                                                 });
-
+                                                 if(entry.getIgdb_id()!=-1){
+                                                     GameEntry gameEntry = entry;
+                                                     gameEntry.setIgdb_imageHashs(IGDBScrapper.getScreenshotHash(IGDBScrapper.getGameData(gameEntry.getIgdb_id())));
+                                                     openImageSelector(gameEntry);
+                                                 }else{
+                                                     SearchDialog dialog = new SearchDialog();
+                                                     Optional<GameEntry> result = dialog.showAndWait();
+                                                     result.ifPresent(val -> {
+                                                         GameEntry gameEntry = val;
+                                                         if (val != null) {
+                                                             openImageSelector(gameEntry);
+                                                         }
+                                                     });
+                                                 }
                                              }
                                          }
 
@@ -430,6 +463,24 @@ public class GameEditScene extends BaseScene {
         row_count++;
     }
 
+    private void setLineInvalid(String property_key) {
+        String style = "-fx-text-inner-color: red;\n";
+        for (Node node : contentPane.getChildren()) {
+            if (node.getId() != null && node.getId().equals(property_key)) {
+                node.setStyle(style);
+                node.focusedProperty().addListener(new ChangeListener<Boolean>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                        if(newValue){
+                            node.setStyle("");
+                        }
+                    }
+                });
+                break;
+            }
+        }
+    }
+
     private void updateLineProperty(String property, String newValue) {
         if (!newValue.equals("")) {
             for (Node node : contentPane.getChildren()) {
@@ -461,7 +512,7 @@ public class GameEditScene extends BaseScene {
             @Override
             public void handle(ActionEvent event) {
                 chosenImageFiles[0] = imageChooser.showOpenDialog(getParentStage());
-                File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER +"." + getExtension(chosenImageFiles[0].getName()));
+                File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + getExtension(chosenImageFiles[0].getName()));
                 Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
                 ImageUtils.transitionToImage(img, coverView);
 
@@ -577,9 +628,10 @@ public class GameEditScene extends BaseScene {
         getRootStackPane().getChildren().add(wrappingPane);
     }
 
-    private static String getExtension(File file){
+    private static String getExtension(File file) {
         return getExtension(file.getAbsolutePath());
     }
+
     private static String getExtension(String filename) {
         if (filename == null) {
             return null;
@@ -594,6 +646,57 @@ public class GameEditScene extends BaseScene {
         } else {
             return filename.substring(index + 1);
         }
+    }
+    //called when user selected a igdb game or when a steam game is added
+    private void onNewEntryData(GameEntry gameEntry){
+        updateLineProperty("game_name", gameEntry.getName());
+        updateLineProperty("year", gameEntry.getYear());
+        updateLineProperty("developer", gameEntry.getDeveloper());
+        updateLineProperty("publisher", gameEntry.getPublisher());
+        updateLineProperty("game_description", gameEntry.getDescription());
+        entry.setIgdb_id(gameEntry.getIgdb_id());
+
+        /*****************COVER DOWNLOAD***************************/
+        ImageUtils.downloadIGDBImageToCache(gameEntry.getIgdb_id()
+                , gameEntry.getIgdb_imageHash(0)
+                , ImageUtils.IGDB_TYPE_COVER
+                , ImageUtils.IGDB_SIZE_BIG_2X
+                , new OnDLDoneHandler() {
+                    @Override
+                    public void run(File outputfile) {
+                        Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
+                        ImageUtils.transitionToImage(img, coverView);
+
+                        chosenImageFiles[0] = outputfile;
+                        File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + getExtension(outputfile));
+                        entry.setImagePath(0, coverLocalImageFile);
+
+                    }
+                });
+        openImageSelector(gameEntry);
+    }
+
+    private void openImageSelector(GameEntry gameEntry){
+        IGDBImageSelector screenshotSelector = new IGDBImageSelector(gameEntry);
+        Optional<String> screenShotSelectedHash = screenshotSelector.showAndWait();
+        screenShotSelectedHash.ifPresent(selectedHash -> {
+            ImageUtils.downloadIGDBImageToCache(gameEntry.getIgdb_id()
+                    , selectedHash
+                    , ImageUtils.IGDB_TYPE_SCREENSHOT
+                    , ImageUtils.IGDB_SIZE_BIG_2X
+                    , new OnDLDoneHandler() {
+                        @Override
+                        public void run(File outputfile) {
+                            Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
+                            ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+
+                            chosenImageFiles[1] = outputfile;
+                            File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
+                            entry.setImagePath(1, coverLocalImageFile);
+
+                        }
+                    });
+        });
     }
 
     protected void setOnExitAction(ExitAction onExitAction) {

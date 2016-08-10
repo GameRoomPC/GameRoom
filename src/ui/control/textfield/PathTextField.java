@@ -1,6 +1,9 @@
 package ui.control.textfield;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.stage.DirectoryChooser;
+import ui.Main;
 import ui.control.button.ImageButton;
 import ui.scene.BaseScene;
 import javafx.event.ActionEvent;

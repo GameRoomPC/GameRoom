@@ -1,6 +1,7 @@
 package system.application.settings;
 
 import data.game.GameEntry;
+import data.game.SteamPreEntry;
 import javafx.util.Pair;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
@@ -136,9 +137,9 @@ public class GeneralSettings {
         SettingValue setting = settingsMap.get(key.getKey());
         return (String) setting.getSettingValue();
     }
-    public GameEntry[] getSteamAppsIgnored(){
+    public SteamPreEntry[] getSteamAppsIgnored(){
         SettingValue setting = settingsMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getKey());
-        return (GameEntry[]) setting.getSettingValue();
+        return (SteamPreEntry[]) setting.getSettingValue();
     }
 
     public void setSettingValue(PredefinedSetting key, Object value){

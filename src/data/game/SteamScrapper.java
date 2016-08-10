@@ -1,23 +1,50 @@
 package data.game;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonWriter;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.json.JSONWriter;
 import system.os.Terminal;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.stream.Stream;
 
 /**
  * Created by LM on 08/08/2016.
  */
 public class SteamScrapper {
-    private final static String STEAM_PATH_REG = "reg query  /v SteamPath";
 
-    public static ArrayList<GameEntry> getSteamApps() throws IOException {
-        ArrayList<GameEntry> steamApps = new ArrayList<>();
+    private static JSONObject getInfoForGame(int steam_id) throws ConnectTimeoutException {
+        try {
+            HttpResponse<String> response = Unirest.get("http://store.steampowered.com/api/appdetails?appids=" + steam_id)
+                    .header("Accept", "application/json")
+                    .asString();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
+            String json = reader.readLine();
+            reader.close();
+            JSONTokener tokener = new JSONTokener(json);
+            return new JSONObject(tokener).getJSONObject(""+steam_id).getJSONObject("data");
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public static ArrayList<SteamPreEntry> getSteamAppsInstalled() throws IOException {
+        ArrayList<SteamPreEntry> steamApps = new ArrayList<>();
         File steamAppsFolder = new File(getSteamAppsPath());
         String idPrefix = "appmanifest_";
         String idSuffix = ".acf";
@@ -33,10 +60,7 @@ public class SteamScrapper {
                 int indexNameSuffix = fileString.indexOf(nameSuffix);
                 String name = fileString.substring(0,fileString.indexOf(nameSuffix));
 
-                GameEntry entry= new GameEntry(name);
-                entry.setPath("steam://rungameid/"+id);
-                entry.setSteam_id(id);
-                steamApps.add(entry);
+                steamApps.add(new SteamPreEntry(name,id));
             }
         }
         return steamApps;
@@ -71,8 +95,7 @@ public class SteamScrapper {
         return null;
     }
     public static void main(String[] args) throws IOException {
-        for (GameEntry entry : getSteamApps()){
-            System.out.println(entry.getName()+","+entry.getSteam_id()+","+entry.isSteamGame());
-        }
+        JSONObject skyrim_results = getInfoForGame(72850);
+        System.out.println(skyrim_results.toString(4));
     }
 }

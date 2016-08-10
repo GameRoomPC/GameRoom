@@ -6,7 +6,6 @@ import javafx.scene.image.Image;
 import java.io.*;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
 /**
@@ -38,10 +37,11 @@ public class GameEntry {
 
 
     /*FOR IGDB PURPOSE ONLY, should not be stored*/
-    private int igdb_ID;
+    private int igdb_id =-1;
     private String[] igdb_imageHash = new String[IMAGES_NUMBER];
 
-    private int steam_id;
+    private int steam_id=-1;
+    private String[] igdb_imageHashs;
 
     public GameEntry(String name) {
         uuid = UUID.randomUUID();
@@ -93,6 +93,7 @@ public class GameEntry {
                 }
                 prop.setProperty("playTime", Long.toString(playTime));
                 prop.setProperty("steam_id", Integer.toString(steam_id));
+                prop.setProperty("igdb_id", Integer.toString(igdb_id));
 
                 // save properties to project root folder
                 prop.store(output, null);
@@ -135,6 +136,9 @@ public class GameEntry {
         }
         if (prop.getProperty("steam_id") != null) {
             steam_id = Integer.parseInt(prop.getProperty("steam_id"));
+        }
+        if (prop.getProperty("igdb_id") != null) {
+            igdb_id = Integer.parseInt(prop.getProperty("igdb_id"));
         }
 
         for (int i = 0; i < IMAGES_NUMBER; i++) {
@@ -245,9 +249,15 @@ public class GameEntry {
         return steam_id;
     }
 
-    public void setSteam_id(int steam_id) {
+    public void setSteam_id(int steam_id,boolean updatePath) {
         this.steam_id = steam_id;
+        if(updatePath) {
+            this.path = "steam://rungameid/" + steam_id;
+        }
         saveEntry();
+    }
+    public void setSteam_id(int steam_id) {
+        setSteam_id(steam_id,true);
     }
 
     public boolean isSteamGame() {
@@ -393,18 +403,25 @@ public class GameEntry {
         return name;
     }
 
-    public int getIgdb_ID() {
-        return igdb_ID;
+    public int getIgdb_id() {
+        return igdb_id;
     }
 
-    public void setIgdb_ID(int igdb_ID) {
-        this.igdb_ID = igdb_ID;
+    public void setIgdb_id(int igdb_id) {
+        this.igdb_id = igdb_id;
+        saveEntry();
     }
     public String getIgdb_imageHash(int index){
         return igdb_imageHash[index];
     }
     public String[] getIgdb_imageHashs(){
         return igdb_imageHash;
+    }
+
+    public void setIgdb_imageHashs(String[] igdb_imageHashs) {
+        for (int i = 0; i < igdb_imageHashs.length ; i++) {
+            setIgdb_imageHash(i,igdb_imageHashs[i]);
+        }
     }
     public void setIgdb_imageHash(int index, String hash){
         if(index >= igdb_imageHash.length){
@@ -430,4 +447,5 @@ public class GameEntry {
     public void startGame(){
         new GameStarter(this).start();
     }
+
 }

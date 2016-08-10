@@ -1,37 +1,26 @@
 package ui.dialog;
 
-import data.game.GameEntry;
-import data.game.ImageUtils;
-import data.game.OnDLDoneHandler;
-import data.game.SteamScrapper;
+import data.game.*;
 import data.http.SimpleImageInfo;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
-import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.control.RadioButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
-import javafx.util.Pair;
 import ui.Main;
-import ui.control.button.gamebutton.GameButton;
 import ui.pane.SelectListPane;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static ui.Main.GENERAL_SETTINGS;
 
 /**
@@ -40,11 +29,11 @@ import static ui.Main.GENERAL_SETTINGS;
 public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
     public final static int MODE_REMOVE_FROM_LIST = 0;
     public final static int MODE_ADD_TO_LIST = 1;
-    private GameEntry[] selectedList;
+    private SteamPreEntry[] selectedList;
 
 
     public SteamIgnoredSelector() throws IOException {
-        ArrayList<GameEntry> steamEntries = SteamScrapper.getSteamApps();
+        ArrayList<SteamPreEntry> steamEntries = SteamScrapper.getSteamAppsInstalled();
 
         Label titleLabel = new Label(Main.RESSOURCE_BUNDLE.getString("select_steam_games_ignore"));
         titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
@@ -70,19 +59,19 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
                 , new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
 
         setOnHiding(event -> {
-            GameEntry[] temp_entries = new GameEntry[list.getSelectedValues().size()];
+            SteamPreEntry[] temp_entries = new SteamPreEntry[list.getSelectedValues().size()];
             for(int i = 0; i< temp_entries.length; i++){
-                temp_entries[i] = (GameEntry) list.getSelectedValues().get(i);
+                temp_entries[i] = (SteamPreEntry) list.getSelectedValues().get(i);
             }
             selectedList = temp_entries;
         });
     }
 
-    public GameEntry[] getSelectedEntries() {
+    public SteamPreEntry[] getSelectedEntries() {
         return selectedList;
     }
 
-    private static class SteamAppsList<GameEntry> extends SelectListPane {
+    private static class SteamAppsList<SteamPreEntry> extends SelectListPane {
         private ReadOnlyDoubleProperty prefRowWidth;
 
         public SteamAppsList(double prefHeight, ReadOnlyDoubleProperty prefRowWidth) {
@@ -95,10 +84,9 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
         protected ListItem createListItem(Object value) {
             SteamAppItem item = new SteamAppItem(value,this);
             item.prefWidthProperty().bind(prefRowWidth);
-            data.game.GameEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
-            for (data.game.GameEntry entry : ignoredSteamApps) {
-                if (((data.game.GameEntry) item.getValue()).getSteam_id() == entry.getSteam_id()) {
-                    Main.LOGGER.debug("Already checked");
+            data.game.SteamPreEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
+            for (data.game.SteamPreEntry steamPreEntry : ignoredSteamApps) {
+                if (((data.game.SteamPreEntry) item.getValue()).getId() == steamPreEntry.getId()) {
                     item.setSelected(true);
                     //item.getRadioButton().fire();
                     Main.LOGGER.debug(getSelectedValue());
@@ -121,8 +109,8 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
         public SteamAppItem(Object value, SelectListPane parentList) {
             super(value,parentList);
 
-            name = ((GameEntry) value).getName();
-            steam_id = ((GameEntry) value).getSteam_id();
+            name = ((SteamPreEntry) value).getName();
+            steam_id = ((SteamPreEntry) value).getId();
 
             addContent();
         }

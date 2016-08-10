@@ -29,7 +29,7 @@ public class IGDBImageSelector extends GameRoomDialog<String> {
     private ImageList imageList;
 
     public IGDBImageSelector(GameEntry entry) {
-        this(entry.getIgdb_imageHashs(), entry.getIgdb_ID());
+        this(entry.getIgdb_imageHashs(), entry.getIgdb_id());
     }
 
     public IGDBImageSelector(String[] igdbScreenshots, int igdb_id) {
@@ -52,14 +52,15 @@ public class IGDBImageSelector extends GameRoomDialog<String> {
             imageList = new ImageList(Main.SCREEN_HEIGHT/3.0,igdb_id,mainPane.prefWidthProperty());
             imageList.addItems(igdbScreenshots);
             mainPane.setCenter(imageList);
-            getDialogPane().getButtonTypes().addAll(new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE));
             setOnHiding(event -> {
                 setResult((String) imageList.getSelectedValue());
             });
         }else{
             mainPane.setCenter(new Label(Main.RESSOURCE_BUNDLE.getString("no_screenshot_for_this_game")));
-            getDialogPane().getButtonTypes().addAll(new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"),ButtonBar.ButtonData.CANCEL_CLOSE));
         }
+
+        getDialogPane().getButtonTypes().addAll(new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE)
+                ,new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"),ButtonBar.ButtonData.CANCEL_CLOSE));
     }
     private static class ImageList<String> extends SelectListPane{
         private ReadOnlyDoubleProperty prefRowWidth;
