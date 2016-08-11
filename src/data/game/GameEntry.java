@@ -35,7 +35,9 @@ public class GameEntry {
     private boolean alreadyStartedInGameRoom = false;
 
     private File[] imagesPaths = new File[IMAGES_NUMBER];
+    private boolean[] imageNeedsRefresh = new boolean[IMAGES_NUMBER];
     private HashMap<Integer,Image> createdImages = new HashMap<>();
+
     private long playTime = 0; //Time in seconds
 
 
@@ -196,7 +198,7 @@ public class GameEntry {
     }
 
     public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth){
-        if(createdImages.get(index)!=null){
+        if(createdImages.get(index)!=null && !imageNeedsRefresh[index]){
             if(createdImages.get(index).getWidth() == width && createdImages.get(index).getHeight()==height){
                 return createdImages.get(index);
             }
@@ -211,6 +213,7 @@ public class GameEntry {
         }else{
             Image result = new Image("file:" + File.separator + File.separator + File.separator +  currFile.getAbsolutePath(), width,height,preserveRatio,smooth);
             createdImages.put(index,result);
+            imageNeedsRefresh[index] = false;
             return result;
         }
     }
@@ -252,6 +255,7 @@ public class GameEntry {
     public void setImagePath(int index, File imagePath) {
         if (imagesPaths.length > index) {
             imagesPaths[index] = imagePath;
+            imageNeedsRefresh[index] = true;
         }
         saveEntry();
     }

@@ -696,6 +696,10 @@ public class GameEditScene extends BaseScene {
 
                         }
                     });
+
+            if(gameEntry.getIgdb_id()!=-1){
+                entry.setIgdb_id(gameEntry.getIgdb_id());
+            }
         });
     }
 

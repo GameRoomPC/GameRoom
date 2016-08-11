@@ -52,7 +52,6 @@ public class GameInfoScene extends BaseScene {
         initTop();
         initCenter();
         initBottom();
-
         addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             switch (event.getCode()){
                 case SPACE:

@@ -7,6 +7,9 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
+import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -15,10 +18,13 @@ import system.application.settings.PredefinedSetting;
 import system.device.ControllerButtonListener;
 import system.device.XboxController;
 import ui.Main;
+import ui.dialog.ConsoleOutputDialog;
+import ui.dialog.GameRoomAlert;
 import ui.scene.MainScene;
 import ui.scene.SettingsScene;
 
 import java.awt.*;
+import java.awt.MenuItem;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
@@ -32,13 +38,24 @@ import static ui.Main.*;
  */
 public class Launcher extends Application {
     private int trayMessageCount = 0;
+    private static ConsoleOutputDialog[] console = new ConsoleOutputDialog[1];
 
     public static void main(String[] args) throws URISyntaxException {
         setCurrentProcessExplicitAppUserModelID("GameRoom");
+
         System.setErr(new PrintStream(System.err){
             public void print(final String string) {
                 //System.err.print(string);
                 LOGGER.error(string);
+                if(DEV_MODE) {
+                    Platform.runLater(() -> {
+                        if (console[0] == null) {
+                            console[0] = new ConsoleOutputDialog();
+                        }
+                        console[0].appendLine(string);
+                        console[0].showConsole();
+                    });
+                }
             }
         });
         System.setOut(new PrintStream(System.out){
