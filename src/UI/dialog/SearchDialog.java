@@ -3,12 +3,14 @@ package ui.dialog;
 import data.game.ImageUtils;
 import data.game.OnDLDoneHandler;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.pane.SelectListPane;
 import data.game.GameEntry;
-import data.game.IGDBScrapper;
+import data.game.scrapper.IGDBScrapper;
 import data.http.SimpleImageInfo;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -36,14 +38,17 @@ import static ui.Main.SCREEN_WIDTH;
 /**
  * Created by LM on 12/07/2016.
  */
-public class SearchDialog extends GameRoomDialog<GameEntry> {
+public class SearchDialog extends GameRoomDialog<ButtonType> {
     private HBox topBox;
     private TextField searchField;
     private Label statusLabel;
+    private GameEntry selectedEntry;
 
     private JSONArray gamesDataArray;
 
     private SearchList searchListPane;
+
+    private boolean doNotDownloadCover = false;
 
     public SearchDialog() {
         super();
@@ -66,7 +71,7 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
         topBox.setSpacing(15 * Main.SCREEN_WIDTH / 1920);
         topBox.getChildren().addAll(searchField, searchButton);
 
-        searchListPane = new SearchList(Main.SCREEN_HEIGHT / 3.0,topBox.widthProperty());
+        searchListPane = new SearchList(Main.SCREEN_HEIGHT / 2.5,topBox.widthProperty());
 
         searchButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -141,12 +146,20 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
 
         centerPane.getChildren().addAll(searchListPane, statusLabel);
 
+        CheckBox doNotDownloadCoverCheckBox = new CheckBox(Main.RESSOURCE_BUNDLE.getString("do_not_download_cover"));
+        doNotDownloadCoverCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                doNotDownloadCover = newValue;
+            }
+        });
+
         mainPane.setTop(topBox);
         mainPane.setCenter(centerPane);
-        BorderPane.setMargin(topBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
+        mainPane.setBottom(doNotDownloadCoverCheckBox);
 
-        HBox buttonBox = new HBox();
-        buttonBox.setSpacing(30 * SCREEN_WIDTH / 1920);
+        BorderPane.setMargin(topBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
+        BorderPane.setMargin(doNotDownloadCoverCheckBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 0 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
         ButtonType cancelButton = new ButtonType(ui.Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType nextButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("next"), ButtonBar.ButtonData.OK_DONE);
@@ -154,12 +167,18 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
         getDialogPane().getButtonTypes().addAll(cancelButton,nextButton);
         setOnHiding(event -> {
             if(searchListPane.getSelectedValue()!=null) {
-                setResult(IGDBScrapper.getEntry(searchListPane.getSelectedValue()));
+                selectedEntry = IGDBScrapper.getEntry(searchListPane.getSelectedValue());
             }
         });
     }
 
+    public GameEntry getSelectedEntry() {
+        return selectedEntry;
+    }
 
+    public boolean doNotDownloadCover() {
+        return doNotDownloadCover;
+    }
 
     private static class SearchList extends SelectListPane<JSONObject> {
         private JSONArray gamesDataArray;
@@ -243,6 +262,7 @@ public class SearchDialog extends GameRoomDialog<GameEntry> {
             Label nameLabel = new Label(gameName);
             nameLabel.setPrefWidth(Double.MAX_VALUE);
             nameLabel.setWrapText(true);
+            nameLabel.setTooltip(new Tooltip(gameName));
             Label yearLabel = new Label(year);
 
             yearLabel.setWrapText(true);

@@ -1,6 +1,7 @@
 package ui;
 
 import data.game.GameEntry;
+import data.game.GameGenre;
 import data.http.URLTools;
 import data.http.key.KeyChecker;
 import javafx.concurrent.Task;
@@ -46,6 +47,7 @@ public class Main {
 
     public static ResourceBundle RESSOURCE_BUNDLE;
     public static ResourceBundle SETTINGS_BUNDLE;
+    public static ResourceBundle GAMES_GENRE_BUNDLE;
 
     public static AllGameEntries ALL_GAMES_ENTRIES = new AllGameEntries();
     public static GeneralSettings GENERAL_SETTINGS;
@@ -74,6 +76,7 @@ public class Main {
         LOGGER.info("Donator mode : "+DONATOR);
         RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
+        GAMES_GENRE_BUNDLE = ResourceBundle.getBundle("gamegenres", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
 
         initNetworkManager();
         //if(!DEV_MODE){

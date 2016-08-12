@@ -30,6 +30,8 @@ public class GameEntry {
     private String description = "";
     private String developer = "";
     private String publisher = "";
+    private GameGenre[] genres;
+    private int aggregated_rating;
     private String path = "";
     private UUID uuid;
     private boolean alreadyStartedInGameRoom = false;
@@ -98,6 +100,8 @@ public class GameEntry {
                 prop.setProperty("playTime", Long.toString(playTime));
                 prop.setProperty("steam_id", Integer.toString(steam_id));
                 prop.setProperty("igdb_id", Integer.toString(igdb_id));
+                prop.setProperty("genres", GameGenre.toJson(genres));
+                prop.setProperty("aggregated_rating", Integer.toString(aggregated_rating));
 
                 // save properties to project root folder
                 prop.store(output, null);
@@ -143,6 +147,12 @@ public class GameEntry {
         }
         if (prop.getProperty("igdb_id") != null) {
             igdb_id = Integer.parseInt(prop.getProperty("igdb_id"));
+        }
+        if (prop.getProperty("genres") != null) {
+            genres = GameGenre.fromJson(prop.getProperty("genres"));
+        }
+        if (prop.getProperty("aggregated_rating") != null) {
+            aggregated_rating = Integer.parseInt(prop.getProperty("aggregated_rating"));
         }
 
         for (int i = 0; i < IMAGES_NUMBER; i++) {
@@ -249,6 +259,15 @@ public class GameEntry {
 
     public void setDescription(String description) {
         this.description = description;
+        saveEntry();
+    }
+
+    public int getAggregated_rating() {
+        return aggregated_rating;
+    }
+
+    public void setAggregated_rating(int aggregated_rating) {
+        this.aggregated_rating = aggregated_rating;
         saveEntry();
     }
 
@@ -426,6 +445,15 @@ public class GameEntry {
         this.igdb_id = igdb_id;
         saveEntry();
     }
+
+    public GameGenre[] getGenres() {
+        return genres;
+    }
+
+    public void setGenres(GameGenre[] genres) {
+        this.genres = genres;
+        saveEntry();
+    }
     public String getIgdb_imageHash(int index){
         return igdb_imageHash[index];
     }
@@ -462,5 +490,4 @@ public class GameEntry {
     public void startGame(){
         new GameStarter(this).start();
     }
-
 }

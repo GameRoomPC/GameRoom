@@ -1,6 +1,7 @@
 package ui.dialog.test;
 
 import data.game.GameEntry;
+import javafx.scene.control.ButtonType;
 import system.application.settings.GeneralSettings;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -32,7 +33,7 @@ public class SearchDialogTest extends Application {
         SearchDialog dialog = new SearchDialog();
 
         launchButton.setOnAction(e -> {
-                    Optional<GameEntry> result = dialog.showAndWait();
+                    Optional<ButtonType> result = dialog.showAndWait();
                     result.ifPresent(letter -> {
                         System.out.println("Choice : " + dialog.getResult());
                     });

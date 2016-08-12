@@ -1,16 +1,11 @@
 package system.application.settings;
 
-import com.google.gson.reflect.TypeToken;
-import data.game.GameEntry;
-import data.game.SteamPreEntry;
-import javafx.util.Pair;
+import data.game.scrapper.SteamPreEntry;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Locale;
 
 import static system.application.settings.SettingValue.*;

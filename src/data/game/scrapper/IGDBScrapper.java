@@ -1,5 +1,7 @@
-package data.game;
+package data.game.scrapper;
 
+import data.game.GameEntry;
+import data.game.GameGenre;
 import ui.Main;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
@@ -23,20 +25,20 @@ import java.util.Date;
 public class IGDBScrapper {
 
     public static void main(String[] args) throws ConnectTimeoutException {
-        JSONArray bf4_results = searchGame("Battlefield 4");
-        //System.out.println(bf4_results);
-        //System.out.println(getYear(1979));
-
+        JSONArray bf4_results = searchGame("The witcher 3");
         ArrayList list = new ArrayList();
         list.add(bf4_results.getJSONObject(0).getInt("id"));
         JSONArray bf4_data = getGamesData(list);
         System.out.println(bf4_data);
-        //System.out.println(getEntry(bf4_data.getJSONObject(0)).getPublisher());
 
-        /*ArrayList<Integer> list = new ArrayList<>();
-        list.add(1);
-        JSONArray EA_data = getCompaniesData(list);
-        System.out.println(EA_data);*/
+        /*ArrayList<Integer> list = new ArrayList();
+        list.add(12);
+        list.add(31);
+        JSONArray genres_data = getGenresData(list);
+        System.out.println(genres_data);
+        System.out.println(GameGenre.getGenreFromIGDB(getGenreName(12,genres_data)));*/
+
+
     }
 
     public static String getYear(int id, JSONArray gamesData) {
@@ -167,6 +169,26 @@ public class IGDBScrapper {
             }
         }
         try {
+            int genresNumber = game_data.getJSONArray("genres").length();
+            ArrayList<Integer> genresIDS = new ArrayList<>();
+            for (int i = 0; i < genresNumber; i++) {
+                genresIDS.add(game_data.getJSONArray("genres").getInt(i));
+            }
+            JSONArray genresData = getGenresData(genresIDS);
+
+            GameGenre[] gameGenres = new GameGenre[genresNumber];
+            for (int i = 0; i < genresNumber; i++) {
+                gameGenres[i] = GameGenre.getGenreFromIGDB(getGenreName(genresIDS.get(i),genresData));
+            }
+            entry.setGenres(gameGenres);
+        } catch (JSONException je) {
+            if(je.toString().contains("not found")){
+                Main.LOGGER.warn(entry.getName()+" : no developers");
+            }else{
+                je.printStackTrace();
+            }
+        }
+        try {
             String developers = "";
             int developersNumber = game_data.getJSONArray("developers").length();
             ArrayList<Integer> companiesIDS = new ArrayList<>();
@@ -211,6 +233,15 @@ public class IGDBScrapper {
                 je.printStackTrace();
             }
         }
+        try {
+            entry.setAggregated_rating(game_data.getInt("aggregated_rating"));
+        } catch (JSONException je) {
+            if(je.toString().contains("not found")){
+                Main.LOGGER.warn(entry.getName()+" : no aggregated_rating");
+            }else{
+                je.printStackTrace();
+            }
+        }
 
         return entry;
     }
@@ -241,13 +272,13 @@ public class IGDBScrapper {
         list.add(id);
         return getGamesData(list).getJSONObject(0);
     }
-    public static JSONArray getGamesData(Collection<Integer> ids) {
+    public static JSONArray getGenresData(Collection<Integer> ids){
         try {
             String idsString = "";
             for (Integer id : ids) {
                 idsString += id + ",";
             }
-            HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + idsString.substring(0, idsString.length() - 1) + "?fields=name,release_dates,esrb.synopsis,rating,cover,developers,publishers,screenshots")
+            HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/genres/" + idsString.substring(0, idsString.length() - 1) + "?fields=name")
                     .header("X-Mashape-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
                     .header("Accept", "application/json")
                     .asString();
@@ -264,6 +295,38 @@ public class IGDBScrapper {
             e.printStackTrace();
         }
         return null;
+    }
+    public static JSONArray getGamesData(Collection<Integer> ids) {
+        try {
+            String idsString = "";
+            for (Integer id : ids) {
+                idsString += id + ",";
+            }
+            HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + idsString.substring(0, idsString.length() - 1) + "?fields=name,release_dates,esrb.synopsis,genres,aggregated_rating,cover,developers,publishers,screenshots")
+                    .header("X-Mashape-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
+                    .header("Accept", "application/json")
+                    .asString();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
+            String json = reader.readLine();
+            reader.close();
+            JSONTokener tokener = new JSONTokener(json);
+            return new JSONArray(tokener);
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    private static String getGenreName(int id, JSONArray genresData) {
+        try {
+            return genresData.getJSONObject(indexOf(id, genresData)).getString("name");
+        } catch (JSONException je) {
+            je.printStackTrace();
+            return "";
+        }
     }
 
     private static String getCompanyName(int id, JSONArray companiesData) {

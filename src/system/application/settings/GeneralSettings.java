@@ -1,20 +1,14 @@
 package system.application.settings;
 
-import data.game.GameEntry;
-import data.game.SteamPreEntry;
-import javafx.util.Pair;
+import data.game.scrapper.SteamPreEntry;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
 
 import java.io.*;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
-
-import static ui.Main.GENERAL_SETTINGS;
 
 /**
  * Created by LM on 03/07/2016.

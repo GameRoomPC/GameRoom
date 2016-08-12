@@ -1,4 +1,4 @@
-package data.game;
+package data.game.scrapper;
 
 /**
  * Created by LM on 10/08/2016.

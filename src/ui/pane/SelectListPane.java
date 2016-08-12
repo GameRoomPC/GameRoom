@@ -145,6 +145,15 @@ public abstract class SelectListPane<T> extends ScrollPane {
             setOnMouseClicked(me -> {
                 setSelected(!isSelected());
             });
+            radioButton.selectedProperty().addListener(new ChangeListener<Boolean>() {
+                @Override
+                public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                    if(!multiSelection && oldValue && !newValue){
+                        setStyle("");
+                        parentList.removeSelectedValue((T) getValue());
+                    }
+                }
+            });
         }
         protected abstract void addContent();
 
@@ -169,8 +178,8 @@ public abstract class SelectListPane<T> extends ScrollPane {
             }else{
                 if(multiSelection){
                     setStyle("");
-                    radioButton.setSelected(false);
                     parentList.removeSelectedValue((T) getValue());
+                    radioButton.setSelected(false);
                 }
             }
             this.selected= selected;

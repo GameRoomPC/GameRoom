@@ -1,6 +1,8 @@
 package ui.scene;
 
 import data.game.*;
+import data.game.scrapper.SteamPreEntry;
+import data.game.scrapper.SteamScrapper;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
