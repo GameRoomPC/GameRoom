@@ -1,6 +1,6 @@
 package system.application;
 
-import data.game.GameEntry;
+import data.game.entry.GameEntry;
 import ui.Main;
 
 import java.io.*;

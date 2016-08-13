@@ -1,6 +1,5 @@
 package ui.dialog.test;
 
-import data.game.GameEntry;
 import javafx.scene.control.ButtonType;
 import system.application.settings.GeneralSettings;
 import javafx.application.Application;
@@ -12,7 +11,6 @@ import system.application.settings.PredefinedSetting;
 import ui.dialog.SearchDialog;
 
 import java.awt.*;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
 

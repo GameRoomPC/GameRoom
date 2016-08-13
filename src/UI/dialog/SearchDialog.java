@@ -9,7 +9,7 @@ import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.pane.SelectListPane;
-import data.game.GameEntry;
+import data.game.entry.GameEntry;
 import data.game.scrapper.IGDBScrapper;
 import data.http.SimpleImageInfo;
 import javafx.application.Platform;
@@ -31,7 +31,9 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import static ui.Main.SCREEN_WIDTH;
 
@@ -214,7 +216,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 }
             }
             SearchItem row = new SearchItem(value,this,value.getString("name")
-                    , IGDBScrapper.getYear(value.getInt("id"), gamesDataArray)
+                    , IGDBScrapper.getReleaseDate(value.getInt("id"), gamesDataArray)
                     , value.getInt("id")
                     , coverHash,prefRowWidth);
             row.prefWidthProperty().bind(prefRowWidth);
@@ -230,12 +232,14 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         private ImageView coverView = new ImageView();
         private ReadOnlyDoubleProperty prefRowWidth;
 
-        private String gameName,year,coverHash;
+        private String gameName;
+        private String coverHash;
+        private String date;
         private int id;
-        private SearchItem(Object value,SelectListPane parentList, String gameName, String year, int id, String coverHash, ReadOnlyDoubleProperty prefRowWidth) {
+        private SearchItem(Object value, SelectListPane parentList, String gameName, Date date, int id, String coverHash, ReadOnlyDoubleProperty prefRowWidth) {
             super(value,parentList);
             this.gameName = gameName;
-            this.year = year;
+            this.date = date!=null ? new SimpleDateFormat("yyyy").format(date) : null;
             this.id = id;
             this.coverHash = coverHash;
             this.prefRowWidth = prefRowWidth;
@@ -272,7 +276,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             nameLabel.setPrefWidth(Double.MAX_VALUE);
             nameLabel.setWrapText(true);
             nameLabel.setTooltip(new Tooltip(gameName));
-            Label yearLabel = new Label(year);
+            Label yearLabel = new Label(date);
 
             yearLabel.setWrapText(true);
 

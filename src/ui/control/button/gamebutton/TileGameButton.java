@@ -6,7 +6,7 @@ import ui.scene.BaseScene;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.layout.TilePane;
-import data.game.GameEntry;
+import data.game.entry.GameEntry;
 
 import static ui.Main.*;
 

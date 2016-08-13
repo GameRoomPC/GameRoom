@@ -12,7 +12,7 @@ import ui.control.button.ImageButton;
 import ui.scene.BaseScene;
 import ui.scene.GameInfoScene;
 import ui.scene.MainScene;
-import data.game.GameEntry;
+import data.game.entry.GameEntry;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -40,6 +40,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+
+import java.text.SimpleDateFormat;
 
 import static ui.Main.*;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -483,6 +485,7 @@ public abstract class GameButton extends BorderPane {
     }
 
     public void showRating() {
+        ratingLabel.setText(Integer.toString(entry.getAggregated_rating()));
         ratingLabel.setOpacity(1);
     }
 
@@ -512,5 +515,15 @@ public abstract class GameButton extends BorderPane {
     public void disablePlayTimeLabel() {
         playTimeLabel.setDisable(true);
         playTimeLabel.setVisible(false);
+    }
+
+    public void hideReleaseDate() {
+        ratingLabel.setOpacity(0);
+    }
+
+    public void showReleaseDate() {
+        SimpleDateFormat buttonDateFormat = new SimpleDateFormat("MM.yyyy");
+        ratingLabel.setText(buttonDateFormat.format(entry.getReleaseDate()));
+        ratingLabel.setOpacity(1);
     }
 }

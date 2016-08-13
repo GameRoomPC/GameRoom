@@ -356,7 +356,8 @@ public class SettingsScene extends BaseScene {
                 public void handle(ActionEvent event) {
                     Main.RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", localeComboBox.getValue());
                     Main.SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", localeComboBox.getValue());
-                    Main.GAMES_GENRE_BUNDLE = ResourceBundle.getBundle("gamegenres", localeComboBox.getValue());
+                    Main.GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", localeComboBox.getValue());
+                    Main.GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", localeComboBox.getValue());
                     Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.LOCALE,localeComboBox.getValue());
 
                     if(changeListener!=null){

@@ -1,10 +1,8 @@
 package ui;
 
-import data.game.GameEntry;
-import data.game.GameGenre;
+import data.game.entry.GameEntry;
 import data.http.URLTools;
 import data.http.key.KeyChecker;
-import javafx.concurrent.Task;
 import system.application.InternalAppNetworkManager;
 import system.application.MessageListener;
 import system.application.MessageTag;
@@ -22,7 +20,6 @@ import org.apache.logging.log4j.Logger;
 import java.awt.*;
 import java.io.*;
 import java.net.*;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 import static system.application.settings.PredefinedSetting.DONATION_KEY;
@@ -47,7 +44,8 @@ public class Main {
 
     public static ResourceBundle RESSOURCE_BUNDLE;
     public static ResourceBundle SETTINGS_BUNDLE;
-    public static ResourceBundle GAMES_GENRE_BUNDLE;
+    public static ResourceBundle GAME_GENRES_BUNDLE;
+    public static ResourceBundle GAME_THEMES_BUNDLE;
 
     public static AllGameEntries ALL_GAMES_ENTRIES = new AllGameEntries();
     public static GeneralSettings GENERAL_SETTINGS;
@@ -76,7 +74,8 @@ public class Main {
         LOGGER.info("Donator mode : "+DONATOR);
         RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
-        GAMES_GENRE_BUNDLE = ResourceBundle.getBundle("gamegenres", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
+        GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
+        GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
 
         initNetworkManager();
         //if(!DEV_MODE){

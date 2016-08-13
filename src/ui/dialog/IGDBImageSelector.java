@@ -1,12 +1,8 @@
 package ui.dialog;
 
-import data.game.GameEntry;
+import data.game.entry.GameEntry;
 import data.game.ImageUtils;
 import data.game.OnDLDoneHandler;
-import javafx.animation.Interpolator;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -14,15 +10,11 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.util.Duration;
 import ui.Main;
 import ui.pane.OnItemSelectedHandler;
 import ui.pane.SelectListPane;
-import ui.scene.BaseScene;
 
 import java.io.File;
-
-import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
 
 /**
  * Created by LM on 06/08/2016.

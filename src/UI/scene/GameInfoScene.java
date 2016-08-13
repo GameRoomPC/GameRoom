@@ -1,7 +1,7 @@
 package ui.scene;
 
-import data.game.GameGenre;
-import javafx.event.EventType;
+import data.game.entry.GameGenre;
+import data.game.entry.GameTheme;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -9,13 +9,11 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.InfoGameButton;
-import data.game.GameEntry;
+import data.game.entry.GameEntry;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -31,7 +29,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static ui.Main.*;
 
 /**
@@ -172,10 +169,10 @@ public class GameInfoScene extends BaseScene {
         propertiesPane.add(s1, 0, row_count);
         row_count++;
         /****************************END SEPARATORS************************************/
-
-        addProperty("year", entry.getYear());
+        addProperty("release_date", entry.getReleaseDate() != null ? GameEntry.DATE_DISPLAY_FORMAT.format(entry.getReleaseDate()) : "");
         addProperty("developer", entry.getDeveloper());
         addProperty("publisher", entry.getPublisher());
+        addProperty("serie", entry.getSerie());
         if(entry.getGenres()!=null){
             String genres = "";
             for(GameGenre genre : entry.getGenres()){
@@ -184,6 +181,15 @@ public class GameInfoScene extends BaseScene {
             addProperty("genre",genres.substring(0,genres.length()-2));
         }else{
             addProperty("genre",null);
+        }
+        if(entry.getThemes()!=null){
+            String themes = "";
+            for(GameTheme theme : entry.getThemes()){
+                themes+=theme.getDisplayName()+", ";
+            }
+            addProperty("theme",themes.substring(0,themes.length()-2));
+        }else{
+            addProperty("theme",null);
         }
         addProperty("description", entry.getDescription());
 
@@ -225,14 +231,28 @@ public class GameInfoScene extends BaseScene {
     protected void updateWithEditedEntry(GameEntry editedEntry){
         updateProperty("play_time", editedEntry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS));
         updateProperty("game_path", editedEntry.getPath());
-        updateProperty("year", editedEntry.getYear());
+        updateProperty("release_date", editedEntry.getReleaseDate()!=null ? GameEntry.DATE_DISPLAY_FORMAT.format(editedEntry.getReleaseDate()) : "");
         updateProperty("developer", editedEntry.getDeveloper());
         updateProperty("publisher", editedEntry.getPublisher());
-        String genres = "";
-        for(GameGenre genre : entry.getGenres()){
-            genres+=genre.getDisplayName()+", ";
+        updateProperty("serie", editedEntry.getSerie());
+        if(entry.getGenres()!=null){
+            String genres = "";
+            for(GameGenre genre : entry.getGenres()){
+                genres+=genre.getDisplayName()+", ";
+            }
+            updateProperty("genre",genres.substring(0,genres.length()-2));
+        }else{
+            updateProperty("genre",null);
         }
-        updateProperty("genre",genres.substring(0,genres.length()-2));
+        if(entry.getThemes()!=null){
+            String themes = "";
+            for(GameTheme theme : entry.getThemes()){
+                themes+=theme.getDisplayName()+", ";
+            }
+            updateProperty("theme",themes.substring(0,themes.length()-2));
+        }else{
+            updateProperty("theme",null);
+        }
         updateProperty("description", editedEntry.getDescription());
         Image backgroundImage = new Image("file:" + File.separator + File.separator + File.separator + editedEntry.getImagePath(1).getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
         //no need to fade transition here as it is the "right" image and no actual change

@@ -1,6 +1,6 @@
 package system.application;
 
-import data.game.GameEntry;
+import data.game.entry.GameEntry;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.Alert;

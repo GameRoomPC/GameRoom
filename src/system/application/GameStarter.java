@@ -1,6 +1,6 @@
 package system.application;
 
-import data.game.GameEntry;
+import data.game.entry.GameEntry;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;

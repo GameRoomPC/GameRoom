@@ -1,12 +1,11 @@
 package ui.control.textfield;
 
-import data.game.GameEntry;
+import data.game.entry.GameEntry;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.HBox;
 import ui.Main;
 

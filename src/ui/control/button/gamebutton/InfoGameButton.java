@@ -3,7 +3,7 @@ package ui.control.button.gamebutton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import ui.scene.BaseScene;
-import data.game.GameEntry;
+import data.game.entry.GameEntry;
 import javafx.scene.layout.Pane;
 
 import java.io.File;

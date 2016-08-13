@@ -1,10 +1,13 @@
-package data.game;
+package data.game.entry;
 
 import system.application.GameStarter;
 import javafx.scene.image.Image;
 
 import java.io.*;
-import java.util.ArrayList;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
@@ -14,6 +17,8 @@ import java.util.regex.Pattern;
  * Created by LM on 02/07/2016.
  */
 public class GameEntry {
+    public static DateFormat DATE_DISPLAY_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
+    public final static DateFormat DATE_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     public final static File ENTRIES_FOLDER = new File("Games");
     public final static File[] DEFAULT_IMAGES_PATHS = {new File("res/defaultImages/cover.jpg"),null};
     private final static int IMAGES_NUMBER = 3;
@@ -26,11 +31,13 @@ public class GameEntry {
     private boolean savedLocaly = false;
 
     private String name = "";
-    private String year = "";
+    private Date releaseDate;
     private String description = "";
     private String developer = "";
     private String publisher = "";
     private GameGenre[] genres;
+    private GameTheme[] themes;
+    private String serie = "";
     private int aggregated_rating;
     private String path = "";
     private UUID uuid;
@@ -84,10 +91,11 @@ public class GameEntry {
 
                 // set the properties value
                 prop.setProperty("name", name);
-                prop.setProperty("year", year);
+                prop.setProperty("releaseDate", releaseDate!=null ? DATE_STORE_FORMAT.format(releaseDate):"");
                 prop.setProperty("description", description);
                 prop.setProperty("developer", developer);
                 prop.setProperty("publisher", publisher);
+                prop.setProperty("serie", serie);
                 prop.setProperty("path", path);
 
                 for (int i = 0; i < IMAGES_NUMBER; i++) {
@@ -101,6 +109,7 @@ public class GameEntry {
                 prop.setProperty("steam_id", Integer.toString(steam_id));
                 prop.setProperty("igdb_id", Integer.toString(igdb_id));
                 prop.setProperty("genres", GameGenre.toJson(genres));
+                prop.setProperty("themes", GameTheme.toJson(themes));
                 prop.setProperty("aggregated_rating", Integer.toString(aggregated_rating));
 
                 // save properties to project root folder
@@ -124,8 +133,14 @@ public class GameEntry {
         if (prop.getProperty("name") != null) {
             name = prop.getProperty("name");
         }
-        if (prop.getProperty("year") != null) {
-            year = prop.getProperty("year");
+        if (prop.getProperty("releaseDate") != null) {
+            try {
+                if(!prop.getProperty("releaseDate").equals("")){
+                    releaseDate = DATE_STORE_FORMAT.parse(prop.getProperty("releaseDate"));
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }
         if (prop.getProperty("description") != null) {
             description = prop.getProperty("description");
@@ -135,6 +150,9 @@ public class GameEntry {
         }
         if (prop.getProperty("publisher") != null) {
             publisher = prop.getProperty("publisher");
+        }
+        if (prop.getProperty("serie") != null) {
+            serie = prop.getProperty("serie");
         }
         if (prop.getProperty("path") != null) {
             path = prop.getProperty("path");
@@ -150,6 +168,9 @@ public class GameEntry {
         }
         if (prop.getProperty("genres") != null) {
             genres = GameGenre.fromJson(prop.getProperty("genres"));
+        }
+        if (prop.getProperty("themes") != null) {
+            themes = GameTheme.fromJson(prop.getProperty("themes"));
         }
         if (prop.getProperty("aggregated_rating") != null) {
             aggregated_rating = Integer.parseInt(prop.getProperty("aggregated_rating"));
@@ -176,12 +197,12 @@ public class GameEntry {
         saveEntry();
     }
 
-    public String getYear() {
-        return year;
+    public Date getReleaseDate() {
+        return releaseDate;
     }
 
-    public void setYear(String year) {
-        this.year = year;
+    public void setReleaseDate(Date releaseDate) {
+        this.releaseDate = releaseDate;
         saveEntry();
     }
 
@@ -454,6 +475,25 @@ public class GameEntry {
         this.genres = genres;
         saveEntry();
     }
+
+    public GameTheme[] getThemes() {
+        return themes;
+    }
+
+    public void setThemes(GameTheme[] themes) {
+        this.themes = themes;
+        saveEntry();
+    }
+
+    public String getSerie() {
+        return serie;
+    }
+
+    public void setSerie(String serie) {
+        this.serie = serie;
+        saveEntry();
+    }
+
     public String getIgdb_imageHash(int index){
         return igdb_imageHash[index];
     }

@@ -148,6 +148,11 @@ public abstract class SelectListPane<T> extends ScrollPane {
             radioButton.selectedProperty().addListener(new ChangeListener<Boolean>() {
                 @Override
                 public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                    if(newValue){
+                        setStyle("-fx-background-color: derive(-flatter-red, -20.0%);");
+                    }else{
+                        setStyle("");
+                    }
                     if(!multiSelection && oldValue && !newValue){
                         setStyle("");
                         parentList.removeSelectedValue((T) getValue());
@@ -174,10 +179,8 @@ public abstract class SelectListPane<T> extends ScrollPane {
                 radioButton.setSelected(true);
                 parentList.setSelectedId(getItemId());
                 parentList.onItemSelected(this);
-                setStyle("-fx-background-color: derive(-flatter-red, -20.0%);");
             }else{
                 if(multiSelection){
-                    setStyle("");
                     parentList.removeSelectedValue((T) getValue());
                     radioButton.setSelected(false);
                 }

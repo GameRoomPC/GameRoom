@@ -1,7 +1,6 @@
 package ui.control.specific;
 
-import com.mashape.unirest.http.exceptions.UnirestException;
-import data.game.GameEntry;
+import data.game.entry.GameEntry;
 import data.http.YoutubeSoundtrackScrapper;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -15,7 +14,6 @@ import ui.Main;
 import ui.control.button.DualImageButton;
 import ui.control.button.OnActionHandler;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 
 /**

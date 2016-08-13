@@ -1,6 +1,7 @@
 package ui.scene;
 
 import data.game.*;
+import data.game.entry.GameEntry;
 import data.game.scrapper.SteamPreEntry;
 import data.game.scrapper.SteamScrapper;
 import javafx.animation.Interpolator;
@@ -12,7 +13,6 @@ import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.geometry.Bounds;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.GaussianBlur;

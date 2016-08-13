@@ -3,7 +3,7 @@ package data.http;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import data.game.GameEntry;
+import data.game.entry.GameEntry;
 import ui.Main;
 
 import java.io.*;
@@ -11,7 +11,6 @@ import java.nio.charset.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
