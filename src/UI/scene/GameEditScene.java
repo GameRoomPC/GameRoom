@@ -8,6 +8,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.IndexedCheckModel;
 import ui.Main;
@@ -58,6 +59,7 @@ import java.util.regex.Pattern;
 
 import static ui.Main.*;
 import static ui.Main.GENERAL_SETTINGS;
+import static ui.control.button.gamebutton.GameButton.DEFAULT_COVER_IMAGE;
 
 /**
  * Created by LM on 03/07/2016.
@@ -92,24 +94,24 @@ public class GameEditScene extends BaseScene {
         mode = MODE_ADD;
         entry = new GameEntry(chosenFile.getName());
         entry.setPath(chosenFile.getAbsolutePath());
-        init(previousScene);
+        init(previousScene,null);
     }
 
-    public GameEditScene(BaseScene previousScene, GameEntry entry) {
-        this(previousScene, entry, MODE_EDIT);
+    public GameEditScene(BaseScene previousScene, GameEntry entry, Image coverImage) {
+        this(previousScene, entry, MODE_EDIT,coverImage);
     }
 
-    public GameEditScene(BaseScene previousScene, GameEntry entry, int mode) {
+    public GameEditScene(BaseScene previousScene, GameEntry entry, int mode,Image coverImage) {
         super(new StackPane(), previousScene.getParentStage());
         this.mode = mode;
         this.entry = entry;
         this.entry.setSavedLocaly(false);
         this.chosenImageFiles[0] = entry.getImagePath(0);
         this.chosenImageFiles[1] = entry.getImagePath(1);
-        init(previousScene);
+        init(previousScene,coverImage);
     }
 
-    private void init(BaseScene previousScene) {
+    private void init(BaseScene previousScene, Image coverImage) {
         onExitAction = new ClassicExitAction(this, previousScene.getParentStage(), previousScene);
 
         imageChooser = new FileChooser();
@@ -125,7 +127,7 @@ public class GameEditScene extends BaseScene {
         );
         this.previousScene = previousScene;
         initTop();
-        initCenter();
+        initCenter(coverImage);
         initBottom();
     }
 
@@ -211,7 +213,7 @@ public class GameEditScene extends BaseScene {
 
     }
 
-    private void initCenter() {
+    private void initCenter(Image coverImage) {
         GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
 
         backgroundView.setEffect(blur);
@@ -354,23 +356,6 @@ public class GameEditScene extends BaseScene {
             }
         });
 
-        /**************************DESCRIPTION*********************************************/
-        Label titleDescriptionLabel = new Label(RESSOURCE_BUNDLE.getString("game_description") + " :");
-        titleDescriptionLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("game_description")));
-        contentPane.add(titleDescriptionLabel, 0, row_count);
-        TextArea gameDescriptionField = new TextArea(entry.getDescription());
-        gameDescriptionField.setWrapText(true);
-        gameDescriptionField.setId("game_description");
-        gameDescriptionField.setPrefRowCount(4);
-        gameDescriptionField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                entry.setDescription(newValue);
-            }
-        });
-        contentPane.add(gameDescriptionField, 1, row_count);
-        row_count++;
-
         /**************************GENRE*********************************************/
 
         // create the data to show in the CheckComboBox
@@ -404,6 +389,23 @@ public class GameEditScene extends BaseScene {
         genreLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("genre")));
         contentPane.add(genreLabel, 0, row_count);
         contentPane.add(genreComboBox, 1, row_count);
+        row_count++;
+
+        /**************************DESCRIPTION*********************************************/
+        Label titleDescriptionLabel = new Label(RESSOURCE_BUNDLE.getString("game_description") + " :");
+        titleDescriptionLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("game_description")));
+        contentPane.add(titleDescriptionLabel, 0, row_count);
+        TextArea gameDescriptionField = new TextArea(entry.getDescription());
+        gameDescriptionField.setWrapText(true);
+        gameDescriptionField.setId("game_description");
+        gameDescriptionField.setPrefRowCount(4);
+        gameDescriptionField.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                entry.setDescription(newValue);
+            }
+        });
+        contentPane.add(gameDescriptionField, 1, row_count);
         row_count++;
 
         /**************************SCREENSHOT*********************************************/
@@ -494,7 +496,7 @@ public class GameEditScene extends BaseScene {
         coverAndPropertiesPane.setVgap(20 * SCREEN_WIDTH / 1920);
         coverAndPropertiesPane.setHgap(60 * SCREEN_WIDTH / 1920);
 
-        Pane coverPane = createLeft();
+        Pane coverPane = createLeft(coverImage);
         coverAndPropertiesPane.add(coverPane, 0, 0);
         coverAndPropertiesPane.setPadding(new Insets(50 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920, 20 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920));
 
@@ -564,12 +566,38 @@ public class GameEditScene extends BaseScene {
         }
     }
 
-    private Pane createLeft() {
+    private Pane createLeft(Image coverImage) {
         StackPane pane = new StackPane();
         double coverWidth = GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO);
         double coverHeight = GENERAL_SETTINGS.getWindowHeight() * 2 / 3;
 
-        coverView = new ImageView(entry.getImage(0, coverWidth, coverHeight, false, true));
+        coverView = new ImageView();
+        coverView.setFitWidth(coverWidth);
+        coverView.setFitHeight(coverHeight);
+
+        if(coverImage!=null){
+            ImageUtils.transitionToImage(coverImage,coverView);
+        }else{
+            Task<Image> loadImageTask = new Task<Image>() {
+                @Override
+                protected Image call() throws Exception {
+                    Image img = entry.getImage(0,coverWidth,coverHeight,false,true);
+                    return img;
+                }
+            };
+            loadImageTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                @Override
+                public void handle(WorkerStateEvent event) {
+                    Platform.runLater(() -> {
+                        ImageUtils.transitionToImage(loadImageTask.getValue(),coverView);
+                    });
+                }
+            });
+            Thread imageThread = new Thread(loadImageTask);
+            imageThread.setDaemon(true);
+            imageThread.start();
+        }
+
 
         ImageButton changeImageButton = new ImageButton(new Image("res/ui/folderButton.png", GENERAL_SETTINGS.getWindowWidth() / 12, GENERAL_SETTINGS.getWindowWidth() / 12, false, true));
         changeImageButton.setOpacity(0);

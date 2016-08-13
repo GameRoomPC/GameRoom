@@ -1,5 +1,6 @@
 package ui.scene;
 
+import data.game.GameGenre;
 import javafx.event.EventType;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -74,7 +75,7 @@ public class GameInfoScene extends BaseScene {
         editButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                fadeTransitionTo(new GameEditScene(GameInfoScene.this, entry), getParentStage());
+                fadeTransitionTo(new GameEditScene(GameInfoScene.this, entry,coverButton.getImage()), getParentStage());
             }
         });
         Button deleteButton = new Button(RESSOURCE_BUNDLE.getString("delete"));
@@ -175,6 +176,15 @@ public class GameInfoScene extends BaseScene {
         addProperty("year", entry.getYear());
         addProperty("developer", entry.getDeveloper());
         addProperty("publisher", entry.getPublisher());
+        if(entry.getGenres()!=null){
+            String genres = "";
+            for(GameGenre genre : entry.getGenres()){
+                genres+=genre.getDisplayName()+", ";
+            }
+            addProperty("genre",genres.substring(0,genres.length()-2));
+        }else{
+            addProperty("genre",null);
+        }
         addProperty("description", entry.getDescription());
 
         GridPane coverAndPropertiesPane = new GridPane();
@@ -202,7 +212,7 @@ public class GameInfoScene extends BaseScene {
         titleLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString(title)));
         propertiesPane.add(titleLabel, 0, row_count);
         Label valueLabel = new Label(value);
-        if (value.equals("")) {
+        if (value == null || value.equals("")) {
             valueLabel.setText("-");
         }
         valueLabel.setStyle("-fx-font-weight: normal;");
@@ -218,8 +228,14 @@ public class GameInfoScene extends BaseScene {
         updateProperty("year", editedEntry.getYear());
         updateProperty("developer", editedEntry.getDeveloper());
         updateProperty("publisher", editedEntry.getPublisher());
+        String genres = "";
+        for(GameGenre genre : entry.getGenres()){
+            genres+=genre.getDisplayName()+", ";
+        }
+        updateProperty("genre",genres.substring(0,genres.length()-2));
         updateProperty("description", editedEntry.getDescription());
         Image backgroundImage = new Image("file:" + File.separator + File.separator + File.separator + editedEntry.getImagePath(1).getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
+        //no need to fade transition here as it is the "right" image and no actual change
         backgroundView.setImage(backgroundImage);
         coverButton.setImage(editedEntry.getImagePath(0).getAbsolutePath());
     }

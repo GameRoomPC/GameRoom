@@ -10,7 +10,10 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
+import javafx.geometry.Bounds;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.ImageView;
@@ -18,6 +21,7 @@ import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import system.os.WindowsShortcut;
 import ui.control.button.ImageButton;
+import ui.control.button.gamebutton.GameButton;
 import ui.dialog.ChoiceDialog;
 import ui.control.button.gamebutton.TileGameButton;
 import javafx.beans.value.ChangeListener;
@@ -70,6 +74,12 @@ public class MainScene extends BaseScene {
     private BorderPane wrappingPane;
     private TilePane tilePane = new TilePane();
     private Label statusLabel;
+
+    private final static int SORT_MODE_NAME = 0;
+    private final static int SORT_MODE_RATING = 1;
+    private final static int SORT_MODE_PLAY_TIME = 2;
+
+    private static int SORT_MODE = SORT_MODE_NAME;
 
     private boolean changeBackgroundNextTime = false;
 
@@ -206,7 +216,7 @@ public class MainScene extends BaseScene {
         /*sizeSlider.setScaleX(0.7);
         sizeSlider.setScaleY(0.7);*/
 
-        Image settingsImage = new Image("res/ui/settingsButton.png", SCREEN_WIDTH / 40, SCREEN_WIDTH / 40, true, true);
+        Image settingsImage = new Image("res/ui/settingsButton.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
         ImageButton settingsButton = new ImageButton(settingsImage);
         settingsButton.setFocusTraversable(false);
         settingsButton.setOnMousePressed(new EventHandler<MouseEvent>() {
@@ -220,6 +230,35 @@ public class MainScene extends BaseScene {
         });
         /*settingsButton.setScaleX(0.7);
         settingsButton.setScaleY(0.7);*/
+        Image sortImage = new Image("res/ui/sortIcon.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
+        ImageButton sortButton = new ImageButton(sortImage);
+        sortButton.setFocusTraversable(false);
+        final ContextMenu sortMenu = new ContextMenu();
+        MenuItem byNameItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_name"));
+        MenuItem byRatingItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_rating"));
+        MenuItem byTimePlayedItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_playtime"));
+        sortMenu.getItems().addAll(byNameItem, byRatingItem, byTimePlayedItem);
+        byNameItem.setOnAction(event -> sortByName());
+        byRatingItem.setOnAction(event -> sortByRating());
+        byTimePlayedItem.setOnAction(event -> sortByTimePlayed());
+
+        sortButton.setOnMousePressed(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.isPrimaryButtonDown()) {
+                    if(sortMenu.isShowing()){
+                        sortMenu.hide();
+                    }else{
+                        Bounds bounds = sortButton.getBoundsInLocal();
+                        Bounds screenBounds = sortButton.localToScreen(bounds);
+                        int x = (int) (screenBounds.getMinX() + 0.25 *bounds.getWidth());
+                        int y = (int) (screenBounds.getMaxY() - 0.22 *bounds.getHeight());
+
+                        sortMenu.show(sortButton,x,y);
+                    }
+                }
+            }
+        });
 
         Image addImage = new Image("res/ui/addButton.png", SCREEN_WIDTH / 45, SCREEN_WIDTH / 45, true, true);
         ImageButton addButton = new ImageButton(addImage);
@@ -286,7 +325,7 @@ public class MainScene extends BaseScene {
         HBox hbox = new HBox();
         hbox.setPadding(new Insets(15, 12, 15, 10));
         hbox.setSpacing(0);
-        hbox.getChildren().addAll(addButton, settingsButton, sizeSlider);
+        hbox.getChildren().addAll(addButton, sortButton, settingsButton, sizeSlider);
         hbox.setAlignment(Pos.CENTER_LEFT);
 
         //HBox.setMargin(sizeSlider, new Insets(15, 12, 15, 12));
@@ -349,12 +388,13 @@ public class MainScene extends BaseScene {
             }
         }
         AllGameEntries.ENTRIES_LIST.remove(indexToRemove);
+        sort();
         refreshTrayMenu();
     }
 
     public void updateGame(GameEntry entry) {
         Main.LOGGER.debug("Updated game : " + entry.getName());
-        tilePane.getChildren().set(indexOf(entry), new TileGameButton(entry, tilePane, this));
+        ((GameButton)tilePane.getChildren().get(indexOf(entry))).reloadWith(entry);
 
         for (int i = 0; i < AllGameEntries.ENTRIES_LIST.size(); i++) {
             if (entry.getUuid().equals(AllGameEntries.ENTRIES_LIST.get(i))) {
@@ -362,19 +402,36 @@ public class MainScene extends BaseScene {
                 break;
             }
         }
-        AllGameEntries.ENTRIES_LIST.add(entry);
+        sort();
         refreshTrayMenu();
     }
 
     public void addGame(GameEntry entry) {
         Main.LOGGER.debug("Added game : " + entry.getName());
         tilePane.getChildren().add(new TileGameButton(entry, tilePane, this));
-        sortByName();
+        sort();
         AllGameEntries.ENTRIES_LIST.add(entry);
         refreshTrayMenu();
     }
+    public void sort(){
+        switch (SORT_MODE){
+            case SORT_MODE_NAME :
+                sortByName();;
+                break;
+            case SORT_MODE_PLAY_TIME :
+                sortByTimePlayed();
+                break;
+            case SORT_MODE_RATING:
+                sortByRating();
+                break;
+            default:
+                sortByName();
+                break;
+        }
+    }
 
     public void sortByName() {
+        SORT_MODE = SORT_MODE_NAME;
         ObservableList<Node> nodes = FXCollections.observableArrayList(
                 tilePane.getChildren()
         );
@@ -382,12 +439,111 @@ public class MainScene extends BaseScene {
         nodes.sort(new Comparator<Node>() {
             @Override
             public int compare(Node o1, Node o2) {
-                String name1 = ((TileGameButton) o1).getEntry().getName();
-                String name2 = ((TileGameButton) o2).getEntry().getName();
+                String name1 = ((GameButton) o1).getEntry().getName();
+                String name2 = ((GameButton) o2).getEntry().getName();
                 return name1.compareToIgnoreCase(name2);
             }
         });
-        tilePane.getChildren().setAll(nodes);
+        replaceChildrensAfterSort(nodes, new Runnable() {
+            @Override
+            public void run() {
+                for(Node button : nodes){
+                    ((GameButton)button).hidePlaytime();
+                    ((GameButton)button).hideRating();
+                }
+            }
+        });
+    }
+
+    public void sortByRating() {
+        SORT_MODE = SORT_MODE_RATING;
+        ObservableList<Node> nodes = FXCollections.observableArrayList(
+                tilePane.getChildren()
+        );
+
+        nodes.sort(new Comparator<Node>() {
+            @Override
+            public int compare(Node o1, Node o2) {
+                int rating1 = ((GameButton) o1).getEntry().getAggregated_rating();
+                int rating2 = ((GameButton) o2).getEntry().getAggregated_rating();
+                int result = rating1 > rating2 ? -1 : 1;
+                if(rating1 == rating2){
+                    String name1 = ((GameButton) o1).getEntry().getName();
+                    String name2 = ((GameButton) o2).getEntry().getName();
+                    result = name1.compareToIgnoreCase(name2);
+                }
+                return result;
+            }
+        });
+        replaceChildrensAfterSort(nodes, new Runnable() {
+            @Override
+            public void run() {
+                for(Node button : nodes){
+                    ((GameButton)button).hidePlaytime();
+                    ((GameButton)button).showRating();
+                }
+            }
+        });
+    }
+    public void sortByTimePlayed() {
+        SORT_MODE = SORT_MODE_PLAY_TIME;
+        ObservableList<Node> nodes = FXCollections.observableArrayList(
+                tilePane.getChildren()
+        );
+
+        nodes.sort(new Comparator<Node>() {
+            @Override
+            public int compare(Node o1, Node o2) {
+                long rating1 = ((GameButton) o1).getEntry().getPlayTimeSeconds();
+                long rating2 = ((GameButton) o2).getEntry().getPlayTimeSeconds();
+                int result = rating1 > rating2 ? -1 : 1;
+                if(rating1 == rating2){
+                    String name1 = ((GameButton) o1).getEntry().getName();
+                    String name2 = ((GameButton) o2).getEntry().getName();
+                    result = name1.compareToIgnoreCase(name2);
+                }
+                return result;
+            }
+        });
+        replaceChildrensAfterSort(nodes, new Runnable() {
+            @Override
+            public void run() {
+                for(Node button : nodes){
+                    ((GameButton)button).showPlaytime();
+                    ((GameButton)button).hideRating();
+                }
+            }
+        });
+    }
+    private void replaceChildrensAfterSort(ObservableList<Node> nodes, Runnable betweenTransition){
+
+        Timeline fadeOutTimeline = new Timeline(
+                new KeyFrame(Duration.seconds(0),
+                        new KeyValue(tilePane.opacityProperty(), tilePane.opacityProperty().getValue(), Interpolator.EASE_IN)),
+                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                        new KeyValue(tilePane.opacityProperty(), 0, Interpolator.EASE_OUT)
+                ));
+        fadeOutTimeline.setCycleCount(1);
+        fadeOutTimeline.setAutoReverse(false);
+        fadeOutTimeline.setOnFinished(new EventHandler<javafx.event.ActionEvent>() {
+            @Override
+            public void handle(javafx.event.ActionEvent event) {
+                tilePane.getChildren().setAll(nodes);
+                if(betweenTransition!=null){
+                    betweenTransition.run();
+                }
+                Timeline fadeInTimeline = new Timeline(
+                        new KeyFrame(Duration.seconds(0),
+                                new KeyValue(tilePane.opacityProperty(), 0, Interpolator.EASE_IN)),
+                        new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                new KeyValue(tilePane.opacityProperty(), 1, Interpolator.EASE_OUT)
+                        ));
+                fadeInTimeline.setCycleCount(1);
+                fadeInTimeline.setAutoReverse(false);
+                fadeInTimeline.play();
+            }
+        });
+        fadeOutTimeline.play();
     }
 
     private ExitAction createFolderAddExitAction(ArrayList<File> files, int fileCount) {
@@ -420,7 +576,7 @@ public class MainScene extends BaseScene {
     private ExitAction createSteamEntryAddExitAction(ArrayList<GameEntry> entries, int entryCount) {
         if (entryCount < entries.size()) {
             GameEntry currentEntry = entries.get(entryCount);
-            GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentEntry, GameEditScene.MODE_ADD);
+            GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentEntry, GameEditScene.MODE_ADD,null);
             gameEditScene.disableBackButton();
             return new MultiAddExitAction(new Runnable() {
                 @Override

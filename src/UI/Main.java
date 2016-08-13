@@ -163,21 +163,9 @@ public class Main {
                 }
             }
         });
-        Task initTask = new Task() {
-            @Override
-            protected Object call() throws Exception {
-                Platform.runLater(() -> {
-                    NETWORK_MANAGER.connect();
-                    //close other possible instances of GameRoom
-                });
-                return null;
-            }
-        };
+        NETWORK_MANAGER.connect();
         NETWORK_MANAGER.sendMessage(MessageTag.CLOSE_APP);
-
-        Thread initThread = new Thread(initTask);
-        initThread.setDaemon(true);
-        initThread.start();
+        //TODO reduce start time by thread with this
 
     }
 

@@ -86,45 +86,54 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 try {
                     JSONArray resultArray = IGDBScrapper.searchGame(searchField.getText());
                     ArrayList<Integer> ids = new ArrayList<Integer>();
-                    for (Object obj : resultArray) {
-                        JSONObject jsob = ((JSONObject) obj);
-                        ids.add(jsob.getInt("id"));
-                    }
-                    if (ids.size() == 0) {
+                    if(resultArray == null){
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
-                                statusLabel.setText(Main.RESSOURCE_BUNDLE.getString("no_result"));
+                                statusLabel.setText(Main.RESSOURCE_BUNDLE.getString("no_result")+"/"+Main.RESSOURCE_BUNDLE.getString("no_internet"));
                             }
                         });
-                    } else {
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                statusLabel.setText(Main.RESSOURCE_BUNDLE.getString("loading") + "...");
-                            }
-                        });
-                        Task<String> scrapping = new Task<String>() {
-                            @Override
-                            protected String call() throws Exception {
-                                gamesDataArray = IGDBScrapper.getGamesData(ids);
-                                String gameList = "SearchResult : ";
-                                searchListPane.setGamesDataArray(gamesDataArray);
-                                Platform.runLater(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        statusLabel.setText("");
-                                    }
-                                });
-                                Platform.runLater(() -> searchListPane.addItems(gamesDataArray.iterator()));
+                    }else {
+                        for (Object obj : resultArray) {
+                            JSONObject jsob = ((JSONObject) obj);
+                            ids.add(jsob.getInt("id"));
+                        }
+                        if (ids.size() == 0) {
+                            Platform.runLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    statusLabel.setText(Main.RESSOURCE_BUNDLE.getString("no_result"));
+                                }
+                            });
+                        } else {
+                            Platform.runLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    statusLabel.setText(Main.RESSOURCE_BUNDLE.getString("loading") + "...");
+                                }
+                            });
+                            Task<String> scrapping = new Task<String>() {
+                                @Override
+                                protected String call() throws Exception {
+                                    gamesDataArray = IGDBScrapper.getGamesData(ids);
+                                    String gameList = "SearchResult : ";
+                                    searchListPane.setGamesDataArray(gamesDataArray);
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            statusLabel.setText("");
+                                        }
+                                    });
+                                    Platform.runLater(() -> searchListPane.addItems(gamesDataArray.iterator()));
 
-                                Main.LOGGER.debug(gameList.substring(0, gameList.length() - 3));
-                                return null;
-                            }
-                        };
-                        Thread th = new Thread(scrapping);
-                        th.setDaemon(true);
-                        th.start();
+                                    Main.LOGGER.debug(gameList.substring(0, gameList.length() - 3));
+                                    return null;
+                                }
+                            };
+                            Thread th = new Thread(scrapping);
+                            th.setDaemon(true);
+                            th.start();
+                        }
                     }
                 } catch (ConnectTimeoutException cte) {
                     cte.printStackTrace();

@@ -1,6 +1,7 @@
 package ui.control.button.gamebutton;
 
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import ui.scene.BaseScene;
 import data.game.GameEntry;
 import javafx.scene.layout.Pane;
@@ -21,25 +22,25 @@ public class InfoGameButton extends GameButton {
         disableInfoButton();
         disablePlayTimeLabel();
         disableTitle();
-        setOnMouseExited(eh ->{
+        setOnMouseExited(eh -> {
             setFocused(false);
         });
-        setOnMouseEntered(eh ->{
+        setOnMouseEntered(eh -> {
             setFocused(true);
         });
-        scene.heightProperty().addListener(cl ->{
+        scene.heightProperty().addListener(cl -> {
             //initAll();
         });
     }
 
     @Override
     protected int getCoverHeight() {
-        return (int) (GENERAL_SETTINGS.getWindowHeight() *2/3);
+        return (int) (GENERAL_SETTINGS.getWindowHeight() * 2 / 3);
     }
 
     @Override
     protected int getCoverWidth() {
-        return (int) (GENERAL_SETTINGS.getWindowHeight() *2/(3* COVER_HEIGHT_WIDTH_RATIO));
+        return (int) (GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * COVER_HEIGHT_WIDTH_RATIO));
     }
 
     @Override
@@ -54,16 +55,27 @@ public class InfoGameButton extends GameButton {
 
     @Override
     protected int getPlayButtonHeight() {
-        return (int) (getCoverHeight()* RATIO_PLAYBUTTON_COVER);
+        return (int) (getCoverHeight() * RATIO_PLAYBUTTON_COVER);
     }
 
     @Override
     protected int getPlayButtonWidth() {
-        return (int) (getCoverWidth()* RATIO_PLAYBUTTON_COVER);
+        return (int) (getCoverWidth() * RATIO_PLAYBUTTON_COVER);
     }
 
-    public void setImage(String imagePath){
-        Image img = new Image("file:"+ File.separator+ File.separator+ File.separator+imagePath,getCoverWidth(),getCoverHeight(),false, true);
+    @Override
+    protected void initCoverView() {
+        coverView = new ImageView();
+        coverView.setFitWidth(getCoverWidth());
+        coverView.setFitHeight(getCoverHeight());
+    }
+
+    public void setImage(String imagePath) {
+        Image img = new Image("file:" + File.separator + File.separator + File.separator + imagePath, getCoverWidth(), getCoverHeight(), false, true);
         coverView.setImage(img);
+    }
+
+    public Image getImage() {
+        return coverView.getImage();
     }
 }
