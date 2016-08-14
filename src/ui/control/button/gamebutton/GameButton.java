@@ -99,7 +99,8 @@ public abstract class GameButton extends BorderPane {
         playTimeLabel.setText(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_SHORT_HMS));
         ratingLabel.setText(Integer.toString(entry.getAggregated_rating()));
         SimpleDateFormat buttonDateFormat = new SimpleDateFormat("MM.yyyy");
-        releaseDateLabel.setText(buttonDateFormat.format(entry.getReleaseDate()));
+        releaseDateLabel.setText(entry.getReleaseDate()!=null ? buttonDateFormat.format(entry.getReleaseDate()) : "-");
+
         nameLabel.setText(entry.getName());
         double width = coverView.getImage().getWidth();
         double height = coverView.getImage().getHeight();
@@ -228,7 +229,7 @@ public abstract class GameButton extends BorderPane {
         ratingLabel.setMouseTransparent(true);
 
         SimpleDateFormat buttonDateFormat = new SimpleDateFormat("MM.yyyy");
-        releaseDateLabel = new Label(buttonDateFormat.format(entry.getReleaseDate()));
+        releaseDateLabel = new Label(entry.getReleaseDate()!=null ? buttonDateFormat.format(entry.getReleaseDate()) : "-");
         releaseDateLabel.setEffect(ds);
         releaseDateLabel.setFocusTraversable(false);
         releaseDateLabel.setMouseTransparent(true);

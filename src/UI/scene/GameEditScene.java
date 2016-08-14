@@ -330,12 +330,14 @@ public class GameEditScene extends BaseScene {
         validEntriesConditions.add(new ValidEntryCondition() {
             @Override
             public boolean isValid() {
-                try {
-                    Date date = GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText());
-                    entry.setReleaseDate(date);
-                } catch (ParseException e) {
-                    message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_release_date"));
-                    return false;
+                if(!releaseDateField.getText().equals("")) {
+                    try {
+                        Date date = GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText());
+                        entry.setReleaseDate(date);
+                    } catch (ParseException e) {
+                        message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_release_date"));
+                        return false;
+                    }
                 }
                 return true;
             }

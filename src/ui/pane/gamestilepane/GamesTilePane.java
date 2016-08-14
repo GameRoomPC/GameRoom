@@ -187,14 +187,25 @@ public abstract class GamesTilePane extends ScrollPane{
         nodes.sort(new Comparator<Node>() {
             @Override
             public int compare(Node o1, Node o2) {
+                int result = 0;
                 Date date1 = ((GameButton) o1).getEntry().getReleaseDate();
                 Date date2 = ((GameButton) o2).getEntry().getReleaseDate();
-                int result = date2.compareTo(date1);
+
+                if(date1 == null && date2 !=null){
+                    return -1;
+                }else if(date2 == null && date1!=null){
+                    return 1;
+                }else if(date1 == null && date2 == null){
+                    result = 0;
+                }else{
+                    result = date2.compareTo(date1);
+                }
                 if(result == 0){
                     String name1 = ((GameButton) o1).getEntry().getName();
                     String name2 = ((GameButton) o2).getEntry().getName();
                     result = name1.compareToIgnoreCase(name2);
                 }
+
                 return result;
             }
         });
