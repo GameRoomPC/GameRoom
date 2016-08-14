@@ -2,7 +2,7 @@ package ui.dialog;
 
 import data.game.*;
 import data.game.scrapper.SteamPreEntry;
-import data.game.scrapper.SteamScrapper;
+import data.game.scrapper.SteamLocalScrapper;
 import data.http.SimpleImageInfo;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
@@ -36,7 +36,7 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
 
 
     public SteamIgnoredSelector() throws IOException {
-        ArrayList<SteamPreEntry> steamEntries = SteamScrapper.getSteamAppsInstalled();
+        ArrayList<SteamPreEntry> steamEntries = SteamLocalScrapper.getSteamAppsInstalled();
 
         Label titleLabel = new Label(Main.RESSOURCE_BUNDLE.getString("select_steam_games_ignore"));
         titleLabel.setWrapText(true);

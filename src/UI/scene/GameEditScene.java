@@ -55,10 +55,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static ui.Main.*;
@@ -192,13 +189,13 @@ public class GameEditScene extends BaseScene {
         igdbButton.setOnAction(new EventHandler<ActionEvent>() {
                                    @Override
                                    public void handle(ActionEvent event) {
-                                       SearchDialog dialog = new SearchDialog();
+                                       SearchDialog dialog = new SearchDialog(createDoNotUpdateFielsMap());
                                        Optional<ButtonType> result = dialog.showAndWait();
                                        result.ifPresent(val -> {
                                            if (!val.getButtonData().isCancelButton()) {
                                                GameEntry gameEntry = dialog.getSelectedEntry();
                                                if (gameEntry != null) {
-                                                   onNewEntryData(gameEntry, !dialog.doNotDownloadCover());
+                                                   onNewEntryData(gameEntry, dialog.getDoNotUpdateFieldsMap());
                                                }
                                            }
                                        });
@@ -327,10 +324,23 @@ public class GameEditScene extends BaseScene {
         /**************************RELEASE DATE*********************************************/
         TextField releaseDateField = createLineForProperty("release_date", entry.getReleaseDate() != null ? GameEntry.DATE_DISPLAY_FORMAT.format(entry.getReleaseDate()) : "", null);
         releaseDateField.setPromptText(Main.RESSOURCE_BUNDLE.getString("date_example"));
+        releaseDateField.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if (!releaseDateField.getText().equals("")) {
+                    try {
+                        Date date = GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText());
+                        entry.setReleaseDate(date);
+                    } catch (ParseException e) {
+                        //well date not valid yet
+                    }
+                }
+            }
+        });
         validEntriesConditions.add(new ValidEntryCondition() {
             @Override
             public boolean isValid() {
-                if(!releaseDateField.getText().equals("")) {
+                if (!releaseDateField.getText().equals("")) {
                     try {
                         Date date = GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText());
                         entry.setReleaseDate(date);
@@ -492,19 +502,19 @@ public class GameEditScene extends BaseScene {
                                              public void handle(ActionEvent event) {
                                                  if (entry.getIgdb_id() != -1) {
                                                      GameEntry gameEntry = entry;
-                                                     try{
+                                                     try {
                                                          gameEntry.setIgdb_imageHashs(IGDBScrapper.getScreenshotHash(IGDBScrapper.getGameData(gameEntry.getIgdb_id())));
                                                          openImageSelector(gameEntry);
-                                                     }catch (JSONException jse){
-                                                         if(jse.toString().contains("[\"screenshots\"] not found")){
-                                                             GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR,Main.RESSOURCE_BUNDLE.getString("no_screenshot_for_this_game"));
+                                                     } catch (JSONException jse) {
+                                                         if (jse.toString().contains("[\"screenshots\"] not found")) {
+                                                             GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, Main.RESSOURCE_BUNDLE.getString("no_screenshot_for_this_game"));
                                                              alert.showAndWait();
-                                                         }else{
+                                                         } else {
                                                              jse.printStackTrace();
                                                          }
                                                      }
                                                  } else {
-                                                     SearchDialog dialog = new SearchDialog();
+                                                     SearchDialog dialog = new SearchDialog(createDoNotUpdateFielsMap());
                                                      Optional<ButtonType> result = dialog.showAndWait();
                                                      result.ifPresent(val -> {
                                                          if (!val.getButtonData().isCancelButton()) {
@@ -571,7 +581,7 @@ public class GameEditScene extends BaseScene {
         TextField textField = new TextField(initialValue);
         textField.setPrefColumnCount(50);
         textField.setId(property);
-        if(changeListener!=null) {
+        if (changeListener != null) {
             textField.textProperty().addListener(changeListener);
         }
         contentPane.add(textField, 1, row_count);
@@ -597,39 +607,40 @@ public class GameEditScene extends BaseScene {
         }
     }
 
-    private void updateLineProperty(String property, Object newValue) {
-        if (newValue!=null && !newValue.equals("")) {
-            for (Node node : contentPane.getChildren()) {
-                if (node.getId() != null && node.getId().equals(property)) {
-                    if (newValue instanceof String) {
-                        if (node instanceof TextField) {
-                            ((TextField) node).setText((String) newValue);
-                        } else if (node instanceof TextArea) {
-                            ((TextArea) node).setText((String) newValue);
-                        } else if (node instanceof PathTextField) {
-                            ((PathTextField) node).setText((String) newValue);
-                        }
-                    } else if (newValue instanceof GameGenre[]) {
-                        if (node instanceof CheckComboBox) {
-                            for (GameGenre genre : (GameGenre[]) newValue) {
-                                ((CheckComboBox) node).getCheckModel().check(genre);
+    private void updateLineProperty(String property, Object newValue, HashMap<String, Boolean> doNotUpdateFieldsMap) {
+        if (doNotUpdateFieldsMap.get(property)==null || !doNotUpdateFieldsMap.get(property))
+            if (newValue != null && !newValue.equals("")) {
+                for (Node node : contentPane.getChildren()) {
+                    if (node.getId() != null && node.getId().equals(property)) {
+                        if (newValue instanceof String) {
+                            if (node instanceof TextField) {
+                                ((TextField) node).setText((String) newValue);
+                            } else if (node instanceof TextArea) {
+                                ((TextArea) node).setText((String) newValue);
+                            } else if (node instanceof PathTextField) {
+                                ((PathTextField) node).setText((String) newValue);
+                            }
+                        } else if (newValue instanceof GameGenre[]) {
+                            if (node instanceof CheckComboBox) {
+                                for (GameGenre genre : (GameGenre[]) newValue) {
+                                    ((CheckComboBox) node).getCheckModel().check(genre);
+                                }
+                            }
+                        } else if (newValue instanceof GameTheme[]) {
+                            if (node instanceof CheckComboBox) {
+                                for (GameTheme theme : (GameTheme[]) newValue) {
+                                    ((CheckComboBox) node).getCheckModel().check(theme);
+                                }
+                            }
+                        } else if (newValue instanceof Date) {
+                            if (node instanceof TextField) {
+                                ((TextField) node).setText(newValue != null ? GameEntry.DATE_DISPLAY_FORMAT.format(newValue) : "");
                             }
                         }
-                    } else if (newValue instanceof GameTheme[]) {
-                        if (node instanceof CheckComboBox) {
-                            for (GameTheme theme : (GameTheme[]) newValue) {
-                                ((CheckComboBox) node).getCheckModel().check(theme);
-                            }
-                        }
-                    } else if (newValue instanceof Date) {
-                        if (node instanceof TextField) {
-                            ((TextField) node).setText(newValue != null ? GameEntry.DATE_DISPLAY_FORMAT.format(newValue) : "");
-                        }
+                        break;
                     }
-                    break;
                 }
             }
-        }
     }
 
     private Pane createLeft(Image coverImage) {
@@ -788,6 +799,20 @@ public class GameEditScene extends BaseScene {
         getRootStackPane().getChildren().add(wrappingPane);
     }
 
+    private HashMap<String, Boolean> createDoNotUpdateFielsMap() {
+        HashMap<String, Boolean> map = new HashMap<>();
+        map.put("game_name", false);
+        map.put("serie", !entry.getSerie().equals(""));
+        map.put("release_date", entry.getReleaseDate() != null);
+        map.put("developer", !entry.getDeveloper().equals(""));
+        map.put("game_description", !entry.getDescription().equals(""));
+        map.put("publisher", !entry.getPublisher().equals(""));
+        map.put("genre", entry.getGenres() != null);
+        map.put("theme", entry.getThemes() != null);
+        map.put("cover", entry.getImagePath(0) != null && !entry.getImagePath(0).equals(GameEntry.DEFAULT_IMAGES_PATHS[0]));
+        return map;
+    }
+
     private static String getExtension(File file) {
         return getExtension(file.getAbsolutePath());
     }
@@ -809,20 +834,20 @@ public class GameEditScene extends BaseScene {
     }
 
     //called when user selected a igdb game or when a steam game is added
-    private void onNewEntryData(GameEntry gameEntry, boolean downloadCover) {
-        updateLineProperty("game_name", gameEntry.getName());
-        updateLineProperty("serie", gameEntry.getSerie());
-        updateLineProperty("release_date", gameEntry.getReleaseDate());
-        updateLineProperty("developer", gameEntry.getDeveloper());
-        updateLineProperty("publisher", gameEntry.getPublisher());
-        updateLineProperty("game_description", StringEscapeUtils.unescapeHtml(gameEntry.getDescription()));
-        updateLineProperty("genre", gameEntry.getGenres());
-        updateLineProperty("theme", gameEntry.getThemes());
+    private void onNewEntryData(GameEntry gameEntry, HashMap<String, Boolean> doNotUpdateFieldsMap) {
+        updateLineProperty("game_name", gameEntry.getName(),doNotUpdateFieldsMap);
+        updateLineProperty("serie", gameEntry.getSerie(),doNotUpdateFieldsMap);
+        updateLineProperty("release_date", gameEntry.getReleaseDate(),doNotUpdateFieldsMap);
+        updateLineProperty("developer", gameEntry.getDeveloper(),doNotUpdateFieldsMap);
+        updateLineProperty("publisher", gameEntry.getPublisher(),doNotUpdateFieldsMap);
+        updateLineProperty("game_description", StringEscapeUtils.unescapeHtml(gameEntry.getDescription()),doNotUpdateFieldsMap);
+        updateLineProperty("genre", gameEntry.getGenres(),doNotUpdateFieldsMap);
+        updateLineProperty("theme", gameEntry.getThemes(),doNotUpdateFieldsMap);
         entry.setIgdb_id(gameEntry.getIgdb_id());
         entry.setAggregated_rating(gameEntry.getAggregated_rating());
 
         /*****************COVER DOWNLOAD***************************/
-        if (downloadCover) {
+        if (!doNotUpdateFieldsMap.get("cover")) {
             ImageUtils.downloadIGDBImageToCache(gameEntry.getIgdb_id()
                     , gameEntry.getIgdb_imageHash(0)
                     , ImageUtils.IGDB_TYPE_COVER
@@ -900,10 +925,10 @@ public class GameEditScene extends BaseScene {
                     entry.setIgdb_id(gameEntry.getIgdb_id());
                 }
             } else {
-                if(chosenImageFiles[1]!=null){
+                if (chosenImageFiles[1] != null) {
                     Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
                     ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
-                }else{
+                } else {
                     ImageUtils.transitionToImage(null, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
                 }
 

@@ -1,5 +1,6 @@
 package data.game.entry;
 
+import com.sun.tools.javac.api.JavacScope;
 import system.application.GameStarter;
 import javafx.scene.image.Image;
 
@@ -529,5 +530,12 @@ public class GameEntry {
 
     public void startGame(){
         new GameStarter(this).start();
+    }
+
+    @Override
+    public String toString(){
+        return "GameEntry:name="+name+
+                ",release_date="+(releaseDate!= null ? DATE_DISPLAY_FORMAT.format(releaseDate) : null)+
+                ",steam_id="+steam_id;
     }
 }

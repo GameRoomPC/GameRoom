@@ -2,8 +2,9 @@ package ui.scene;
 
 import data.game.*;
 import data.game.entry.GameEntry;
+import data.game.scrapper.SteamOnlineScrapper;
 import data.game.scrapper.SteamPreEntry;
-import data.game.scrapper.SteamScrapper;
+import data.game.scrapper.SteamLocalScrapper;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -21,19 +22,13 @@ import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import system.os.WindowsShortcut;
 import ui.control.button.ImageButton;
-import ui.control.button.gamebutton.GameButton;
 import ui.dialog.ChoiceDialog;
-import ui.control.button.gamebutton.TileGameButton;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
@@ -56,7 +51,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
-import java.util.List;
 
 import static ui.Main.*;
 import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
@@ -429,7 +423,7 @@ public class MainScene extends BaseScene {
 
     private void checkSteamGamesInstalled() {
         try {
-            ArrayList<SteamPreEntry> steamEntries = SteamScrapper.getSteamAppsInstalled();
+            ArrayList<SteamPreEntry> steamEntries = SteamLocalScrapper.getSteamAppsInstalled();
             ArrayList<GameEntry> steamEntriesToAdd = new ArrayList<GameEntry>();
             for (SteamPreEntry steamEntry : steamEntries) {
                 boolean doNotAdd = false;
@@ -450,7 +444,7 @@ public class MainScene extends BaseScene {
                 }
                 if (!doNotAdd) {
                     Main.LOGGER.debug("To add : "+steamEntry.getName());
-                    GameEntry toAdd = new GameEntry(steamEntry.getName());
+                    GameEntry toAdd = SteamOnlineScrapper.getEntryForSteamId(steamEntry.getId());
                     toAdd.setSteam_id(steamEntry.getId());
                     steamEntriesToAdd.add(toAdd);
                 }

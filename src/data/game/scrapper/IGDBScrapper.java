@@ -111,7 +111,6 @@ public class IGDBScrapper {
         return -1;
     }
     public static String[] getScreenshotHash(JSONObject jsob){
-        System.out.println(jsob.toString(4));
         JSONArray screenshotsArray = jsob.getJSONArray("screenshots");
         String[] result  = new String[screenshotsArray.length()];
         for(int i = 0; i< screenshotsArray.length(); i++){

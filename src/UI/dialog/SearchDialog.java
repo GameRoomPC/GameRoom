@@ -5,10 +5,13 @@ import data.game.OnDLDoneHandler;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.EventType;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyEvent;
+import javafx.util.StringConverter;
+import org.controlsfx.control.CheckComboBox;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
@@ -38,7 +41,9 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 
 import static ui.Main.SCREEN_WIDTH;
 
@@ -55,10 +60,11 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
 
     private SearchList searchListPane;
 
-    private boolean doNotDownloadCover = false;
+    private HashMap<String,Boolean> doNotUpdateFieldsMap;
 
-    public SearchDialog() {
+    public SearchDialog(HashMap<String,Boolean> doNotUpdateFieldsMap) {
         super();
+        this.doNotUpdateFieldsMap = doNotUpdateFieldsMap;
         getDialogPane().getStyleClass().add("search-dialog");
 
         statusLabel = new Label(Main.RESSOURCE_BUNDLE.getString("search_a_game"));
@@ -175,21 +181,60 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
 
         centerPane.getChildren().addAll(searchListPane, statusLabel);
 
-        CheckBox doNotDownloadCoverCheckBox = new CheckBox(Main.RESSOURCE_BUNDLE.getString("do_not_download_cover"));
-        doNotDownloadCoverCheckBox.setFocusTraversable(false);
-        doNotDownloadCoverCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+        ObservableList<String> fields = FXCollections.observableArrayList();
+        for(String key : doNotUpdateFieldsMap.keySet()){
+            fields.add(key);
+        }
+        fields.sort(new Comparator<String>() {
             @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                doNotDownloadCover = newValue;
+            public int compare(String o1, String o2) {
+                return o1.compareTo(o2);
             }
         });
+        // Create the CheckComboBox with the data
+        final CheckComboBox<String> fieldsComboBox = new CheckComboBox<String>(fields);
+        fieldsComboBox.setConverter(new StringConverter<String>() {
+            @Override
+            public String toString(String object) {
+                return Main.RESSOURCE_BUNDLE.getString(object);
+            }
+
+            @Override
+            public String fromString(String string) {
+                return null;
+            }
+        });
+        for (String key : doNotUpdateFieldsMap.keySet()) {
+            if(doNotUpdateFieldsMap.get(key))
+                fieldsComboBox.getCheckModel().check(key);
+        }
+        fieldsComboBox.setPrefWidth(250*Main.SCREEN_WIDTH/1920);
+        fieldsComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
+            @Override
+            public void onChanged(Change<? extends String> c) {
+                while (c.next()){
+                    for(String s : c.getAddedSubList()){
+                        SearchDialog.this.doNotUpdateFieldsMap.put(s,true);
+                    }
+                    for(String s : c.getRemoved()){
+                        SearchDialog.this.doNotUpdateFieldsMap.put(s,false);
+                    }
+                }
+            }
+        });
+        Label doNotUpdateLabel = new Label(Main.RESSOURCE_BUNDLE.getString("do_not_update")+":");
+        doNotUpdateLabel.setFocusTraversable(false);
+        HBox notUpdateHbox = new HBox();
+        notUpdateHbox.setAlignment(Pos.CENTER);
+        notUpdateHbox.setSpacing(10*Main.SCREEN_WIDTH/1920);
+        notUpdateHbox.getChildren().addAll(doNotUpdateLabel,fieldsComboBox);
 
         mainPane.setTop(topBox);
         mainPane.setCenter(centerPane);
-        mainPane.setBottom(doNotDownloadCoverCheckBox);
+        mainPane.setBottom(notUpdateHbox);
 
         BorderPane.setMargin(topBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
-        BorderPane.setMargin(doNotDownloadCoverCheckBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 0 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
+        BorderPane.setMargin(notUpdateHbox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 0 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
         ButtonType cancelButtonType = new ButtonType(ui.Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType nextButtonType = new ButtonType(Main.RESSOURCE_BUNDLE.getString("next"), ButtonBar.ButtonData.OK_DONE);
@@ -206,9 +251,6 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             if(searchListPane.getSelectedValue()!=null) {
                 selectedEntry = IGDBScrapper.getEntry(searchListPane.getSelectedValue());
                 String coverHash = IGDBScrapper.getEntry(searchListPane.getSelectedValue()).getIgdb_imageHash(0);
-                doNotDownloadCover = doNotDownloadCover && coverHash!=null && !coverHash.equals("");
-            }else {
-                doNotDownloadCover = true;
             }
         });
     }
@@ -217,8 +259,8 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         return selectedEntry;
     }
 
-    public boolean doNotDownloadCover() {
-        return doNotDownloadCover;
+    public HashMap<String, Boolean> getDoNotUpdateFieldsMap() {
+        return doNotUpdateFieldsMap;
     }
 
     private static class SearchList extends SelectListPane<JSONObject> {

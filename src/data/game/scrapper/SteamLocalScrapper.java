@@ -15,26 +15,22 @@ import java.util.ArrayList;
 /**
  * Created by LM on 08/08/2016.
  */
-public class SteamScrapper {
+public class SteamLocalScrapper {
 
-    private static JSONObject getInfoForGame(int steam_id) throws ConnectTimeoutException {
-        try {
-            HttpResponse<String> response = Unirest.get("http://store.steampowered.com/api/appdetails?appids=" + steam_id)
-                    .header("Accept", "application/json")
-                    .asString();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
-            String json = reader.readLine();
-            reader.close();
-            JSONTokener tokener = new JSONTokener(json);
-            return new JSONObject(tokener).getJSONObject(""+steam_id).getJSONObject("data");
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static String getSteamUserId() throws IOException {
+        File vdfFile = new File(getSteamPath()+"\\config\\config.vdf");
+        String returnValue=null;
+        String fileString = new String(Files.readAllBytes(vdfFile.toPath()));
+
+        String prefix = "\"SteamID\"\t\t\"";
+        String suffix = "\"";
+        if(fileString.contains(prefix)){
+            int indexPrefix = fileString.indexOf(prefix)+prefix.length();
+            String temp = fileString.substring(indexPrefix);
+            temp = temp.substring(0,temp.indexOf(suffix));
+            returnValue = temp;
         }
-        return null;
+        return returnValue;
     }
     public static ArrayList<SteamPreEntry> getSteamAppsInstalled() throws IOException {
         ArrayList<SteamPreEntry> steamApps = new ArrayList<>();
@@ -88,7 +84,6 @@ public class SteamScrapper {
         return null;
     }
     public static void main(String[] args) throws IOException {
-        JSONObject skyrim_results = getInfoForGame(72850);
-        System.out.println(skyrim_results.toString(4));
+        System.out.println(getSteamUserId());
     }
 }
