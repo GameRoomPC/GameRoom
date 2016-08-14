@@ -111,7 +111,7 @@ public class IGDBImageSelector extends GameRoomDialog<ButtonType> {
                         @Override
                         public void run(File outputfile) {
                             Image img = new Image("file:"+ File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), prefTileWidth, prefTileHeight, false, true);
-                            ImageUtils.transitionToImage(img, imageView, 1);
+                            ImageUtils.transitionToImage(img, imageView);
                         }
                     });
             prefWidthProperty().bind(prefRowWidth);

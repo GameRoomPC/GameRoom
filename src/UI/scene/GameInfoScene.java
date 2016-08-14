@@ -160,7 +160,9 @@ public class GameInfoScene extends BaseScene {
                 e.printStackTrace();
             }
         });
-        propertiesPane.add(folderButton, 2, row_count - 1);
+        if(new File(entry.getPath()).exists()) {
+            propertiesPane.add(folderButton, 2, row_count - 1);
+        }
         /***************************END PATH******************************************/
 
 

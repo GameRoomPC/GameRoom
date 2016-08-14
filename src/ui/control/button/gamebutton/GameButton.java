@@ -423,7 +423,7 @@ public abstract class GameButton extends BorderPane {
                             new KeyFrame(Duration.seconds(0),
                                     new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT)),
                             new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                    new KeyValue(playTimeLabel.opacityProperty(), 0, Interpolator.EASE_OUT)
+                                    new KeyValue(playTimeLabel.opacityProperty(), keepTimeLabelVisible? 1 : 0, Interpolator.EASE_OUT)
                             ));
                     fadeOutTimeline.setCycleCount(1);
                     fadeOutTimeline.setAutoReverse(false);
@@ -441,8 +441,7 @@ public abstract class GameButton extends BorderPane {
             playTimeLabel.setText(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_SHORT_HMS));
             if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_MOUSE) {
                 requestFocus();
-                playTimeLabel.setOpacity(0);
-                playTimeLabel.setVisible(true);
+                playTimeLabel.setOpacity(keepTimeLabelVisible? 1 : 0);
                 Timeline fadeInTimeline = new Timeline(
                         new KeyFrame(Duration.seconds(0),
                                 new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_IN)),
@@ -462,7 +461,7 @@ public abstract class GameButton extends BorderPane {
                             new KeyFrame(Duration.seconds(0),
                                     new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT)),
                             new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                    new KeyValue(playTimeLabel.opacityProperty(), 0, Interpolator.EASE_OUT)
+                                    new KeyValue(playTimeLabel.opacityProperty(), keepTimeLabelVisible? 1 : 0, Interpolator.EASE_OUT)
                             ));
                     fadeOutTimeline.setCycleCount(1);
                     fadeOutTimeline.setAutoReverse(false);
@@ -470,7 +469,6 @@ public abstract class GameButton extends BorderPane {
                     fadeOutTimeline.play();
 
                     playTimeLabel.setOpacity(0);
-                    playTimeLabel.setVisible(false);
                 }
             }
         });
