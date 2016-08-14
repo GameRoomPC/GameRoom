@@ -70,6 +70,7 @@ public abstract class GameButton extends BorderPane {
     private Label nameLabel;
     protected Label playTimeLabel;
     protected Label ratingLabel;
+    protected Label releaseDateLabel;
     private boolean keepTimeLabelVisible = false;
 
     private ContextMenu contextMenu;
@@ -97,6 +98,8 @@ public abstract class GameButton extends BorderPane {
         this.entry = entry;
         playTimeLabel.setText(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_SHORT_HMS));
         ratingLabel.setText(Integer.toString(entry.getAggregated_rating()));
+        SimpleDateFormat buttonDateFormat = new SimpleDateFormat("MM.yyyy");
+        releaseDateLabel.setText(buttonDateFormat.format(entry.getReleaseDate()));
         nameLabel.setText(entry.getName());
         double width = coverView.getImage().getWidth();
         double height = coverView.getImage().getHeight();
@@ -223,9 +226,17 @@ public abstract class GameButton extends BorderPane {
         ratingLabel.setEffect(ds);
         ratingLabel.setFocusTraversable(false);
         ratingLabel.setMouseTransparent(true);
+
+        SimpleDateFormat buttonDateFormat = new SimpleDateFormat("MM.yyyy");
+        releaseDateLabel = new Label(buttonDateFormat.format(entry.getReleaseDate()));
+        releaseDateLabel.setEffect(ds);
+        releaseDateLabel.setFocusTraversable(false);
+        releaseDateLabel.setMouseTransparent(true);
+
         playButton.setOpacity(0);
         infoButton.setOpacity(0);
         ratingLabel.setOpacity(0);
+        releaseDateLabel.setOpacity(0);
         playButton.setFocusTraversable(false);
         infoButton.setFocusTraversable(false);
 
@@ -236,6 +247,16 @@ public abstract class GameButton extends BorderPane {
         ;
         ratingLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
                 "    -fx-font-size: 38.0px;\n" +
+                "    -fx-stroke: black;\n" +
+                "    -fx-stroke-width: 1;" +
+                "    -fx-font-weight: 200;");
+        StackPane.setMargin(releaseDateLabel, new Insets(10 * Main.SCREEN_HEIGHT / 1080
+                , 10 * Main.SCREEN_WIDTH / 1920
+                , 2 * Main.SCREEN_HEIGHT / 1080
+                , 10 * Main.SCREEN_WIDTH / 1920));
+        ;
+        releaseDateLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
+                "    -fx-font-size: 28.0px;\n" +
                 "    -fx-stroke: black;\n" +
                 "    -fx-stroke-width: 1;" +
                 "    -fx-font-weight: 200;");
@@ -458,10 +479,12 @@ public abstract class GameButton extends BorderPane {
                 playButton,
                 infoButton,
                 playTimeLabel,
-                ratingLabel);
+                ratingLabel,
+                releaseDateLabel);
         StackPane.setAlignment(infoButton, Pos.BOTTOM_RIGHT);
         StackPane.setAlignment(playTimeLabel, Pos.BOTTOM_CENTER);
         StackPane.setAlignment(ratingLabel, Pos.BOTTOM_LEFT);
+        StackPane.setAlignment(releaseDateLabel, Pos.BOTTOM_LEFT);
 
     }
 
@@ -485,7 +508,6 @@ public abstract class GameButton extends BorderPane {
     }
 
     public void showRating() {
-        ratingLabel.setText(Integer.toString(entry.getAggregated_rating()));
         ratingLabel.setOpacity(1);
     }
 
@@ -518,12 +540,10 @@ public abstract class GameButton extends BorderPane {
     }
 
     public void hideReleaseDate() {
-        ratingLabel.setOpacity(0);
+        releaseDateLabel.setOpacity(0);
     }
 
     public void showReleaseDate() {
-        SimpleDateFormat buttonDateFormat = new SimpleDateFormat("MM.yyyy");
-        ratingLabel.setText(buttonDateFormat.format(entry.getReleaseDate()));
-        ratingLabel.setOpacity(1);
+        releaseDateLabel.setOpacity(1);
     }
 }

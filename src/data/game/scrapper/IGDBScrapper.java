@@ -26,13 +26,13 @@ import java.util.Date;
 public class IGDBScrapper {
 
     public static void main(String[] args) throws ConnectTimeoutException {
-        JSONArray bf4_results = searchGame("The witcher 3");
+        JSONArray bf4_results = searchGame("Evolve Stage 2");
         ArrayList list = new ArrayList();
         list.add(bf4_results.getJSONObject(0).getInt("id"));
         JSONArray bf4_data = getGamesData(list);
-        //System.out.println(bf4_data);
+        System.out.println(bf4_data.toString(4));
 
-        System.out.println(getSerie(bf4_data.getJSONObject(0)));
+        //System.out.println(getSerie(bf4_data.getJSONObject(0)));
 
         //System.out.println(getThemes(bf4_data.getJSONObject(0)));
 
@@ -111,6 +111,7 @@ public class IGDBScrapper {
         return -1;
     }
     public static String[] getScreenshotHash(JSONObject jsob){
+        System.out.println(jsob.toString(4));
         JSONArray screenshotsArray = jsob.getJSONArray("screenshots");
         String[] result  = new String[screenshotsArray.length()];
         for(int i = 0; i< screenshotsArray.length(); i++){

@@ -13,7 +13,7 @@ import java.util.UUID;
 public class AllGameEntries {
     public static final ArrayList<GameEntry> ENTRIES_LIST = new ArrayList<>();
 
-    public ArrayList<UUID> readUUIDS(){
+    public static ArrayList<UUID> readUUIDS(){
         ArrayList<UUID> uuids = new ArrayList<>();
         File entriesFolder = null;
         try {
@@ -21,19 +21,6 @@ public class AllGameEntries {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        /*Scanner scanner = null;
-        try {
-            scanner = new Scanner(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        //now read the file line by line...
-        int lineNum = 0;
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            uuids.add(UUID.fromString(line));
-            lineNum++;
-        }*/
         for(File gameFolder : entriesFolder.listFiles()){
             String name = gameFolder.getName();
             try{
@@ -47,9 +34,32 @@ public class AllGameEntries {
         Main.LOGGER.info("Loaded " + uuids.size()+" uuids.");
         return uuids;
     }
+    private static int indexOf(GameEntry entry){
+        int index = -1;
+        int i = 0;
+        for(GameEntry gameEntry : ENTRIES_LIST){
+            if(entry.getUuid().equals(gameEntry.getUuid())){
+                index = i;
+                break;
+            }
+            i++;
+        }
+        return index;
+    }
+    public static void updateGame(GameEntry entry){
+        ENTRIES_LIST.set(indexOf(entry),entry);
+        Main.LOGGER.info("Updated game : " + entry.getName());
+    }
+    public static void addGame(GameEntry entry){
+        ENTRIES_LIST.add(entry);
+        Main.LOGGER.info("Added game : " + entry.getName());
+    }
+    public static void removeGame(GameEntry entry){
+        ENTRIES_LIST.remove(entry);
+        Main.LOGGER.info("Removed game : " + entry.getName());
+    }
 
-
-    private File entriesFile() throws IOException {
+    private static File entriesFile() throws IOException {
         File file = new File("games");
         if (!file.exists()) {
             file.mkdirs();

@@ -43,6 +43,8 @@ import javafx.stage.*;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.SteamIgnoredSelector;
+import ui.pane.gamestilepane.CoverTilePane;
+import ui.pane.gamestilepane.GamesTilePane;
 import ui.scene.exitaction.ClassicExitAction;
 import ui.scene.exitaction.ExitAction;
 import ui.scene.exitaction.MultiAddExitAction;
@@ -72,7 +74,8 @@ public class MainScene extends BaseScene {
     public final static double MIN_TILE_ZOOM = 0.25;
 
     private BorderPane wrappingPane;
-    private TilePane tilePane = new TilePane();
+    private GamesTilePane tilePane;
+
     private Label statusLabel;
 
     private final static int SORT_MODE_NAME = 0;
@@ -120,10 +123,7 @@ public class MainScene extends BaseScene {
     }
 
     private void initCenter() {
-        tilePane.setHgap(50 * SCREEN_WIDTH / 1920);
-        tilePane.setVgap(70 * SCREEN_HEIGHT / 1080);
-        tilePane.setPrefTileWidth(SCREEN_WIDTH / 4);
-        tilePane.setPrefTileHeight(tilePane.getPrefTileWidth() * COVER_HEIGHT_WIDTH_RATIO);
+        tilePane = new CoverTilePane(this);
 
         statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + "...");
         wrappingPane.setOpacity(0);
@@ -133,7 +133,7 @@ public class MainScene extends BaseScene {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        ArrayList<UUID> uuids = Main.ALL_GAMES_ENTRIES.readUUIDS();
+                        ArrayList<UUID> uuids = AllGameEntries.readUUIDS();
                         int i = 0;
                         for (UUID uuid : uuids) {
                             statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + " " + (i + 1) + "/" + uuids.size() + "...");
@@ -165,7 +165,7 @@ public class MainScene extends BaseScene {
 
         ScrollPane centerPane = new ScrollPane();
         try {
-            remapArrowKeys(centerPane);
+            remapArrowKeys(tilePane);
         } catch (AWTException e) {
             e.printStackTrace();
         }
@@ -177,7 +177,7 @@ public class MainScene extends BaseScene {
         centerPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
         //StackPane.setMargin(tilePane, new Insets(50* SCREEN_HEIGHT /1080, 25* SCREEN_WIDTH /1920, 60* SCREEN_HEIGHT /1080, 25* SCREEN_WIDTH /1920));
-        tilePane.setPadding(new Insets(50 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920));
+        //tilePane.setPadding(new Insets(50 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920));
 
         centerPane.setContent(tilePane);
         //centerPane.getStylesheets().add("res/flatterfx.css");
@@ -237,10 +237,12 @@ public class MainScene extends BaseScene {
         MenuItem byNameItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_name"));
         MenuItem byRatingItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_rating"));
         MenuItem byTimePlayedItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_playtime"));
-        sortMenu.getItems().addAll(byNameItem, byRatingItem, byTimePlayedItem);
-        byNameItem.setOnAction(event -> sortByName());
-        byRatingItem.setOnAction(event -> sortByRating());
-        byTimePlayedItem.setOnAction(event -> sortByTimePlayed());
+        MenuItem byReleaseDateItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_release_date"));
+        sortMenu.getItems().addAll(byNameItem, byRatingItem, byTimePlayedItem,byReleaseDateItem);
+        byNameItem.setOnAction(event -> tilePane.sortByName());
+        byRatingItem.setOnAction(event -> tilePane.sortByRating());
+        byTimePlayedItem.setOnAction(event -> tilePane.sortByTimePlayed());
+        byReleaseDateItem.setOnAction(event -> tilePane.sortByReleaseDate());
 
         sortButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
@@ -346,25 +348,10 @@ public class MainScene extends BaseScene {
         wrappingPane.setTop(topPane);
     }
 
-    private int indexOf(GameEntry entry) {
-        int index = 0;
-        int i = 0;
-        for (Node n : tilePane.getChildren()) {
-
-            if (((TileGameButton) n).getEntry().getUuid().equals(entry.getUuid())) {
-                index = i;
-                break;
-            }
-            i++;
-        }
-        return index;
-    }
-
     private void refreshTrayMenu() {
         Main.START_TRAY_MENU.removeAll();
 
-        for (Node tgb : tilePane.getChildren()) {
-            GameEntry entry = ((TileGameButton) tgb).getEntry();
+        for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
             java.awt.MenuItem gameItem = new java.awt.MenuItem(entry.getName());
             gameItem.addActionListener(new ActionListener() {
                 @Override
@@ -377,173 +364,21 @@ public class MainScene extends BaseScene {
     }
 
     public void removeGame(GameEntry entry) {
-        Main.LOGGER.debug("Removed game : " + entry.getName());
-        tilePane.getChildren().remove(indexOf(entry));
-
-        int indexToRemove = -1;
-        for (int i = 0; i < AllGameEntries.ENTRIES_LIST.size(); i++) {
-            if (entry.getUuid().equals(AllGameEntries.ENTRIES_LIST.get(i).getUuid())) {
-                indexToRemove = i;
-                break;
-            }
-        }
-        AllGameEntries.ENTRIES_LIST.remove(indexToRemove);
-        sort();
+        tilePane.removeGame(entry);
+        AllGameEntries.removeGame(entry);
         refreshTrayMenu();
     }
 
     public void updateGame(GameEntry entry) {
-        Main.LOGGER.debug("Updated game : " + entry.getName());
-        ((GameButton)tilePane.getChildren().get(indexOf(entry))).reloadWith(entry);
-
-        for (int i = 0; i < AllGameEntries.ENTRIES_LIST.size(); i++) {
-            if (entry.getUuid().equals(AllGameEntries.ENTRIES_LIST.get(i))) {
-                AllGameEntries.ENTRIES_LIST.set(i, entry);
-                break;
-            }
-        }
-        sort();
+        tilePane.updateGame(entry);
+        AllGameEntries.updateGame(entry);
         refreshTrayMenu();
     }
 
     public void addGame(GameEntry entry) {
-        Main.LOGGER.debug("Added game : " + entry.getName());
-        tilePane.getChildren().add(new TileGameButton(entry, tilePane, this));
-        sort();
-        AllGameEntries.ENTRIES_LIST.add(entry);
+        tilePane.addGame(entry);
+        AllGameEntries.addGame(entry);
         refreshTrayMenu();
-    }
-    public void sort(){
-        switch (SORT_MODE){
-            case SORT_MODE_NAME :
-                sortByName();;
-                break;
-            case SORT_MODE_PLAY_TIME :
-                sortByTimePlayed();
-                break;
-            case SORT_MODE_RATING:
-                sortByRating();
-                break;
-            default:
-                sortByName();
-                break;
-        }
-    }
-
-    public void sortByName() {
-        SORT_MODE = SORT_MODE_NAME;
-        ObservableList<Node> nodes = FXCollections.observableArrayList(
-                tilePane.getChildren()
-        );
-
-        nodes.sort(new Comparator<Node>() {
-            @Override
-            public int compare(Node o1, Node o2) {
-                String name1 = ((GameButton) o1).getEntry().getName();
-                String name2 = ((GameButton) o2).getEntry().getName();
-                return name1.compareToIgnoreCase(name2);
-            }
-        });
-        replaceChildrensAfterSort(nodes, new Runnable() {
-            @Override
-            public void run() {
-                for(Node button : nodes){
-                    ((GameButton)button).hidePlaytime();
-                    ((GameButton)button).hideRating();
-                }
-            }
-        });
-    }
-
-    public void sortByRating() {
-        SORT_MODE = SORT_MODE_RATING;
-        ObservableList<Node> nodes = FXCollections.observableArrayList(
-                tilePane.getChildren()
-        );
-
-        nodes.sort(new Comparator<Node>() {
-            @Override
-            public int compare(Node o1, Node o2) {
-                int rating1 = ((GameButton) o1).getEntry().getAggregated_rating();
-                int rating2 = ((GameButton) o2).getEntry().getAggregated_rating();
-                int result = rating1 > rating2 ? -1 : 1;
-                if(rating1 == rating2){
-                    String name1 = ((GameButton) o1).getEntry().getName();
-                    String name2 = ((GameButton) o2).getEntry().getName();
-                    result = name1.compareToIgnoreCase(name2);
-                }
-                return result;
-            }
-        });
-        replaceChildrensAfterSort(nodes, new Runnable() {
-            @Override
-            public void run() {
-                for(Node button : nodes){
-                    ((GameButton)button).hidePlaytime();
-                    ((GameButton)button).showRating();
-                }
-            }
-        });
-    }
-    public void sortByTimePlayed() {
-        SORT_MODE = SORT_MODE_PLAY_TIME;
-        ObservableList<Node> nodes = FXCollections.observableArrayList(
-                tilePane.getChildren()
-        );
-
-        nodes.sort(new Comparator<Node>() {
-            @Override
-            public int compare(Node o1, Node o2) {
-                long rating1 = ((GameButton) o1).getEntry().getPlayTimeSeconds();
-                long rating2 = ((GameButton) o2).getEntry().getPlayTimeSeconds();
-                int result = rating1 > rating2 ? -1 : 1;
-                if(rating1 == rating2){
-                    String name1 = ((GameButton) o1).getEntry().getName();
-                    String name2 = ((GameButton) o2).getEntry().getName();
-                    result = name1.compareToIgnoreCase(name2);
-                }
-                return result;
-            }
-        });
-        replaceChildrensAfterSort(nodes, new Runnable() {
-            @Override
-            public void run() {
-                for(Node button : nodes){
-                    ((GameButton)button).showPlaytime();
-                    ((GameButton)button).hideRating();
-                }
-            }
-        });
-    }
-    private void replaceChildrensAfterSort(ObservableList<Node> nodes, Runnable betweenTransition){
-
-        Timeline fadeOutTimeline = new Timeline(
-                new KeyFrame(Duration.seconds(0),
-                        new KeyValue(tilePane.opacityProperty(), tilePane.opacityProperty().getValue(), Interpolator.EASE_IN)),
-                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                        new KeyValue(tilePane.opacityProperty(), 0, Interpolator.EASE_OUT)
-                ));
-        fadeOutTimeline.setCycleCount(1);
-        fadeOutTimeline.setAutoReverse(false);
-        fadeOutTimeline.setOnFinished(new EventHandler<javafx.event.ActionEvent>() {
-            @Override
-            public void handle(javafx.event.ActionEvent event) {
-                tilePane.getChildren().setAll(nodes);
-                if(betweenTransition!=null){
-                    betweenTransition.run();
-                }
-                Timeline fadeInTimeline = new Timeline(
-                        new KeyFrame(Duration.seconds(0),
-                                new KeyValue(tilePane.opacityProperty(), 0, Interpolator.EASE_IN)),
-                        new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                new KeyValue(tilePane.opacityProperty(), 1, Interpolator.EASE_OUT)
-                        ));
-                fadeInTimeline.setCycleCount(1);
-                fadeInTimeline.setAutoReverse(false);
-                fadeInTimeline.play();
-            }
-        });
-        fadeOutTimeline.play();
     }
 
     private ExitAction createFolderAddExitAction(ArrayList<File> files, int fileCount) {
@@ -598,7 +433,7 @@ public class MainScene extends BaseScene {
             ArrayList<GameEntry> steamEntriesToAdd = new ArrayList<GameEntry>();
             for (SteamPreEntry steamEntry : steamEntries) {
                 boolean doNotAdd = false;
-                for (GameEntry entry : ALL_GAMES_ENTRIES.ENTRIES_LIST) {
+                for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
                     doNotAdd = steamEntry.getId() == entry.getSteam_id();
                     if (doNotAdd) {
                         break;
@@ -649,45 +484,7 @@ public class MainScene extends BaseScene {
         }
     }
 
-    private void remapArrowKeys(ScrollPane scrollPane) throws AWTException {
-        List<KeyEvent> mappedEvents = new ArrayList<>();
-        scrollPane.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                if (mappedEvents.remove(event))
-                    return;
 
-                switch (event.getCode()) {
-                    case UP:
-                    case DOWN:
-                    case LEFT:
-                    case RIGHT:
-                    case ENTER:
-                        setInputMode(INPUT_MODE_KEYBOARD);
-
-                        KeyEvent newEvent = remap(event);
-                        mappedEvents.add(newEvent);
-                        event.consume();
-                        Event.fireEvent(event.getTarget(), newEvent);
-                }
-            }
-
-            private KeyEvent remap(KeyEvent event) {
-                KeyEvent newEvent = new KeyEvent(
-                        event.getEventType(),
-                        event.getCharacter(),
-                        event.getText(),
-                        event.getCode(),
-                        !event.isShiftDown(),
-                        event.isControlDown(),
-                        event.isAltDown(),
-                        event.isMetaDown()
-                );
-
-                return newEvent.copyFor(event.getSource(), event.getTarget());
-            }
-        });
-    }
 
     public int getInputMode() {
         return input_mode;
@@ -712,7 +509,46 @@ public class MainScene extends BaseScene {
     public void setChangeBackgroundNextTime(boolean changeBackgroundNextTime) {
         this.changeBackgroundNextTime = changeBackgroundNextTime;
     }
+    private void remapArrowKeys(ScrollPane scrollPane) throws AWTException {
+        java.util.List<KeyEvent> mappedEvents = new ArrayList<>();
+        scrollPane.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                if (mappedEvents.remove(event))
+                    return;
+                if(!event.isShiftDown()) {
+                    switch (event.getCode()) {
+                        case UP:
+                        case DOWN:
+                        case LEFT:
+                        case RIGHT:
+                        case ENTER:
+                            setInputMode(INPUT_MODE_KEYBOARD);
 
+                            KeyEvent newEvent = remap(event);
+                            mappedEvents.add(newEvent);
+                            event.consume();
+                            javafx.event.Event.fireEvent(event.getTarget(), newEvent);
+                    }
+                }
+            }
+
+            private KeyEvent remap(KeyEvent event) {
+                KeyEvent newEvent = new KeyEvent(
+                        event.getEventType(),
+                        event.getCharacter(),
+                        event.getText(),
+                        event.getCode(),
+                        !event.isShiftDown(),
+                        event.isControlDown(),
+                        event.isAltDown(),
+                        event.isMetaDown()
+                );
+
+                return newEvent.copyFor(event.getSource(), event.getTarget());
+            }
+        });
+    }
     public void setImageBackground(Image img) {
         if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
             if (!changeBackgroundNextTime) {

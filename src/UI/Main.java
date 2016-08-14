@@ -47,7 +47,6 @@ public class Main {
     public static ResourceBundle GAME_GENRES_BUNDLE;
     public static ResourceBundle GAME_THEMES_BUNDLE;
 
-    public static AllGameEntries ALL_GAMES_ENTRIES = new AllGameEntries();
     public static GeneralSettings GENERAL_SETTINGS;
 
     public static final Logger LOGGER = LogManager.getLogger(Main.class);

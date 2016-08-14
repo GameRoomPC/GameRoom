@@ -12,6 +12,7 @@ import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.controlsfx.control.CheckComboBox;
+import org.json.JSONException;
 import ui.Main;
 import ui.control.ValidEntryCondition;
 import ui.control.button.ImageButton;
@@ -489,8 +490,17 @@ public class GameEditScene extends BaseScene {
                                              public void handle(ActionEvent event) {
                                                  if (entry.getIgdb_id() != -1) {
                                                      GameEntry gameEntry = entry;
-                                                     gameEntry.setIgdb_imageHashs(IGDBScrapper.getScreenshotHash(IGDBScrapper.getGameData(gameEntry.getIgdb_id())));
-                                                     openImageSelector(gameEntry);
+                                                     try{
+                                                         gameEntry.setIgdb_imageHashs(IGDBScrapper.getScreenshotHash(IGDBScrapper.getGameData(gameEntry.getIgdb_id())));
+                                                         openImageSelector(gameEntry);
+                                                     }catch (JSONException jse){
+                                                         if(jse.toString().contains("[\"screenshots\"] not found")){
+                                                             GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR,Main.RESSOURCE_BUNDLE.getString("no_screenshot_for_this_game"));
+                                                             alert.showAndWait();
+                                                         }else{
+                                                             jse.printStackTrace();
+                                                         }
+                                                     }
                                                  } else {
                                                      SearchDialog dialog = new SearchDialog();
                                                      Optional<ButtonType> result = dialog.showAndWait();
@@ -888,8 +898,13 @@ public class GameEditScene extends BaseScene {
                     entry.setIgdb_id(gameEntry.getIgdb_id());
                 }
             } else {
-                Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
-                ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+                if(chosenImageFiles[1]!=null){
+                    Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
+                    ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+                }else{
+                    ImageUtils.transitionToImage(null, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+                }
+
             }
         });
     }

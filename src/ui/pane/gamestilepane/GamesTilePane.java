@@ -10,6 +10,7 @@ import javafx.collections.ObservableList;
 import javafx.event.*;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
@@ -45,11 +46,6 @@ public abstract class GamesTilePane extends ScrollPane{
         super();
         this.tilePane = new TilePane();
         this.parentScene = parentScene;
-        try {
-            remapArrowKeys(this);
-        } catch (AWTException e) {
-            e.printStackTrace();
-        }
         setFitToWidth(true);
         setFitToHeight(true);
         //centerPane.setPrefViewportHeight(tilePane.getPrefHeight());
@@ -80,13 +76,11 @@ public abstract class GamesTilePane extends ScrollPane{
             removeTile(button);
         }
         sort();
-        Main.LOGGER.debug("Removed game : " + entry.getName());
     }
 
     public final void addGame(GameEntry newEntry){
         addTile(createGameButton(newEntry));
         sort();
-        Main.LOGGER.debug("Added game : " + newEntry.getName());
     }
 
     public final void updateGame(GameEntry newEntry){
@@ -94,7 +88,6 @@ public abstract class GamesTilePane extends ScrollPane{
             tilesList.get(index).reloadWith(newEntry);
         }
         sort();
-        Main.LOGGER.debug("Updated game : " + newEntry.getName());
     }
 
 
@@ -196,7 +189,7 @@ public abstract class GamesTilePane extends ScrollPane{
             public int compare(Node o1, Node o2) {
                 Date date1 = ((GameButton) o1).getEntry().getReleaseDate();
                 Date date2 = ((GameButton) o2).getEntry().getReleaseDate();
-                int result = date1.compareTo(date2);
+                int result = date2.compareTo(date1);
                 if(result == 0){
                     String name1 = ((GameButton) o1).getEntry().getName();
                     String name2 = ((GameButton) o2).getEntry().getName();
@@ -244,53 +237,13 @@ public abstract class GamesTilePane extends ScrollPane{
         tilePane.setPrefTileHeight(value);
     }
 
-    private void remapArrowKeys(ScrollPane scrollPane) throws AWTException {
-        java.util.List<KeyEvent> mappedEvents = new ArrayList<>();
-        scrollPane.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                if (mappedEvents.remove(event))
-                    return;
+    public abstract void sortByReleaseDate();
 
-                switch (event.getCode()) {
-                    case UP:
-                    case DOWN:
-                    case LEFT:
-                    case RIGHT:
-                    case ENTER:
-                        parentScene.setInputMode(INPUT_MODE_KEYBOARD);
+    public abstract void sortByRating();
 
-                        KeyEvent newEvent = remap(event);
-                        mappedEvents.add(newEvent);
-                        event.consume();
-                        javafx.event.Event.fireEvent(event.getTarget(), newEvent);
-                }
-            }
+    public abstract void sortByTimePlayed();
 
-            private KeyEvent remap(KeyEvent event) {
-                KeyEvent newEvent = new KeyEvent(
-                        event.getEventType(),
-                        event.getCharacter(),
-                        event.getText(),
-                        event.getCode(),
-                        !event.isShiftDown(),
-                        event.isControlDown(),
-                        event.isAltDown(),
-                        event.isMetaDown()
-                );
-
-                return newEvent.copyFor(event.getSource(), event.getTarget());
-            }
-        });
-    }
-
-    protected abstract void sortByReleaseDate();
-
-    protected abstract void sortByRating();
-
-    protected abstract void sortByTimePlayed();
-
-    protected abstract void sortByName();
+    public abstract void sortByName();
 
 
 }

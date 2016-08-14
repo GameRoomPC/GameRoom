@@ -179,6 +179,10 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         setOnHiding(event -> {
             if(searchListPane.getSelectedValue()!=null) {
                 selectedEntry = IGDBScrapper.getEntry(searchListPane.getSelectedValue());
+                String coverHash = IGDBScrapper.getEntry(searchListPane.getSelectedValue()).getIgdb_imageHash(0);
+                doNotDownloadCover = doNotDownloadCover && coverHash!=null && !coverHash.equals("");
+            }else {
+                doNotDownloadCover = true;
             }
         });
     }

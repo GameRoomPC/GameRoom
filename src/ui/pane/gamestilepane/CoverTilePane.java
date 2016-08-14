@@ -48,7 +48,7 @@ public class CoverTilePane extends GamesTilePane{
     }
 
     @Override
-    protected void sortByReleaseDate() {
+    public void sortByReleaseDate() {
         ObservableList<Node> nodes = FXCollections.observableArrayList(
                 tilePane.getChildren()
         );
@@ -66,7 +66,7 @@ public class CoverTilePane extends GamesTilePane{
     }
 
     @Override
-    protected void sortByRating() {
+    public void sortByRating() {
         ObservableList<Node> nodes = FXCollections.observableArrayList(
                 tilePane.getChildren()
         );
@@ -84,7 +84,7 @@ public class CoverTilePane extends GamesTilePane{
     }
 
     @Override
-    protected void sortByTimePlayed() {
+    public void sortByTimePlayed() {
         ObservableList<Node> nodes = FXCollections.observableArrayList(
                 tilePane.getChildren()
         );
@@ -102,7 +102,7 @@ public class CoverTilePane extends GamesTilePane{
     }
 
     @Override
-    protected void sortByName() {
+    public void sortByName() {
         ObservableList<Node> nodes = FXCollections.observableArrayList(
                 tilePane.getChildren()
         );
@@ -112,6 +112,7 @@ public class CoverTilePane extends GamesTilePane{
             public void run() {
                 for(Node button : nodes){
                     ((GameButton)button).hidePlaytime();
+                    ((GameButton)button).hideReleaseDate();
                     ((GameButton)button).hideRating();
                 }
             }
