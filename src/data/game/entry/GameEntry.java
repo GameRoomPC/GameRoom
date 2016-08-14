@@ -509,7 +509,7 @@ public class GameEntry {
     public void setIgdb_imageHash(int index, String hash){
         if(index >= igdb_imageHash.length){
             String[] copy = igdb_imageHash;
-            igdb_imageHash = new String[index+3]; //+3 to be large enough
+            igdb_imageHash = new String[index+1];
             int i=0;
             for(String s : copy){
                 igdb_imageHash[i] = s;
