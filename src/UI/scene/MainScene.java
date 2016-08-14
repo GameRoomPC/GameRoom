@@ -145,7 +145,8 @@ public class MainScene extends BaseScene {
             public void handle(WorkerStateEvent event) {
                 //dialog.getDialogStage().close();
                 statusLabel.setText("");
-                fadeTransitionTo(MainScene.this, getParentStage());
+                setChangeBackgroundNextTime(false);
+                fadeTransitionTo(MainScene.this, getParentStage(),false);
                 Platform.runLater(() -> {
                     checkSteamGamesInstalled();
                 });

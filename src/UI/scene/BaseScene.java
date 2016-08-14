@@ -35,8 +35,8 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 public abstract class BaseScene extends Scene {
     private static Image backgroundMaskImage;
     public final static double FADE_IN_OUT_TIME = 0.1;
-    public final static double BACKGROUND_IMAGE_MAX_OPACITY = 0.6;
-    public final static double BACKGROUND_IMAGE_BLUR = 5;
+    public final static double BACKGROUND_IMAGE_MAX_OPACITY = 0.65;
+    public final static double BACKGROUND_IMAGE_BLUR = 7;
 
     private Runnable onSceneFadedOutAction;
 
@@ -97,7 +97,7 @@ public abstract class BaseScene extends Scene {
                         new KeyValue(backgroundView.opacityProperty(), backgroundView.opacityProperty().getValue(), Interpolator.LINEAR)),
                 new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
                         new KeyValue(getWrappingPane().opacityProperty(), 0, Interpolator.LINEAR),
-                        new KeyValue(backgroundView.opacityProperty(), backgroundViewToo ? 0 : backgroundView.opacityProperty().getValue(), Interpolator.LINEAR)
+                        new KeyValue(backgroundView.opacityProperty(), backgroundViewToo ? 0 : BACKGROUND_IMAGE_MAX_OPACITY, Interpolator.LINEAR)
                 ));
         fadeOutTimeline.setCycleCount(1);
         fadeOutTimeline.setAutoReverse(false);
@@ -115,7 +115,7 @@ public abstract class BaseScene extends Scene {
                                 new KeyValue(scene2.getBackgroundView().opacityProperty(), backgroundViewToo ? 0 : scene2.getBackgroundView().opacityProperty().getValue(), Interpolator.LINEAR)),
                         new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
                                 new KeyValue(scene2.getWrappingPane().opacityProperty(), 1, Interpolator.LINEAR),
-                                new KeyValue(scene2.getBackgroundView().opacityProperty(), backgroundViewToo ? 1 : backgroundView.opacityProperty().getValue(), Interpolator.LINEAR)
+                                new KeyValue(scene2.getBackgroundView().opacityProperty(), backgroundViewToo ? BACKGROUND_IMAGE_MAX_OPACITY : BACKGROUND_IMAGE_MAX_OPACITY, Interpolator.LINEAR)
                         ));
                 fadeInTimeline.setCycleCount(1);
                 fadeInTimeline.setAutoReverse(false);
