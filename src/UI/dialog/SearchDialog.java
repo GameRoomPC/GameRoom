@@ -5,6 +5,10 @@ import data.game.OnDLDoneHandler;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.EventType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.input.KeyEvent;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
@@ -29,6 +33,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -59,10 +64,18 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         statusLabel = new Label(Main.RESSOURCE_BUNDLE.getString("search_a_game"));
         statusLabel.setWrapText(true);
         statusLabel.setMouseTransparent(true);
+        statusLabel.setFocusTraversable(false);
 
         searchField = new TextField();
         searchField.setPromptText(Main.RESSOURCE_BUNDLE.getString("example_games"));
         searchField.setPrefColumnCount(20);
+        showingProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if(newValue)
+                searchField.requestFocus();
+            }
+        });
         Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
         ImageButton searchButton = new ImageButton(searchImage);
 
@@ -150,6 +163,11 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         });
         searchListPane.setPadding(new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
+        try {
+            remapEnterKey(getDialogPane(),searchButton,searchField);
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
         //resultsPane.setPrefWidth(ui.Main.SCREEN_WIDTH);
 
         StackPane centerPane = new StackPane();
@@ -158,6 +176,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         centerPane.getChildren().addAll(searchListPane, statusLabel);
 
         CheckBox doNotDownloadCoverCheckBox = new CheckBox(Main.RESSOURCE_BUNDLE.getString("do_not_download_cover"));
+        doNotDownloadCoverCheckBox.setFocusTraversable(false);
         doNotDownloadCoverCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -172,10 +191,17 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         BorderPane.setMargin(topBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
         BorderPane.setMargin(doNotDownloadCoverCheckBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 0 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
-        ButtonType cancelButton = new ButtonType(ui.Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
-        ButtonType nextButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("next"), ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButtonType = new ButtonType(ui.Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType nextButtonType = new ButtonType(Main.RESSOURCE_BUNDLE.getString("next"), ButtonBar.ButtonData.OK_DONE);
 
-        getDialogPane().getButtonTypes().addAll(cancelButton,nextButton);
+        getDialogPane().getButtonTypes().addAll(cancelButtonType,nextButtonType);
+        Button cancelButton = (Button) getDialogPane().lookupButton( cancelButtonType );
+        Button nextButton = (Button) getDialogPane().lookupButton( nextButtonType );
+        cancelButton.setDefaultButton(false);
+        cancelButton.setFocusTraversable(false);
+        nextButton.setDefaultButton(false);
+        nextButton.setFocusTraversable(false);
+
         setOnHiding(event -> {
             if(searchListPane.getSelectedValue()!=null) {
                 selectedEntry = IGDBScrapper.getEntry(searchListPane.getSelectedValue());
@@ -228,7 +254,22 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         }
     }
 
-
+    private void remapEnterKey(Pane pane, Button searchButton, TextField searchField) throws AWTException {
+        pane.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                if(!event.isShiftDown()) {
+                    switch (event.getCode()) {
+                        case ENTER:
+                            if(searchField.isFocused() && !searchField.getText().equals("")){
+                                searchButton.fireEvent(new ActionEvent());
+                            }
+                            break;
+                    }
+                }
+            }
+        });
+    }
 
     private static class SearchItem<JSONObject> extends SelectListPane.ListItem {
         private final static int COVER_WIDTH = 70;

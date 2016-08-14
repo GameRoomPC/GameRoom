@@ -293,7 +293,7 @@ public class IGDBScrapper {
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener);
         } catch (UnirestException e) {
-            e.printStackTrace();
+            Main.LOGGER.error("Not connected to internet");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (IOException e) {
