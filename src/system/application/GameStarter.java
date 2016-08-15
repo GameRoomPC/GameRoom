@@ -7,12 +7,14 @@ import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import system.application.settings.PredefinedSetting;
 import system.os.PowerMode;
+import system.os.Terminal;
 import ui.Main;
 
 import java.awt.*;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.MAIN_SCENE;
@@ -35,7 +37,17 @@ public class GameStarter {
         if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isAlreadyStartedInGameRoom()){
             GENERAL_SETTINGS.getPowerMode(PredefinedSetting.GAMING_POWER_MODE).activate();
         }
+        String logFolder = "Games"+File.separator+entry.getUuid()+File.separator;
+        File preLog = new File(logFolder+"pre_"+entry.getProcessName()+".log");
+
+        Terminal terminal = new Terminal();
+        String cmdBefore = entry.getCmd(GameEntry.CMD_BEFORE_START);
+
         if(entry.getPath().startsWith(STEAM_PREFIX)){
+            if(cmdBefore!=null){
+                String[] cmds = cmdBefore.split("\n");
+                terminal.execute(cmds,preLog);
+            }
             try {
                 Desktop.getDesktop().browse(new URI(entry.getPath()));
             } catch (IOException e) {
@@ -44,12 +56,18 @@ public class GameStarter {
                 e.printStackTrace();
             }
         }else{
-            File gameLog = new File("log"+File.separator+entry.getProcessName()+".log");
-            ProcessBuilder builder = new ProcessBuilder('"'+entry.getPath()+'"').inheritIO();
-            builder.directory(new File(new File(entry.getPath()).getParent()));
-            builder.redirectError(gameLog);
+            if(cmdBefore!=null){
+                String[] cmds = cmdBefore.split("\n");
+                terminal.execute(cmds,preLog,new File(new File(entry.getPath()).getParent()));
+            }
+
+            File gameLog = new File(logFolder+entry.getProcessName()+".log");
+            ProcessBuilder gameProcessBuilder = new ProcessBuilder('"'+entry.getPath()+'"').inheritIO();
+            gameProcessBuilder.redirectOutput(gameLog);
+            gameProcessBuilder.redirectError(gameLog);
+            gameProcessBuilder.directory(new File(new File(entry.getPath()).getParent()));
             try {
-                Process process = builder.start();
+                Process gameProcess = gameProcessBuilder.start();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -84,6 +102,11 @@ public class GameStarter {
             public void changed(ObservableValue<? extends Long> observable, Long oldValue, Long newValue) {
                 if(!newValue.equals(new Long(-1))){
                     Main.LOGGER.debug("Adding "+Math.round(newValue/1000.0)+"s to game "+entry.getName());
+                    String cmdAfter = entry.getCmd(GameEntry.CMD_AFTER_END);
+                    if(cmdAfter!=null){
+                        File postLog = new File(logFolder+"post_"+entry.getProcessName()+".log");
+                        terminal.execute(cmdAfter.split("\n"),postLog,new File(new File(entry.getPath()).getParent()));
+                    }
                     entry.setAlreadyStartedInGameRoom(false);
                     entry.setSavedLocaly(true);
                     entry.addPlayTimeSeconds(Math.round(newValue/1000.0));
