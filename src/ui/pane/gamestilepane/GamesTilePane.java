@@ -41,6 +41,7 @@ public abstract class GamesTilePane extends BorderPane{
 
     protected MainScene parentScene;
     private boolean forcedHidden = false;
+    private boolean searching = false;
     public GamesTilePane(MainScene parentScene){
         super();
         this.tilePane = new TilePane();
@@ -349,5 +350,34 @@ public abstract class GamesTilePane extends BorderPane{
         }else{
             show(false);
         }
+    }
+
+    public int searchText(String text){
+        searching=true;
+        int num = 0;
+        for(GameButton button : tilesList){
+            boolean show = button.getEntry().getName().toLowerCase().contains(text.toLowerCase());
+            setGameButtonVisible(button,show);
+            if(show){
+                num++;
+            }
+        }
+        return num;
+    }
+
+    public void cancelSearchText(){
+        for(GameButton button : tilesList){
+            setGameButtonVisible(button,true);
+        }
+        searching=false;
+    }
+    protected static void setGameButtonVisible(GameButton button, boolean visible){
+        button.setManaged(visible);
+        button.setVisible(visible);
+        button.setMouseTransparent(!visible);
+    }
+
+    public boolean isSearching() {
+        return searching;
     }
 }

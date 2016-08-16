@@ -1,11 +1,16 @@
 package ui.dialog;
 
 import data.game.*;
+import data.game.entry.GameEntry;
+import data.game.scrapper.SteamOnlineScrapper;
 import data.game.scrapper.SteamPreEntry;
 import data.game.scrapper.SteamLocalScrapper;
 import data.http.SimpleImageInfo;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ButtonBar;
@@ -33,11 +38,11 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
     public final static int MODE_REMOVE_FROM_LIST = 0;
     public final static int MODE_ADD_TO_LIST = 1;
     private SteamPreEntry[] selectedList;
+    private Label statusLabel;
 
-
-    public SteamIgnoredSelector() throws IOException {
-        ArrayList<SteamPreEntry> steamEntries = SteamLocalScrapper.getSteamAppsInstalled();
-
+    public SteamIgnoredSelector(ArrayList<SteamPreEntry> ownedSteamEntries) throws IOException {
+        statusLabel = new Label(Main.RESSOURCE_BUNDLE.getString("loading")+"...");
+        rootStackPane.getChildren().add(statusLabel);
         Label titleLabel = new Label(Main.RESSOURCE_BUNDLE.getString("select_steam_games_ignore"));
         titleLabel.setWrapText(true);
         titleLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("select_steam_games_ignore")));
@@ -56,7 +61,30 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
         mainPane.setPrefHeight(Main.SCREEN_HEIGHT * 2 / 3 * Main.SCREEN_HEIGHT / 1080);
 
         SteamAppsList list = new SteamAppsList(Main.SCREEN_HEIGHT / 3.0, mainPane.prefWidthProperty());
-        list.addItems(steamEntries);
+
+        if(ownedSteamEntries!=null){
+            list.addItems(ownedSteamEntries);
+            statusLabel.setText(null);
+        }else{
+            Task<ArrayList<SteamPreEntry>> loadOwnedGames = new Task() {
+                @Override
+                protected Object call() throws Exception {
+                    return SteamOnlineScrapper.getOwnedSteamGamesPreEntry();
+                }
+            };
+            loadOwnedGames.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                @Override
+                public void handle(WorkerStateEvent event) {
+                    Platform.runLater(() -> {
+                        statusLabel.setText(null);
+                        list.addItems(loadOwnedGames.getValue());
+                    });
+                }
+            });
+            Thread th = new Thread(loadOwnedGames);
+            th.setDaemon(true);
+            th.start();
+        }
         mainPane.setCenter(list);
 
         getDialogPane().getButtonTypes().addAll(
@@ -70,6 +98,9 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
             }
             selectedList = temp_entries;
         });
+    }
+    public SteamIgnoredSelector() throws IOException {
+        this(null);
     }
 
     public SteamPreEntry[] getSelectedEntries() {

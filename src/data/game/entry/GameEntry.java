@@ -50,6 +50,7 @@ public class GameEntry {
     private String[] cmd = new String[4];
     private Date addedDate;
     private Date lastPlayedDate;
+    private boolean notInstalled = false;
 
     private File[] imagesPaths = new File[IMAGES_NUMBER];
     private boolean[] imageNeedsRefresh = new boolean[IMAGES_NUMBER];
@@ -124,6 +125,7 @@ public class GameEntry {
                 }
                 prop.setProperty("addedDate", addedDate != null ? DATE_STORE_FORMAT.format(addedDate) : "");
                 prop.setProperty("lastPlayedDate", lastPlayedDate != null ? DATE_STORE_FORMAT.format(lastPlayedDate) : "");
+                prop.setProperty("notInstalled", Boolean.toString(notInstalled));
 
                 // save properties to project root folder
                 prop.store(output, null);
@@ -214,6 +216,9 @@ public class GameEntry {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
+        }
+        if (prop.getProperty("notInstalled") != null) {
+            notInstalled = Boolean.parseBoolean(prop.getProperty("notInstalled"));
         }
 
         input.close();
@@ -567,6 +572,15 @@ public class GameEntry {
         saveEntry();
     }
 
+    public boolean isNotInstalled() {
+        return notInstalled;
+    }
+
+    public void setNotInstalled(boolean notInstalled) {
+        this.notInstalled = notInstalled;
+        saveEntry();
+    }
+
     public Date getLastPlayedDate() {
         return lastPlayedDate;
     }
@@ -619,6 +633,7 @@ public class GameEntry {
     public String toString() {
         return "GameEntry:name=" + name +
                 ",release_date=" + (releaseDate != null ? DATE_DISPLAY_FORMAT.format(releaseDate) : null) +
-                ",steam_id=" + steam_id;
+                ",steam_id=" + steam_id+
+                "playTime="+getPlayTimeFormatted(TIME_FORMAT_FULL_DOUBLEDOTS);
     }
 }

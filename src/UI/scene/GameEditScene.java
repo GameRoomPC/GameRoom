@@ -979,7 +979,7 @@ public class GameEditScene extends BaseScene {
                     } else {
                         // ... user chose CANCEL or closed the dialog
                     }
-                    onAction.run();
+                    //onAction.run();
                 }
             });
             buttonsBox.getChildren().add(cancelButton);

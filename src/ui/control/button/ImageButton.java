@@ -111,22 +111,6 @@ public class ImageButton extends Button {
         view.setFitHeight(fitHeight);
     }
 
-    public double getX() {
-        return view.getX();
-    }
-
-    public double getY() {
-        return view.getY();
-    }
-
-    public double getFitWidth() {
-        return view.getFitWidth();
-    }
-
-    public double getFitHeight() {
-        return view.getFitHeight();
-    }
-
     public void addMouseEnteredHandler(MouseEnteredHandler meh){
         mouseEnteredHandlers.add(meh);
     }

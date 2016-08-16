@@ -44,26 +44,6 @@ public class InfoGameButton extends GameButton {
     }
 
     @Override
-    protected int getInfoButtonHeight() {
-        return 1;
-    }
-
-    @Override
-    protected int getInfoButtonWidth() {
-        return 1;
-    }
-
-    @Override
-    protected int getPlayButtonHeight() {
-        return (int) (getCoverHeight() * RATIO_PLAYBUTTON_COVER);
-    }
-
-    @Override
-    protected int getPlayButtonWidth() {
-        return (int) (getCoverWidth() * RATIO_PLAYBUTTON_COVER);
-    }
-
-    @Override
     protected void initCoverView() {
         coverView = new ImageView();
         coverView.setFitWidth(getCoverWidth());

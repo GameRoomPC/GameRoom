@@ -4,7 +4,7 @@ import data.game.ImageUtils;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
-import javafx.scene.effect.BlurType;
+import javafx.scene.effect.*;
 import javafx.scene.paint.Color;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
@@ -27,9 +27,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.effect.ColorAdjust;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -66,7 +63,7 @@ public abstract class GameButton extends BorderPane {
 
     private BaseScene parentScene;
 
-    private StackPane coverPane;
+    protected StackPane coverPane;
     private Label nameLabel;
     protected Label playTimeLabel;
     protected Label ratingLabel;
@@ -123,7 +120,6 @@ public abstract class GameButton extends BorderPane {
         Thread imageThread = new Thread(loadImageTask);
         imageThread.setDaemon(true);
         imageThread.start();
-
     }
 
     protected void initAll() {
@@ -202,10 +198,10 @@ public abstract class GameButton extends BorderPane {
         coverPane = new StackPane();
 
         if (DEFAULT_PLAY_IMAGE == null) {
-            DEFAULT_PLAY_IMAGE = new Image("res/ui/playButton.png", getPlayButtonWidth(), getPlayButtonHeight(), true, true);
+            DEFAULT_PLAY_IMAGE = new Image("res/ui/playButton.png", SCREEN_WIDTH/10, SCREEN_WIDTH/10, true, true);
         }
         if (DEFAULT_INFO_IMAGE == null) {
-            DEFAULT_INFO_IMAGE = new Image("res/ui/infoButton.png", getInfoButtonWidth(), getInfoButtonHeight(), true, true);
+            DEFAULT_INFO_IMAGE = new Image("res/ui/infoButton.png", SCREEN_WIDTH/20, SCREEN_WIDTH/20, true, true);
         }
         DropShadow ds = new DropShadow();
         ds.setOffsetY(2.0f);
@@ -308,6 +304,7 @@ public abstract class GameButton extends BorderPane {
         GaussianBlur blur = new GaussianBlur(0.0);
         blur.setInput(coverColorAdjust);
         coverView.setEffect(blur);
+
         setFocusTraversable(true);
         focusedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -490,14 +487,6 @@ public abstract class GameButton extends BorderPane {
     protected abstract int getCoverHeight();
 
     protected abstract int getCoverWidth();
-
-    protected abstract int getInfoButtonHeight();
-
-    protected abstract int getInfoButtonWidth();
-
-    protected abstract int getPlayButtonHeight();
-
-    protected abstract int getPlayButtonWidth();
 
     protected abstract void initCoverView();
 

@@ -16,6 +16,7 @@ import javafx.geometry.Bounds;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
@@ -73,6 +74,9 @@ public class MainScene extends BaseScene {
     private GamesTilePane tilePane;
     private RowCoverTilePane lastPlayedTilePane;
     private RowCoverTilePane recentlyAddedTilePane;
+
+    private TextField searchField;
+    private boolean showTilesPaneAgainAfterCancelSearch = false;
 
     private Label statusLabel;
 
@@ -248,9 +252,10 @@ public class MainScene extends BaseScene {
         sortMenu.getItems().addAll(byNameItem, byRatingItem, byTimePlayedItem, byReleaseDateItem);
         byNameItem.setOnAction(event -> {
             tilePane.sortByName();
-            lastPlayedTilePane.show();
-            recentlyAddedTilePane.show();
-
+            if(!tilePane.isSearching()) {
+                lastPlayedTilePane.show();
+                recentlyAddedTilePane.show();
+            }
             scrollPane.setVvalue(scrollPane.getVmin());
         });
         byRatingItem.setOnAction(event -> {
@@ -361,9 +366,31 @@ public class MainScene extends BaseScene {
         hbox.getChildren().addAll(addButton, sortButton, settingsButton, sizeSlider);
         hbox.setAlignment(Pos.CENTER_LEFT);
 
+        searchField = new TextField();
+        Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
+        ImageButton searchButton = new ImageButton(searchImage);
+        searchButton.setFocusTraversable(false);
+
+        HBox searchBox = new HBox();
+        searchBox.setAlignment(Pos.CENTER_RIGHT);
+        searchBox.getChildren().addAll(searchField,searchButton);
+        searchField.setFocusTraversable(false);
+        searchField.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if(newValue!= null && !newValue.equals("")){
+                    searchGame(newValue);
+                }else if(newValue!= null && newValue.equals("")){
+                    cancelSearch();
+                }
+            }
+        });
+        hbox.setPickOnBounds(false);
+        //hbox.getChildren().add(searchBox);
+
         //HBox.setMargin(sizeSlider, new Insets(15, 12, 15, 12));
         StackPane topPane = new StackPane();
-        topPane.setFocusTraversable(false);
+        //topPane.setFocusTraversable(false);
         ImageView titleView = new ImageView(new Image("res/ui/title-medium.png", 500 * SCREEN_WIDTH / 1920, 94 * SCREEN_HEIGHT / 1080, true, true));
         titleView.setMouseTransparent(true);
         titleView.setFocusTraversable(false);
@@ -373,6 +400,7 @@ public class MainScene extends BaseScene {
                 , 12 * Main.SCREEN_WIDTH / 1920
                 , 15 * Main.SCREEN_HEIGHT / 1080
                 , 15 * Main.SCREEN_WIDTH / 1920));*/
+        topPane.getChildren().add(searchBox);
         topPane.getChildren().add(hbox);
         StackPane.setAlignment(hbox, Pos.CENTER_LEFT);
 
@@ -392,6 +420,23 @@ public class MainScene extends BaseScene {
             });
             Main.START_TRAY_MENU.add(gameItem);
         }
+    }
+    public void cancelSearch(){
+        if(showTilesPaneAgainAfterCancelSearch){
+            lastPlayedTilePane.show();
+            recentlyAddedTilePane.show();
+        }
+        tilePane.setTitle(Main.RESSOURCE_BUNDLE.getString("all_games"));
+        tilePane.cancelSearchText();
+    }
+    public void searchGame(String text){
+        if(!tilePane.isSearching()) {
+            showTilesPaneAgainAfterCancelSearch = lastPlayedTilePane.isManaged();
+        }
+        lastPlayedTilePane.hide();
+        recentlyAddedTilePane.hide();
+        int found = tilePane.searchText(text);
+        tilePane.setTitle(found+" "+Main.RESSOURCE_BUNDLE.getString("results_found_for")+" \""+text+"\"");
     }
 
     public void removeGame(GameEntry entry) {
@@ -465,60 +510,81 @@ public class MainScene extends BaseScene {
     }
 
     private void checkSteamGamesInstalled() {
-        try {
-            ArrayList<SteamPreEntry> steamEntries = SteamLocalScrapper.getSteamAppsInstalled();
-            ArrayList<GameEntry> steamEntriesToAdd = new ArrayList<GameEntry>();
-            for (SteamPreEntry steamEntry : steamEntries) {
-                boolean doNotAdd = false;
-                for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
-                    doNotAdd = steamEntry.getId() == entry.getSteam_id();
-                    if (doNotAdd) {
-                        break;
-                    }
-                }
-                if (!doNotAdd) {
-                    SteamPreEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
-                    for (SteamPreEntry ignoredEntry : ignoredSteamApps) {
-                        doNotAdd = steamEntry.getId() == ignoredEntry.getId();
+        ArrayList<GameEntry> ownedSteamApps = new ArrayList<>();
+        Task<ArrayList<GameEntry>> checkAppsTask = new Task() {
+            @Override
+            protected Object call() throws Exception {
+                ArrayList<GameEntry> steamEntriesToAdd = new ArrayList<GameEntry>();
+                ownedSteamApps.addAll(SteamOnlineScrapper.getOwnedSteamGames());
+                ArrayList<SteamPreEntry> installedSteamApps = SteamLocalScrapper.getSteamAppsInstalled();
+
+                for (GameEntry steamEntry : ownedSteamApps) {
+                    boolean doNotAdd = false;
+                    for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
+                        doNotAdd = steamEntry.getSteam_id() == entry.getSteam_id();
                         if (doNotAdd) {
                             break;
                         }
                     }
-                }
-                if (!doNotAdd) {
-                    Main.LOGGER.debug("To add : " + steamEntry.getName());
-                    GameEntry toAdd = SteamOnlineScrapper.getEntryForSteamId(steamEntry.getId());
-                    toAdd.setSteam_id(steamEntry.getId());
-                    steamEntriesToAdd.add(toAdd);
-                }
-            }
-            Main.LOGGER.info(steamEntriesToAdd.size() + " steam games to add");
-            if (steamEntriesToAdd.size() != 0) {
-                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION, steamEntriesToAdd.size() + " " + Main.RESSOURCE_BUNDLE.getString("steam_games_to_add_detected"));
-                alert.getButtonTypes().add(new ButtonType(RESSOURCE_BUNDLE.getString("ignore") + "...", ButtonBar.ButtonData.LEFT));
-                Optional<ButtonType> result = alert.showAndWait();
-                result.ifPresent(buttonType -> {
-                    if (buttonType.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                        createSteamEntryAddExitAction(steamEntriesToAdd, 0).run();
-                    } else if (buttonType.getButtonData().equals(ButtonBar.ButtonData.LEFT)) {
-                        try {
-                            SteamIgnoredSelector selector = new SteamIgnoredSelector();
-                            Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
-                            ignoredOptionnal.ifPresent(pairs -> {
-                                if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS, selector.getSelectedEntries());
-                                }
-                            });
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                    if (!doNotAdd) {
+                        SteamPreEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
+                        for (SteamPreEntry ignoredEntry : ignoredSteamApps) {
+                            doNotAdd = steamEntry.getSteam_id() == ignoredEntry.getId();
+                            if (doNotAdd) {
+                                break;
+                            }
                         }
                     }
-                });
-            }
+                    if (!doNotAdd) {
+                        Main.LOGGER.debug("To add : " + steamEntry.getName());
+                        steamEntriesToAdd.add(steamEntry);
+                    }
+                }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+                return steamEntriesToAdd;
+            }
+        };
+        checkAppsTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent event) {
+                ArrayList<GameEntry> steamEntriesToAdd = checkAppsTask.getValue();
+
+                Main.LOGGER.info(steamEntriesToAdd.size() + " steam games to add");
+                if (steamEntriesToAdd.size() != 0) {
+                    Platform.runLater(() -> {
+                        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION, steamEntriesToAdd.size() + " " + Main.RESSOURCE_BUNDLE.getString("steam_games_to_add_detected"));
+                        alert.getButtonTypes().add(new ButtonType(RESSOURCE_BUNDLE.getString("ignore") + "...", ButtonBar.ButtonData.LEFT));
+                        Optional<ButtonType> result = alert.showAndWait();
+                        result.ifPresent(buttonType -> {
+                            if (buttonType.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                                createSteamEntryAddExitAction(steamEntriesToAdd, 0).run();
+                            } else if (buttonType.getButtonData().equals(ButtonBar.ButtonData.LEFT)) {
+                                try {
+                                    ArrayList<SteamPreEntry> preEntries = new ArrayList<SteamPreEntry>();
+                                    for(GameEntry entry : ownedSteamApps){
+                                        preEntries.add(new SteamPreEntry(entry.getName(),entry.getSteam_id()));
+                                    }
+                                    SteamIgnoredSelector selector = new SteamIgnoredSelector(preEntries);
+                                    Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+                                    ignoredOptionnal.ifPresent(pairs -> {
+                                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS, selector.getSelectedEntries());
+                                        }
+                                    });
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                    });
+                }
+
+            }
+        });
+        Thread th = new Thread(checkAppsTask);
+        th.setDaemon(true);
+        th.start();
+
     }
 
 
