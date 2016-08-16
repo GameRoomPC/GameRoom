@@ -40,6 +40,7 @@ import ui.dialog.GameRoomAlert;
 import ui.dialog.SteamIgnoredSelector;
 import ui.pane.gamestilepane.CoverTilePane;
 import ui.pane.gamestilepane.GamesTilePane;
+import ui.pane.gamestilepane.RowCoverTilePane;
 import ui.scene.exitaction.ClassicExitAction;
 import ui.scene.exitaction.ExitAction;
 import ui.scene.exitaction.MultiAddExitAction;
@@ -67,16 +68,13 @@ public class MainScene extends BaseScene {
     public final static double MAX_TILE_ZOOM = 0.675;
     public final static double MIN_TILE_ZOOM = 0.25;
 
+    private ScrollPane scrollPane;
     private BorderPane wrappingPane;
     private GamesTilePane tilePane;
+    private RowCoverTilePane lastPlayedTilePane;
+    private RowCoverTilePane recentlyAddedTilePane;
 
     private Label statusLabel;
-
-    private final static int SORT_MODE_NAME = 0;
-    private final static int SORT_MODE_RATING = 1;
-    private final static int SORT_MODE_PLAY_TIME = 2;
-
-    private static int SORT_MODE = SORT_MODE_NAME;
 
     private boolean changeBackgroundNextTime = false;
 
@@ -117,7 +115,19 @@ public class MainScene extends BaseScene {
     }
 
     private void initCenter() {
-        tilePane = new CoverTilePane(this);
+        scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+        //centerPane.setPrefViewportHeight(tilePane.getPrefHeight());
+        scrollPane.setFocusTraversable(false);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+
+        VBox tilesPaneWrapper = new VBox();
+        tilesPaneWrapper.setSpacing(5*Main.SCREEN_HEIGHT/1080);
+        tilePane = new CoverTilePane(this, Main.RESSOURCE_BUNDLE.getString("all_games"));
+        lastPlayedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_LAST_PLAYED);
+        recentlyAddedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_RECENTLY_ADDED);
 
         statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + "...");
         wrappingPane.setOpacity(0);
@@ -146,7 +156,7 @@ public class MainScene extends BaseScene {
                 //dialog.getDialogStage().close();
                 statusLabel.setText("");
                 setChangeBackgroundNextTime(false);
-                fadeTransitionTo(MainScene.this, getParentStage(),false);
+                fadeTransitionTo(MainScene.this, getParentStage(), false);
                 Platform.runLater(() -> {
                     checkSteamGamesInstalled();
                 });
@@ -158,26 +168,21 @@ public class MainScene extends BaseScene {
         th.setDaemon(true);
         th.start();
 
-        ScrollPane centerPane = new ScrollPane();
         try {
-            remapArrowKeys(tilePane);
+            remapArrowKeys(scrollPane);
         } catch (AWTException e) {
             e.printStackTrace();
         }
-        centerPane.setFitToWidth(true);
-        centerPane.setFitToHeight(true);
-        //centerPane.setPrefViewportHeight(tilePane.getPrefHeight());
-        centerPane.setFocusTraversable(false);
-        centerPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        centerPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-
-        //StackPane.setMargin(tilePane, new Insets(50* SCREEN_HEIGHT /1080, 25* SCREEN_WIDTH /1920, 60* SCREEN_HEIGHT /1080, 25* SCREEN_WIDTH /1920));
-        //tilePane.setPadding(new Insets(50 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920));
-
-        centerPane.setContent(tilePane);
-        //centerPane.getStylesheets().add("res/flatterfx.css");
-
-        wrappingPane.setCenter(centerPane);
+        GridPane topTilesPaneGridPane = new GridPane();
+        ColumnConstraints halfConstraint = new ColumnConstraints();
+        halfConstraint.setPercentWidth(50);
+        topTilesPaneGridPane.getColumnConstraints().add(halfConstraint);
+        topTilesPaneGridPane.add(lastPlayedTilePane,0,0);
+        topTilesPaneGridPane.add(recentlyAddedTilePane,1,0);
+        topTilesPaneGridPane.setHgap(50*Main.SCREEN_WIDTH/1920);
+        tilesPaneWrapper.getChildren().addAll(topTilesPaneGridPane,tilePane);
+        scrollPane.setContent(tilesPaneWrapper);
+        wrappingPane.setCenter(scrollPane);
 
     }
 
@@ -193,6 +198,13 @@ public class MainScene extends BaseScene {
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 tilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 4 * newValue.doubleValue());
                 tilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 4 * COVER_HEIGHT_WIDTH_RATIO * newValue.doubleValue());
+
+                lastPlayedTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * newValue.doubleValue());
+                lastPlayedTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * newValue.doubleValue());
+
+
+                recentlyAddedTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * newValue.doubleValue());
+                recentlyAddedTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * newValue.doubleValue());
             }
         });
         sizeSlider.setOnMouseReleased(new EventHandler<MouseEvent>() {
@@ -233,25 +245,49 @@ public class MainScene extends BaseScene {
         MenuItem byRatingItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_rating"));
         MenuItem byTimePlayedItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_playtime"));
         MenuItem byReleaseDateItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_release_date"));
-        sortMenu.getItems().addAll(byNameItem, byRatingItem, byTimePlayedItem,byReleaseDateItem);
-        byNameItem.setOnAction(event -> tilePane.sortByName());
-        byRatingItem.setOnAction(event -> tilePane.sortByRating());
-        byTimePlayedItem.setOnAction(event -> tilePane.sortByTimePlayed());
-        byReleaseDateItem.setOnAction(event -> tilePane.sortByReleaseDate());
+        sortMenu.getItems().addAll(byNameItem, byRatingItem, byTimePlayedItem, byReleaseDateItem);
+        byNameItem.setOnAction(event -> {
+            tilePane.sortByName();
+            lastPlayedTilePane.show();
+            recentlyAddedTilePane.show();
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        byRatingItem.setOnAction(event -> {
+            tilePane.sortByRating();
+            lastPlayedTilePane.hide();
+            recentlyAddedTilePane.hide();
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        byTimePlayedItem.setOnAction(event -> {
+            tilePane.sortByTimePlayed();
+            lastPlayedTilePane.hide();
+            recentlyAddedTilePane.hide();
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        byReleaseDateItem.setOnAction(event -> {
+            tilePane.sortByReleaseDate();
+            lastPlayedTilePane.hide();
+            recentlyAddedTilePane.hide();
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
 
         sortButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 if (event.isPrimaryButtonDown()) {
-                    if(sortMenu.isShowing()){
+                    if (sortMenu.isShowing()) {
                         sortMenu.hide();
-                    }else{
+                    } else {
                         Bounds bounds = sortButton.getBoundsInLocal();
                         Bounds screenBounds = sortButton.localToScreen(bounds);
-                        int x = (int) (screenBounds.getMinX() + 0.25 *bounds.getWidth());
-                        int y = (int) (screenBounds.getMaxY() - 0.22 *bounds.getHeight());
+                        int x = (int) (screenBounds.getMinX() + 0.25 * bounds.getWidth());
+                        int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
 
-                        sortMenu.show(sortButton,x,y);
+                        sortMenu.show(sortButton, x, y);
                     }
                 }
             }
@@ -360,18 +396,24 @@ public class MainScene extends BaseScene {
 
     public void removeGame(GameEntry entry) {
         tilePane.removeGame(entry);
+        lastPlayedTilePane.removeGame(entry);
+        recentlyAddedTilePane.removeGame(entry);
         AllGameEntries.removeGame(entry);
         refreshTrayMenu();
     }
 
     public void updateGame(GameEntry entry) {
         tilePane.updateGame(entry);
+        lastPlayedTilePane.updateGame(entry);
+        recentlyAddedTilePane.updateGame(entry);
         AllGameEntries.updateGame(entry);
         refreshTrayMenu();
     }
 
     public void addGame(GameEntry entry) {
         tilePane.addGame(entry);
+        lastPlayedTilePane.addGame(entry);
+        recentlyAddedTilePane.addGame(entry);
         AllGameEntries.addGame(entry);
         refreshTrayMenu();
     }
@@ -406,7 +448,7 @@ public class MainScene extends BaseScene {
     private ExitAction createSteamEntryAddExitAction(ArrayList<GameEntry> entries, int entryCount) {
         if (entryCount < entries.size()) {
             GameEntry currentEntry = entries.get(entryCount);
-            GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentEntry, GameEditScene.MODE_ADD,null);
+            GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentEntry, GameEditScene.MODE_ADD, null);
             gameEditScene.disableBackButton();
             return new MultiAddExitAction(new Runnable() {
                 @Override
@@ -434,7 +476,7 @@ public class MainScene extends BaseScene {
                         break;
                     }
                 }
-                if(!doNotAdd) {
+                if (!doNotAdd) {
                     SteamPreEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
                     for (SteamPreEntry ignoredEntry : ignoredSteamApps) {
                         doNotAdd = steamEntry.getId() == ignoredEntry.getId();
@@ -444,7 +486,7 @@ public class MainScene extends BaseScene {
                     }
                 }
                 if (!doNotAdd) {
-                    Main.LOGGER.debug("To add : "+steamEntry.getName());
+                    Main.LOGGER.debug("To add : " + steamEntry.getName());
                     GameEntry toAdd = SteamOnlineScrapper.getEntryForSteamId(steamEntry.getId());
                     toAdd.setSteam_id(steamEntry.getId());
                     steamEntriesToAdd.add(toAdd);
@@ -452,19 +494,19 @@ public class MainScene extends BaseScene {
             }
             Main.LOGGER.info(steamEntriesToAdd.size() + " steam games to add");
             if (steamEntriesToAdd.size() != 0) {
-                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION, steamEntriesToAdd.size()+" "+Main.RESSOURCE_BUNDLE.getString("steam_games_to_add_detected"));
-                alert.getButtonTypes().add(new ButtonType(RESSOURCE_BUNDLE.getString("ignore")+"...", ButtonBar.ButtonData.LEFT));
+                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION, steamEntriesToAdd.size() + " " + Main.RESSOURCE_BUNDLE.getString("steam_games_to_add_detected"));
+                alert.getButtonTypes().add(new ButtonType(RESSOURCE_BUNDLE.getString("ignore") + "...", ButtonBar.ButtonData.LEFT));
                 Optional<ButtonType> result = alert.showAndWait();
                 result.ifPresent(buttonType -> {
-                    if(buttonType.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)){
+                    if (buttonType.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
                         createSteamEntryAddExitAction(steamEntriesToAdd, 0).run();
-                    }else if(buttonType.getButtonData().equals(ButtonBar.ButtonData.LEFT)){
+                    } else if (buttonType.getButtonData().equals(ButtonBar.ButtonData.LEFT)) {
                         try {
                             SteamIgnoredSelector selector = new SteamIgnoredSelector();
                             Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
                             ignoredOptionnal.ifPresent(pairs -> {
-                                if(pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS,selector.getSelectedEntries());
+                                if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS, selector.getSelectedEntries());
                                 }
                             });
                         } catch (IOException e) {
@@ -478,7 +520,6 @@ public class MainScene extends BaseScene {
             e.printStackTrace();
         }
     }
-
 
 
     public int getInputMode() {
@@ -504,6 +545,7 @@ public class MainScene extends BaseScene {
     public void setChangeBackgroundNextTime(boolean changeBackgroundNextTime) {
         this.changeBackgroundNextTime = changeBackgroundNextTime;
     }
+
     private void remapArrowKeys(ScrollPane scrollPane) throws AWTException {
         java.util.List<KeyEvent> mappedEvents = new ArrayList<>();
         scrollPane.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
@@ -511,7 +553,7 @@ public class MainScene extends BaseScene {
             public void handle(KeyEvent event) {
                 if (mappedEvents.remove(event))
                     return;
-                if(!event.isShiftDown()) {
+                if (!event.isShiftDown()) {
                     switch (event.getCode()) {
                         case UP:
                         case DOWN:
@@ -544,6 +586,7 @@ public class MainScene extends BaseScene {
             }
         });
     }
+
     public void setImageBackground(Image img) {
         if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
             if (!changeBackgroundNextTime) {

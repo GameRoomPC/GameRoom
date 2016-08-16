@@ -8,28 +8,26 @@ import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.*;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.effect.BlendMode;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.button.gamebutton.TileGameButton;
-import ui.scene.BaseScene;
 import ui.scene.MainScene;
 
-import java.awt.*;
 import java.util.*;
 
 import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
-import static ui.scene.MainScene.INPUT_MODE_KEYBOARD;
 
 /**
  * Created by LM on 13/08/2016.
  */
-public abstract class GamesTilePane extends ScrollPane{
+public abstract class GamesTilePane extends BorderPane{
     private final static int SORT_MODE_NAME = 0;
     private final static int SORT_MODE_RATING = 1;
     private final static int SORT_MODE_PLAY_TIME = 2;
@@ -38,24 +36,32 @@ public abstract class GamesTilePane extends ScrollPane{
     private static int SORT_MODE = SORT_MODE_NAME;
 
     protected TilePane tilePane;
-    protected ArrayList<GameButton> tilesList = new ArrayList<>();
+    protected Label titleLabel;
+    protected ObservableList<GameButton> tilesList = FXCollections.observableArrayList();
 
     protected MainScene parentScene;
-
+    private boolean forcedHidden = false;
     public GamesTilePane(MainScene parentScene){
         super();
         this.tilePane = new TilePane();
+        this.titleLabel = new Label();
         this.parentScene = parentScene;
-        setFitToWidth(true);
-        setFitToHeight(true);
         //centerPane.setPrefViewportHeight(tilePane.getPrefHeight());
-        setFocusTraversable(false);
-        setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        setContent(getScrollPaneContent());
+        setCenter(getContent());
+        setTop(titleLabel);
+        titleLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
+                "    -fx-font-size: 28.0px;\n" +
+                "    -fx-stroke: black;\n" +
+                "    -fx-stroke-width: 1;" +
+                "    -fx-font-weight: 200;");
+        BorderPane.setAlignment(titleLabel, Pos.CENTER_LEFT);
+        titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
+                , 10 * Main.SCREEN_WIDTH / 1920
+                , 0 * Main.SCREEN_HEIGHT / 1080
+                , 10 * Main.SCREEN_WIDTH / 1920));
     }
 
-    protected abstract Node getScrollPaneContent();
+    protected abstract Node getContent();
 
     private final void addTile(GameButton button){
         addTileToTilePane(button);
@@ -86,6 +92,7 @@ public abstract class GamesTilePane extends ScrollPane{
     public final void updateGame(GameEntry newEntry){
         for(Integer index : indexesOfTile(newEntry)){
             tilesList.get(index).reloadWith(newEntry);
+            tilesList.set(index,tilesList.get(index));//to fire updated/replaced event
         }
         sort();
     }
@@ -256,5 +263,91 @@ public abstract class GamesTilePane extends ScrollPane{
 
     public abstract void sortByName();
 
+    public void setTitle(String title){
+        if(title==null){
+            titleLabel.setVisible(false);
+            titleLabel.setText(null);
+            titleLabel.setManaged(false);
+        }else{
+            titleLabel.setVisible(true);
+            titleLabel.setText(title);
+            titleLabel.setManaged(true);
+        }
+    }
+    public void hide(){
+        hide(true);
+    }
+    public void show(){
+        show(true);
+    }
+    protected void hide(boolean transition){
+        Runnable hideAction = new Runnable() {
+            @Override
+            public void run() {
+                setManaged(false);
+                setVisible(false);
+                setMouseTransparent(true);
+            }
+        };
+        if(transition){
+            Timeline fadeOutTimeline = new Timeline(
+                    new KeyFrame(Duration.seconds(0),
+                            new KeyValue(opacityProperty(), opacityProperty().getValue(), Interpolator.EASE_IN)),
+                    new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                            new KeyValue(opacityProperty(), 0, Interpolator.EASE_OUT)
+                    ));
+            fadeOutTimeline.setCycleCount(1);
+            fadeOutTimeline.setAutoReverse(false);
+            fadeOutTimeline.setOnFinished(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(javafx.event.ActionEvent event) {
+                    hideAction.run();
+                }
+            });
+            fadeOutTimeline.play();
+        }else{
+            hideAction.run();
+        }
+    }
+    protected void show(boolean transition){
+        if(!forcedHidden) {
+            Runnable showAction = new Runnable() {
+                @Override
+                public void run() {
+                    setManaged(true);
+                    setVisible(true);
+                    setMouseTransparent(false);
+                }
+            };
+            if (transition) {
 
+                Timeline fadeInTimeline = new Timeline(
+                        new KeyFrame(Duration.seconds(0),
+                                new KeyValue(opacityProperty(), 0, Interpolator.EASE_IN)),
+                        new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                new KeyValue(opacityProperty(), 1, Interpolator.EASE_OUT)
+                        ));
+                fadeInTimeline.setCycleCount(1);
+                fadeInTimeline.setAutoReverse(false);
+                fadeInTimeline.setOnFinished(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        showAction.run();
+                    }
+                });
+                fadeInTimeline.play();
+            } else {
+                showAction.run();
+            }
+        }
+    }
+
+    public void setForcedHidden(boolean forcedHidden) {
+        this.forcedHidden = forcedHidden;
+        if(forcedHidden){
+            hide(false);
+        }else{
+            show(false);
+        }
+    }
 }

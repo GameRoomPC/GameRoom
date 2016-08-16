@@ -14,6 +14,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Date;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.MAIN_SCENE;
@@ -41,7 +42,7 @@ public class GameStarter {
 
         Terminal terminal = new Terminal();
         String cmdBefore = entry.getCmd(GameEntry.CMD_BEFORE_START);
-
+        entry.setLastPlayedDate(new Date());
         if(entry.getPath().startsWith(STEAM_PREFIX)){
             if(cmdBefore!=null){
                 String[] cmds = cmdBefore.split("\n");
@@ -109,6 +110,7 @@ public class GameStarter {
                     entry.setAlreadyStartedInGameRoom(false);
                     entry.setSavedLocaly(true);
                     entry.addPlayTimeSeconds(Math.round(newValue/1000.0));
+                    MAIN_SCENE.updateGame(entry);
                     entry.setSavedLocaly(false);
                     if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS)) {
                         Main.TRAY_ICON.displayMessage("GameRoom"
@@ -116,6 +118,7 @@ public class GameStarter {
                                         + Main.RESSOURCE_BUNDLE.getString("tray_icon_time_recorded") + " "
                                         + entry.getName(), TrayIcon.MessageType.INFO);
                     }
+
                 }else{
                     //No need to add playtime as if we are here, it means that some thread is already monitoring play time
                 }

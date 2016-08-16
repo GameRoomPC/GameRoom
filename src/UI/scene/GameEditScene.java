@@ -169,6 +169,7 @@ public class GameEditScene extends BaseScene {
                     entry.setSavedLocaly(true);
                     switch (mode) {
                         case MODE_ADD:
+                            entry.setAddedDate(new Date());
                             MAIN_SCENE.addGame(entry);
                             break;
                         case MODE_EDIT:

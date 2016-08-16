@@ -63,6 +63,9 @@ public class GameInfoScene extends BaseScene {
                     break;
             }
         });
+        if(previousScene instanceof MainScene && ((MainScene)previousScene).getInputMode() == MainScene.INPUT_MODE_KEYBOARD){
+            coverButton.requestFocus();
+        }
     }
 
     private void initBottom() {

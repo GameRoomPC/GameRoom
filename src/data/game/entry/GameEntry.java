@@ -122,6 +122,9 @@ public class GameEntry {
                         prop.setProperty("cmd" + i, cmd[i]);
                     }
                 }
+                prop.setProperty("addedDate", addedDate != null ? DATE_STORE_FORMAT.format(addedDate) : "");
+                prop.setProperty("lastPlayedDate", lastPlayedDate != null ? DATE_STORE_FORMAT.format(lastPlayedDate) : "");
+
                 // save properties to project root folder
                 prop.store(output, null);
                 output.close();
@@ -193,6 +196,24 @@ public class GameEntry {
         }
         for (int i = 0; i < cmd.length; i++) {
             cmd[i] = prop.getProperty("cmd" + i);
+        }
+        if (prop.getProperty("addedDate") != null) {
+            try {
+                if (!prop.getProperty("addedDate").equals("")) {
+                    addedDate = DATE_STORE_FORMAT.parse(prop.getProperty("addedDate"));
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        if (prop.getProperty("lastPlayedDate") != null) {
+            try {
+                if (!prop.getProperty("lastPlayedDate").equals("")) {
+                    lastPlayedDate = DATE_STORE_FORMAT.parse(prop.getProperty("lastPlayedDate"));
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }
 
         input.close();
@@ -535,6 +556,24 @@ public class GameEntry {
     }
     public String getCmd(int index){
         return cmd[index];
+    }
+
+    public Date getAddedDate() {
+        return addedDate;
+    }
+
+    public void setAddedDate(Date addedDate) {
+        this.addedDate = addedDate;
+        saveEntry();
+    }
+
+    public Date getLastPlayedDate() {
+        return lastPlayedDate;
+    }
+
+    public void setLastPlayedDate(Date lastPlayedDate) {
+        this.lastPlayedDate = lastPlayedDate;
+        saveEntry();
     }
 
     public String getIgdb_imageHash(int index) {

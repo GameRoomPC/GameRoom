@@ -18,17 +18,18 @@ import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
  * Created by LM on 14/08/2016.
  */
 public class CoverTilePane extends GamesTilePane{
-    public CoverTilePane(MainScene parentScene) {
+    public CoverTilePane(MainScene parentScene, String title) {
         super(parentScene);
         tilePane.setPadding(new Insets(50 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920));
         tilePane.setHgap(50 * SCREEN_WIDTH / 1920);
         tilePane.setVgap(70 * SCREEN_HEIGHT / 1080);
+        setTitle(title);
         setPrefTileWidth(SCREEN_WIDTH / 4);
         setPrefTileHeight(tilePane.getPrefTileWidth() * COVER_HEIGHT_WIDTH_RATIO);
     }
 
     @Override
-    protected Node getScrollPaneContent() {
+    protected Node getContent() {
         return tilePane;
     }
 
