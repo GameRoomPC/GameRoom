@@ -14,7 +14,6 @@ import java.awt.*;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.MAIN_SCENE;
@@ -113,7 +112,7 @@ public class GameStarter {
                     entry.setSavedLocaly(false);
                     if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS)) {
                         Main.TRAY_ICON.displayMessage("GameRoom"
-                                , GameEntry.getPlayTimeFormatted(Math.round(newValue/1000.0),GameEntry.TIME_FORMAT_SHORT_HMS) + " "
+                                , GameEntry.getPlayTimeFormatted(Math.round(newValue/1000.0),GameEntry.TIME_FORMAT_HMS_CASUAL) + " "
                                         + Main.RESSOURCE_BUNDLE.getString("tray_icon_time_recorded") + " "
                                         + entry.getName(), TrayIcon.MessageType.INFO);
                     }

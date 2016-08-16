@@ -96,7 +96,7 @@ public abstract class GameButton extends BorderPane {
 
     public void reloadWith(GameEntry entry) {
         this.entry = entry;
-        playTimeLabel.setText(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_SHORT_HMS));
+        playTimeLabel.setText(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_ROUNDED_HMS));
         ratingLabel.setText(Integer.toString(entry.getAggregated_rating()));
         SimpleDateFormat buttonDateFormat = new SimpleDateFormat("MM.yyyy");
         releaseDateLabel.setText(entry.getReleaseDate()!=null ? buttonDateFormat.format(entry.getReleaseDate()) : "-");
@@ -218,7 +218,7 @@ public abstract class GameButton extends BorderPane {
         playButton = new ImageButton(DEFAULT_PLAY_IMAGE);
         infoButton = new ImageButton(DEFAULT_INFO_IMAGE);
 
-        playTimeLabel = new Label(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_SHORT_HMS));
+        playTimeLabel = new Label(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_ROUNDED_HMS));
         playTimeLabel.setEffect(ds);
         playTimeLabel.setOpacity(0);
         playTimeLabel.setFocusTraversable(false);
@@ -438,7 +438,7 @@ public abstract class GameButton extends BorderPane {
             }
         });
         infoButton.addMouseEnteredHandler(e -> {
-            playTimeLabel.setText(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_SHORT_HMS));
+            playTimeLabel.setText(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_ROUNDED_HMS));
             if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_MOUSE) {
                 requestFocus();
                 playTimeLabel.setOpacity(keepTimeLabelVisible? 1 : 0);

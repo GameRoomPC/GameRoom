@@ -59,8 +59,8 @@ public abstract class BaseScene extends Scene {
                     ,false
                     ,true);
         }
-        backgroundView = new ImageView(backgroundMaskImage);
-        maskView = new ImageView();
+        backgroundView = new ImageView();
+        maskView = new ImageView(backgroundMaskImage);
         rootStackPane.getChildren().add(backgroundView);
         rootStackPane.getChildren().add(maskView);
         initAndAddWrappingPaneToRoot();

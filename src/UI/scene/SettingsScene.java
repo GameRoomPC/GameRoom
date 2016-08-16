@@ -97,7 +97,15 @@ public class SettingsScene extends BaseScene {
                 }
             }
         });
-        addPropertyLine(PredefinedSetting.ENABLE_GAMING_POWER_MODE);
+        addPropertyLine(PredefinedSetting.ENABLE_GAMING_POWER_MODE,new ChangeListener<Boolean>(){
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                Node node = searchNode(PredefinedSetting.GAMING_POWER_MODE.getKey());
+                if(node!=null){
+                    node.setDisable(!newValue);
+                }
+            }
+        });
         addPropertyLine(PredefinedSetting.GAMING_POWER_MODE);
         addPropertyLine(PredefinedSetting.GAMES_FOLDER);
 
@@ -370,7 +378,6 @@ public class SettingsScene extends BaseScene {
             /**************** PATH **************/
             File p = GENERAL_SETTINGS.getFile(setting);
             PathTextField gamesFolderField = new PathTextField(p != null ? p.toString() : "", this,PathTextField.FILE_CHOOSER_FOLDER,RESSOURCE_BUNDLE.getString("select_a_folder"));
-            gamesFolderField.setId("games_folder");
             gamesFolderField.getTextField().textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -383,9 +390,12 @@ public class SettingsScene extends BaseScene {
             });
             node2 = gamesFolderField;
         }
+        if(node2!=null){
+            node2.setId(setting.getKey());
+        }
         contentPane.getChildren().add(createLine(label,node2));
     }
-    private Node createLine(Node nodeLeft, Node nodeRight){
+    private HBox createLine(Node nodeLeft, Node nodeRight){
         HBox box = new HBox();
 
         final HBox leftSection = new HBox( nodeLeft);
@@ -410,7 +420,26 @@ public class SettingsScene extends BaseScene {
             fadeTransitionTo(previousScene,getParentStage(),true);
         },RESSOURCE_BUNDLE.getString("Settings")));
     }
+    private Node searchNode(String id){
+        return searchNodeInPane(id,contentPane);
+    }
 
+    private Node searchNodeInPane(String id, Pane pane){
+        for(Node n : pane.getChildren()){
+            if(n instanceof Pane){
+                Node result = searchNodeInPane(id, (Pane) n);
+                if(result!=null){
+                    return result;
+                }
+            }else{
+                if(n!=null && n.getId()!=null && n.getId().equals(id)){
+                    return n;
+                }
+            }
+
+        }
+        return null;
+    }
     @Override
     public Pane getWrappingPane() {
         return wrappingPane;

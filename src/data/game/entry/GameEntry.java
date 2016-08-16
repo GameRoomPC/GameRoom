@@ -29,7 +29,9 @@ public class GameEntry {
     public final static int TIME_FORMAT_FULL_HMS = 0; // 0h12m0s, 0h5m13s
     public final static int TIME_FORMAT_FULL_DOUBLEDOTS = 1; //00:12:00, 00:05:13
     public final static int TIME_FORMAT_HALF_FULL_HMS = 2; // 12m0s, 5m13s
-    public final static int TIME_FORMAT_SHORT_HMS = 3; // 12m, 5m
+    public final static int TIME_FORMAT_ROUNDED_HMS = 3; // 12m, 5m
+    public static final int TIME_FORMAT_HMS_CASUAL = 4 ; //1h05, 20mn, l0s
+
 
     private boolean savedLocaly = false;
 
@@ -46,6 +48,8 @@ public class GameEntry {
     private UUID uuid;
     private boolean alreadyStartedInGameRoom = false;
     private String[] cmd = new String[4];
+    private Date addedDate;
+    private Date lastPlayedDate;
 
     private File[] imagesPaths = new File[IMAGES_NUMBER];
     private boolean[] imageNeedsRefresh = new boolean[IMAGES_NUMBER];
@@ -373,30 +377,47 @@ public class GameEntry {
                 break;
             case TIME_FORMAT_FULL_HMS:
                 result += hours + "h";
-                result += minutes + "m";
+                result += minutes + "mn";
                 result += seconds + "s";
                 break;
             case TIME_FORMAT_HALF_FULL_HMS:
                 if (hours > 0) {
                     result += hours + "h";
-                    result += minutes + "m";
+                    result += minutes + "mn";
                     result += seconds + "s";
                 } else {
                     if (minutes > 0) {
-                        result += minutes + "m";
+                        result += minutes + "mn";
                         result += seconds + "s";
                     } else {
                         result += seconds + "s";
                     }
                 }
                 break;
-            case TIME_FORMAT_SHORT_HMS:
+            case TIME_FORMAT_ROUNDED_HMS:
                 if (hours > 0) {
                     result = hours + "h";
                 } else if (minutes > 0) {
-                    result = minutes + "m";
+                    result = minutes + "mn";
                 } else {
                     result = seconds + "s";
+                }
+                break;
+            case TIME_FORMAT_HMS_CASUAL:
+                if (hours > 0) {
+                    result += hours + "h";
+                    if(minutes > 0){
+                        if(minutes <10){
+                            result += '0';
+                        }
+                        result+= minutes;
+                    }
+                } else {
+                    if (minutes > 0) {
+                        result += minutes + "mn";
+                    } else {
+                        result += seconds + "s";
+                    }
                 }
                 break;
             default:

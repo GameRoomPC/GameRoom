@@ -106,7 +106,7 @@ public class Monitor {
                     alert.initModality(Modality.WINDOW_MODAL);
                     alert.setContentText(gameStarter.getGameEntry().getName() + " "
                             + Main.RESSOURCE_BUNDLE.getString("monitor_wait_dialog_1") + " "
-                            + GameEntry.getPlayTimeFormatted(Math.round(result/1000.0),GameEntry.TIME_FORMAT_SHORT_HMS)
+                            + GameEntry.getPlayTimeFormatted(Math.round(result/1000.0),GameEntry.TIME_FORMAT_ROUNDED_HMS)
                             + Main.RESSOURCE_BUNDLE.getString("monitor_wait_dialog_2"));
 
                     Optional<ButtonType> dialogResult = alert.showAndWait();
