@@ -12,6 +12,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -19,10 +20,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.TilePane;
+import javafx.scene.layout.*;
 import javafx.util.Duration;
 import ui.Main;
 import ui.control.button.DualImageButton;
@@ -46,7 +44,6 @@ public class RowCoverTilePane extends CoverTilePane {
 
     private Comparator<GameEntry> entriesComparator;
     protected int maxColumn = 5;
-    private String type;
     private Separator separator = new Separator();
     private ScrollPane horizontalScrollPane;
     private DualImageButton foldToggleButton;
@@ -60,18 +57,24 @@ public class RowCoverTilePane extends CoverTilePane {
         horizontalScrollPane.setFitToHeight(true);
         horizontalScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         horizontalScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-
-        //horizontalScrollPane.minHeightProperty().bind(realPane.heightProperty());
         tilePane.heightProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                horizontalScrollPane.setMinViewportHeight(newValue.doubleValue());
+            }
+        });
+
+        //horizontalScrollPane.minHeightProperty().bind(tilePane.heightProperty());
+        //horizontalScrollPane.minHeightProperty().bind(realPane.heightProperty());
+        /*tilePane.heightProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 if(newValue.doubleValue() > horizontalScrollPane.getHeight()){
                     horizontalScrollPane.setMinHeight(newValue.doubleValue());
                 }
             }
-        });
+        });*/
 
-        this.type = type;
         tilePane.setPrefRows(1);
         tilePane.setPrefColumns(Integer.MAX_VALUE);
         this.entriesComparator = null;
@@ -185,6 +188,7 @@ public class RowCoverTilePane extends CoverTilePane {
                 }
             }
         });
+
         horizontalScrollPane.setContent(getContent());
         setCenter(horizontalScrollPane);
         separator.setPadding(titleLabel.getPadding());
@@ -223,6 +227,7 @@ public class RowCoverTilePane extends CoverTilePane {
         horizontalScrollPane.setManaged(true);
         horizontalScrollPane.setVisible(true);
         horizontalScrollPane.setMouseTransparent(false);
+        //horizontalScrollPane.minHeightProperty().unbind();
         Timeline fadeInTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(horizontalScrollPane.minHeightProperty(), 0, Interpolator.EASE_IN),
@@ -238,6 +243,8 @@ public class RowCoverTilePane extends CoverTilePane {
         fadeInTimeline.play();
     }
     private void closeTilePane(){
+
+        //horizontalScrollPane.minHeightProperty().unbind();
         Timeline fadeOutTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(horizontalScrollPane.minHeightProperty(), horizontalScrollPane.getMinHeight(), Interpolator.EASE_IN),
@@ -256,6 +263,7 @@ public class RowCoverTilePane extends CoverTilePane {
                 horizontalScrollPane.setManaged(false);
                 horizontalScrollPane.setVisible(false);
                 horizontalScrollPane.setMouseTransparent(true);
+                //horizontalScrollPane.minHeightProperty().bind(tilePane.heightProperty());
             }
         });
         fadeOutTimeline.play();

@@ -239,7 +239,6 @@ public class MainScene extends BaseScene {
             @Override
             public void handle(MouseEvent event) {
                 Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
-                initAll();
             }
         });
         sizeSlider.setValue(Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.TILE_ZOOM));
