@@ -5,6 +5,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.stage.DirectoryChooser;
 import ui.Main;
 import ui.control.button.ImageButton;
+import ui.dialog.GameRoomAlert;
 import ui.scene.BaseScene;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -91,12 +92,7 @@ public class PathTextField extends StackPane {
 
                 }catch (NullPointerException ne){
                     ne.printStackTrace();
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setHeaderText(null);
-                    alert.initStyle(StageStyle.UNDECORATED);
-                    alert.getDialogPane().getStylesheets().add("res/flatterfx.css");
-                    alert.initModality(Modality.APPLICATION_MODAL);
-                    alert.setContentText(RESSOURCE_BUNDLE.getString("warning_internet_shortcut"));
+                    GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING,RESSOURCE_BUNDLE.getString("warning_internet_shortcut"));
                     alert.showAndWait();
                 }
             }

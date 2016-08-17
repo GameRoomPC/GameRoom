@@ -7,6 +7,8 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 
+import static ui.Main.MAIN_SCENE;
+
 /**
  * Created by LM on 06/08/2016.
  */
@@ -20,11 +22,12 @@ public abstract class GameRoomDialog<T> extends Dialog<T> {
         mainPane = new BorderPane();
         rootStackPane = new StackPane();
         rootStackPane.getChildren().add(mainPane);
+        initOwner(MAIN_SCENE.getParentStage());
         dialogPane.setContent(rootStackPane);
         dialogPane.getStylesheets().add("res/flatterfx.css");
         dialogPane.getStyleClass().add("custom-choice-dialog");
         initStyle(StageStyle.UNDECORATED);
-        initModality(Modality.APPLICATION_MODAL);
+        initModality(Modality.WINDOW_MODAL);
         setDialogPane(dialogPane);
     }
 }

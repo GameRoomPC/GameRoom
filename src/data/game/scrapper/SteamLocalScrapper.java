@@ -32,7 +32,7 @@ public class SteamLocalScrapper {
         }
         return returnValue;
     }
-    public static ArrayList<SteamPreEntry> getSteamAppsInstalled() throws IOException {
+    public static ArrayList<SteamPreEntry> getSteamAppsInstalledPreEntries() throws IOException {
         ArrayList<SteamPreEntry> steamApps = new ArrayList<>();
         File steamAppsFolder = new File(getSteamAppsPath());
         String idPrefix = "appmanifest_";

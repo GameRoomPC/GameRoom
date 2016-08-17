@@ -179,11 +179,26 @@ public class MainScene extends BaseScene {
         }
         GridPane topTilesPaneGridPane = new GridPane();
         ColumnConstraints halfConstraint = new ColumnConstraints();
-        halfConstraint.setPercentWidth(50);
+        //halfConstraint.maxWidthProperty().bind(lastPlayedTilePane.maxWidthProperty());
+        lastPlayedTilePane.managedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if(newValue){
+                    halfConstraint.setMaxWidth(lastPlayedTilePane.getWidth());
+                }else{
+                    halfConstraint.setPercentWidth(0);
+                }
+            }
+        });
         topTilesPaneGridPane.getColumnConstraints().add(halfConstraint);
         topTilesPaneGridPane.add(lastPlayedTilePane,0,0);
         topTilesPaneGridPane.add(recentlyAddedTilePane,1,0);
         topTilesPaneGridPane.setHgap(50*Main.SCREEN_WIDTH/1920);
+        /*HBox topTilesPanes = new HBox();
+        topTilesPanes.setAlignment(Pos.CENTER_LEFT);
+        topTilesPanes.setSpacing(50*Main.SCREEN_WIDTH/1920);
+        topTilesPanes.getChildren().addAll(lastPlayedTilePane,recentlyAddedTilePane);*/
+
         tilesPaneWrapper.getChildren().addAll(topTilesPaneGridPane,tilePane);
         scrollPane.setContent(tilesPaneWrapper);
         wrappingPane.setCenter(scrollPane);
@@ -516,7 +531,7 @@ public class MainScene extends BaseScene {
             protected Object call() throws Exception {
                 ArrayList<GameEntry> steamEntriesToAdd = new ArrayList<GameEntry>();
                 ownedSteamApps.addAll(SteamOnlineScrapper.getOwnedSteamGames());
-                ArrayList<SteamPreEntry> installedSteamApps = SteamLocalScrapper.getSteamAppsInstalled();
+                ArrayList<SteamPreEntry> installedSteamApps = SteamLocalScrapper.getSteamAppsInstalledPreEntries();
 
                 for (GameEntry steamEntry : ownedSteamApps) {
                     boolean doNotAdd = false;

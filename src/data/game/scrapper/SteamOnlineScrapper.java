@@ -1,6 +1,5 @@
 package data.game.scrapper;
 
-import com.google.gson.Gson;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
@@ -8,6 +7,7 @@ import data.game.entry.GameEntry;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.*;
 import org.jsoup.Jsoup;
+import ui.Main;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,42 +24,66 @@ public class SteamOnlineScrapper {
     private final static SimpleDateFormat STEAM_DATE_FORMAT = new SimpleDateFormat("dd MMM, yyyy", Locale.US);
 
     public static ArrayList<SteamPreEntry> getOwnedSteamGamesPreEntry() throws IOException {
-        ArrayList<SteamPreEntry> entries = new ArrayList<>();
-        JSONArray ownedArray = getGamesOwned(SteamLocalScrapper.getSteamUserId());
-        for (int i = 0; i < ownedArray.length(); i++) {
-            GameEntry gameEntry = getEntryForSteamId(ownedArray.getJSONObject(i).getInt("appID"),  SteamLocalScrapper.getSteamAppsInstalled());
-            if (gameEntry != null) {
-                SteamPreEntry entry = new SteamPreEntry(gameEntry.getName(), gameEntry.getSteam_id());
-                entries.add(entry);
+        try {
+            ArrayList<SteamPreEntry> entries = new ArrayList<>();
+            JSONArray ownedArray = getGamesOwned(SteamLocalScrapper.getSteamUserId());
+            for (int i = 0; i < ownedArray.length(); i++) {
+                GameEntry gameEntry = getEntryForSteamId(ownedArray.getJSONObject(i).getInt("appID"), SteamLocalScrapper.getSteamAppsInstalledPreEntries());
+                if (gameEntry != null) {
+                    SteamPreEntry entry = new SteamPreEntry(gameEntry.getName(), gameEntry.getSteam_id());
+                    entries.add(entry);
+                }
             }
+            entries.sort(new Comparator<SteamPreEntry>() {
+                @Override
+                public int compare(SteamPreEntry o1, SteamPreEntry o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+            return entries;
+        } catch (UnirestException e) {
+            Main.LOGGER.error("Error connectiong to steamcommunity.com, giving installed games instead of owned ones");
+            Main.LOGGER.error(e.toString().split("\n")[0]);
+            return SteamLocalScrapper.getSteamAppsInstalledPreEntries();
         }
-        entries.sort(new Comparator<SteamPreEntry>() {
-            @Override
-            public int compare(SteamPreEntry o1, SteamPreEntry o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
-        return entries;
     }
 
     public static ArrayList<GameEntry> getOwnedSteamGames() throws IOException {
         ArrayList<GameEntry> entries = new ArrayList<>();
-        JSONArray ownedArray = getGamesOwned(SteamLocalScrapper.getSteamUserId());
-        for (int i = 0; i < ownedArray.length(); i++) {
-            GameEntry entry = getEntryForSteamId(ownedArray.getJSONObject(i).getInt("appID"), SteamLocalScrapper.getSteamAppsInstalled());
-            if (entry != null) {
-                try {
-                    double playTimeHours = ownedArray.getJSONObject(i).getDouble("hoursOnRecord");
-                    entry.setPlayTimeSeconds((long) (playTimeHours * 3600));
-                } catch (JSONException jse) {
-                    if (jse.toString().contains("not found")) {
-                        System.out.println(entry.getName() + " was never played");
-                    } else {
-                        jse.printStackTrace();
+        try {
+            JSONArray ownedArray = getGamesOwned(SteamLocalScrapper.getSteamUserId());
+            for (int i = 0; i < ownedArray.length(); i++) {
+                GameEntry entry = getEntryForSteamId(ownedArray.getJSONObject(i).getInt("appID"), SteamLocalScrapper.getSteamAppsInstalledPreEntries());
+                if (entry != null) {
+                    try {
+                        double playTimeHours = ownedArray.getJSONObject(i).getDouble("hoursOnRecord");
+                        entry.setPlayTimeSeconds((long) (playTimeHours * 3600));
+                    } catch (JSONException jse) {
+                        if (jse.toString().contains("not found")) {
+                            System.out.println(entry.getName() + " was never played");
+                        } else {
+                            jse.printStackTrace();
+                        }
                     }
+                    entries.add(entry);
                 }
-                entries.add(entry);
             }
+            entries.sort(new Comparator<GameEntry>() {
+                @Override
+                public int compare(GameEntry o1, GameEntry o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+            return entries;
+        } catch (UnirestException e) {
+            Main.LOGGER.error("Error connectiong to steamcommunity.com, giving installed games instead of owned ones");
+            Main.LOGGER.error(e.toString().split("\n")[0]);
+        }
+        entries.clear();
+        for (SteamPreEntry preEntry : SteamLocalScrapper.getSteamAppsInstalledPreEntries()) {
+            GameEntry entry = new GameEntry(preEntry.getName());
+            entry.setSteam_id(preEntry.getId());
+            entries.add(entry);
         }
         entries.sort(new Comparator<GameEntry>() {
             @Override
@@ -81,11 +105,11 @@ public class SteamOnlineScrapper {
                 System.err.println("Invalid release date format");
             }
             entry.setSteam_id(steamId);
-            if(installedSteamApps!=null){
+            if (installedSteamApps != null) {
                 boolean installed = false;
-                for(SteamPreEntry installedApp : installedSteamApps){
+                for (SteamPreEntry installedApp : installedSteamApps) {
                     installed = entry.getSteam_id() == installedApp.getId();
-                    if(installed){
+                    if (installed) {
                         break;
                     }
                 }
@@ -96,7 +120,7 @@ public class SteamOnlineScrapper {
         return null;
     }
 
-    private static JSONArray getGamesOwned(String steam_profile_id) throws ConnectTimeoutException {
+    private static JSONArray getGamesOwned(String steam_profile_id) throws ConnectTimeoutException, UnirestException {
         try {
             HttpResponse<String> response = Unirest.get("http://steamcommunity.com/profiles/" + steam_profile_id + "/games/?tab=all&xml=1")
                     .header("Accept", "application/json")
@@ -109,8 +133,6 @@ public class SteamOnlineScrapper {
             }
             reader.close();
             return XML.toJSONObject(xmlString).getJSONObject("gamesList").getJSONObject("games").getJSONArray("game");
-        } catch (UnirestException e) {
-            e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -135,8 +157,11 @@ public class SteamOnlineScrapper {
         } catch (JSONException e) {
             if (e.toString().contains("not found")) {
                 System.err.println("Data not found");
+            } else if (e.toString().contains("Connect to store.steampowered.com:80")) {
+                Main.LOGGER.info("Could not join store.steampowered, timeout. (SteamOnlineScrapper.getInfoForGame)");
+            } else {
+                e.printStackTrace();
             }
-            e.printStackTrace();
         } catch (UnirestException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {

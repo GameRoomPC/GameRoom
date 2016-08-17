@@ -56,7 +56,7 @@ public class RowCoverTilePane extends CoverTilePane {
 
         horizontalScrollPane = new ScrollPane();
         tilePane.setOrientation(Orientation.HORIZONTAL);
-        horizontalScrollPane.setFitToWidth(false);
+        horizontalScrollPane.setFitToWidth(true);
         horizontalScrollPane.setFitToHeight(true);
         horizontalScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         horizontalScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);

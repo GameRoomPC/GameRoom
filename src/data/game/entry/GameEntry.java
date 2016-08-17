@@ -48,7 +48,7 @@ public class GameEntry {
     private UUID uuid;
     private boolean alreadyStartedInGameRoom = false;
     private String[] cmd = new String[4];
-    private Date addedDate;
+    private Date addedDate = new Date();
     private Date lastPlayedDate;
     private boolean notInstalled = false;
 
