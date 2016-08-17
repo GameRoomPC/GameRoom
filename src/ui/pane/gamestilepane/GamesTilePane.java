@@ -42,6 +42,7 @@ public abstract class GamesTilePane extends BorderPane{
     protected MainScene parentScene;
     private boolean forcedHidden = false;
     private boolean searching = false;
+    private boolean automaticSort = true;
     public GamesTilePane(MainScene parentScene){
         super();
         this.tilePane = new TilePane();
@@ -82,12 +83,14 @@ public abstract class GamesTilePane extends BorderPane{
         for(GameButton button : toRemoveButtons){
             removeTile(button);
         }
+        if(automaticSort)
         sort();
     }
 
     public final void addGame(GameEntry newEntry){
         addTile(createGameButton(newEntry));
-        sort();
+        if(automaticSort)
+            sort();
     }
 
     public final void updateGame(GameEntry newEntry){
@@ -95,7 +98,8 @@ public abstract class GamesTilePane extends BorderPane{
             tilesList.get(index).reloadWith(newEntry);
             tilesList.set(index,tilesList.get(index));//to fire updated/replaced event
         }
-        sort();
+        if(automaticSort)
+            sort();
     }
 
 
@@ -220,34 +224,37 @@ public abstract class GamesTilePane extends BorderPane{
         return nodes;
     }
     protected void replaceChildrensAfterSort(ObservableList<Node> nodes, Runnable betweenTransition){
-
-        Timeline fadeOutTimeline = new Timeline(
-                new KeyFrame(Duration.seconds(0),
-                        new KeyValue(tilePane.opacityProperty(), tilePane.opacityProperty().getValue(), Interpolator.EASE_IN)),
-                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                        new KeyValue(tilePane.opacityProperty(), 0, Interpolator.EASE_OUT)
-                ));
-        fadeOutTimeline.setCycleCount(1);
-        fadeOutTimeline.setAutoReverse(false);
-        fadeOutTimeline.setOnFinished(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(javafx.event.ActionEvent event) {
-                tilePane.getChildren().setAll(nodes);
-                if(betweenTransition!=null){
-                    betweenTransition.run();
+        if(!inSameOrder(tilePane.getChildren(),nodes)){
+            Timeline fadeOutTimeline = new Timeline(
+                    new KeyFrame(Duration.seconds(0),
+                            new KeyValue(tilePane.opacityProperty(), tilePane.opacityProperty().getValue(), Interpolator.EASE_IN)),
+                    new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                            new KeyValue(tilePane.opacityProperty(), 0, Interpolator.EASE_OUT)
+                    ));
+            fadeOutTimeline.setCycleCount(1);
+            fadeOutTimeline.setAutoReverse(false);
+            fadeOutTimeline.setOnFinished(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(javafx.event.ActionEvent event) {
+                    tilePane.getChildren().setAll(nodes);
+                    if(betweenTransition!=null){
+                        betweenTransition.run();
+                    }
+                    Timeline fadeInTimeline = new Timeline(
+                            new KeyFrame(Duration.seconds(0),
+                                    new KeyValue(tilePane.opacityProperty(), 0, Interpolator.EASE_IN)),
+                            new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                    new KeyValue(tilePane.opacityProperty(), 1, Interpolator.EASE_OUT)
+                            ));
+                    fadeInTimeline.setCycleCount(1);
+                    fadeInTimeline.setAutoReverse(false);
+                    fadeInTimeline.play();
                 }
-                Timeline fadeInTimeline = new Timeline(
-                        new KeyFrame(Duration.seconds(0),
-                                new KeyValue(tilePane.opacityProperty(), 0, Interpolator.EASE_IN)),
-                        new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                new KeyValue(tilePane.opacityProperty(), 1, Interpolator.EASE_OUT)
-                        ));
-                fadeInTimeline.setCycleCount(1);
-                fadeInTimeline.setAutoReverse(false);
-                fadeInTimeline.play();
-            }
-        });
-        fadeOutTimeline.play();
+            });
+            fadeOutTimeline.play();
+        }else {
+            betweenTransition.run();
+        }
     }
     public final void setPrefTileWidth(double value){
         tilePane.setPrefTileWidth(value);
@@ -379,5 +386,20 @@ public abstract class GamesTilePane extends BorderPane{
 
     public boolean isSearching() {
         return searching;
+    }
+
+    protected static boolean inSameOrder(ObservableList<Node> nodes1,ObservableList<Node> nodes2 ){
+        if(nodes1.size() != nodes2.size()){
+            return false;
+        }
+        boolean sameOrder = true;
+        for (int i = 0; i < nodes1.size() && sameOrder; i++) {
+            sameOrder = ((GameButton)nodes1.get(i)).getEntry().getUuid().equals(((GameButton)nodes2.get(i)).getEntry().getUuid());
+        }
+        return sameOrder;
+    }
+
+    public void setAutomaticSort(boolean automaticSort) {
+        this.automaticSort = automaticSort;
     }
 }

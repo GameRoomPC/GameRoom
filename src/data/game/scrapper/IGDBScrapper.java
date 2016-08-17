@@ -26,7 +26,7 @@ import java.util.Date;
 public class IGDBScrapper {
 
     public static void main(String[] args) throws ConnectTimeoutException {
-        JSONArray bf4_results = searchGame("Evolve Stage 2");
+        JSONArray bf4_results = searchGame("iwuefbuiw");
         ArrayList list = new ArrayList();
         list.add(bf4_results.getJSONObject(0).getInt("id"));
         JSONArray bf4_data = getGamesData(list);

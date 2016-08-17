@@ -5,8 +5,6 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -14,27 +12,28 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import ui.Main;
 import ui.control.button.DualImageButton;
 import ui.control.button.OnActionHandler;
 import ui.control.button.gamebutton.GameButton;
-import ui.dialog.SearchDialog;
 import ui.scene.MainScene;
 
 import java.util.Comparator;
 import java.util.Date;
 
-import static ui.Main.DEV_MODE;
+import static ui.Main.SCREEN_HEIGHT;
 import static ui.Main.SCREEN_WIDTH;
 import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
 
@@ -46,13 +45,14 @@ public class RowCoverTilePane extends CoverTilePane {
     public final static String TYPE_RECENTLY_ADDED = "recently_added";
 
     private Comparator<GameEntry> entriesComparator;
-    private int maxColumn = 5;
+    protected int maxColumn = 5;
     private String type;
     private Separator separator = new Separator();
     private ScrollPane horizontalScrollPane;
+    private DualImageButton foldToggleButton;
 
     public RowCoverTilePane(MainScene parentScene, String type) {
-        super(parentScene, Main.RESSOURCE_BUNDLE.getString(type));
+        super(parentScene,Main.RESSOURCE_BUNDLE.getString(type));
 
         horizontalScrollPane = new ScrollPane();
         tilePane.setOrientation(Orientation.HORIZONTAL);
@@ -60,7 +60,8 @@ public class RowCoverTilePane extends CoverTilePane {
         horizontalScrollPane.setFitToHeight(true);
         horizontalScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         horizontalScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        //horizontalScrollPane.minHeightProperty().bind(tilePane.heightProperty());
+
+        //horizontalScrollPane.minHeightProperty().bind(realPane.heightProperty());
         tilePane.heightProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -192,12 +193,12 @@ public class RowCoverTilePane extends CoverTilePane {
         Image arrowUpImage = new Image("res/ui/arrowUp.png", SCREEN_WIDTH / 70, SCREEN_WIDTH / 70, true, true);
         Image arrowDownImage = new Image("res/ui/arrowDown.png", SCREEN_WIDTH / 70, SCREEN_WIDTH / 70, true, true);
 
-        DualImageButton arrowButton = new DualImageButton(arrowUpImage,arrowDownImage,"show","hide");
-        arrowButton.setFocusTraversable(false);
-        arrowButton.setOnDualAction(new OnActionHandler() {
+         foldToggleButton = new DualImageButton(arrowUpImage,arrowDownImage,"show","hide");
+        foldToggleButton.setFocusTraversable(false);
+        foldToggleButton.setOnDualAction(new OnActionHandler() {
             @Override
             public void handle(ActionEvent me) {
-                if(arrowButton.inFirstState()){
+                if(foldToggleButton.inFirstState()){
                     openTilePane();
                 }else{
                     closeTilePane();
@@ -206,12 +207,18 @@ public class RowCoverTilePane extends CoverTilePane {
         });
         HBox box = new HBox();
         box.setAlignment(Pos.CENTER_LEFT);
-        box.getChildren().addAll(titleLabel,arrowButton);
+        box.getChildren().addAll(titleLabel,foldToggleButton);
         setTop(box);
 
         setBottom(separator);
     }
 
+    public void fold(){
+        foldToggleButton.forceState("hide");
+    }
+    public void unfold(){
+        foldToggleButton.forceState("show");
+    }
     private void openTilePane(){
         horizontalScrollPane.setManaged(true);
         horizontalScrollPane.setVisible(true);
@@ -219,9 +226,11 @@ public class RowCoverTilePane extends CoverTilePane {
         Timeline fadeInTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(horizontalScrollPane.minHeightProperty(), 0, Interpolator.EASE_IN),
+                        new KeyValue(horizontalScrollPane.maxHeightProperty(), 0, Interpolator.EASE_IN),
                         new KeyValue(horizontalScrollPane.opacityProperty(), 0, Interpolator.EASE_IN)),
                 new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME*2),
                         new KeyValue(horizontalScrollPane.minHeightProperty(), tilePane.getHeight(), Interpolator.EASE_OUT),
+                        new KeyValue(horizontalScrollPane.maxHeightProperty(), tilePane.getHeight(), Interpolator.EASE_OUT),
                         new KeyValue(horizontalScrollPane.opacityProperty(), 1, Interpolator.EASE_OUT)
                 ));
         fadeInTimeline.setCycleCount(1);
@@ -232,9 +241,11 @@ public class RowCoverTilePane extends CoverTilePane {
         Timeline fadeOutTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(horizontalScrollPane.minHeightProperty(), horizontalScrollPane.getMinHeight(), Interpolator.EASE_IN),
+                        new KeyValue(horizontalScrollPane.maxHeightProperty(), horizontalScrollPane.getMaxHeight(), Interpolator.EASE_IN),
                         new KeyValue(horizontalScrollPane.opacityProperty(), horizontalScrollPane.opacityProperty().getValue(), Interpolator.EASE_IN)),
                 new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME*2),
                         new KeyValue(horizontalScrollPane.minHeightProperty(), 0, Interpolator.EASE_OUT),
+                        new KeyValue(horizontalScrollPane.maxHeightProperty(), 0, Interpolator.EASE_OUT),
                         new KeyValue(horizontalScrollPane.opacityProperty(), 0, Interpolator.EASE_OUT)
                 ));
         fadeOutTimeline.setCycleCount(1);
@@ -277,5 +288,6 @@ public class RowCoverTilePane extends CoverTilePane {
             }
         });
     }
+
 
 }

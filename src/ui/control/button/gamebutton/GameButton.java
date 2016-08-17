@@ -112,9 +112,11 @@ public abstract class GameButton extends BorderPane {
         loadImageTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent event) {
-                Platform.runLater(() -> {
-                    ImageUtils.transitionToImage(loadImageTask.getValue(), coverView);
-                });
+                if(!ImageUtils.imagesEquals(loadImageTask.getValue(),coverView.getImage())) {
+                    Platform.runLater(() -> {
+                        ImageUtils.transitionToImage(loadImageTask.getValue(), coverView);
+                    });
+                }
             }
         });
         Thread imageThread = new Thread(loadImageTask);
@@ -128,6 +130,7 @@ public abstract class GameButton extends BorderPane {
         }
 
         initCoverPane();
+
         //initContextMenu();
         initNameText();
 

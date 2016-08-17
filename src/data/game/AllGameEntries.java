@@ -47,8 +47,11 @@ public class AllGameEntries {
         return index;
     }
     public static void updateGame(GameEntry entry){
-        ENTRIES_LIST.set(indexOf(entry),entry);
-        Main.LOGGER.info("Updated game : " + entry.getName());
+        int index = indexOf(entry);
+        if(index!=-1) {
+            ENTRIES_LIST.set(index, entry);
+            Main.LOGGER.info("Updated game : " + entry.getName());
+        }
     }
     public static void addGame(GameEntry entry){
         ENTRIES_LIST.add(entry);

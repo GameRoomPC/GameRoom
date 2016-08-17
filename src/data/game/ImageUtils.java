@@ -1,5 +1,6 @@
 package data.game;
 
+import data.game.scrapper.OnDLDoneHandler;
 import data.io.HTTPDownloader;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -161,6 +162,18 @@ public class ImageUtils {
 
     public static void transitionToImage(Image image2, ImageView imageView) {
         transitionToImage(image2, imageView, 1);
+    }
+
+    public static boolean imagesEquals(Image img1, Image img2){
+        if(img1.getWidth()!= img2.getWidth() || img1.getHeight()!=img2.getHeight()){
+            return false;
+        }
+        for (int i = 0; i < img1.getWidth(); i++) {
+            for (int j = 0; j < img1.getHeight(); j++) {
+                if (img1.getPixelReader().getArgb(i, j) != img2.getPixelReader().getArgb(i, j)) return false;
+            }
+        }
+        return true;
     }
 
 }

@@ -60,6 +60,8 @@ public class Main {
 
     public static InternalAppNetworkManager NETWORK_MANAGER;
 
+    public static volatile boolean KEEP_THREADS_RUNNING = true;
+
     public static void main(String[] args) {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Main.SCREEN_WIDTH = (int) screenSize.getWidth();
@@ -90,6 +92,7 @@ public class Main {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
+                KEEP_THREADS_RUNNING = false;
                 Platform.setImplicitExit(true);
                 NETWORK_MANAGER.disconnect();
                 stage.close();
@@ -169,6 +172,9 @@ public class Main {
 
     public static String getVersion() {
         String version = "unknown";
+        if(RESSOURCE_BUNDLE != null){
+            version = RESSOURCE_BUNDLE.getString(version);
+        }
         if (Main.class.getPackage().getImplementationVersion() != null) {
             version = Main.class.getPackage().getImplementationVersion();
         }

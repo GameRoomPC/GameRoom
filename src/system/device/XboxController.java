@@ -37,7 +37,7 @@ public class XboxController {
         pollingTask = new Runnable() {
             @Override
             public void run() {
-                while (controller!=null && controller.poll() && runThreads) {
+                while (controller!=null && controller.poll() && runThreads && Main.KEEP_THREADS_RUNNING) {
 
                     EventQueue queue = controller.getEventQueue();
                     Event event = new Event();
@@ -76,7 +76,7 @@ public class XboxController {
 
                 runThreads = true;
 
-                while (foundController == null && runThreads) {
+                while (foundController == null && runThreads&& Main.KEEP_THREADS_RUNNING) {
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {

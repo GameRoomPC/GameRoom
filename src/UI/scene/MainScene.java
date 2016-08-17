@@ -42,6 +42,7 @@ import ui.dialog.SteamIgnoredSelector;
 import ui.pane.gamestilepane.CoverTilePane;
 import ui.pane.gamestilepane.GamesTilePane;
 import ui.pane.gamestilepane.RowCoverTilePane;
+import ui.pane.gamestilepane.ToAddRowTilePane;
 import ui.scene.exitaction.ClassicExitAction;
 import ui.scene.exitaction.ExitAction;
 import ui.scene.exitaction.MultiAddExitAction;
@@ -74,6 +75,7 @@ public class MainScene extends BaseScene {
     private GamesTilePane tilePane;
     private RowCoverTilePane lastPlayedTilePane;
     private RowCoverTilePane recentlyAddedTilePane;
+    private ToAddRowTilePane toAddTilePane;
 
     private TextField searchField;
     private boolean showTilesPaneAgainAfterCancelSearch = false;
@@ -94,6 +96,9 @@ public class MainScene extends BaseScene {
                 }
             }
         });
+        initAll();
+    }
+    public void initAll(){
         initCenter();
         initTop();
     }
@@ -132,6 +137,7 @@ public class MainScene extends BaseScene {
         tilePane = new CoverTilePane(this, Main.RESSOURCE_BUNDLE.getString("all_games"));
         lastPlayedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_LAST_PLAYED);
         recentlyAddedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_RECENTLY_ADDED);
+        toAddTilePane = new ToAddRowTilePane(this);
 
         statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + "...");
         wrappingPane.setOpacity(0);
@@ -199,7 +205,7 @@ public class MainScene extends BaseScene {
         topTilesPanes.setSpacing(50*Main.SCREEN_WIDTH/1920);
         topTilesPanes.getChildren().addAll(lastPlayedTilePane,recentlyAddedTilePane);*/
 
-        tilesPaneWrapper.getChildren().addAll(topTilesPaneGridPane,tilePane);
+        tilesPaneWrapper.getChildren().addAll(toAddTilePane,topTilesPaneGridPane,tilePane);
         scrollPane.setContent(tilesPaneWrapper);
         wrappingPane.setCenter(scrollPane);
 
@@ -224,12 +230,16 @@ public class MainScene extends BaseScene {
 
                 recentlyAddedTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * newValue.doubleValue());
                 recentlyAddedTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * newValue.doubleValue());
+
+                toAddTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * newValue.doubleValue());
+                toAddTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * newValue.doubleValue());
             }
         });
         sizeSlider.setOnMouseReleased(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
+                initAll();
             }
         });
         sizeSlider.setValue(Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.TILE_ZOOM));
@@ -270,6 +280,7 @@ public class MainScene extends BaseScene {
             if(!tilePane.isSearching()) {
                 lastPlayedTilePane.show();
                 recentlyAddedTilePane.show();
+                toAddTilePane.show();
             }
             scrollPane.setVvalue(scrollPane.getVmin());
         });
@@ -277,6 +288,7 @@ public class MainScene extends BaseScene {
             tilePane.sortByRating();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
+            toAddTilePane.hide();
 
             scrollPane.setVvalue(scrollPane.getVmin());
         });
@@ -284,6 +296,7 @@ public class MainScene extends BaseScene {
             tilePane.sortByTimePlayed();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
+            toAddTilePane.hide();
 
             scrollPane.setVvalue(scrollPane.getVmin());
         });
@@ -291,6 +304,7 @@ public class MainScene extends BaseScene {
             tilePane.sortByReleaseDate();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
+            toAddTilePane.hide();
 
             scrollPane.setVvalue(scrollPane.getVmin());
         });
@@ -440,6 +454,7 @@ public class MainScene extends BaseScene {
         if(showTilesPaneAgainAfterCancelSearch){
             lastPlayedTilePane.show();
             recentlyAddedTilePane.show();
+            toAddTilePane.show();
         }
         tilePane.setTitle(Main.RESSOURCE_BUNDLE.getString("all_games"));
         tilePane.cancelSearchText();
@@ -450,6 +465,7 @@ public class MainScene extends BaseScene {
         }
         lastPlayedTilePane.hide();
         recentlyAddedTilePane.hide();
+        toAddTilePane.hide();
         int found = tilePane.searchText(text);
         tilePane.setTitle(found+" "+Main.RESSOURCE_BUNDLE.getString("results_found_for")+" \""+text+"\"");
     }
@@ -458,6 +474,7 @@ public class MainScene extends BaseScene {
         tilePane.removeGame(entry);
         lastPlayedTilePane.removeGame(entry);
         recentlyAddedTilePane.removeGame(entry);
+        toAddTilePane.removeGame(entry);
         AllGameEntries.removeGame(entry);
         refreshTrayMenu();
     }
@@ -466,6 +483,7 @@ public class MainScene extends BaseScene {
         tilePane.updateGame(entry);
         lastPlayedTilePane.updateGame(entry);
         recentlyAddedTilePane.updateGame(entry);
+        toAddTilePane.updateGame(entry);
         AllGameEntries.updateGame(entry);
         refreshTrayMenu();
     }
@@ -474,6 +492,7 @@ public class MainScene extends BaseScene {
         tilePane.addGame(entry);
         lastPlayedTilePane.addGame(entry);
         recentlyAddedTilePane.addGame(entry);
+        toAddTilePane.removeGame(entry);
         AllGameEntries.addGame(entry);
         refreshTrayMenu();
     }
@@ -525,81 +544,23 @@ public class MainScene extends BaseScene {
     }
 
     private void checkSteamGamesInstalled() {
-        ArrayList<GameEntry> ownedSteamApps = new ArrayList<>();
-        Task<ArrayList<GameEntry>> checkAppsTask = new Task() {
+        toAddTilePane.fold();
+        toAddTilePane.setAutomaticSort(false);
+        GameLooker looker = new GameLooker(new OnGameFoundHandler() {
             @Override
-            protected Object call() throws Exception {
-                ArrayList<GameEntry> steamEntriesToAdd = new ArrayList<GameEntry>();
-                ownedSteamApps.addAll(SteamOnlineScrapper.getOwnedSteamGames());
-                ArrayList<SteamPreEntry> installedSteamApps = SteamLocalScrapper.getSteamAppsInstalledPreEntries();
-
-                for (GameEntry steamEntry : ownedSteamApps) {
-                    boolean doNotAdd = false;
-                    for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
-                        doNotAdd = steamEntry.getSteam_id() == entry.getSteam_id();
-                        if (doNotAdd) {
-                            break;
-                        }
-                    }
-                    if (!doNotAdd) {
-                        SteamPreEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
-                        for (SteamPreEntry ignoredEntry : ignoredSteamApps) {
-                            doNotAdd = steamEntry.getSteam_id() == ignoredEntry.getId();
-                            if (doNotAdd) {
-                                break;
-                            }
-                        }
-                    }
-                    if (!doNotAdd) {
-                        Main.LOGGER.debug("To add : " + steamEntry.getName());
-                        steamEntriesToAdd.add(steamEntry);
-                    }
-                }
-
-                return steamEntriesToAdd;
+            public void gameToAddFound(GameEntry entry) {
+                toAddTilePane.addGame(entry);
             }
-        };
-        checkAppsTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+
             @Override
-            public void handle(WorkerStateEvent event) {
-                ArrayList<GameEntry> steamEntriesToAdd = checkAppsTask.getValue();
-
-                Main.LOGGER.info(steamEntriesToAdd.size() + " steam games to add");
-                if (steamEntriesToAdd.size() != 0) {
-                    Platform.runLater(() -> {
-                        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION, steamEntriesToAdd.size() + " " + Main.RESSOURCE_BUNDLE.getString("steam_games_to_add_detected"));
-                        alert.getButtonTypes().add(new ButtonType(RESSOURCE_BUNDLE.getString("ignore") + "...", ButtonBar.ButtonData.LEFT));
-                        Optional<ButtonType> result = alert.showAndWait();
-                        result.ifPresent(buttonType -> {
-                            if (buttonType.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                                createSteamEntryAddExitAction(steamEntriesToAdd, 0).run();
-                            } else if (buttonType.getButtonData().equals(ButtonBar.ButtonData.LEFT)) {
-                                try {
-                                    ArrayList<SteamPreEntry> preEntries = new ArrayList<SteamPreEntry>();
-                                    for(GameEntry entry : ownedSteamApps){
-                                        preEntries.add(new SteamPreEntry(entry.getName(),entry.getSteam_id()));
-                                    }
-                                    SteamIgnoredSelector selector = new SteamIgnoredSelector(preEntries);
-                                    Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
-                                    ignoredOptionnal.ifPresent(pairs -> {
-                                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS, selector.getSelectedEntries());
-                                        }
-                                    });
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
-                    });
-                }
-
+            public void onAllGamesFound() {
+                toAddTilePane.sort();
+                Platform.runLater(() -> {
+                    toAddTilePane.unfold();
+                });
             }
         });
-        Thread th = new Thread(checkAppsTask);
-        th.setDaemon(true);
-        th.start();
-
+        looker.startService();
     }
 
 

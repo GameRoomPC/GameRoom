@@ -28,11 +28,10 @@ public class SteamOnlineScrapper {
             ArrayList<SteamPreEntry> entries = new ArrayList<>();
             JSONArray ownedArray = getGamesOwned(SteamLocalScrapper.getSteamUserId());
             for (int i = 0; i < ownedArray.length(); i++) {
-                GameEntry gameEntry = getEntryForSteamId(ownedArray.getJSONObject(i).getInt("appID"), SteamLocalScrapper.getSteamAppsInstalledPreEntries());
-                if (gameEntry != null) {
-                    SteamPreEntry entry = new SteamPreEntry(gameEntry.getName(), gameEntry.getSteam_id());
-                    entries.add(entry);
-                }
+                SteamPreEntry preEntry = new SteamPreEntry(ownedArray.getJSONObject(i).getString("name"),ownedArray.getJSONObject(i).getInt("appID"));
+                JSONObject info = getInfoForGame(preEntry.getId());
+                if(info!=null && (info.getString("type").equals("game") || info.getString("type").equals("demo")))
+                    entries.add(preEntry);
             }
             entries.sort(new Comparator<SteamPreEntry>() {
                 @Override
@@ -153,6 +152,7 @@ public class SteamOnlineScrapper {
 
             JSONObject idObject = new JSONObject(tokener).getJSONObject("" + steam_id);
             boolean success = idObject.getBoolean("success");
+
             return success ? idObject.getJSONObject("data") : null;
         } catch (JSONException e) {
             if (e.toString().contains("not found")) {

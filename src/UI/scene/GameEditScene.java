@@ -4,7 +4,7 @@ import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
 import data.game.scrapper.IGDBScrapper;
 import data.game.ImageUtils;
-import data.game.OnDLDoneHandler;
+import data.game.scrapper.OnDLDoneHandler;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -13,6 +13,7 @@ import javafx.concurrent.WorkerStateEvent;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.controlsfx.control.CheckComboBox;
 import org.json.JSONException;
+import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.ValidEntryCondition;
 import ui.control.button.ImageButton;
@@ -446,23 +447,6 @@ public class GameEditScene extends BaseScene {
         contentPane.add(themeComboBox, 1, row_count);
         row_count++;
 
-        /**************************DESCRIPTION*********************************************/
-        Label titleDescriptionLabel = new Label(RESSOURCE_BUNDLE.getString("game_description") + " :");
-        titleDescriptionLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("game_description")));
-        contentPane.add(titleDescriptionLabel, 0, row_count);
-        TextArea gameDescriptionField = new TextArea(entry.getDescription());
-        gameDescriptionField.setWrapText(true);
-        gameDescriptionField.setId("game_description");
-        gameDescriptionField.setPrefRowCount(4);
-        gameDescriptionField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                entry.setDescription(newValue);
-            }
-        });
-        contentPane.add(gameDescriptionField, 1, row_count);
-        row_count++;
-
         /**************************SCREENSHOT*********************************************/
         OnDLDoneHandler screenshotDlDoneHandler = new OnDLDoneHandler() {
             @Override
@@ -552,6 +536,59 @@ public class GameEditScene extends BaseScene {
                 setLineInvalid("game_name");
             }
         });*/
+        /**************************DESCRIPTION*********************************************/
+        Label titleDescriptionLabel = new Label(RESSOURCE_BUNDLE.getString("game_description") + " :");
+        titleDescriptionLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("game_description")));
+        contentPane.add(titleDescriptionLabel, 0, row_count);
+        TextArea gameDescriptionField = new TextArea(entry.getDescription());
+        gameDescriptionField.setWrapText(true);
+        gameDescriptionField.setId("game_description");
+        gameDescriptionField.setPrefRowCount(4);
+        gameDescriptionField.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                entry.setDescription(newValue);
+            }
+        });
+        contentPane.add(gameDescriptionField, 1, row_count);
+        row_count++;
+
+        /**************************CMD*********************************************/
+        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)) {
+            Label cmdBeforeLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_before_label") + " :");
+            cmdBeforeLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_before_tooltip")));
+            cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            contentPane.add(cmdBeforeLabel, 0, row_count);
+            TextArea cmdBeforeField = new TextArea(entry.getCmd(GameEntry.CMD_BEFORE_START));
+            cmdBeforeField.setWrapText(true);
+            cmdBeforeField.setId("cmd_before");
+            cmdBeforeField.setPrefRowCount(6);
+            cmdBeforeField.textProperty().addListener(new ChangeListener<String>() {
+                @Override
+                public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                    entry.setCmd(GameEntry.CMD_BEFORE_START,newValue);
+                }
+            });
+            contentPane.add(cmdBeforeField, 1, row_count);
+            row_count++;
+
+            Label cmdAfterLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_after_label") + " :");
+            cmdAfterLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_after_tooltip")));
+            cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            contentPane.add(cmdAfterLabel, 0, row_count);
+            TextArea cmdAfterField = new TextArea(entry.getCmd(GameEntry.CMD_AFTER_END));
+            cmdAfterField.setWrapText(true);
+            cmdAfterField.setId("cmd_after");
+            cmdAfterField.setPrefRowCount(6);
+            cmdAfterField.textProperty().addListener(new ChangeListener<String>() {
+                @Override
+                public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                    entry.setCmd(GameEntry.CMD_AFTER_END,newValue);
+                }
+            });
+            contentPane.add(cmdAfterField, 1, row_count);
+            row_count++;
+        }
 
         /********************END FOR PROPERTIES********************************************/
 
@@ -814,7 +851,7 @@ public class GameEditScene extends BaseScene {
         return map;
     }
 
-    private static String getExtension(File file) {
+    public static String getExtension(File file) {
         return getExtension(file.getAbsolutePath());
     }
 

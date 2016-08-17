@@ -1,7 +1,7 @@
 package ui.dialog;
 
 import data.game.ImageUtils;
-import data.game.OnDLDoneHandler;
+import data.game.scrapper.OnDLDoneHandler;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;

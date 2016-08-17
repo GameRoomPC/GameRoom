@@ -1,4 +1,4 @@
-package data.game;
+package data.game.scrapper;
 
 import java.io.File;
 

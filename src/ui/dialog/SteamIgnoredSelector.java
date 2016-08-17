@@ -1,10 +1,9 @@
 package ui.dialog;
 
 import data.game.*;
-import data.game.entry.GameEntry;
+import data.game.scrapper.OnDLDoneHandler;
 import data.game.scrapper.SteamOnlineScrapper;
 import data.game.scrapper.SteamPreEntry;
-import data.game.scrapper.SteamLocalScrapper;
 import data.http.SimpleImageInfo;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
