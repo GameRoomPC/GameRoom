@@ -21,6 +21,7 @@ import ui.scene.GameEditScene;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -159,7 +160,9 @@ public class GameLooker {
                                 try {
                                     fetchedEntry = SteamOnlineScrapper.getEntryForSteamId(preEntryToAdd.getId(), installedSteamApps);
                                 } catch (Exception e) {
-                                    e.printStackTrace();
+                                    if(e.toString().contains("UnknownHostException")){
+                                        Main.LOGGER.error("Could not connect to steam, toAdd entry will not be scrapped");
+                                    }
                                 }
                                 GameEntry entryToAdd = fetchedEntry != null ? fetchedEntry : convertedEntry;
                                 if (!alreadyWaitingToBeAdded(entryToAdd)) {

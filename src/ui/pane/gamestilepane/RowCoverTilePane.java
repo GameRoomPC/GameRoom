@@ -53,29 +53,7 @@ public class RowCoverTilePane extends CoverTilePane {
         super(parentScene, Main.RESSOURCE_BUNDLE.getString(type));
 
         tilePane.setPadding(new Insets(30 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920, 30 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920));
-
         tilePane.setOrientation(Orientation.HORIZONTAL);
-//        tilePane.heightProperty().addListener(new ChangeListener<Number>() {
-//            @Override
-//            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-//                if (newValue.doubleValue() > 1.9 * tilePane.getPrefTileHeight()) {
-//                    for (int i = tilePane.getChildren().size()-1; i>=0; i--) {
-//                        if(tilePane.getChildren().get(i).isVisible()){
-//                            setGameButtonVisible((GameButton) tilePane.getChildren().get(i),false);
-//                            break;
-//                        }
-//                    }
-//                }/*else if(oldValue.doubleValue() < 1.9 * tilePane.getPrefTileHeight() && newValue.doubleValue() < 1.9 * tilePane.getPrefTileHeight()){
-//                    for (int i = 0; i< tilePane.getChildren().size(); i++) {
-//                        if(!tilePane.getChildren().get(i).isManaged()){
-//                            if(tilePane.getWidth()+tilePane.getPrefTileWidth()*1.5 < getWidth())
-//                                setGameButtonVisible((GameButton) tilePane.getChildren().get(i),true);
-//                            break;
-//                        }
-//                    }
-//                }*/
-//            }
-//        });
 
         tilePane.setPrefRows(1);
         tilePane.setPrefColumns(Integer.MAX_VALUE);
@@ -168,22 +146,6 @@ public class RowCoverTilePane extends CoverTilePane {
                         }
                         boolean visible = i < maxColumn && !hide;
                         setGameButtonVisible(tilesList.get(i), visible);
-
-                        /*double opacity = 0;
-                        if(i==0){
-                            opacity = 1.0;
-                        }else if( i == 1){
-                            opacity = 1.0;
-                        }else if( i == 2){
-                            opacity = 0.9;
-                        }else if( i == 3){
-                            opacity = 0.7;
-                        }else if( i == 4){
-                            opacity = 0.5;
-                        }
-                        tilesList.get(i).setOpacity(opacity);
-                        */
-
                         hideTilePane = hideTilePane && !visible;
                     }
                     setForcedHidden(hideTilePane);
@@ -191,7 +153,6 @@ public class RowCoverTilePane extends CoverTilePane {
             }
         });
         StackPane wrappingPane = new StackPane();
-        //horizontalScrollPane.setContent(getTilePane());
         wrappingPane.getChildren().add(tilePane);
         setCenter(wrappingPane);
         separator.setPadding(titleLabel.getPadding());
@@ -235,20 +196,12 @@ public class RowCoverTilePane extends CoverTilePane {
     }
 
     private void openTilePane() {
-        /*horizontalScrollPane.setManaged(true);
-        horizontalScrollPane.setVisible(true);
-        horizontalScrollPane.setMouseTransparent(false);*/
         tilePane.setManaged(true);
         tilePane.setVisible(true);
-        //horizontalScrollPane.minHeightProperty().unbind();
         Timeline fadeInTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
-                        //new KeyValue(horizontalScrollPane.minHeightProperty(), 0, Interpolator.EASE_IN),
-                        //new KeyValue(horizontalScrollPane.maxHeightProperty(), 0, Interpolator.EASE_IN),
                         new KeyValue(tilePane.opacityProperty(), 0, Interpolator.EASE_IN)),
                 new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME * 2),
-                        //new KeyValue(horizontalScrollPane.minHeightProperty(), tilePane.getHeight(), Interpolator.EASE_OUT),
-                        //new KeyValue(horizontalScrollPane.maxHeightProperty(), tilePane.getHeight(), Interpolator.EASE_OUT),
                         new KeyValue(tilePane.opacityProperty(), 1, Interpolator.EASE_OUT)
                 ));
         fadeInTimeline.setCycleCount(1);
@@ -257,16 +210,10 @@ public class RowCoverTilePane extends CoverTilePane {
     }
 
     private void closeTilePane() {
-
-        //horizontalScrollPane.minHeightProperty().unbind();
         Timeline fadeOutTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
-                        //new KeyValue(horizontalScrollPane.minHeightProperty(), horizontalScrollPane.getMinHeight(), Interpolator.EASE_IN),
-                        //new KeyValue(horizontalScrollPane.maxHeightProperty(), horizontalScrollPane.getMaxHeight(), Interpolator.EASE_IN),
                         new KeyValue(tilePane.opacityProperty(), tilePane.opacityProperty().getValue(), Interpolator.EASE_IN)),
                 new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME * 2),
-                        //new KeyValue(horizontalScrollPane.minHeightProperty(), 0, Interpolator.EASE_OUT),
-                        //new KeyValue(horizontalScrollPane.maxHeightProperty(), 0, Interpolator.EASE_OUT),
                         new KeyValue(tilePane.opacityProperty(), 0, Interpolator.EASE_OUT)
                 ));
         fadeOutTimeline.setCycleCount(1);
@@ -276,8 +223,6 @@ public class RowCoverTilePane extends CoverTilePane {
             public void handle(ActionEvent event) {
                 tilePane.setManaged(false);
                 tilePane.setVisible(false);
-                //horizontalScrollPane.setMouseTransparent(true);
-                //horizontalScrollPane.minHeightProperty().bind(tilePane.heightProperty());
             }
         });
         fadeOutTimeline.play();

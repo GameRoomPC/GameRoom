@@ -98,7 +98,8 @@ public class MainScene extends BaseScene {
         });
         initAll();
     }
-    public void initAll(){
+
+    public void initAll() {
         initCenter();
         initTop();
     }
@@ -133,7 +134,7 @@ public class MainScene extends BaseScene {
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
 
         VBox tilesPaneWrapper = new VBox();
-        tilesPaneWrapper.setSpacing(5*Main.SCREEN_HEIGHT/1080);
+        tilesPaneWrapper.setSpacing(5 * Main.SCREEN_HEIGHT / 1080);
         tilePane = new CoverTilePane(this, Main.RESSOURCE_BUNDLE.getString("all_games"));
         lastPlayedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_LAST_PLAYED);
         recentlyAddedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_RECENTLY_ADDED);
@@ -189,23 +190,23 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.managedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                if(newValue){
+                if (newValue) {
                     halfConstraint.setMaxWidth(lastPlayedTilePane.getWidth());
-                }else{
+                } else {
                     halfConstraint.setPercentWidth(0);
                 }
             }
         });
         topTilesPaneGridPane.getColumnConstraints().add(halfConstraint);
-        topTilesPaneGridPane.add(lastPlayedTilePane,0,0);
-        topTilesPaneGridPane.add(recentlyAddedTilePane,1,0);
-        topTilesPaneGridPane.setHgap(50*Main.SCREEN_WIDTH/1920);
+        topTilesPaneGridPane.add(lastPlayedTilePane, 0, 0);
+        topTilesPaneGridPane.add(recentlyAddedTilePane, 1, 0);
+        topTilesPaneGridPane.setHgap(50 * Main.SCREEN_WIDTH / 1920);
         /*HBox topTilesPanes = new HBox();
         topTilesPanes.setAlignment(Pos.CENTER_LEFT);
         topTilesPanes.setSpacing(50*Main.SCREEN_WIDTH/1920);
         topTilesPanes.getChildren().addAll(lastPlayedTilePane,recentlyAddedTilePane);*/
 
-        tilesPaneWrapper.getChildren().addAll(toAddTilePane,topTilesPaneGridPane,tilePane);
+        tilesPaneWrapper.getChildren().addAll(toAddTilePane, topTilesPaneGridPane, tilePane);
         scrollPane.setContent(tilesPaneWrapper);
         wrappingPane.setCenter(scrollPane);
 
@@ -275,15 +276,16 @@ public class MainScene extends BaseScene {
         MenuItem byReleaseDateItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_release_date"));
         sortMenu.getItems().addAll(byNameItem, byRatingItem, byTimePlayedItem, byReleaseDateItem);
         byNameItem.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
             tilePane.sortByName();
-            if(!tilePane.isSearching()) {
-                lastPlayedTilePane.show();
-                recentlyAddedTilePane.show();
-                toAddTilePane.show();
-            }
+            lastPlayedTilePane.hide();
+            recentlyAddedTilePane.hide();
+            toAddTilePane.hide();
             scrollPane.setVvalue(scrollPane.getVmin());
         });
         byRatingItem.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
             tilePane.sortByRating();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
@@ -292,6 +294,8 @@ public class MainScene extends BaseScene {
             scrollPane.setVvalue(scrollPane.getVmin());
         });
         byTimePlayedItem.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
             tilePane.sortByTimePlayed();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
@@ -300,6 +304,8 @@ public class MainScene extends BaseScene {
             scrollPane.setVvalue(scrollPane.getVmin());
         });
         byReleaseDateItem.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
             tilePane.sortByReleaseDate();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
@@ -401,29 +407,35 @@ public class MainScene extends BaseScene {
 
         HBox searchBox = new HBox();
         searchBox.setAlignment(Pos.CENTER_RIGHT);
-        searchBox.getChildren().addAll(searchField,searchButton);
+        searchBox.getChildren().addAll(searchField, searchButton);
         searchField.setFocusTraversable(false);
         searchField.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if(newValue!= null && !newValue.equals("")){
+                if (newValue != null && !newValue.equals("")) {
                     searchGame(newValue);
-                }else if(newValue!= null && newValue.equals("")){
+                } else if (newValue != null && newValue.equals("")) {
                     cancelSearch();
                 }
             }
         });
-        hbox.setPickOnBounds(false);
+
         //hbox.getChildren().add(searchBox);
 
         //HBox.setMargin(sizeSlider, new Insets(15, 12, 15, 12));
         StackPane topPane = new StackPane();
         //topPane.setFocusTraversable(false);
-        ImageView titleView = new ImageView(new Image("res/ui/title-medium.png", 500 * SCREEN_WIDTH / 1920, 94 * SCREEN_HEIGHT / 1080, true, true));
-        titleView.setMouseTransparent(true);
-        titleView.setFocusTraversable(false);
-        StackPane.setAlignment(titleView, Pos.BOTTOM_CENTER);
-        topPane.getChildren().add(titleView);
+        Image logoImage = new Image("res/ui/title-medium.png", 500 * SCREEN_WIDTH / 1920, 94 * SCREEN_HEIGHT / 1080, true, true);
+        ImageButton homeButton = new ImageButton(logoImage);
+        homeButton.setFocusTraversable(false);
+        homeButton.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
+            @Override
+            public void handle(javafx.event.ActionEvent event) {
+                home();
+            }
+        });
+        StackPane.setAlignment(homeButton, Pos.BOTTOM_CENTER);
+        topPane.getChildren().add(homeButton);
         /*StackPane.setMargin(titleView, new Insets(55 * Main.SCREEN_HEIGHT / 1080
                 , 12 * Main.SCREEN_WIDTH / 1920
                 , 15 * Main.SCREEN_HEIGHT / 1080
@@ -432,6 +444,10 @@ public class MainScene extends BaseScene {
         topPane.getChildren().add(hbox);
         StackPane.setAlignment(hbox, Pos.CENTER_LEFT);
 
+
+        hbox.setPickOnBounds(false);
+        searchBox.setPickOnBounds(false);
+        homeButton.setPickOnBounds(false);
         wrappingPane.setTop(topPane);
     }
 
@@ -449,8 +465,18 @@ public class MainScene extends BaseScene {
             Main.START_TRAY_MENU.add(gameItem);
         }
     }
-    public void cancelSearch(){
-        if(showTilesPaneAgainAfterCancelSearch){
+    private void home(){
+        tilePane.sortByName();
+        if (tilePane.isSearching()) {
+            searchField.clear();
+        }
+        lastPlayedTilePane.show();
+        recentlyAddedTilePane.show();
+        toAddTilePane.show();
+        scrollPane.setVvalue(scrollPane.getVmin());
+    }
+    public void cancelSearch() {
+        if (showTilesPaneAgainAfterCancelSearch) {
             lastPlayedTilePane.show();
             recentlyAddedTilePane.show();
             toAddTilePane.show();
@@ -458,15 +484,16 @@ public class MainScene extends BaseScene {
         tilePane.setTitle(Main.RESSOURCE_BUNDLE.getString("all_games"));
         tilePane.cancelSearchText();
     }
-    public void searchGame(String text){
-        if(!tilePane.isSearching()) {
+
+    public void searchGame(String text) {
+        if (!tilePane.isSearching()) {
             showTilesPaneAgainAfterCancelSearch = lastPlayedTilePane.isManaged();
         }
         lastPlayedTilePane.hide();
         recentlyAddedTilePane.hide();
         toAddTilePane.hide();
         int found = tilePane.searchText(text);
-        tilePane.setTitle(found+" "+Main.RESSOURCE_BUNDLE.getString("results_found_for")+" \""+text+"\"");
+        tilePane.setTitle(found + " " + Main.RESSOURCE_BUNDLE.getString("results_found_for") + " \"" + text + "\"");
     }
 
     public void removeGame(GameEntry entry) {

@@ -93,7 +93,7 @@ public class SteamOnlineScrapper {
         return entries;
     }
 
-    public static GameEntry getEntryForSteamId(int steamId, ArrayList<SteamPreEntry> installedSteamApps) throws ConnectTimeoutException {
+    public static GameEntry getEntryForSteamId(int steamId, ArrayList<SteamPreEntry> installedSteamApps) throws ConnectTimeoutException,UnirestException {
         JSONObject gameInfoJson = getInfoForGame(steamId);
         if (gameInfoJson != null) {
             GameEntry entry = new GameEntry(gameInfoJson.getString("name"));
@@ -165,7 +165,9 @@ public class SteamOnlineScrapper {
                 e.printStackTrace();
             }
         } catch (UnirestException e) {
-            e.printStackTrace();
+            if (e.toString().contains("java.net.UnknownHostException:")) {
+                Main.LOGGER.info("Could not join store.steampowered, returning no entry");
+            }
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (IOException e) {
