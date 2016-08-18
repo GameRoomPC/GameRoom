@@ -2,9 +2,6 @@ package ui.scene;
 
 import data.game.*;
 import data.game.entry.GameEntry;
-import data.game.scrapper.SteamOnlineScrapper;
-import data.game.scrapper.SteamPreEntry;
-import data.game.scrapper.SteamLocalScrapper;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -18,7 +15,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.GaussianBlur;
-import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import system.os.WindowsShortcut;
@@ -38,11 +34,7 @@ import javafx.scene.layout.*;
 import javafx.stage.*;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
-import ui.dialog.SteamIgnoredSelector;
-import ui.pane.gamestilepane.CoverTilePane;
-import ui.pane.gamestilepane.GamesTilePane;
-import ui.pane.gamestilepane.RowCoverTilePane;
-import ui.pane.gamestilepane.ToAddRowTilePane;
+import ui.pane.gamestilepane.*;
 import ui.scene.exitaction.ClassicExitAction;
 import ui.scene.exitaction.ExitAction;
 import ui.scene.exitaction.MultiAddExitAction;
@@ -70,12 +62,16 @@ public class MainScene extends BaseScene {
     public final static double MAX_TILE_ZOOM = 0.675;
     public final static double MIN_TILE_ZOOM = 0.25;
 
+    private VBox tilesPaneWrapper = new VBox();
     private ScrollPane scrollPane;
     private BorderPane wrappingPane;
+
     private GamesTilePane tilePane;
     private RowCoverTilePane lastPlayedTilePane;
     private RowCoverTilePane recentlyAddedTilePane;
     private ToAddRowTilePane toAddTilePane;
+
+    private ArrayList<GroupRowTilePane> groupRowList = new ArrayList<>();
 
     private TextField searchField;
     private boolean showTilesPaneAgainAfterCancelSearch = false;
@@ -133,7 +129,6 @@ public class MainScene extends BaseScene {
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
 
-        VBox tilesPaneWrapper = new VBox();
         tilesPaneWrapper.setSpacing(5 * Main.SCREEN_HEIGHT / 1080);
         tilePane = new CoverTilePane(this, Main.RESSOURCE_BUNDLE.getString("all_games"));
         lastPlayedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_LAST_PLAYED);
@@ -274,13 +269,18 @@ public class MainScene extends BaseScene {
         MenuItem byRatingItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_rating"));
         MenuItem byTimePlayedItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_playtime"));
         MenuItem byReleaseDateItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_release_date"));
-        sortMenu.getItems().addAll(byNameItem, byRatingItem, byTimePlayedItem, byReleaseDateItem);
         byNameItem.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
+
             tilePane.sortByName();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
             toAddTilePane.hide();
+
+            for(GroupRowTilePane groupPane : groupRowList){
+                groupPane.sortByName();
+            }
+
             scrollPane.setVvalue(scrollPane.getVmin());
         });
         byRatingItem.setOnAction(event -> {
@@ -290,6 +290,10 @@ public class MainScene extends BaseScene {
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
             toAddTilePane.hide();
+
+            for(GroupRowTilePane groupPane : groupRowList){
+                groupPane.sortByRating();
+            }
 
             scrollPane.setVvalue(scrollPane.getVmin());
         });
@@ -301,6 +305,10 @@ public class MainScene extends BaseScene {
             recentlyAddedTilePane.hide();
             toAddTilePane.hide();
 
+            for(GroupRowTilePane groupPane : groupRowList){
+                groupPane.sortByTimePlayed();
+            }
+
             scrollPane.setVvalue(scrollPane.getVmin());
         });
         byReleaseDateItem.setOnAction(event -> {
@@ -311,8 +319,76 @@ public class MainScene extends BaseScene {
             recentlyAddedTilePane.hide();
             toAddTilePane.hide();
 
+            for(GroupRowTilePane groupPane : groupRowList){
+                groupPane.sortByReleaseDate();
+            }
+
             scrollPane.setVvalue(scrollPane.getVmin());
         });
+
+        MenuItem groupByAll = new MenuItem("all");
+        groupByAll.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.show();
+            lastPlayedTilePane.hide();
+            recentlyAddedTilePane.hide();
+            toAddTilePane.hide();
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        MenuItem groupByTheme = new MenuItem("theme");
+        groupByTheme.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.hide();
+            lastPlayedTilePane.hide();
+            recentlyAddedTilePane.hide();
+            toAddTilePane.hide();
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+            groupRowList = GroupsFactory.createGroupsByTheme(tilePane,this);
+            tilesPaneWrapper.getChildren().addAll(groupRowList);
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        MenuItem groupByGenre = new MenuItem("genre");
+        groupByGenre.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.hide();
+            lastPlayedTilePane.hide();
+            recentlyAddedTilePane.hide();
+            toAddTilePane.hide();
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+            groupRowList = GroupsFactory.createGroupsByGenre(tilePane,this);
+            tilesPaneWrapper.getChildren().addAll(groupRowList);
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        MenuItem groupBySerie = new MenuItem("serie");
+        groupBySerie.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.hide();
+            lastPlayedTilePane.hide();
+            recentlyAddedTilePane.hide();
+            toAddTilePane.hide();
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+            groupRowList = GroupsFactory.createGroupsBySerie(tilePane,this);
+            tilesPaneWrapper.getChildren().addAll(groupRowList);
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        sortMenu.getItems().addAll(byNameItem, byRatingItem, byTimePlayedItem, byReleaseDateItem,groupByAll,groupByGenre,groupByTheme,groupBySerie);
 
         sortButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
@@ -473,6 +549,12 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.show();
         recentlyAddedTilePane.show();
         toAddTilePane.show();
+
+        tilesPaneWrapper.getChildren().removeAll(groupRowList);
+        groupRowList.clear();
+
+        tilePane.show();
+
         scrollPane.setVvalue(scrollPane.getVmin());
     }
     public void cancelSearch() {
@@ -483,11 +565,21 @@ public class MainScene extends BaseScene {
         }
         tilePane.setTitle(Main.RESSOURCE_BUNDLE.getString("all_games"));
         tilePane.cancelSearchText();
+        if(groupRowList.size() > 0) {
+            for (GroupRowTilePane tilePane : groupRowList) {
+                tilePane.show();
+            }
+            tilePane.hide();
+        }
     }
 
     public void searchGame(String text) {
+        tilePane.show();
         if (!tilePane.isSearching()) {
             showTilesPaneAgainAfterCancelSearch = lastPlayedTilePane.isManaged();
+        }
+        for(GroupRowTilePane tilePane : groupRowList){
+            tilePane.hide();
         }
         lastPlayedTilePane.hide();
         recentlyAddedTilePane.hide();

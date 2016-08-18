@@ -6,6 +6,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.layout.TilePane;
+import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.button.gamebutton.TileGameButton;
 import ui.scene.BaseScene;
@@ -69,6 +70,7 @@ public class CoverTilePane extends GamesTilePane{
 
     @Override
     public void sortByRating() {
+        Main.LOGGER.debug("Sorting by rating : "+titleLabel.getText());
         ObservableList<Node> nodes = FXCollections.observableArrayList(
                 tilePane.getChildren()
         );

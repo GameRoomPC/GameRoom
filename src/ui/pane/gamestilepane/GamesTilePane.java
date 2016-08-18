@@ -43,6 +43,7 @@ public abstract class GamesTilePane extends BorderPane{
     private boolean forcedHidden = false;
     private boolean searching = false;
     private boolean automaticSort = true;
+
     public GamesTilePane(MainScene parentScene){
         super();
         this.tilePane = new TilePane();
@@ -65,12 +66,12 @@ public abstract class GamesTilePane extends BorderPane{
 
     protected abstract TilePane getTilePane();
 
-    private final void addTile(GameButton button){
+    protected void addTile(GameButton button){
         addTileToTilePane(button);
         tilesList.add(button);
     }
 
-    private final void removeTile(GameButton button){
+    protected void removeTile(GameButton button){
         removeTileFromTilePane(button);
         tilesList.remove(button);
     }
@@ -86,11 +87,20 @@ public abstract class GamesTilePane extends BorderPane{
         if(automaticSort)
         sort();
     }
+    public final void addGames(Collection<GameEntry> newEntries){
+        for(GameEntry entry : newEntries){
+            addGame(entry);
+        };
+    }
 
     public final void addGame(GameEntry newEntry){
         addTile(createGameButton(newEntry));
         if(automaticSort)
             sort();
+    }
+
+    public ObservableList<GameButton> getGameButtons(){
+        return tilesList;
     }
 
     public final void updateGame(GameEntry newEntry){
@@ -400,5 +410,9 @@ public abstract class GamesTilePane extends BorderPane{
 
     public void setAutomaticSort(boolean automaticSort) {
         this.automaticSort = automaticSort;
+    }
+
+    public Label getTitle() {
+        return titleLabel;
     }
 }

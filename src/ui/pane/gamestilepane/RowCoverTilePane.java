@@ -41,9 +41,10 @@ import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
 public class RowCoverTilePane extends CoverTilePane {
     public final static String TYPE_LAST_PLAYED = "last_played";
     public final static String TYPE_RECENTLY_ADDED = "recently_added";
+    public final static String TYPE_NAME = "name";
 
     private Comparator<GameEntry> entriesComparator;
-    protected int maxColumn = 5;
+    protected int maxColumn = 5; //TODO implement modularized column number selection
     private Separator separator = new Separator();
     private boolean folded = false;
     //private ScrollPane horizontalScrollPane;
@@ -112,6 +113,16 @@ public class RowCoverTilePane extends CoverTilePane {
                     }
                 };
                 break;
+            case TYPE_NAME:
+                this.entriesComparator = new Comparator<GameEntry>() {
+                    @Override
+                    public int compare(GameEntry o1, GameEntry o2) {
+                        String name1 = o1.getName();
+                        String name2 = o2.getName();
+                        return name1.compareToIgnoreCase(name2);
+                    }
+                };
+                break;
             default:
                 break;
         }
@@ -140,6 +151,9 @@ public class RowCoverTilePane extends CoverTilePane {
                                 break;
                             case TYPE_RECENTLY_ADDED:
                                 hide = ((GameButton) tilesList.get(i)).getEntry().getAddedDate() == null;
+                                break;
+                            case TYPE_NAME:
+                                hide = ((GameButton) tilesList.get(i)).getEntry().getName() == null;
                                 break;
                             default:
                                 break;

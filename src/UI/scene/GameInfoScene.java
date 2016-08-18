@@ -183,7 +183,7 @@ public class GameInfoScene extends BaseScene {
             for(GameGenre genre : entry.getGenres()){
                 genres+=genre.getDisplayName()+", ";
             }
-            addProperty("genre",genres.substring(0,genres.length()-2));
+            addProperty("genre",!genres.equals("") ? genres.substring(0,genres.length()-2):"-");
         }else{
             addProperty("genre",null);
         }
@@ -192,7 +192,7 @@ public class GameInfoScene extends BaseScene {
             for(GameTheme theme : entry.getThemes()){
                 themes+=theme.getDisplayName()+", ";
             }
-            addProperty("theme",themes.substring(0,themes.length()-2));
+            addProperty("theme",!themes.equals(", ") ? themes.substring(0,themes.length()-2) : "-");
         }else{
             addProperty("theme",null);
         }
@@ -245,7 +245,8 @@ public class GameInfoScene extends BaseScene {
             for(GameGenre genre : entry.getGenres()){
                 genres+=genre.getDisplayName()+", ";
             }
-            updateProperty("genre",genres.substring(0,genres.length()-2));
+                updateProperty("genre", !genres.equals(", ") ? genres.substring(0, genres.length() - 2) : "-");
+
         }else{
             updateProperty("genre",null);
         }
@@ -254,7 +255,7 @@ public class GameInfoScene extends BaseScene {
             for(GameTheme theme : entry.getThemes()){
                 themes+=theme.getDisplayName()+", ";
             }
-            updateProperty("theme",themes.substring(0,themes.length()-2));
+            updateProperty("theme",!themes.equals(", ") ?themes.substring(0,themes.length()-2) : "-");
         }else{
             updateProperty("theme",null);
         }
