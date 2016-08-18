@@ -1,8 +1,9 @@
 package ui.pane.gamestilepane;
 
 import data.game.entry.GameEntry;
+import ui.Main;
+import ui.control.button.gamebutton.AddIgnoreGameButton;
 import ui.control.button.gamebutton.GameButton;
-import ui.control.button.gamebutton.TileGameButton;
 import ui.scene.MainScene;
 
 /**
@@ -11,13 +12,13 @@ import ui.scene.MainScene;
 public class ToAddRowTilePane extends RowCoverTilePane {
     public ToAddRowTilePane(MainScene parentScene) {
         super(parentScene, RowCoverTilePane.TYPE_RECENTLY_ADDED);
-        setTitle("To add");
-        maxColumn = Integer.MAX_VALUE;
+        setTitle(Main.RESSOURCE_BUNDLE.getString("to_add"));
+        maxColumn = 10;
     }
     @Override
     protected GameButton createGameButton(GameEntry newEntry) {
         //TODO replace by a gameButton with and add and IGNORE BUTTON instead
-        return new TileGameButton(newEntry, tilePane, parentScene);
+        return new AddIgnoreGameButton(newEntry, parentScene, tilePane,this);
 
     }
 }

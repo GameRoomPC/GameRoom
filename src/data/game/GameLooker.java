@@ -21,8 +21,11 @@ import ui.scene.GameEditScene;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.MAIN_SCENE;
@@ -37,11 +40,10 @@ public class GameLooker {
     private ArrayList<SteamPreEntry> installedSteamApps = new ArrayList<>();
 
     private ArrayList<GameEntry> entriesToAdd = new ArrayList<>();
-    private int foundGames = 0;
+    private AtomicInteger foundGames = new AtomicInteger(0);
 
     public GameLooker(OnGameFoundHandler onGameFoundHandler) {
         this.onGameFoundHandler = onGameFoundHandler;
-
     }
 
     public void startService() {
@@ -50,12 +52,13 @@ public class GameLooker {
             public void run() {
                 while (Main.KEEP_THREADS_RUNNING) {
                     Main.LOGGER.info("Starting game watch routine");
-                    foundGames = entriesToAdd.size();
+                    foundGames = new AtomicInteger(0);
+
                     initFolderWatchTask()/*.run()*/;
                     initSteamWatchTask().run();
                     initSteamUpdateStatusTask();
 
-                    if (foundGames > entriesToAdd.size()) {
+                    if (foundGames.doubleValue()>0) {
                         onGameFoundHandler.onAllGamesFound();
                     }
 
@@ -107,13 +110,13 @@ public class GameLooker {
                             for (SteamPreEntry installedEntry : installedSteamApps) {
                                 if (installedEntry.getId() == entry.getSteam_id()) {
                                     //games is installed!
-                                    //if(entry.isNotInstalled()) {
-                                    entry.setNotInstalled(false);
-                                    Platform.runLater(() -> {
-                                        MAIN_SCENE.updateGame(entry);
-                                    });
-                                    break;
-                                    //}
+                                    if (entry.isNotInstalled()) {
+                                        entry.setNotInstalled(false);
+                                        Platform.runLater(() -> {
+                                            MAIN_SCENE.updateGame(entry);
+                                        });
+                                        break;
+                                    }
                                 }
                             }
                             break;
@@ -133,6 +136,7 @@ public class GameLooker {
                         steamEntriesToAdd.add(steamEntry);
                     }
                 }
+                foundGames.addAndGet(steamEntriesToAdd.size());
 
                 return steamEntriesToAdd;
             }
@@ -145,7 +149,7 @@ public class GameLooker {
                 Main.LOGGER.info(steamEntriesToAdd.size() + " steam games to add");
                 if (steamEntriesToAdd.size() != 0) {
                     for (SteamPreEntry preEntryToAdd : steamEntriesToAdd) {
-                        Task getGameEntryTask = new Task<GameEntry>() {
+                        Task addGameEntryTask = new Task<GameEntry>() {
                             @Override
                             protected GameEntry call() throws Exception {
                                 GameEntry convertedEntry = new GameEntry(preEntryToAdd.getName());
@@ -159,30 +163,61 @@ public class GameLooker {
                                 }
                                 GameEntry entryToAdd = fetchedEntry != null ? fetchedEntry : convertedEntry;
                                 if (!alreadyWaitingToBeAdded(entryToAdd)) {
-                                    foundGames++;
                                     GameEntry guessedEntry = tryGetFirstIGDBResult(entryToAdd.getName());
-                                    if(guessedEntry!=null){
+                                    if (guessedEntry != null) {
                                         guessedEntry.setName(entryToAdd.getName());
                                         guessedEntry.setSteam_id(entryToAdd.getSteam_id());
                                         guessedEntry.setPlayTimeSeconds(entryToAdd.getPlayTimeSeconds());
                                         guessedEntry.setNotInstalled(entryToAdd.isNotInstalled());
                                         guessedEntry.setDescription(entryToAdd.getDescription());
+                                        guessedEntry.setIgdb_imageHash(1,guessedEntry.getIgdb_imageHash(0));
+                                        if (guessedEntry.getReleaseDate() == null) {
+                                            guessedEntry.setReleaseDate(entryToAdd.getReleaseDate());
+                                        }
                                         ImageUtils.downloadIGDBImageToCache(guessedEntry.getIgdb_id()
                                                 , guessedEntry.getIgdb_imageHash(0)
                                                 , ImageUtils.IGDB_TYPE_COVER
-                                                , ImageUtils.IGDB_SIZE_SMALL
+                                                , ImageUtils.IGDB_SIZE_MED
                                                 , new OnDLDoneHandler() {
                                                     @Override
                                                     public void run(File outputfile) {
-                                                        guessedEntry.setImagePath(0, outputfile);
-                                                        entriesToAdd.add(guessedEntry);
+                                                       // guessedEntry.setSavedLocaly(true);
+                                                        //File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + guessedEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + GameEditScene.getExtension(outputfile));
+                                                        //try {
+                                                        //    Files.copy(outputfile.toPath().toAbsolutePath(),localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
+                                                        //    guessedEntry.setImagePath(0, localCoverFile);
 
-                                                        Platform.runLater(() -> {
-                                                            onGameFoundHandler.gameToAddFound(guessedEntry);
-                                                        });
+                                                      //  } catch (IOException e) {
+                                                        //    e.printStackTrace();
+                                                            guessedEntry.setImagePath(0,outputfile);
+                                                        //}
+                                                        ImageUtils.downloadIGDBImageToCache(guessedEntry.getIgdb_id()
+                                                                , guessedEntry.getIgdb_imageHash(1)
+                                                                , ImageUtils.IGDB_TYPE_SCREENSHOT
+                                                                , ImageUtils.IGDB_SIZE_MED
+                                                                , new OnDLDoneHandler() {
+                                                                    @Override
+                                                                    public void run(File outputfile) {
+                                                                       // File localScreenshotFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + guessedEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + GameEditScene.getExtension(outputfile));
+                                                                       // try {
+                                                                         //   Files.copy(outputfile.toPath().toAbsolutePath(),localScreenshotFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
+                                                                           // guessedEntry.setImagePath(1, localScreenshotFile);
+
+                                                                      //  } catch (IOException e) {
+                                                                        //    e.printStackTrace();
+                                                                            guessedEntry.setImagePath(1,outputfile);
+                                                                       // }
+                                                                        entriesToAdd.add(guessedEntry);
+
+                                                                        Platform.runLater(() -> {
+                                                                            onGameFoundHandler.gameToAddFound(guessedEntry);
+                                                                        });
+                                                                    }
+                                                                });
+
                                                     }
                                                 });
-                                    }else {
+                                    } else {
                                         entriesToAdd.add(entryToAdd);
 
                                         Platform.runLater(() -> {
@@ -193,42 +228,11 @@ public class GameLooker {
                                 return null;
                             }
                         };
-                        Thread th = new Thread(getGameEntryTask);
+                        Thread th = new Thread(addGameEntryTask);
                         th.setDaemon(true);
                         th.start();
-
                     }
-                        /*GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION, steamEntriesToAdd.size() + " " + Main.RESSOURCE_BUNDLE.getString("steam_games_to_add_detected"));
-                        alert.getButtonTypes().add(new ButtonType(RESSOURCE_BUNDLE.getString("ignore") + "...", ButtonBar.ButtonData.LEFT));
-                        Optional<ButtonType> result = alert.showAndWait();
-                        result.ifPresent(buttonType -> {
-                            if (buttonType.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                                for (SteamPreEntry preEntryToAdd : steamEntriesToAdd) {
-                                    GameEntry convertedEntry = new GameEntry(preEntryToAdd.getName());
-                                    convertedEntry.setSteam_id(preEntryToAdd.getId());
-                                    try {
-                                        convertedEntry = SteamOnlineScrapper.getEntryForSteamId(preEntryToAdd.getId(), installedSteamApps);
-                                    } catch (ConnectTimeoutException e) {
-                                        e.printStackTrace();
-                                    }
-                                    onGameFoundHandler.gameToAddFound(convertedEntry);
-                                }
-                            } else if (buttonType.getButtonData().equals(ButtonBar.ButtonData.LEFT)) {
-                                try {
-                                    SteamIgnoredSelector selector = new SteamIgnoredSelector(ownedSteamApps);
-                                    Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
-                                    ignoredOptionnal.ifPresent(pairs -> {
-                                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS, selector.getSelectedEntries());
-                                        }
-                                    });
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });*/
                 }
-
             }
         });
         return steamTask;

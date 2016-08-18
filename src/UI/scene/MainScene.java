@@ -543,8 +543,10 @@ public class MainScene extends BaseScene {
     }
 
     private void checkSteamGamesInstalled() {
-        toAddTilePane.fold();
+        toAddTilePane.disableFoldButton(true);
         toAddTilePane.setAutomaticSort(false);
+        toAddTilePane.fold();
+        toAddTilePane.hide();
         GameLooker looker = new GameLooker(new OnGameFoundHandler() {
             @Override
             public void gameToAddFound(GameEntry entry) {
@@ -554,6 +556,8 @@ public class MainScene extends BaseScene {
             @Override
             public void onAllGamesFound() {
                 toAddTilePane.sort();
+                toAddTilePane.disableFoldButton(false);
+                toAddTilePane.show();
                 Platform.runLater(() -> {
                     toAddTilePane.unfold();
                 });

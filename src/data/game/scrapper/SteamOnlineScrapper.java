@@ -101,9 +101,9 @@ public class SteamOnlineScrapper {
             try {
                 entry.setReleaseDate(STEAM_DATE_FORMAT.parse(gameInfoJson.getJSONObject("release_date").getString("date")));
             } catch (ParseException e) {
-                System.err.println("Invalid release date format");
+                Main.LOGGER.error("Invalid release date format");
             } catch (NumberFormatException e) {
-                System.err.println("Invalid release date format");
+                Main.LOGGER.error("Invalid release date format");
             }
             entry.setSteam_id(steamId);
             if (installedSteamApps != null) {

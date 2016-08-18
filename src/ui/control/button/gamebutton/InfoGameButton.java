@@ -14,14 +14,12 @@ import static ui.Main.GENERAL_SETTINGS;
  * Created by LM on 12/07/2016.
  */
 public class InfoGameButton extends GameButton {
-    private final static double RATIO_PLAYBUTTON_COVER = 1 / 3.0;
-
     public InfoGameButton(GameEntry entry, BaseScene scene, Pane parent) {
         super(entry, scene, parent);
         COVER_SCALE_EFFECT_FACTOR = 1.03;
-        disableInfoButton();
-        disablePlayTimeLabel();
-        disableTitle();
+        disableNode(titleLabel,true);
+        disableNode(infoButton,true);
+        disableNode(playTimeLabel,true);
         setOnMouseExited(eh -> {
             setFocused(false);
         });
@@ -31,6 +29,8 @@ public class InfoGameButton extends GameButton {
         scene.heightProperty().addListener(cl -> {
             //initAll();
         });
+
+        initContentSize(getCoverWidth(),getCoverHeight());
     }
 
     @Override
@@ -49,6 +49,12 @@ public class InfoGameButton extends GameButton {
         coverView.setFitWidth(getCoverWidth());
         coverView.setFitHeight(getCoverHeight());
     }
+
+    @Override
+    protected void onNewTileWidth(double width) {}
+
+    @Override
+    protected void onNewTileHeight(double height) {}
 
     public void setImage(String imagePath) {
         Image img = new Image("file:" + File.separator + File.separator + File.separator + imagePath, getCoverWidth(), getCoverHeight(), false, true);

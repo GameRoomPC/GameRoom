@@ -5,6 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.layout.TilePane;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.button.gamebutton.TileGameButton;
 import ui.scene.BaseScene;
@@ -29,7 +30,7 @@ public class CoverTilePane extends GamesTilePane{
     }
 
     @Override
-    protected Node getContent() {
+    public TilePane getTilePane() {
         return tilePane;
     }
 

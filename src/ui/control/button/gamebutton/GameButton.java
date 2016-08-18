@@ -4,7 +4,11 @@ import data.game.ImageUtils;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventType;
+import javafx.scene.Node;
 import javafx.scene.effect.*;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.TilePane;
 import javafx.scene.paint.Color;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
@@ -53,6 +57,11 @@ public abstract class GameButton extends BorderPane {
     private static Image DEFAULT_PLAY_IMAGE;
     private static Image DEFAULT_INFO_IMAGE;
 
+
+    private final static double RATIO_NOTINSTALLEDIMAGE_COVER = 1 / 3.0;
+    private final static double RATIO_PLAYBUTTON_COVER = 2 / 3.0;
+    private final static double RATIO_INFOBUTTON_COVER = 1 / 6.0;
+
     public final static double FADE_IN_OUT_TIME = 0.1;
 
     public final static double COVER_HEIGHT_WIDTH_RATIO = 127.0 / 90.0;
@@ -64,7 +73,7 @@ public abstract class GameButton extends BorderPane {
     private BaseScene parentScene;
 
     protected StackPane coverPane;
-    private Label nameLabel;
+    protected Label titleLabel;
     protected Label playTimeLabel;
     protected Label ratingLabel;
     protected Label releaseDateLabel;
@@ -72,6 +81,8 @@ public abstract class GameButton extends BorderPane {
 
     private ContextMenu contextMenu;
     protected ImageView coverView;
+    private ImageView notInstalledImage = new ImageView();
+
     protected ImageButton playButton;
     protected ImageButton infoButton;
 
@@ -89,6 +100,20 @@ public abstract class GameButton extends BorderPane {
         this.parentScene = scene;
 
         initAll();
+        if(parent instanceof TilePane) {
+            ((TilePane)parent).prefTileWidthProperty().addListener(new ChangeListener<Number>() {
+                @Override
+                public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                    updateAllOnTileWidth(newValue.doubleValue());
+                }
+            });
+            ((TilePane)parent).prefTileHeightProperty().addListener(new ChangeListener<Number>() {
+                @Override
+                public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                    updateAllOnTileHeight(newValue.doubleValue());
+                }
+            });
+        }
     }
 
     public void reloadWith(GameEntry entry) {
@@ -98,7 +123,7 @@ public abstract class GameButton extends BorderPane {
         SimpleDateFormat buttonDateFormat = new SimpleDateFormat("MM.yyyy");
         releaseDateLabel.setText(entry.getReleaseDate()!=null ? buttonDateFormat.format(entry.getReleaseDate()) : "-");
 
-        nameLabel.setText(entry.getName());
+        titleLabel.setText(entry.getName());
         double width = coverView.getImage().getWidth();
         double height = coverView.getImage().getHeight();
 
@@ -136,23 +161,25 @@ public abstract class GameButton extends BorderPane {
 
         setOnKeyPressed(ke -> {
             if (ke.getCode() == KeyCode.ENTER) {
-                playButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
+                if(!playButton.isDisabled())
+                    playButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
             }
             if (ke.getCode() == KeyCode.I) {
-                infoButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
+                if(!infoButton.isDisabled())
+                    infoButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
             }
         });
         setCenter(coverPane);
-        setBottom(nameLabel);
+        setBottom(titleLabel);
     }
 
     private void initNameText() {
-        nameLabel = new Label(entry.getName());
-        BorderPane.setMargin(nameLabel, new Insets(10 * GENERAL_SETTINGS.getWindowHeight() / 1080, 0, 0, 0));
-        setAlignment(nameLabel, Pos.CENTER);
+        titleLabel = new Label(entry.getName());
+        BorderPane.setMargin(titleLabel, new Insets(10 * GENERAL_SETTINGS.getWindowHeight() / 1080, 0, 0, 0));
+        setAlignment(titleLabel, Pos.CENTER);
 
-        nameLabel.setScaleX(0.90f);
-        nameLabel.setScaleY(0.90f);
+        titleLabel.setScaleX(0.90f);
+        titleLabel.setScaleY(0.90f);
     }
 
     private void initContextMenu() {
@@ -485,6 +512,10 @@ public abstract class GameButton extends BorderPane {
         StackPane.setAlignment(ratingLabel, Pos.BOTTOM_LEFT);
         StackPane.setAlignment(releaseDateLabel, Pos.BOTTOM_LEFT);
 
+        notInstalledImage.setPreserveRatio(true);
+        coverPane.getChildren().add(notInstalledImage);
+        StackPane.setAlignment(notInstalledImage, Pos.TOP_RIGHT);
+        setNotInstalledEffect();
     }
 
     protected abstract int getCoverHeight();
@@ -515,26 +546,71 @@ public abstract class GameButton extends BorderPane {
         return entry;
     }
 
-    public void disableInfoButton() {
-        infoButton.setDisable(true);
-        infoButton.setVisible(false);
+    protected void disableNode(Node node, boolean disable) {
+        node.setVisible(!disable);
+        node.setDisable(disable);
+        node.setManaged(!disable);
+        node.setMouseTransparent(true);
     }
-
-    public void disableTitle() {
-        nameLabel.setDisable(true);
-        nameLabel.setVisible(false);
-    }
-
-    public void disablePlayTimeLabel() {
-        playTimeLabel.setDisable(true);
-        playTimeLabel.setVisible(false);
-    }
-
     public void hideReleaseDate() {
         releaseDateLabel.setOpacity(0);
     }
 
     public void showReleaseDate() {
         releaseDateLabel.setOpacity(1);
+    }
+
+    protected final void initContentSize(double width, double size){
+        updateAllOnTileWidth(width);
+        updateAllOnTileHeight(size);
+    }
+    protected final void initContentSize(TilePane pane){
+        updateAllOnTileWidth(pane.getPrefTileWidth());
+        updateAllOnTileHeight(pane.getPrefTileHeight());
+    }
+    private final void updateAllOnTileWidth(double width){
+        setPrefWidth(width);
+        setWidth(width);
+        coverView.setFitWidth(width);
+        playButton.setFitWidth(width * RATIO_PLAYBUTTON_COVER);
+        infoButton.setFitWidth(width * RATIO_INFOBUTTON_COVER);
+        notInstalledImage.setFitWidth(width * RATIO_NOTINSTALLEDIMAGE_COVER);
+
+        onNewTileWidth(width);
+    }
+    private final void updateAllOnTileHeight(double height){
+        setPrefHeight(height);
+        setHeight(height);
+        coverView.setFitHeight(height);
+        playButton.setFitHeight(height * RATIO_PLAYBUTTON_COVER);
+        infoButton.setFitHeight(height * RATIO_INFOBUTTON_COVER);
+        notInstalledImage.setFitHeight(height * RATIO_NOTINSTALLEDIMAGE_COVER);
+
+        onNewTileHeight(height);
+    }
+
+    protected abstract void onNewTileWidth(double width);
+
+    protected abstract void onNewTileHeight(double height);
+
+    private void setNotInstalledEffect(){
+        if (getEntry().isNotInstalled()){
+            /*GaussianBlur blur = new GaussianBlur(0.6);
+            blur.setRadius(4);
+            blur.setInput(coverView.getEffect());
+
+            ColorAdjust coverColorAdjust = new ColorAdjust();
+            coverColorAdjust.setBrightness(-0.8);
+            coverColorAdjust.setSaturation(-0.5);
+            coverColorAdjust.setInput(blur);
+            coverColorAdjust.setContrast(-0.3);*/
+
+            Image addImage = new Image("res/ui/toDownloadIcon.png");
+            notInstalledImage.setImage(addImage);
+
+            //coverView.setEffect(coverColorAdjust);
+        }else{
+            notInstalledImage.setImage(null);
+        }
     }
 }

@@ -49,7 +49,7 @@ public abstract class GamesTilePane extends BorderPane{
         this.titleLabel = new Label();
         this.parentScene = parentScene;
         //centerPane.setPrefViewportHeight(tilePane.getPrefHeight());
-        setCenter(getContent());
+        setCenter(getTilePane());
         setTop(titleLabel);
         titleLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
                 "    -fx-font-size: 28.0px;\n" +
@@ -63,7 +63,7 @@ public abstract class GamesTilePane extends BorderPane{
                 , 10 * Main.SCREEN_WIDTH / 1920));
     }
 
-    protected abstract Node getContent();
+    protected abstract TilePane getTilePane();
 
     private final void addTile(GameButton button){
         addTileToTilePane(button);
@@ -108,9 +108,8 @@ public abstract class GamesTilePane extends BorderPane{
         ArrayList<Integer> integers = new ArrayList<>();
         int i = 0;
         for (Node n : tilesList) {
-            if (((TileGameButton) n).getEntry().getUuid().equals(entry.getUuid())) {
+            if (((GameButton) n).getEntry().getUuid().equals(entry.getUuid())) {
                 integers.add(i);
-                break;
             }
             i++;
         }

@@ -248,7 +248,7 @@ public class GameEntry {
     }
 
     public void setDeveloper(String developer) {
-        this.developer = developer;
+        this.developer = developer!=null ? developer : "";
         saveEntry();
     }
 
@@ -257,7 +257,7 @@ public class GameEntry {
     }
 
     public void setPublisher(String publisher) {
-        this.publisher = publisher;
+        this.publisher = publisher!= null ? publisher : "";
         saveEntry();
     }
 
@@ -317,7 +317,7 @@ public class GameEntry {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = description!=null ? description : "";
         saveEntry();
     }
 
@@ -505,6 +505,7 @@ public class GameEntry {
             }
             file.delete();
         }
+        file.delete();
     }
 
     public String getProcessName() {
@@ -552,7 +553,7 @@ public class GameEntry {
     }
 
     public void setSerie(String serie) {
-        this.serie = serie;
+        this.serie = serie!= null ? serie : "";
         saveEntry();
     }
 

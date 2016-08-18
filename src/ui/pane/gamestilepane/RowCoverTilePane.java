@@ -45,35 +45,37 @@ public class RowCoverTilePane extends CoverTilePane {
     private Comparator<GameEntry> entriesComparator;
     protected int maxColumn = 5;
     private Separator separator = new Separator();
-    private ScrollPane horizontalScrollPane;
+    private boolean folded = false;
+    //private ScrollPane horizontalScrollPane;
     private DualImageButton foldToggleButton;
 
     public RowCoverTilePane(MainScene parentScene, String type) {
-        super(parentScene,Main.RESSOURCE_BUNDLE.getString(type));
+        super(parentScene, Main.RESSOURCE_BUNDLE.getString(type));
 
-        horizontalScrollPane = new ScrollPane();
+        tilePane.setPadding(new Insets(30 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920, 30 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920));
+
         tilePane.setOrientation(Orientation.HORIZONTAL);
-        horizontalScrollPane.setFitToWidth(true);
-        horizontalScrollPane.setFitToHeight(true);
-        horizontalScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        horizontalScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        tilePane.heightProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                horizontalScrollPane.setMinViewportHeight(newValue.doubleValue());
-            }
-        });
-
-        //horizontalScrollPane.minHeightProperty().bind(tilePane.heightProperty());
-        //horizontalScrollPane.minHeightProperty().bind(realPane.heightProperty());
-        /*tilePane.heightProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                if(newValue.doubleValue() > horizontalScrollPane.getHeight()){
-                    horizontalScrollPane.setMinHeight(newValue.doubleValue());
-                }
-            }
-        });*/
+//        tilePane.heightProperty().addListener(new ChangeListener<Number>() {
+//            @Override
+//            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+//                if (newValue.doubleValue() > 1.9 * tilePane.getPrefTileHeight()) {
+//                    for (int i = tilePane.getChildren().size()-1; i>=0; i--) {
+//                        if(tilePane.getChildren().get(i).isVisible()){
+//                            setGameButtonVisible((GameButton) tilePane.getChildren().get(i),false);
+//                            break;
+//                        }
+//                    }
+//                }/*else if(oldValue.doubleValue() < 1.9 * tilePane.getPrefTileHeight() && newValue.doubleValue() < 1.9 * tilePane.getPrefTileHeight()){
+//                    for (int i = 0; i< tilePane.getChildren().size(); i++) {
+//                        if(!tilePane.getChildren().get(i).isManaged()){
+//                            if(tilePane.getWidth()+tilePane.getPrefTileWidth()*1.5 < getWidth())
+//                                setGameButtonVisible((GameButton) tilePane.getChildren().get(i),true);
+//                            break;
+//                        }
+//                    }
+//                }*/
+//            }
+//        });
 
         tilePane.setPrefRows(1);
         tilePane.setPrefColumns(Integer.MAX_VALUE);
@@ -165,7 +167,7 @@ public class RowCoverTilePane extends CoverTilePane {
                                 break;
                         }
                         boolean visible = i < maxColumn && !hide;
-                        setGameButtonVisible(tilesList.get(i),visible);
+                        setGameButtonVisible(tilesList.get(i), visible);
 
                         /*double opacity = 0;
                         if(i==0){
@@ -188,81 +190,93 @@ public class RowCoverTilePane extends CoverTilePane {
                 }
             }
         });
-
-        horizontalScrollPane.setContent(getContent());
-        setCenter(horizontalScrollPane);
+        StackPane wrappingPane = new StackPane();
+        //horizontalScrollPane.setContent(getTilePane());
+        wrappingPane.getChildren().add(tilePane);
+        setCenter(wrappingPane);
         separator.setPadding(titleLabel.getPadding());
         separator.maxWidthProperty().bind(titleLabel.widthProperty());
 
         Image arrowUpImage = new Image("res/ui/arrowUp.png", SCREEN_WIDTH / 70, SCREEN_WIDTH / 70, true, true);
         Image arrowDownImage = new Image("res/ui/arrowDown.png", SCREEN_WIDTH / 70, SCREEN_WIDTH / 70, true, true);
 
-         foldToggleButton = new DualImageButton(arrowUpImage,arrowDownImage,"show","hide");
+        foldToggleButton = new DualImageButton(arrowUpImage, arrowDownImage, "show", "hide");
         foldToggleButton.setFocusTraversable(false);
         foldToggleButton.setOnDualAction(new OnActionHandler() {
             @Override
             public void handle(ActionEvent me) {
-                if(foldToggleButton.inFirstState()){
+                if (foldToggleButton.inFirstState()) {
                     openTilePane();
-                }else{
+                } else {
                     closeTilePane();
                 }
             }
         });
         HBox box = new HBox();
         box.setAlignment(Pos.CENTER_LEFT);
-        box.getChildren().addAll(titleLabel,foldToggleButton);
+        box.getChildren().addAll(titleLabel, foldToggleButton);
         setTop(box);
 
         setBottom(separator);
     }
 
-    public void fold(){
-        foldToggleButton.forceState("hide");
+    public void fold() {
+        if (!folded) {
+            foldToggleButton.forceState("hide");
+            folded = true;
+        }
     }
-    public void unfold(){
-        foldToggleButton.forceState("show");
+
+    public void unfold() {
+        if (folded) {
+            foldToggleButton.forceState("show");
+            folded = true;
+        }
     }
-    private void openTilePane(){
-        horizontalScrollPane.setManaged(true);
+
+    private void openTilePane() {
+        /*horizontalScrollPane.setManaged(true);
         horizontalScrollPane.setVisible(true);
-        horizontalScrollPane.setMouseTransparent(false);
+        horizontalScrollPane.setMouseTransparent(false);*/
+        tilePane.setManaged(true);
+        tilePane.setVisible(true);
         //horizontalScrollPane.minHeightProperty().unbind();
         Timeline fadeInTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
-                        new KeyValue(horizontalScrollPane.minHeightProperty(), 0, Interpolator.EASE_IN),
-                        new KeyValue(horizontalScrollPane.maxHeightProperty(), 0, Interpolator.EASE_IN),
-                        new KeyValue(horizontalScrollPane.opacityProperty(), 0, Interpolator.EASE_IN)),
-                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME*2),
-                        new KeyValue(horizontalScrollPane.minHeightProperty(), tilePane.getHeight(), Interpolator.EASE_OUT),
-                        new KeyValue(horizontalScrollPane.maxHeightProperty(), tilePane.getHeight(), Interpolator.EASE_OUT),
-                        new KeyValue(horizontalScrollPane.opacityProperty(), 1, Interpolator.EASE_OUT)
+                        //new KeyValue(horizontalScrollPane.minHeightProperty(), 0, Interpolator.EASE_IN),
+                        //new KeyValue(horizontalScrollPane.maxHeightProperty(), 0, Interpolator.EASE_IN),
+                        new KeyValue(tilePane.opacityProperty(), 0, Interpolator.EASE_IN)),
+                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME * 2),
+                        //new KeyValue(horizontalScrollPane.minHeightProperty(), tilePane.getHeight(), Interpolator.EASE_OUT),
+                        //new KeyValue(horizontalScrollPane.maxHeightProperty(), tilePane.getHeight(), Interpolator.EASE_OUT),
+                        new KeyValue(tilePane.opacityProperty(), 1, Interpolator.EASE_OUT)
                 ));
         fadeInTimeline.setCycleCount(1);
         fadeInTimeline.setAutoReverse(false);
         fadeInTimeline.play();
     }
-    private void closeTilePane(){
+
+    private void closeTilePane() {
 
         //horizontalScrollPane.minHeightProperty().unbind();
         Timeline fadeOutTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
-                        new KeyValue(horizontalScrollPane.minHeightProperty(), horizontalScrollPane.getMinHeight(), Interpolator.EASE_IN),
-                        new KeyValue(horizontalScrollPane.maxHeightProperty(), horizontalScrollPane.getMaxHeight(), Interpolator.EASE_IN),
-                        new KeyValue(horizontalScrollPane.opacityProperty(), horizontalScrollPane.opacityProperty().getValue(), Interpolator.EASE_IN)),
-                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME*2),
-                        new KeyValue(horizontalScrollPane.minHeightProperty(), 0, Interpolator.EASE_OUT),
-                        new KeyValue(horizontalScrollPane.maxHeightProperty(), 0, Interpolator.EASE_OUT),
-                        new KeyValue(horizontalScrollPane.opacityProperty(), 0, Interpolator.EASE_OUT)
+                        //new KeyValue(horizontalScrollPane.minHeightProperty(), horizontalScrollPane.getMinHeight(), Interpolator.EASE_IN),
+                        //new KeyValue(horizontalScrollPane.maxHeightProperty(), horizontalScrollPane.getMaxHeight(), Interpolator.EASE_IN),
+                        new KeyValue(tilePane.opacityProperty(), tilePane.opacityProperty().getValue(), Interpolator.EASE_IN)),
+                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME * 2),
+                        //new KeyValue(horizontalScrollPane.minHeightProperty(), 0, Interpolator.EASE_OUT),
+                        //new KeyValue(horizontalScrollPane.maxHeightProperty(), 0, Interpolator.EASE_OUT),
+                        new KeyValue(tilePane.opacityProperty(), 0, Interpolator.EASE_OUT)
                 ));
         fadeOutTimeline.setCycleCount(1);
         fadeOutTimeline.setAutoReverse(false);
         fadeOutTimeline.setOnFinished(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                horizontalScrollPane.setManaged(false);
-                horizontalScrollPane.setVisible(false);
-                horizontalScrollPane.setMouseTransparent(true);
+                tilePane.setManaged(false);
+                tilePane.setVisible(false);
+                //horizontalScrollPane.setMouseTransparent(true);
                 //horizontalScrollPane.minHeightProperty().bind(tilePane.heightProperty());
             }
         });
@@ -298,4 +312,7 @@ public class RowCoverTilePane extends CoverTilePane {
     }
 
 
+    public void disableFoldButton(boolean b) {
+        foldToggleButton.setDisable(b);
+    }
 }

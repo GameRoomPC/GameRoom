@@ -840,14 +840,14 @@ public class GameEditScene extends BaseScene {
     private HashMap<String, Boolean> createDoNotUpdateFielsMap() {
         HashMap<String, Boolean> map = new HashMap<>();
         map.put("game_name", false);
-        map.put("serie", !entry.getSerie().equals(""));
+        map.put("serie", entry.getSerie()!= null && !entry.getSerie().equals(""));
         map.put("release_date", entry.getReleaseDate() != null);
-        map.put("developer", !entry.getDeveloper().equals(""));
-        map.put("game_description", !entry.getDescription().equals(""));
-        map.put("publisher", !entry.getPublisher().equals(""));
+        map.put("developer", entry.getDeveloper()!= null &&!entry.getDeveloper().equals(""));
+        map.put("game_description", entry.getDescription()!= null &&!entry.getDescription().equals(""));
+        map.put("publisher", entry.getPublisher()!= null &&!entry.getPublisher().equals(""));
         map.put("genre", entry.getGenres() != null);
         map.put("theme", entry.getThemes() != null);
-        map.put("cover", entry.getImagePath(0) != null && !entry.getImagePath(0).equals(GameEntry.DEFAULT_IMAGES_PATHS[0]));
+        map.put("cover", mode!=MODE_ADD && entry.getImagePath(0) != null && !entry.getImagePath(0).equals(GameEntry.DEFAULT_IMAGES_PATHS[0]));
         return map;
     }
 
@@ -946,7 +946,7 @@ public class GameEditScene extends BaseScene {
                 validEntriesConditions.add(new ValidEntryCondition() {
                     @Override
                     public boolean isValid() {
-                        if (!donwloadTask.isDone()) {
+                        if (donwloadTask!=null && !donwloadTask.isDone()) {
                             message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("background_picture_still_downloading"));
                             return false;
                         }
