@@ -12,7 +12,6 @@ import org.json.JSONObject;
 import system.application.MessageListener;
 import system.application.MessageTag;
 import system.application.OnLaunchAction;
-import system.application.settings.GeneralSettings;
 import system.application.settings.PredefinedSetting;
 import system.os.PowerMode;
 import ui.Main;
@@ -137,30 +136,30 @@ public class SettingsScene extends BaseScene {
 
         contentPane.getChildren().add(createLine(steamIgnoredGamesLabel, manageSteamGamesIgnoredButton));
 
-        /***********************DONATION KEY****************************/
-        String keyStatus = Main.DONATOR ? GENERAL_SETTINGS.getString(PredefinedSetting.DONATION_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
-        String buttonText = Main.DONATOR ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
+        /***********************SUPPORTER KEY****************************/
+        String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
+        String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
 
-        Label donationKeyLabel = new Label(PredefinedSetting.DONATION_KEY.getLabel() + ": " + keyStatus);
-        donationKeyLabel.setTooltip(new Tooltip(PredefinedSetting.DONATION_KEY.getTooltip()));
+        Label supporterKeyLabel = new Label(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
+        supporterKeyLabel.setTooltip(new Tooltip(PredefinedSetting.SUPPORTER_KEY.getTooltip()));
         Button actDeactButton = new Button(buttonText);
 
         actDeactButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if (DONATOR) {
+                if (SUPPORTER_MODE) {
                     try {
-                        JSONObject response = KeyChecker.deactivateKey(GENERAL_SETTINGS.getString(PredefinedSetting.DONATION_KEY));
+                        JSONObject response = KeyChecker.deactivateKey(GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY));
                         if (response.getString(KeyChecker.FIELD_RESULT).equals(KeyChecker.RESULT_SUCCESS)) {
                             GameRoomAlert successDialog = new GameRoomAlert(Alert.AlertType.INFORMATION, Main.RESSOURCE_BUNDLE.getString("key_deactivated_message"));
                             successDialog.showAndWait();
 
-                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DONATION_KEY, "");
-                            DONATOR = false;
-                            String keyStatus = Main.DONATOR ? GENERAL_SETTINGS.getString(PredefinedSetting.DONATION_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
-                            String buttonText = Main.DONATOR ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
+                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SUPPORTER_KEY, "");
+                            SUPPORTER_MODE = false;
+                            String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
+                            String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
                             actDeactButton.setText(buttonText);
-                            donationKeyLabel.setText(PredefinedSetting.DONATION_KEY.getLabel() + ": " + keyStatus);
+                            supporterKeyLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -172,9 +171,9 @@ public class SettingsScene extends BaseScene {
 
                     Optional<ButtonType> result = dialog.showAndWait();
                     result.ifPresent(letter -> {
-                        if (letter.getText().contains(Main.RESSOURCE_BUNDLE.getString("donation_key_buy_one"))) {
+                        if (letter.getText().contains(Main.RESSOURCE_BUNDLE.getString("supporter_key_buy_one"))) {
                             try {
-                                Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/donation-key"));
+                                Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/key"));
                             } catch (IOException e1) {
                                 e1.printStackTrace();
                             } catch (URISyntaxException e1) {
@@ -182,7 +181,7 @@ public class SettingsScene extends BaseScene {
                             }
                         } else if (letter.getText().equals(Main.RESSOURCE_BUNDLE.getString("activate"))) {
                             try {
-                                JSONObject response = KeyChecker.activateKey(dialog.getDonationKey());
+                                JSONObject response = KeyChecker.activateKey(dialog.getSupporterKey());
                                 String message = Main.RESSOURCE_BUNDLE.getString(response.getString(KeyChecker.FIELD_MESSAGE).replace(' ', '_'));
 
                                 switch (response.getString(KeyChecker.FIELD_RESULT)) {
@@ -190,12 +189,12 @@ public class SettingsScene extends BaseScene {
                                         GameRoomAlert successDialog = new GameRoomAlert(Alert.AlertType.INFORMATION, message);
                                         successDialog.showAndWait();
 
-                                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DONATION_KEY, dialog.getDonationKey());
-                                        DONATOR = KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(PredefinedSetting.DONATION_KEY));
-                                        String keyStatus = Main.DONATOR ? GENERAL_SETTINGS.getString(PredefinedSetting.DONATION_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
-                                        String buttonText = Main.DONATOR ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
+                                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SUPPORTER_KEY, dialog.getSupporterKey());
+                                        SUPPORTER_MODE = KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY));
+                                        String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
+                                        String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
                                         actDeactButton.setText(buttonText);
-                                        donationKeyLabel.setText(PredefinedSetting.DONATION_KEY.getLabel() + ": " + keyStatus);
+                                        supporterKeyLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
                                         break;
                                     case KeyChecker.RESULT_ERROR:
                                         GameRoomAlert errorDialog = new GameRoomAlert(Alert.AlertType.ERROR, message);
@@ -215,7 +214,7 @@ public class SettingsScene extends BaseScene {
             }
         });
 
-        contentPane.getChildren().add(createLine(donationKeyLabel, actDeactButton));
+        contentPane.getChildren().add(createLine(supporterKeyLabel, actDeactButton));
 
         /***********************VERSION CHECK****************************/
         Label versionLabel = new Label(Main.RESSOURCE_BUNDLE.getString("version") + ": " + Main.getVersion());

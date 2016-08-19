@@ -245,7 +245,7 @@ public class GameInfoScene extends BaseScene {
             for(GameGenre genre : entry.getGenres()){
                 genres+=genre.getDisplayName()+", ";
             }
-                updateProperty("genre", !genres.equals(", ") ? genres.substring(0, genres.length() - 2) : "-");
+            updateProperty("genre", genres.length() > 2 ? genres.substring(0, genres.length() - 2) : "-");
 
         }else{
             updateProperty("genre",null);
@@ -255,7 +255,7 @@ public class GameInfoScene extends BaseScene {
             for(GameTheme theme : entry.getThemes()){
                 themes+=theme.getDisplayName()+", ";
             }
-            updateProperty("theme",!themes.equals(", ") ?themes.substring(0,themes.length()-2) : "-");
+            updateProperty("theme",themes.length() > 2 ?themes.substring(0,themes.length()-2) : "-");
         }else{
             updateProperty("theme",null);
         }

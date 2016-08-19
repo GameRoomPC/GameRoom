@@ -42,7 +42,7 @@ public abstract class GamesTilePane extends BorderPane{
     protected MainScene parentScene;
     private boolean forcedHidden = false;
     private boolean searching = false;
-    private boolean automaticSort = true;
+    protected boolean automaticSort = true;
 
     public GamesTilePane(MainScene parentScene){
         super();
@@ -76,13 +76,11 @@ public abstract class GamesTilePane extends BorderPane{
         tilesList.remove(button);
     }
 
-    public final void removeGame(GameEntry entry){
+    public void removeGame(GameEntry entry){
         ArrayList<GameButton> toRemoveButtons = new ArrayList<>();
-        for(Integer index : indexesOfTile(entry)){
-            toRemoveButtons.add(tilesList.get(index));
-        }
-        for(GameButton button : toRemoveButtons){
-            removeTile(button);
+        int index = indexOfTile(entry);
+        if(index!=-1){
+           removeTile(tilesList.get(index));
         }
         if(automaticSort)
         sort();
@@ -93,18 +91,21 @@ public abstract class GamesTilePane extends BorderPane{
         };
     }
 
-    public final void addGame(GameEntry newEntry){
-        addTile(createGameButton(newEntry));
-        if(automaticSort)
-            sort();
+    public void addGame(GameEntry newEntry){
+        if(indexOfTile(newEntry) == -1) {
+            addTile(createGameButton(newEntry));
+            if (automaticSort)
+                sort();
+        }
     }
 
     public ObservableList<GameButton> getGameButtons(){
         return tilesList;
     }
 
-    public final void updateGame(GameEntry newEntry){
-        for(Integer index : indexesOfTile(newEntry)){
+    public void updateGame(GameEntry newEntry){
+        int index = indexOfTile(newEntry);
+        if(index!=-1){
             tilesList.get(index).reloadWith(newEntry);
             tilesList.set(index,tilesList.get(index));//to fire updated/replaced event
         }
@@ -114,16 +115,16 @@ public abstract class GamesTilePane extends BorderPane{
 
 
 
-    protected ArrayList<Integer> indexesOfTile(GameEntry entry) {
+    protected int indexOfTile(GameEntry entry) {
         ArrayList<Integer> integers = new ArrayList<>();
         int i = 0;
         for (Node n : tilesList) {
             if (((GameButton) n).getEntry().getUuid().equals(entry.getUuid())) {
-                integers.add(i);
+                return i;
             }
             i++;
         }
-        return integers;
+        return -1;
     }
     protected abstract void removeTileFromTilePane(GameButton button);
 

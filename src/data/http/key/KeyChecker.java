@@ -12,10 +12,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.*;
 
 /**
  * Created by LM on 05/08/2016.
@@ -76,6 +73,9 @@ public class KeyChecker {
         return new JSONObject(json);
     }
     public static boolean isKeyValid(String key){
+        if(!testInet("igdb.com") && !testInet(API_URL.replace("https://",""))){
+            return false;
+        }
         try {
             JSONObject response = askKeyValid(key);
             if(response!=null){
@@ -92,12 +92,8 @@ public class KeyChecker {
                     }
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        } catch (NullPointerException ne){
-            ne.printStackTrace();
         }
         return false;
     }
@@ -139,6 +135,19 @@ public class KeyChecker {
         }
 
         return macAddressBuilder.toString();
+    }
+    private static boolean testInet(String site) {
+        Socket sock = new Socket();
+        InetSocketAddress addr = new InetSocketAddress(site,80);
+        try {
+            sock.connect(addr,3000);
+            return true;
+        } catch (IOException e) {
+            return false;
+        } finally {
+            try {sock.close();}
+            catch (IOException e) {}
+        }
     }
     public static void main(String[] args){
         String key = "57a49ece72e10";

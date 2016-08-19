@@ -25,8 +25,8 @@ public class GroupsFactory {
             public boolean fillsRequirement(GameEntry entry) {
                 boolean alreadyIn = false;
                 for (int i = 0; i < getGameButtons().size() && !alreadyIn; i++) {
-                    alreadyIn = indexesOfTile(entry).size() != 0;
-                    if(alreadyIn){
+                    alreadyIn = indexOfTile(entry) != -1;
+                    if (alreadyIn) {
                         return false;
                     }
                 }
@@ -53,7 +53,7 @@ public class GroupsFactory {
                 @Override
                 public boolean fillsRequirement(GameEntry entry) {
                     boolean sameGenre = false;
-                    if(entry.getGenres() == null){
+                    if (entry.getGenres() == null) {
                         return false;
                     }
                     for (GameGenre gameGenre : entry.getGenres()) {
@@ -67,11 +67,8 @@ public class GroupsFactory {
             };
             tilePane.setTitle(genre.getDisplayName());
             for (GameButton button : originalTilePane.getGameButtons()) {
-                if(tilePane.fillsRequirement(button.getEntry())) {
-                    tilePane.addGame(button.getEntry());
-                }else if(othersTilePane.fillsRequirement(button.getEntry())){
-                    othersTilePane.addGame(button.getEntry());
-                }
+                tilePane.addGame(button.getEntry());
+                othersTilePane.addGame(button.getEntry());
             }
             if (tilePane.getGameButtons().size() > 0) {
                 originalTilePane.getTilePane().prefTileWidthProperty().addListener(new ChangeListener<Number>() {
@@ -97,7 +94,7 @@ public class GroupsFactory {
                 return o1.getTitle().getText().compareTo(o2.getTitle().getText());
             }
         });
-        if(othersTilePane.getGameButtons().size() > 0){
+        if (othersTilePane.getGameButtons().size() > 0) {
             allTilePanes.add(othersTilePane);
         }
         return allTilePanes;
@@ -110,8 +107,8 @@ public class GroupsFactory {
             public boolean fillsRequirement(GameEntry entry) {
                 boolean alreadyIn = false;
                 for (int i = 0; i < getGameButtons().size() && !alreadyIn; i++) {
-                    alreadyIn = indexesOfTile(entry).size() != 0;
-                    if(alreadyIn){
+                    alreadyIn = indexOfTile(entry) != -1;
+                    if (alreadyIn) {
                         return false;
                     }
                 }
@@ -138,7 +135,7 @@ public class GroupsFactory {
                 @Override
                 public boolean fillsRequirement(GameEntry entry) {
                     boolean sameTheme = false;
-                    if(entry.getThemes() == null){
+                    if (entry.getThemes() == null) {
                         return false;
                     }
                     for (GameTheme gameTheme : entry.getThemes()) {
@@ -152,11 +149,8 @@ public class GroupsFactory {
             };
             tilePane.setTitle(theme.getDisplayName());
             for (GameButton button : originalTilePane.getGameButtons()) {
-                if(tilePane.fillsRequirement(button.getEntry())) {
-                    tilePane.addGame(button.getEntry());
-                }else if(othersTilePane.fillsRequirement(button.getEntry())){
-                    othersTilePane.addGame(button.getEntry());
-                }
+                tilePane.addGame(button.getEntry());
+                othersTilePane.addGame(button.getEntry());
             }
             if (tilePane.getGameButtons().size() > 0) {
                 originalTilePane.getTilePane().prefTileWidthProperty().addListener(new ChangeListener<Number>() {
@@ -182,7 +176,7 @@ public class GroupsFactory {
                 return o1.getTitle().getText().compareTo(o2.getTitle().getText());
             }
         });
-        if(othersTilePane.getGameButtons().size() > 0){
+        if (othersTilePane.getGameButtons().size() > 0) {
             allTilePanes.add(othersTilePane);
         }
         return allTilePanes;
@@ -191,7 +185,7 @@ public class GroupsFactory {
     public static ArrayList<GroupRowTilePane> createGroupsBySerie(GamesTilePane originalTilePane, MainScene mainScene) {
         ArrayList<String> allSeries = new ArrayList<>();
         for (GameButton button : originalTilePane.getGameButtons()) {
-            if (!allSeries.contains(button.getEntry().getSerie())&& button.getEntry().getSerie()!=null && !button.getEntry().getSerie().trim().equals("")) {
+            if (!allSeries.contains(button.getEntry().getSerie()) && button.getEntry().getSerie() != null && !button.getEntry().getSerie().trim().equals("")) {
                 allSeries.add(button.getEntry().getSerie());
             }
         }
@@ -201,8 +195,8 @@ public class GroupsFactory {
             public boolean fillsRequirement(GameEntry entry) {
                 boolean alreadyIn = false;
                 for (int i = 0; i < getGameButtons().size() && !alreadyIn; i++) {
-                    alreadyIn = indexesOfTile(entry).size() != 0;
-                    if(alreadyIn){
+                    alreadyIn = indexOfTile(entry) != -1;
+                    if (alreadyIn) {
                         return false;
                     }
                 }
@@ -229,7 +223,7 @@ public class GroupsFactory {
             GroupRowTilePane tilePane = new GroupRowTilePane(mainScene) {
                 @Override
                 public boolean fillsRequirement(GameEntry entry) {
-                    if(entry.getSerie() == null){
+                    if (entry.getSerie() == null) {
                         return false;
                     }
                     boolean sameSerie = entry.getSerie().equals(serie);
@@ -238,11 +232,8 @@ public class GroupsFactory {
             };
             tilePane.setTitle(serie);
             for (GameButton button : originalTilePane.getGameButtons()) {
-                if(tilePane.fillsRequirement(button.getEntry())) {
-                    tilePane.addGame(button.getEntry());
-                }else if(othersTilePane.fillsRequirement(button.getEntry())){
-                    othersTilePane.addGame(button.getEntry());
-                }
+                tilePane.addGame(button.getEntry());
+                othersTilePane.addGame(button.getEntry());
             }
             if (tilePane.getGameButtons().size() > 0) {
                 originalTilePane.getTilePane().prefTileWidthProperty().addListener(new ChangeListener<Number>() {
@@ -268,7 +259,7 @@ public class GroupsFactory {
                 return o1.getTitle().getText().compareTo(o2.getTitle().getText());
             }
         });
-        if(othersTilePane.getGameButtons().size() > 0){
+        if (othersTilePane.getGameButtons().size() > 0) {
             allTilePanes.add(othersTilePane);
         }
         return allTilePanes;

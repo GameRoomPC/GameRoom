@@ -17,8 +17,13 @@ public class ToAddRowTilePane extends RowCoverTilePane {
     }
     @Override
     protected GameButton createGameButton(GameEntry newEntry) {
-        //TODO replace by a gameButton with and add and IGNORE BUTTON instead
         return new AddIgnoreGameButton(newEntry, parentScene, tilePane,this);
 
+    }
+    public GameButton getGameButton(GameEntry entry){
+        if(indexOfTile(entry)!=-1){
+            return getGameButtons().get(indexOfTile(entry));
+        }
+        return null;
     }
 }

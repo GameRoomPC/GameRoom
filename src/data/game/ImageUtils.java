@@ -40,6 +40,7 @@ public class ImageUtils {
     public final static String IGDB_TYPE_SCREENSHOT = "screenshot";
 
     public final static String IGDB_SIZE_BIG_2X = "_big_2x";
+    public final static String IGDB_SIZE_BIG = "_big";
     public final static String IGDB_SIZE_SMALL = "_small";
     public final static String IGDB_SIZE_MED = "_med";
     private final static String IGDB_IMAGE_URL_PREFIX = "https://res.cloudinary.com/igdb/image/upload/t_";

@@ -15,7 +15,6 @@ import ui.Main;
 import ui.dialog.ActivationKeyDialog;
 
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -41,18 +40,17 @@ public class ActivationKeyDialogTest extends Application {
         launchButton.setOnAction(e -> {
                     Optional<ButtonType> result = dialog.showAndWait();
                     result.ifPresent(letter -> {
-                        if(letter.getText().contains(Main.RESSOURCE_BUNDLE.getString("donation_key_buy_one"))){
+                        if(letter.getText().contains(Main.RESSOURCE_BUNDLE.getString("supporter_key_buy_one"))){
                             try {
-                                Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/donation-key"));
+                                Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/key"));
                             } catch (IOException e1) {
                                 e1.printStackTrace();
                             } catch (URISyntaxException e1) {
                                 e1.printStackTrace();
                             }
-                            //TODO open gameroom.me at donation key url
                         }else if(letter.getText().equals(Main.RESSOURCE_BUNDLE.getString("activate"))){
                             try {
-                                JSONObject response = KeyChecker.activateKey(dialog.getDonationKey());
+                                JSONObject response = KeyChecker.activateKey(dialog.getSupporterKey());
                                 String message = Main.RESSOURCE_BUNDLE.getString(response.getString(KeyChecker.FIELD_MESSAGE).replace(' ','_'));
 
                                 switch (response.getString(KeyChecker.FIELD_RESULT)){
@@ -63,7 +61,6 @@ public class ActivationKeyDialogTest extends Application {
                                         successDialog.initStyle(StageStyle.UNDECORATED);
                                         successDialog.setHeaderText(null);
                                         successDialog.showAndWait();
-                                        //TODO write key in settings file and change settings scene
                                         break;
                                         /*switch (response.getString(KeyChecker.FIELD_STATUS)){
                                             case KeyChecker.STATUS_ACTIVE:
@@ -73,7 +70,6 @@ public class ActivationKeyDialogTest extends Application {
 
                                                 successDialog.setHeaderText(null);
                                                 successDialog.showAndWait();
-                                                //TODO write key in settings file and change settings scene
                                                 break;
                                             case KeyChecker.STATUS_BLOCKED:
                                             case KeyChecker.STATUS_EXPIRED:

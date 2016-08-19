@@ -10,7 +10,6 @@ import system.application.settings.PredefinedSetting;
 import system.application.settings.SettingValue;
 import system.device.XboxController;
 import ui.scene.MainScene;
-import data.game.AllGameEntries;
 import system.application.settings.GeneralSettings;
 import javafx.application.Platform;
 import javafx.stage.Stage;
@@ -22,7 +21,7 @@ import java.io.*;
 import java.net.*;
 import java.util.ResourceBundle;
 
-import static system.application.settings.PredefinedSetting.DONATION_KEY;
+import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
 
 public class Main {
     private final static String TEMP_UPDATER_JAR_NAME=  "Updater.jar.temp";
@@ -34,7 +33,7 @@ public class Main {
     private final static String URL_CHANGELOG_MD_SUFFIX = "/software/changelog.md";
 
     public static boolean DEV_MODE = false;
-    public static boolean DONATOR = false;
+    public static boolean SUPPORTER_MODE = false;
     public static double SCREEN_WIDTH;
     public static double SCREEN_HEIGHT;
 
@@ -71,8 +70,9 @@ public class Main {
 
         LOGGER.info("Started app with resolution : " + (int) SCREEN_WIDTH + "x" + (int) SCREEN_HEIGHT);
         GENERAL_SETTINGS = new GeneralSettings();
-        DONATOR = !GENERAL_SETTINGS.getString(DONATION_KEY).equals("") && KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(DONATION_KEY));
-        LOGGER.info("Donator mode : "+DONATOR);
+        //SUPPORTER_MODE = true;
+        SUPPORTER_MODE = !GENERAL_SETTINGS.getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(SUPPORTER_KEY));
+        LOGGER.info("Supporter mode : "+ SUPPORTER_MODE);
         RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));

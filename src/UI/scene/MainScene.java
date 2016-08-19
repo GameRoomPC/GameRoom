@@ -19,6 +19,7 @@ import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import system.os.WindowsShortcut;
 import ui.control.button.ImageButton;
+import ui.control.button.gamebutton.GameButton;
 import ui.dialog.ChoiceDialog;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -265,11 +266,11 @@ public class MainScene extends BaseScene {
         ImageButton sortButton = new ImageButton(sortImage);
         sortButton.setFocusTraversable(false);
         final ContextMenu sortMenu = new ContextMenu();
-        MenuItem byNameItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_name"));
-        MenuItem byRatingItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_rating"));
-        MenuItem byTimePlayedItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_playtime"));
-        MenuItem byReleaseDateItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_release_date"));
-        byNameItem.setOnAction(event -> {
+        MenuItem sortByNameItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_name"));
+        MenuItem sortByRatingItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_rating"));
+        MenuItem sortByTimePlayedItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_playtime"));
+        MenuItem sortByReleaseDateItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_release_date"));
+        sortByNameItem.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
 
             tilePane.sortByName();
@@ -283,7 +284,7 @@ public class MainScene extends BaseScene {
 
             scrollPane.setVvalue(scrollPane.getVmin());
         });
-        byRatingItem.setOnAction(event -> {
+        sortByRatingItem.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
 
             tilePane.sortByRating();
@@ -297,7 +298,7 @@ public class MainScene extends BaseScene {
 
             scrollPane.setVvalue(scrollPane.getVmin());
         });
-        byTimePlayedItem.setOnAction(event -> {
+        sortByTimePlayedItem.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
 
             tilePane.sortByTimePlayed();
@@ -311,7 +312,7 @@ public class MainScene extends BaseScene {
 
             scrollPane.setVvalue(scrollPane.getVmin());
         });
-        byReleaseDateItem.setOnAction(event -> {
+        sortByReleaseDateItem.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
 
             tilePane.sortByReleaseDate();
@@ -325,70 +326,7 @@ public class MainScene extends BaseScene {
 
             scrollPane.setVvalue(scrollPane.getVmin());
         });
-
-        MenuItem groupByAll = new MenuItem("all");
-        groupByAll.setOnAction(event -> {
-            showTilesPaneAgainAfterCancelSearch = false;
-
-            tilePane.show();
-            lastPlayedTilePane.hide();
-            recentlyAddedTilePane.hide();
-            toAddTilePane.hide();
-
-            tilesPaneWrapper.getChildren().removeAll(groupRowList);
-            groupRowList.clear();
-
-            scrollPane.setVvalue(scrollPane.getVmin());
-        });
-        MenuItem groupByTheme = new MenuItem("theme");
-        groupByTheme.setOnAction(event -> {
-            showTilesPaneAgainAfterCancelSearch = false;
-
-            tilePane.hide();
-            lastPlayedTilePane.hide();
-            recentlyAddedTilePane.hide();
-            toAddTilePane.hide();
-
-            tilesPaneWrapper.getChildren().removeAll(groupRowList);
-            groupRowList.clear();
-            groupRowList = GroupsFactory.createGroupsByTheme(tilePane,this);
-            tilesPaneWrapper.getChildren().addAll(groupRowList);
-
-            scrollPane.setVvalue(scrollPane.getVmin());
-        });
-        MenuItem groupByGenre = new MenuItem("genre");
-        groupByGenre.setOnAction(event -> {
-            showTilesPaneAgainAfterCancelSearch = false;
-
-            tilePane.hide();
-            lastPlayedTilePane.hide();
-            recentlyAddedTilePane.hide();
-            toAddTilePane.hide();
-
-            tilesPaneWrapper.getChildren().removeAll(groupRowList);
-            groupRowList.clear();
-            groupRowList = GroupsFactory.createGroupsByGenre(tilePane,this);
-            tilesPaneWrapper.getChildren().addAll(groupRowList);
-
-            scrollPane.setVvalue(scrollPane.getVmin());
-        });
-        MenuItem groupBySerie = new MenuItem("serie");
-        groupBySerie.setOnAction(event -> {
-            showTilesPaneAgainAfterCancelSearch = false;
-
-            tilePane.hide();
-            lastPlayedTilePane.hide();
-            recentlyAddedTilePane.hide();
-            toAddTilePane.hide();
-
-            tilesPaneWrapper.getChildren().removeAll(groupRowList);
-            groupRowList.clear();
-            groupRowList = GroupsFactory.createGroupsBySerie(tilePane,this);
-            tilesPaneWrapper.getChildren().addAll(groupRowList);
-
-            scrollPane.setVvalue(scrollPane.getVmin());
-        });
-        sortMenu.getItems().addAll(byNameItem, byRatingItem, byTimePlayedItem, byReleaseDateItem,groupByAll,groupByGenre,groupByTheme,groupBySerie);
+        sortMenu.getItems().addAll(sortByNameItem, sortByRatingItem, sortByTimePlayedItem, sortByReleaseDateItem);
 
         sortButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
@@ -407,6 +345,96 @@ public class MainScene extends BaseScene {
                 }
             }
         });
+
+
+
+        Image groupImage = new Image("res/ui/groupbyIcon.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
+        ImageButton groupButton = new ImageButton(groupImage);
+        groupButton.setFocusTraversable(false);
+        final ContextMenu groupMenu = new ContextMenu();
+        MenuItem groupByAll = new MenuItem(Main.RESSOURCE_BUNDLE.getString("group_by_all"));
+        groupByAll.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.show();
+            lastPlayedTilePane.hide();
+            recentlyAddedTilePane.hide();
+            toAddTilePane.hide();
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        MenuItem groupByTheme = new MenuItem(Main.RESSOURCE_BUNDLE.getString("group_by_theme"));
+        groupByTheme.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.hide();
+            lastPlayedTilePane.hide();
+            recentlyAddedTilePane.hide();
+            toAddTilePane.hide();
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+            groupRowList = GroupsFactory.createGroupsByTheme(tilePane,this);
+            tilesPaneWrapper.getChildren().addAll(groupRowList);
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        MenuItem groupByGenre = new MenuItem(Main.RESSOURCE_BUNDLE.getString("group_by_genre"));
+        groupByGenre.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.hide();
+            lastPlayedTilePane.hide();
+            recentlyAddedTilePane.hide();
+            toAddTilePane.hide();
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+            groupRowList = GroupsFactory.createGroupsByGenre(tilePane,this);
+            tilesPaneWrapper.getChildren().addAll(groupRowList);
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        MenuItem groupBySerie = new MenuItem(Main.RESSOURCE_BUNDLE.getString("group_by_serie"));
+        groupBySerie.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.hide();
+            lastPlayedTilePane.hide();
+            recentlyAddedTilePane.hide();
+            toAddTilePane.hide();
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+            groupRowList = GroupsFactory.createGroupsBySerie(tilePane,this);
+            tilesPaneWrapper.getChildren().addAll(groupRowList);
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+
+        groupMenu.getItems().addAll(groupByAll,groupByGenre,groupByTheme,groupBySerie);
+
+        groupButton.setOnMousePressed(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.isPrimaryButtonDown()) {
+                    if (groupMenu.isShowing()) {
+                        groupMenu.hide();
+                    } else {
+                        Bounds bounds = groupButton.getBoundsInLocal();
+                        Bounds screenBounds = groupButton.localToScreen(bounds);
+                        int x = (int) (screenBounds.getMinX() + 0.25 * bounds.getWidth());
+                        int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
+
+                        groupMenu.show(groupButton, x, y);
+                    }
+                }
+            }
+        });
+
 
         Image addImage = new Image("res/ui/addButton.png", SCREEN_WIDTH / 45, SCREEN_WIDTH / 45, true, true);
         ImageButton addButton = new ImageButton(addImage);
@@ -473,7 +501,7 @@ public class MainScene extends BaseScene {
         HBox hbox = new HBox();
         hbox.setPadding(new Insets(15, 12, 15, 10));
         hbox.setSpacing(0);
-        hbox.getChildren().addAll(addButton, sortButton, settingsButton, sizeSlider);
+        hbox.getChildren().addAll(addButton, sortButton, groupButton, settingsButton, sizeSlider);
         hbox.setAlignment(Pos.CENTER_LEFT);
 
         searchField = new TextField();
@@ -593,6 +621,10 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.removeGame(entry);
         recentlyAddedTilePane.removeGame(entry);
         toAddTilePane.removeGame(entry);
+        for (GroupRowTilePane tilePane : groupRowList) {
+            tilePane.removeGame(entry);
+        }
+
         AllGameEntries.removeGame(entry);
         refreshTrayMenu();
     }
@@ -602,6 +634,9 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.updateGame(entry);
         recentlyAddedTilePane.updateGame(entry);
         toAddTilePane.updateGame(entry);
+        for (GroupRowTilePane tilePane : groupRowList) {
+            tilePane.updateGame(entry);
+        }
         AllGameEntries.updateGame(entry);
         refreshTrayMenu();
     }
@@ -611,6 +646,9 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.addGame(entry);
         recentlyAddedTilePane.addGame(entry);
         toAddTilePane.removeGame(entry);
+        for (GroupRowTilePane tilePane : groupRowList) {
+            tilePane.addGame(entry);
+        }
         AllGameEntries.addGame(entry);
         refreshTrayMenu();
     }
@@ -668,8 +706,9 @@ public class MainScene extends BaseScene {
         toAddTilePane.hide();
         GameLooker looker = new GameLooker(new OnGameFoundHandler() {
             @Override
-            public void gameToAddFound(GameEntry entry) {
+            public GameButton gameToAddFound(GameEntry entry) {
                 toAddTilePane.addGame(entry);
+                return toAddTilePane.getGameButton(entry);
             }
 
             @Override

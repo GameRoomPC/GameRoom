@@ -2,6 +2,7 @@ package data.game;
 
 import data.game.entry.GameEntry;
 import data.game.scrapper.*;
+import data.http.key.KeyChecker;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -166,61 +167,77 @@ public class GameLooker {
                                 }
                                 GameEntry entryToAdd = fetchedEntry != null ? fetchedEntry : convertedEntry;
                                 if (!alreadyWaitingToBeAdded(entryToAdd)) {
-                                    GameEntry guessedEntry = tryGetFirstIGDBResult(entryToAdd.getName());
-                                    if (guessedEntry != null) {
-                                        guessedEntry.setName(entryToAdd.getName());
-                                        guessedEntry.setSteam_id(entryToAdd.getSteam_id());
-                                        guessedEntry.setPlayTimeSeconds(entryToAdd.getPlayTimeSeconds());
-                                        guessedEntry.setNotInstalled(entryToAdd.isNotInstalled());
-                                        guessedEntry.setDescription(entryToAdd.getDescription());
-                                        guessedEntry.setIgdb_imageHash(1,guessedEntry.getIgdb_imageHash(0));
-                                        if (guessedEntry.getReleaseDate() == null) {
-                                            guessedEntry.setReleaseDate(entryToAdd.getReleaseDate());
+                                    if(Main.SUPPORTER_MODE) {
+                                        GameEntry guessedEntry = tryGetFirstIGDBResult(entryToAdd.getName());
+                                        if (guessedEntry != null) {
+                                            guessedEntry.setName(entryToAdd.getName());
+                                            guessedEntry.setSteam_id(entryToAdd.getSteam_id());
+                                            guessedEntry.setPlayTimeSeconds(entryToAdd.getPlayTimeSeconds());
+                                            guessedEntry.setNotInstalled(entryToAdd.isNotInstalled());
+                                            guessedEntry.setDescription(entryToAdd.getDescription());
+                                            if(guessedEntry.getIgdb_imageHashs().length<2 || guessedEntry.getIgdb_imageHash(1) == null){
+                                                guessedEntry.setIgdb_imageHash(1, guessedEntry.getIgdb_imageHash(0));
+                                            }
+                                            if (guessedEntry.getReleaseDate() == null) {
+                                                guessedEntry.setReleaseDate(entryToAdd.getReleaseDate());
+                                            }
+                                            entriesToAdd.add(guessedEntry);
+
+                                            final GameButton[] createdGameButton = {null};
+                                            Platform.runLater(() -> {
+                                                createdGameButton[0] = onGameFoundHandler.gameToAddFound(guessedEntry);
+                                            });
+
+                                            ImageUtils.downloadIGDBImageToCache(guessedEntry.getIgdb_id()
+                                                    , guessedEntry.getIgdb_imageHash(0)
+                                                    , ImageUtils.IGDB_TYPE_COVER
+                                                    , ImageUtils.IGDB_SIZE_BIG_2X
+                                                    , new OnDLDoneHandler() {
+                                                        @Override
+                                                        public void run(File outputfile) {
+                                                            // guessedEntry.setSavedLocaly(true);
+                                                            //File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + guessedEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + GameEditScene.getExtension(outputfile));
+                                                            //try {
+                                                            //    Files.copy(outputfile.toPath().toAbsolutePath(),localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
+                                                            //    guessedEntry.setImagePath(0, localCoverFile);
+
+                                                            //  } catch (IOException e) {
+                                                            //    e.printStackTrace();
+                                                            guessedEntry.setImagePath(0, outputfile);
+                                                            //}
+                                                            ImageUtils.downloadIGDBImageToCache(guessedEntry.getIgdb_id()
+                                                                    , guessedEntry.getIgdb_imageHash(1)
+                                                                    , ImageUtils.IGDB_TYPE_SCREENSHOT
+                                                                    , ImageUtils.IGDB_SIZE_BIG_2X
+                                                                    , new OnDLDoneHandler() {
+                                                                        @Override
+                                                                        public void run(File outputfile) {
+                                                                            // File localScreenshotFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + guessedEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + GameEditScene.getExtension(outputfile));
+                                                                            // try {
+                                                                            //   Files.copy(outputfile.toPath().toAbsolutePath(),localScreenshotFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
+                                                                            // guessedEntry.setImagePath(1, localScreenshotFile);
+
+                                                                            //  } catch (IOException e) {
+                                                                            //    e.printStackTrace();
+                                                                            guessedEntry.setImagePath(1, outputfile);
+                                                                            if(createdGameButton[0]!=null){
+                                                                                createdGameButton[0].reloadWith(guessedEntry);
+                                                                            }
+                                                                            // }
+
+                                                                        }
+                                                                    });
+
+                                                        }
+                                                    });
+                                        }else {
+                                            entriesToAdd.add(entryToAdd);
+
+                                            Platform.runLater(() -> {
+                                                onGameFoundHandler.gameToAddFound(entryToAdd);
+                                            });
                                         }
-                                        ImageUtils.downloadIGDBImageToCache(guessedEntry.getIgdb_id()
-                                                , guessedEntry.getIgdb_imageHash(0)
-                                                , ImageUtils.IGDB_TYPE_COVER
-                                                , ImageUtils.IGDB_SIZE_MED
-                                                , new OnDLDoneHandler() {
-                                                    @Override
-                                                    public void run(File outputfile) {
-                                                       // guessedEntry.setSavedLocaly(true);
-                                                        //File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + guessedEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + GameEditScene.getExtension(outputfile));
-                                                        //try {
-                                                        //    Files.copy(outputfile.toPath().toAbsolutePath(),localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
-                                                        //    guessedEntry.setImagePath(0, localCoverFile);
-
-                                                      //  } catch (IOException e) {
-                                                        //    e.printStackTrace();
-                                                            guessedEntry.setImagePath(0,outputfile);
-                                                        //}
-                                                        ImageUtils.downloadIGDBImageToCache(guessedEntry.getIgdb_id()
-                                                                , guessedEntry.getIgdb_imageHash(1)
-                                                                , ImageUtils.IGDB_TYPE_SCREENSHOT
-                                                                , ImageUtils.IGDB_SIZE_MED
-                                                                , new OnDLDoneHandler() {
-                                                                    @Override
-                                                                    public void run(File outputfile) {
-                                                                       // File localScreenshotFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + guessedEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + GameEditScene.getExtension(outputfile));
-                                                                       // try {
-                                                                         //   Files.copy(outputfile.toPath().toAbsolutePath(),localScreenshotFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
-                                                                           // guessedEntry.setImagePath(1, localScreenshotFile);
-
-                                                                      //  } catch (IOException e) {
-                                                                        //    e.printStackTrace();
-                                                                            guessedEntry.setImagePath(1,outputfile);
-                                                                       // }
-                                                                        entriesToAdd.add(guessedEntry);
-
-                                                                        Platform.runLater(() -> {
-                                                                            onGameFoundHandler.gameToAddFound(guessedEntry);
-                                                                        });
-                                                                    }
-                                                                });
-
-                                                    }
-                                                });
-                                    } else {
+                                    }else {
                                         entriesToAdd.add(entryToAdd);
 
                                         Platform.runLater(() -> {
