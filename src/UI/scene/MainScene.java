@@ -1,7 +1,10 @@
 package ui.scene;
 
-import data.game.*;
+import data.ImageUtils;
+import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
+import data.game.scanner.GameLooker;
+import data.game.scanner.OnGameFoundHandler;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -136,6 +139,31 @@ public class MainScene extends BaseScene {
         recentlyAddedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_RECENTLY_ADDED);
         toAddTilePane = new ToAddRowTilePane(this);
 
+        //TODO fix this comment not working
+        /*if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)){
+            lastPlayedTilePane.fold();
+        }else{
+            lastPlayedTilePane.unfold();
+        }
+        if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED)){
+            recentlyAddedTilePane.fold();
+        }else{
+            recentlyAddedTilePane.unfold();
+        }*/
+
+        lastPlayedTilePane.addOnFoldedChangeListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FOLDED_ROW_LAST_PLAYED,newValue);
+            }
+        });
+        recentlyAddedTilePane.addOnFoldedChangeListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED,newValue);
+            }
+        });
+
         statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + "...");
         wrappingPane.setOpacity(0);
         Task<Void> task = new Task<Void>() {
@@ -165,7 +193,7 @@ public class MainScene extends BaseScene {
                 setChangeBackgroundNextTime(false);
                 fadeTransitionTo(MainScene.this, getParentStage(), false);
                 Platform.runLater(() -> {
-                    checkSteamGamesInstalled();
+                    startGameLookerService();
                 });
             }
         });
@@ -276,7 +304,7 @@ public class MainScene extends BaseScene {
             tilePane.sortByName();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
-            toAddTilePane.hide();
+            toAddTilePane.setForcedHidden(true);
 
             for(GroupRowTilePane groupPane : groupRowList){
                 groupPane.sortByName();
@@ -290,7 +318,7 @@ public class MainScene extends BaseScene {
             tilePane.sortByRating();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
-            toAddTilePane.hide();
+            toAddTilePane.setForcedHidden(true);
 
             for(GroupRowTilePane groupPane : groupRowList){
                 groupPane.sortByRating();
@@ -305,6 +333,7 @@ public class MainScene extends BaseScene {
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
             toAddTilePane.hide();
+            toAddTilePane.setForcedHidden(true);
 
             for(GroupRowTilePane groupPane : groupRowList){
                 groupPane.sortByTimePlayed();
@@ -318,7 +347,7 @@ public class MainScene extends BaseScene {
             tilePane.sortByReleaseDate();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
-            toAddTilePane.hide();
+            toAddTilePane.setForcedHidden(true);
 
             for(GroupRowTilePane groupPane : groupRowList){
                 groupPane.sortByReleaseDate();
@@ -359,7 +388,7 @@ public class MainScene extends BaseScene {
             tilePane.show();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
-            toAddTilePane.hide();
+            toAddTilePane.setForcedHidden(true);
 
             tilesPaneWrapper.getChildren().removeAll(groupRowList);
             groupRowList.clear();
@@ -373,7 +402,7 @@ public class MainScene extends BaseScene {
             tilePane.hide();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
-            toAddTilePane.hide();
+            toAddTilePane.setForcedHidden(true);
 
             tilesPaneWrapper.getChildren().removeAll(groupRowList);
             groupRowList.clear();
@@ -389,7 +418,7 @@ public class MainScene extends BaseScene {
             tilePane.hide();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
-            toAddTilePane.hide();
+            toAddTilePane.setForcedHidden(true);
 
             tilesPaneWrapper.getChildren().removeAll(groupRowList);
             groupRowList.clear();
@@ -405,7 +434,7 @@ public class MainScene extends BaseScene {
             tilePane.hide();
             lastPlayedTilePane.hide();
             recentlyAddedTilePane.hide();
-            toAddTilePane.hide();
+            toAddTilePane.setForcedHidden(true);
 
             tilesPaneWrapper.getChildren().removeAll(groupRowList);
             groupRowList.clear();
@@ -576,7 +605,7 @@ public class MainScene extends BaseScene {
         }
         lastPlayedTilePane.show();
         recentlyAddedTilePane.show();
-        toAddTilePane.show();
+        toAddTilePane.setForcedHidden(false);
 
         tilesPaneWrapper.getChildren().removeAll(groupRowList);
         groupRowList.clear();
@@ -699,7 +728,7 @@ public class MainScene extends BaseScene {
         }
     }
 
-    private void checkSteamGamesInstalled() {
+    private void startGameLookerService() {
         toAddTilePane.disableFoldButton(true);
         toAddTilePane.setAutomaticSort(false);
         toAddTilePane.fold();

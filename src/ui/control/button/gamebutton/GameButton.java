@@ -1,13 +1,11 @@
 package ui.control.button.gamebutton;
 
-import data.game.ImageUtils;
+import data.ImageUtils;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventType;
 import javafx.scene.Node;
 import javafx.scene.effect.*;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.TilePane;
 import javafx.scene.paint.Color;
 import system.application.settings.PredefinedSetting;

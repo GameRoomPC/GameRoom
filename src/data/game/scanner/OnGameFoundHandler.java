@@ -1,4 +1,4 @@
-package data.game;
+package data.game.scanner;
 
 import data.game.entry.GameEntry;
 import ui.control.button.gamebutton.GameButton;

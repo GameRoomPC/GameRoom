@@ -25,8 +25,10 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
+import ui.control.ValidEntryCondition;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ActivationKeyDialog;
+import ui.dialog.GameFoldersIgnoredSelector;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.SteamIgnoredSelector;
 
@@ -35,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -48,6 +51,8 @@ public class SettingsScene extends BaseScene {
     public final static String ADVANCE_MODE_LABEL_STYLE = "    -fx-text-fill: derive(-flatter-red, -20.0%);";
     private BorderPane wrappingPane;
     private TilePane contentPane = new TilePane();
+    private ArrayList<ValidEntryCondition> validEntriesConditions = new ArrayList<>();
+
 
     public SettingsScene(StackPane root, Stage parentStage, BaseScene previousScene) {
         super(root, parentStage);
@@ -111,6 +116,31 @@ public class SettingsScene extends BaseScene {
         });
         addPropertyLine(PredefinedSetting.GAMING_POWER_MODE);
         addPropertyLine(PredefinedSetting.GAMES_FOLDER);
+
+        /***********************GAME FOLDER IGNORED****************************/
+        Label gameFoldersIgnoredLabel = new Label(Main.SETTINGS_BUNDLE.getString("manage_ignored_game_folders_label") + ": ");
+        gameFoldersIgnoredLabel.setTooltip(new Tooltip(Main.SETTINGS_BUNDLE.getString("manage_ignored_game_folders_tooltip")));
+        Button manageGameFoldersIgnoredButton = new Button(Main.RESSOURCE_BUNDLE.getString("manage"));
+
+        manageGameFoldersIgnoredButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    GameFoldersIgnoredSelector selector = new GameFoldersIgnoredSelector();
+                    Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+                    ignoredOptionnal.ifPresent(pairs -> {
+                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_GAME_FOLDERS, selector.getSelectedEntries());
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        contentPane.getChildren().add(createLine(gameFoldersIgnoredLabel, manageGameFoldersIgnoredButton));
+
 
         /***********************STEAM GAMES IGNORED****************************/
         Label steamIgnoredGamesLabel = new Label(Main.SETTINGS_BUNDLE.getString("manage_ignored_steam_games_label") + ": ");
@@ -399,6 +429,7 @@ public class SettingsScene extends BaseScene {
                 /**************** PATH **************/
                 File p = GENERAL_SETTINGS.getFile(setting);
                 PathTextField gamesFolderField = new PathTextField(p != null ? p.toString() : "", this, PathTextField.FILE_CHOOSER_FOLDER, RESSOURCE_BUNDLE.getString("select_a_folder"));
+                gamesFolderField.setId(setting.getKey());
                 gamesFolderField.getTextField().textProperty().addListener(new ChangeListener<String>() {
                     @Override
                     public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -409,6 +440,30 @@ public class SettingsScene extends BaseScene {
                         }
                     }
                 });
+                validEntriesConditions.add(new ValidEntryCondition() {
+
+                    @Override
+                    public boolean isValid() {
+                        if(setting.equals(PredefinedSetting.GAMES_FOLDER)){
+                            File gamesFolder = GENERAL_SETTINGS.getFile(PredefinedSetting.GAMES_FOLDER);
+                            if (!gamesFolder.exists()) {
+                                message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_gamesFolder_exist"));
+                                return false;
+                            }
+                            if(!gamesFolder.isDirectory()){
+                                message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_gamesFolder_is_no_folder"));
+                                return false;
+                            }
+                            return true;
+                        }
+                        return true;
+                    }
+
+                    @Override
+                    public void onInvalid() {
+                        setLineInvalid(setting.getKey());
+                    }
+                });
                 node2 = gamesFolderField;
             }
             if (node2 != null) {
@@ -417,7 +472,23 @@ public class SettingsScene extends BaseScene {
             contentPane.getChildren().add(createLine(label, node2));
         }
     }
-
+    private void setLineInvalid(String property_key) {
+        String style = "-fx-text-inner-color: red;\n";
+        for (Node node : contentPane.getChildren()) {
+            if (node.getId() != null && node.getId().equals(property_key)) {
+                node.setStyle(style);
+                node.focusedProperty().addListener(new ChangeListener<Boolean>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                        if (newValue) {
+                            node.setStyle("");
+                        }
+                    }
+                });
+                break;
+            }
+        }
+    }
     private HBox createLine(Node nodeLeft, Node nodeRight) {
         HBox box = new HBox();
 
@@ -441,7 +512,18 @@ public class SettingsScene extends BaseScene {
 
     private void initTop() {
         wrappingPane.setTop(createTop(event -> {
-            fadeTransitionTo(previousScene, getParentStage(), true);
+            boolean allConditionsMet = true;
+            for (ValidEntryCondition condition : validEntriesConditions) {
+                allConditionsMet = allConditionsMet && condition.isValid();
+                if (!condition.isValid()) {
+                    condition.onInvalid();
+                    GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, condition.message.toString());
+                    alert.showAndWait();
+                }
+            }
+            if (allConditionsMet) {
+                fadeTransitionTo(previousScene, getParentStage(), true);
+            }
         }, RESSOURCE_BUNDLE.getString("Settings")));
     }
 

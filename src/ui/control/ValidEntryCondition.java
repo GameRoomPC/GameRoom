@@ -8,4 +8,5 @@ public interface ValidEntryCondition{
 
     public boolean isValid();
     public void onInvalid();
+
 }

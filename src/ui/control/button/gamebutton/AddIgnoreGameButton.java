@@ -55,16 +55,6 @@ public class AddIgnoreGameButton extends GameButton {
         disableNode(playTimeLabel, true);
         disableNode(playButton, true);
 
-        /*
-        setOnMouseExited(eh -> {
-            setFocused(false);
-        });
-        setOnMouseEntered(eh -> {
-            setFocused(true);
-        });
-        scene.heightProperty().addListener(cl -> {
-            //initAll();
-        });*/
         if (ADD_IMAGE == null) {
             ADD_IMAGE = new Image("res/ui/validIcon.png", Main.SCREEN_WIDTH / 10, Main.SCREEN_WIDTH / 10, true, true);
         }
@@ -83,21 +73,12 @@ public class AddIgnoreGameButton extends GameButton {
         ignoreButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                SteamPreEntry[] ignoredEntries = Main.GENERAL_SETTINGS.getSteamAppsIgnored();
-
-                boolean inList = false;
-
-                for (int i = 0; i < ignoredEntries.length && !inList; i++) {
-                    inList = entry.getSteam_id() == ignoredEntries[i].getId();
+                if(entry.getSteam_id()!=-1){
+                    addToSteamIgnoredList();
+                }else{
+                    addToFolderIgnoredList();
                 }
-                if (!inList) {
-                    SteamPreEntry[] futureEntries = new SteamPreEntry[ignoredEntries.length + 1];
-                    for (int i = 0; i < ignoredEntries.length; i++) {
-                        futureEntries[i] = ignoredEntries[i];
-                    }
-                    futureEntries[futureEntries.length - 1] = new SteamPreEntry(entry.getName(), entry.getSteam_id());
-                    Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS, futureEntries);
-                }
+
                 mainScene.removeGame(entry);
                 parentPane.removeGame(entry);
             }
@@ -218,5 +199,40 @@ public class AddIgnoreGameButton extends GameButton {
 
     public Image getImage() {
         return coverView.getImage();
+    }
+
+    private void addToSteamIgnoredList(){
+        SteamPreEntry[] ignoredEntries = Main.GENERAL_SETTINGS.getSteamAppsIgnored();
+
+        boolean inList = false;
+
+        for (int i = 0; i < ignoredEntries.length && !inList; i++) {
+            inList = getEntry().getSteam_id() == ignoredEntries[i].getId();
+        }
+        if (!inList) {
+            SteamPreEntry[] futureEntries = new SteamPreEntry[ignoredEntries.length + 1];
+            for (int i = 0; i < ignoredEntries.length; i++) {
+                futureEntries[i] = ignoredEntries[i];
+            }
+            futureEntries[futureEntries.length - 1] = new SteamPreEntry(getEntry().getName(), getEntry().getSteam_id());
+            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS, futureEntries);
+        }
+    }
+    private void addToFolderIgnoredList(){
+        File[] ignoredFolders = Main.GENERAL_SETTINGS.getFiles(PredefinedSetting.IGNORED_GAME_FOLDERS);
+
+        boolean inList = false;
+
+        for (int i = 0; i < ignoredFolders.length && !inList; i++) {
+            inList = getEntry().getPath().toLowerCase().equals(ignoredFolders[i].getAbsolutePath().toLowerCase());
+        }
+        if (!inList) {
+            File[] futureFolders = new File[ignoredFolders.length + 1];
+            for (int i = 0; i < ignoredFolders.length; i++) {
+                futureFolders[i] = ignoredFolders[i];
+            }
+            futureFolders[futureFolders.length - 1] = new File(getEntry().getPath());
+            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_GAME_FOLDERS, futureFolders);
+        }
     }
 }

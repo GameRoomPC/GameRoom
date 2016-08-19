@@ -1,7 +1,7 @@
 package ui.dialog;
 
 import data.game.entry.GameEntry;
-import data.game.ImageUtils;
+import data.ImageUtils;
 import data.game.scrapper.OnDLDoneHandler;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.geometry.Insets;

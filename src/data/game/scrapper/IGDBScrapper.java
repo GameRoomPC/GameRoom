@@ -29,8 +29,13 @@ public class IGDBScrapper {
         JSONArray bf4_results = searchGame("iwuefbuiw");
         ArrayList list = new ArrayList();
         list.add(bf4_results.getJSONObject(0).getInt("id"));
-        JSONArray bf4_data = getGamesData(list);
-        System.out.println(bf4_data.toString(4));
+        JSONArray bf4_data = null;
+        try {
+            bf4_data = getGamesData(list);
+            System.out.println(bf4_data.toString(4));
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
 
         //System.out.println(getSerie(bf4_data.getJSONObject(0)));
 
@@ -300,7 +305,7 @@ public class IGDBScrapper {
         }
         return null;
     }
-    public static JSONObject getGameData(int id) {
+    public static JSONObject getGameData(int id) throws UnirestException {
         ArrayList<Integer> list = new ArrayList<>();
         list.add(id);
         return getGamesData(list).getJSONObject(0);
@@ -329,14 +334,14 @@ public class IGDBScrapper {
         }
         return null;
     }
-    public static JSONArray getGamesData(Collection<Integer> ids) {
+    public static JSONArray getGamesData(Collection<Integer> ids) throws UnirestException {
         try {
             String idsString = "";
             for (Integer id : ids) {
                 idsString += id + ",";
             }
             HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + idsString.substring(0, idsString.length() - 1) + "?fields=*")
-                    .header("X-Mashape-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
+                    .header("X-Masha pe-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
                     .header("Accept", "application/json")
                     .asString();
             BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
@@ -344,8 +349,6 @@ public class IGDBScrapper {
             reader.close();
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener);
-        } catch (UnirestException e) {
-            e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (IOException e) {

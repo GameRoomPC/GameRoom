@@ -29,6 +29,8 @@ import static ui.Main.*;
  * Created by LM on 14/07/2016.
  */
 public class PathTextField extends StackPane {
+    private static Image DEFAULT_FOLDER_IMAGE;
+
     public final static int FILE_CHOOSER_APPS = 0;
     public final static int FILE_CHOOSER_FOLDER = 1;
 
@@ -41,8 +43,10 @@ public class PathTextField extends StackPane {
         super();
         this.initialPath = initialPath;
         field = new TextField(initialPath.toString());
-        Image folderImage = new Image("res/ui/folderButton.png", 50*SCREEN_WIDTH/1920, 50*SCREEN_HEIGHT/1080, false, true);
-        button = new ImageButton(folderImage);
+        if(DEFAULT_FOLDER_IMAGE == null){
+            DEFAULT_FOLDER_IMAGE= new Image("res/ui/folderButton.png", 50*SCREEN_WIDTH/1920, 50*SCREEN_HEIGHT/1080, false, true);
+        }
+        button = new ImageButton(DEFAULT_FOLDER_IMAGE);
         button.setFocusTraversable(false);
         this.parentScene = parentScene;
         getChildren().addAll(field,button);

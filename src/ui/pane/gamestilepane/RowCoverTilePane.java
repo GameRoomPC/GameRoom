@@ -28,6 +28,7 @@ import ui.control.button.OnActionHandler;
 import ui.control.button.gamebutton.GameButton;
 import ui.scene.MainScene;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 
@@ -49,6 +50,8 @@ public class RowCoverTilePane extends CoverTilePane {
     private boolean folded = false;
     //private ScrollPane horizontalScrollPane;
     private DualImageButton foldToggleButton;
+
+    private ArrayList<ChangeListener<Boolean>> onFoldedListeners = new ArrayList<>();
 
     public RowCoverTilePane(MainScene parentScene, String type) {
         super(parentScene, Main.RESSOURCE_BUNDLE.getString(type));
@@ -181,8 +184,10 @@ public class RowCoverTilePane extends CoverTilePane {
             @Override
             public void handle(ActionEvent me) {
                 if (foldToggleButton.inFirstState()) {
+                    folded=false;
                     openTilePane();
                 } else {
+                    folded=true;
                     closeTilePane();
                 }
             }
@@ -221,6 +226,10 @@ public class RowCoverTilePane extends CoverTilePane {
         fadeInTimeline.setCycleCount(1);
         fadeInTimeline.setAutoReverse(false);
         fadeInTimeline.play();
+
+        for(ChangeListener listener : onFoldedListeners){
+            listener.changed(null,false,false);
+        }
     }
 
     private void closeTilePane() {
@@ -241,6 +250,9 @@ public class RowCoverTilePane extends CoverTilePane {
         });
         fadeOutTimeline.play();
 
+        for(ChangeListener listener : onFoldedListeners){
+            listener.changed(null,false,true);
+        }
     }
 
     private void sort(ObservableList<Node> nodes, Comparator<GameEntry> comparator) {
@@ -268,6 +280,9 @@ public class RowCoverTilePane extends CoverTilePane {
                 }
             }
         });
+    }
+    public void addOnFoldedChangeListener(ChangeListener<Boolean> listener){
+        onFoldedListeners.add(listener);
     }
 
 

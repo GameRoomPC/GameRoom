@@ -1,4 +1,4 @@
-package data.game;
+package data;
 
 import data.game.scrapper.OnDLDoneHandler;
 import data.io.HTTPDownloader;

@@ -1,4 +1,4 @@
-package data.game;
+package data.game.entry;
 
 import data.game.entry.GameEntry;
 import ui.Main;

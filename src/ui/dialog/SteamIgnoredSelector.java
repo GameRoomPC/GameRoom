@@ -1,6 +1,6 @@
 package ui.dialog;
 
-import data.game.*;
+import data.ImageUtils;
 import data.game.scrapper.OnDLDoneHandler;
 import data.game.scrapper.SteamOnlineScrapper;
 import data.game.scrapper.SteamPreEntry;
@@ -123,8 +123,6 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
             for (data.game.scrapper.SteamPreEntry steamPreEntry : ignoredSteamApps) {
                 if (((data.game.scrapper.SteamPreEntry) item.getValue()).getId() == steamPreEntry.getId()) {
                     item.setSelected(true);
-                    //item.getRadioButton().fire();
-                    Main.LOGGER.debug(getSelectedValue());
 
                     break;
                 }

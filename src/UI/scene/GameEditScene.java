@@ -1,9 +1,10 @@
 package ui.scene;
 
+import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
 import data.game.scrapper.IGDBScrapper;
-import data.game.ImageUtils;
+import data.ImageUtils;
 import data.game.scrapper.OnDLDoneHandler;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -496,6 +497,13 @@ public class GameEditScene extends BaseScene {
                                                              alert.showAndWait();
                                                          } else {
                                                              jse.printStackTrace();
+                                                         }
+                                                     } catch (UnirestException e) {
+                                                         if (e.toString().contains("UnknownHostException")) {
+                                                             GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, Main.RESSOURCE_BUNDLE.getString("no_internet"));
+                                                             alert.showAndWait();
+                                                         } else {
+                                                             e.printStackTrace();
                                                          }
                                                      }
                                                  } else {
