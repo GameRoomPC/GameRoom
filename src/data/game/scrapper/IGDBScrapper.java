@@ -341,7 +341,7 @@ public class IGDBScrapper {
                 idsString += id + ",";
             }
             HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + idsString.substring(0, idsString.length() - 1) + "?fields=*")
-                    .header("X-Masha pe-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
+                    .header("X-Mashape-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
                     .header("Accept", "application/json")
                     .asString();
             BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));

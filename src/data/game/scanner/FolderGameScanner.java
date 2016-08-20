@@ -104,7 +104,6 @@ public class FolderGameScanner extends GameScanner{
         for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
             alreadyAddedToLibrary = entry.getPath().toLowerCase().contains(foundEntry.getPath().toLowerCase()); //cannot use UUID as they are different at this pre-add-time
             if (alreadyAddedToLibrary) {
-                Main.LOGGER.debug("Game already in lib : old="+entry.getPath().toLowerCase()+", found="+foundEntry.getPath().toLowerCase());
                 break;
             }
         }
