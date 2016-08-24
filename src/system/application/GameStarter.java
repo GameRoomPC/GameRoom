@@ -92,7 +92,7 @@ public class GameStarter {
                 if(!entry.isAlreadyStartedInGameRoom()){
                     entry.setAlreadyStartedInGameRoom(true);
                     Monitor timeMonitor = new Monitor(GameStarter.this);
-                    return timeMonitor.start();
+                    return timeMonitor.start(null);
                 }
                 return new Long(-1);
             }

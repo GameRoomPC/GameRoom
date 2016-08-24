@@ -67,10 +67,10 @@ public class Monitor {
         this.gameStarter=gameStarter;
     }
 
-    public long start() throws IOException {
+    public long start(Date initialDate) throws IOException {
         long originalPlayTime = gameStarter.getGameEntry().getPlayTimeSeconds();
 
-        while (creationDate == null) {
+        while (creationDate == null || creationDate.equals(initialDate)) {
             creationDate = computeCreationDate();
             try {
                 Thread.sleep(MONITOR_REFRESH);
@@ -123,10 +123,11 @@ public class Monitor {
 
             try {
                 if (query.get().equals(new Long(-1))) {
+                    //we wait for next game launch
                     FutureTask<Long> monitor = new Task() {
                         @Override
                         protected Object call() throws Exception {
-                            return start();
+                            return start(creationDate);
                         }
                     };
                     Thread th = new Thread(monitor);

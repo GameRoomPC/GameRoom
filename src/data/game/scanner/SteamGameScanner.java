@@ -53,7 +53,9 @@ public class SteamGameScanner extends GameScanner {
         };
         steamTask.setOnSucceeded(event -> {
             scanDone = true;
-            Main.LOGGER.info(SteamGameScanner.class.getName()+" : total games found = "+foundGames.size());
+            if(foundGames.size() >0){
+                Main.LOGGER.info(SteamGameScanner.class.getName()+" : total games found = "+foundGames.size());
+            }
         });
         Thread th = new Thread(steamTask);
         th.setDaemon(false);
