@@ -155,6 +155,8 @@ public class Launcher extends Application {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 MAIN_SCENE.setChangeBackgroundNextTime(true);
+                primaryStage.getScene().getRoot().setMouseTransparent(!newValue);
+
                 if(newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)){
                    xboxController.startThreads();
                 }else if(!newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)){

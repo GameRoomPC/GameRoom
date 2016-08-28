@@ -1,5 +1,6 @@
 package data.game.scanner;
 
+import data.game.GameWatcher;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scrapper.SteamLocalScrapper;
@@ -22,7 +23,7 @@ public class SteamGameScanner extends GameScanner {
     private ArrayList<SteamPreEntry> ownedSteamApps = new ArrayList<>();
     private ArrayList<SteamPreEntry> installedSteamApps = new ArrayList<>();
 
-    public SteamGameScanner(GameLooker parentLooker) {
+    public SteamGameScanner(GameWatcher parentLooker) {
         super(parentLooker);
     }
 
@@ -44,7 +45,7 @@ public class SteamGameScanner extends GameScanner {
                     for (SteamPreEntry preEntryToAdd : steamEntriesToAdd) {
                         GameEntry entryToAdd = automaticSteamScrap(preEntryToAdd);
                         if (!parentLooker.alreadyWaitingToBeAdded(entryToAdd)) {
-                            automaticScrapAndAdd(entryToAdd);
+                            addGameEntryFound(entryToAdd);
                         }
                     }
                 }

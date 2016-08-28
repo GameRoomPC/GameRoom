@@ -83,6 +83,29 @@ public class SteamLocalScrapper {
         }
         return null;
     }
+    public static boolean isSteamGameRunning(int steam_id) throws IOException {
+        return getSteamGameStatus(steam_id,"Running");
+    }
+    public static boolean isSteamGameInstalled(int steam_id) throws IOException {
+        return getSteamGameStatus(steam_id,"Installed");
+    }
+    public static boolean isSteamGameLaunching(int steam_id) throws IOException {
+        return getSteamGameStatus(steam_id,"Launching");
+    }
+    private static boolean getSteamGameStatus(int steam_id, String status) throws IOException {
+        Terminal terminal = new Terminal();
+        String[] output = terminal.execute("reg","query","\"HKEY_CURRENT_USER\\SOFTWARE\\Valve\\Steam\\Apps\\"+steam_id+"\"","/v",status);
+        String result = null;
+        for(String s : output){
+            if(s.contains(status)){
+                String prefix = status+"    REG_DWORD    0x";
+                int index = s.indexOf(prefix)+prefix.length();
+                result = s.substring(index,index+1);
+                break;
+            }
+        }
+        return (result!=null) && (result.equals("1"));
+    }
     public static void main(String[] args) throws IOException {
         System.out.println(getSteamUserId());
     }

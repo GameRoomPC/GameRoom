@@ -108,13 +108,17 @@ public class GameEditScene extends BaseScene {
         this.mode = mode;
         this.entry = entry;
         this.entry.setSavedLocaly(false);
-        this.chosenImageFiles[0] = entry.getImagePath(0);
-        this.chosenImageFiles[1] = entry.getImagePath(1);
         init(previousScene, coverImage);
     }
 
     private void init(BaseScene previousScene, Image coverImage) {
         onExitAction = new ClassicExitAction(this, previousScene.getParentStage(), previousScene);
+
+        for (int i = 0; i < chosenImageFiles.length; i++) {
+            if(entry.getImagePath(i)!=null){
+                this.chosenImageFiles[i] = entry.getImagePath(i);
+            }
+        }
 
         imageChooser = new FileChooser();
         imageChooser.setTitle(RESSOURCE_BUNDLE.getString("select_picture"));
@@ -163,6 +167,7 @@ public class GameEditScene extends BaseScene {
                                     localCoverFile.createNewFile();
                                 }
                                 Files.copy(chosenImageFiles[i].toPath().toAbsolutePath(), localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
+                                entry.setImagePath(i,localCoverFile);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -293,7 +298,7 @@ public class GameEditScene extends BaseScene {
                 File file = new File(entry.getPath());
                 Pattern pattern = Pattern.compile("^steam:\\/\\/rungameid\\/\\d*$");
 
-                if (!pattern.matcher(entry.getPath().trim()).matches() && !file.exists()) {
+                if (!pattern.matcher(entry.getPath().trim()).matches() && (!file.exists() || file.isDirectory())) {
                     message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_path_not_file"));
                     return false;
                 }

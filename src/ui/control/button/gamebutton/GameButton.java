@@ -87,7 +87,7 @@ public abstract class GameButton extends BorderPane {
     protected Pane parent;
 
 
-    private GameEntry entry;
+    protected GameEntry entry;
     private boolean inContextMenu = false;
 
 

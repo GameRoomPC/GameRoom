@@ -27,12 +27,12 @@ public class TileGameButton extends GameButton {
 
     @Override
     protected int getCoverHeight() {
-        return (int) (SCREEN_WIDTH / 10 * COVER_HEIGHT_WIDTH_RATIO);
+        return (int) (SCREEN_WIDTH / 5 * COVER_HEIGHT_WIDTH_RATIO);
     }
 
     @Override
     protected int getCoverWidth() {
-        return (int) (SCREEN_WIDTH / 10);
+        return (int) (SCREEN_WIDTH / 5);
     }
 
     @Override

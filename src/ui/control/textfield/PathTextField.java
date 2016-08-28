@@ -65,7 +65,9 @@ public class PathTextField extends StackPane {
                         if(initialPath.equals("")){
                             initialDir = new File(System.getProperty("user.home"));
                         }else{
-                            initialDir = initialDir.getParentFile();
+                            if(!initialDir.isDirectory()){
+                                initialDir = initialDir.getParentFile();
+                            }
                         }
 
                         fileChooser.setInitialDirectory(initialDir);

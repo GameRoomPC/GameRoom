@@ -1,5 +1,6 @@
 package data.game.scanner;
 
+import data.game.GameWatcher;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import javafx.concurrent.Task;
@@ -17,7 +18,7 @@ public class FolderGameScanner extends GameScanner{
     private final static String[] VALID_EXECUTABLE_EXTENSION = new String[]{".exe",".ink",".jar"};
 
 
-    public FolderGameScanner(GameLooker parentLooker) {
+    public FolderGameScanner(GameWatcher parentLooker) {
         super(parentLooker);
     }
 
@@ -32,11 +33,13 @@ public class FolderGameScanner extends GameScanner{
                 ArrayList<GameEntry> potentialEntries = getPotentialEntries();
 
                 for (GameEntry potentialEntry : potentialEntries) {
-                    //Main.LOGGER.debug(FolderGameScanner.class.getName()+"Potential game found : "+potentialEntry.getName());
-                    if (!gameAlreadyInLibrary(potentialEntry)
-                            && !folderGameIgnored(potentialEntry)
-                            && !parentLooker.alreadyWaitingToBeAdded(potentialEntry)) {
-                        automaticScrapAndAdd(potentialEntry);
+                    boolean gameAlreadyInLibrary = gameAlreadyInLibrary(potentialEntry);
+                    boolean folderGameIgnored = folderGameIgnored(potentialEntry);
+                    boolean alreadyWaitingToBeAdded = parentLooker.alreadyWaitingToBeAdded(potentialEntry);
+                    if (!gameAlreadyInLibrary
+                            && !folderGameIgnored
+                            && !alreadyWaitingToBeAdded) {
+                        addGameEntryFound(potentialEntry);
                     }
                 }
                 return null;

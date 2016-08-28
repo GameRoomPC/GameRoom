@@ -1,9 +1,9 @@
 package ui.scene;
 
 import data.ImageUtils;
+import data.game.GameWatcher;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
-import data.game.scanner.GameLooker;
 import data.game.scanner.OnGameFoundHandler;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -44,6 +44,7 @@ import ui.scene.exitaction.ExitAction;
 import ui.scene.exitaction.MultiAddExitAction;
 
 import java.awt.*;
+import java.awt.Menu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -587,6 +588,7 @@ public class MainScene extends BaseScene {
     private void refreshTrayMenu() {
         Main.START_TRAY_MENU.removeAll();
 
+        ArrayList<java.awt.MenuItem> newItems = new ArrayList<>();
         for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
             java.awt.MenuItem gameItem = new java.awt.MenuItem(entry.getName());
             gameItem.addActionListener(new ActionListener() {
@@ -595,8 +597,19 @@ public class MainScene extends BaseScene {
                     entry.startGame();
                 }
             });
-            Main.START_TRAY_MENU.add(gameItem);
+            newItems.add(gameItem);
         }
+        newItems.sort(new Comparator<java.awt.MenuItem>() {
+            @Override
+            public int compare(java.awt.MenuItem o1, java.awt.MenuItem o2) {
+                return o1.getLabel().compareTo(o2.getLabel());
+            }
+        });
+        for(java.awt.MenuItem item : newItems){
+            Main.START_TRAY_MENU.add(item);
+        }
+        Main.START_TRAY_MENU.setEnabled(true);
+
     }
     private void home(){
         tilePane.sortByName();
@@ -733,7 +746,7 @@ public class MainScene extends BaseScene {
         toAddTilePane.setAutomaticSort(false);
         toAddTilePane.fold();
         toAddTilePane.hide();
-        GameLooker looker = new GameLooker(new OnGameFoundHandler() {
+        GameWatcher looker = new GameWatcher(new OnGameFoundHandler() {
             @Override
             public GameButton gameToAddFound(GameEntry entry) {
                 toAddTilePane.addGame(entry);

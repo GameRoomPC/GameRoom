@@ -59,7 +59,7 @@ public class SteamOnlineScrapper {
                         entry.setPlayTimeSeconds((long) (playTimeHours * 3600));
                     } catch (JSONException jse) {
                         if (jse.toString().contains("not found")) {
-                            System.out.println(entry.getName() + " was never played");
+                            //System.out.println(entry.getName() + " was never played");
                         } else {
                             jse.printStackTrace();
                         }
@@ -150,6 +150,11 @@ public class SteamOnlineScrapper {
             BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
             String json = reader.readLine();
             reader.close();
+            //Main.LOGGER.debug("Recevied : "+json);
+
+            if(json == null || json.equals("null")){
+                return null;
+            }
             JSONTokener tokener = new JSONTokener(json);
 
             JSONObject idObject = new JSONObject(tokener).getJSONObject("" + steam_id);

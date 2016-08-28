@@ -62,6 +62,7 @@ public class GameEntry {
     /*FOR IGDB PURPOSE ONLY, should not be stored*/
     private int igdb_id = -1;
     private String[] igdb_imageHash = new String[IMAGES_NUMBER];
+    private boolean waitingToBeScrapped = false;
 
     private int steam_id = -1;
 
@@ -351,11 +352,11 @@ public class GameEntry {
     }
 
     public void setSteam_id(int steam_id) {
-        setSteam_id(steam_id, true);
+        setSteam_id(steam_id, steam_id!=-1);
     }
 
     public boolean isSteamGame() {
-        return steam_id == -1;
+        return steam_id != -1;
     }
 
     public long getPlayTimeSeconds() {
@@ -605,6 +606,14 @@ public class GameEntry {
         }
     }
 
+    public boolean isWaitingToBeScrapped() {
+        return waitingToBeScrapped;
+    }
+
+    public void setWaitingToBeScrapped(boolean waitingToBeScrapped) {
+        this.waitingToBeScrapped = waitingToBeScrapped;
+    }
+
     public void setIgdb_imageHash(int index, String hash) {
         if (index >= igdb_imageHash.length) {
             String[] copy = igdb_imageHash;
@@ -636,5 +645,9 @@ public class GameEntry {
                 ",release_date=" + (releaseDate != null ? DATE_DISPLAY_FORMAT.format(releaseDate) : null) +
                 ",steam_id=" + steam_id+
                 "playTime="+getPlayTimeFormatted(TIME_FORMAT_FULL_DOUBLEDOTS);
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
     }
 }

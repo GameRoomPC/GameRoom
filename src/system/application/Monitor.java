@@ -1,6 +1,7 @@
 package system.application;
 
 import data.game.entry.GameEntry;
+import data.game.scrapper.SteamLocalScrapper;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
@@ -38,116 +39,140 @@ public class Monitor {
 
     private Date creationDate = null;
 
-    protected Monitor(String processName, String name) throws IOException {
-        DATE_FORMAT.setTimeZone(Calendar.getInstance().getTimeZone());
+    protected Monitor(GameStarter starter) throws IOException {
+        this.gameStarter = starter;
+        if(!gameStarter.getGameEntry().isSteamGame()){
+            DATE_FORMAT.setTimeZone(Calendar.getInstance().getTimeZone());
 
-        vbsWatcher = File.createTempFile(processName + "_watcher", ".vbs");
-        vbsWatcher.deleteOnExit();
-        FileWriter fw = new java.io.FileWriter(vbsWatcher);
+            vbsWatcher = File.createTempFile(gameStarter.getGameEntry().getProcessName() + "_watcher", ".vbs");
+            vbsWatcher.deleteOnExit();
+            FileWriter fw = new java.io.FileWriter(vbsWatcher);
 
-        String vbs = "Set WshShell = WScript.CreateObject(\"WScript.Shell\")\n"
-                + "Set locator = CreateObject(\"WbemScripting.SWbemLocator\")\n"
-                + "Set service = locator.ConnectServer()\n"
-                + "Set processes = service.ExecQuery _\n"
-                + " (\"select * from Win32_Process where name='" + processName + "'\")\n"
-                + "For Each process in processes\n"
-                + "wscript.echo process.Name \n"
-                + "wscript.echo \"" + TIME_TAG + "\" & process.CreationDate \n"
-                + "Next\n"
-                + "Set WSHShell = Nothing\n";
+            String vbs = "Set WshShell = WScript.CreateObject(\"WScript.Shell\")\n"
+                    + "Set locator = CreateObject(\"WbemScripting.SWbemLocator\")\n"
+                    + "Set service = locator.ConnectServer()\n"
+                    + "Set processes = service.ExecQuery _\n"
+                    + " (\"select * from Win32_Process where name='" + gameStarter.getGameEntry().getProcessName() + "'\")\n"
+                    + "For Each process in processes\n"
+                    + "wscript.echo process.Name \n"
+                    + "wscript.echo \"" + TIME_TAG + "\" & process.CreationDate \n"
+                    + "Next\n"
+                    + "Set WSHShell = Nothing\n";
 
-        fw.write(vbs);
-        fw.close();
+            fw.write(vbs);
+            fw.close();
 
-       timeWatcherCmd = "cscript //NoLogo " + vbsWatcher.getPath();
-
-    }
-    public Monitor(GameStarter gameStarter) throws IOException {
-        this(gameStarter.getGameEntry().getProcessName(),gameStarter.getGameEntry().getName());
-        this.gameStarter=gameStarter;
+            timeWatcherCmd = "cscript //NoLogo " + vbsWatcher.getPath();
+        }
     }
 
     public long start(Date initialDate) throws IOException {
-        long originalPlayTime = gameStarter.getGameEntry().getPlayTimeSeconds();
+        if(!gameStarter.getGameEntry().isSteamGame()){
+            long originalPlayTime = gameStarter.getGameEntry().getPlayTimeSeconds();
 
-        while (creationDate == null || creationDate.equals(initialDate)) {
-            creationDate = computeCreationDate();
-            try {
-                Thread.sleep(MONITOR_REFRESH);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            while (creationDate == null || creationDate.equals(initialDate)) {
+                creationDate = computeCreationDate();
+                try {
+                    Thread.sleep(MONITOR_REFRESH);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-        }
-        Main.LOGGER.info("Monitoring " + gameStarter.getGameEntry().getProcessName());
-        while (isProcessRunning()) {
+            Main.LOGGER.info("Monitoring " + gameStarter.getGameEntry().getProcessName());
+            while (isProcessRunning()) {
+                long result = computeTrueRunningTime();
+                gameStarter.getGameEntry().setSavedLocaly(true);
+                gameStarter.getGameEntry().setPlayTimeSeconds(originalPlayTime+Math.round(result/1000.0));
+                gameStarter.getGameEntry().setSavedLocaly(false);
+                try {
+                    Thread.sleep(MONITOR_REFRESH);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            Main.LOGGER.info(gameStarter.getGameEntry().getProcessName() + " killed");
+
             long result = computeTrueRunningTime();
-            gameStarter.getGameEntry().setSavedLocaly(true);
-            gameStarter.getGameEntry().setPlayTimeSeconds(originalPlayTime+Math.round(result/1000.0));
-            gameStarter.getGameEntry().setSavedLocaly(false);
-            try {
-                Thread.sleep(MONITOR_REFRESH);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        Main.LOGGER.info(gameStarter.getGameEntry().getProcessName() + " killed");
+            Main.LOGGER.debug("\tComputed playtime : "+ GameEntry.getPlayTimeFormatted(Math.round(result/1000),GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
 
-        long result = computeTrueRunningTime();
-        Main.LOGGER.debug("\tComputed playtime : "+ GameEntry.getPlayTimeFormatted(Math.round(result/1000),GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
+            if (result < MIN_MONITOR_TIME) {
+                final FutureTask<Long> query = new FutureTask(new Callable() {
+                    @Override
+                    public Long call() throws Exception {
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                        alert.setHeaderText(null);
+                        alert.initStyle(StageStyle.UNDECORATED);
+                        alert.getDialogPane().getStylesheets().add("res/flatterfx.css");
+                        alert.initModality(Modality.WINDOW_MODAL);
+                        alert.setContentText(gameStarter.getGameEntry().getName() + " "
+                                + Main.RESSOURCE_BUNDLE.getString("monitor_wait_dialog_1") + " "
+                                + GameEntry.getPlayTimeFormatted(Math.round(result/1000.0),GameEntry.TIME_FORMAT_ROUNDED_HMS)
+                                + Main.RESSOURCE_BUNDLE.getString("monitor_wait_dialog_2"));
 
-        if (result < MIN_MONITOR_TIME) {
-            final FutureTask<Long> query = new FutureTask(new Callable() {
-                @Override
-                public Long call() throws Exception {
-                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                    alert.setHeaderText(null);
-                    alert.initStyle(StageStyle.UNDECORATED);
-                    alert.getDialogPane().getStylesheets().add("res/flatterfx.css");
-                    alert.initModality(Modality.WINDOW_MODAL);
-                    alert.setContentText(gameStarter.getGameEntry().getName() + " "
-                            + Main.RESSOURCE_BUNDLE.getString("monitor_wait_dialog_1") + " "
-                            + GameEntry.getPlayTimeFormatted(Math.round(result/1000.0),GameEntry.TIME_FORMAT_ROUNDED_HMS)
-                            + Main.RESSOURCE_BUNDLE.getString("monitor_wait_dialog_2"));
+                        Optional<ButtonType> dialogResult = alert.showAndWait();
+                        if (dialogResult.get() == ButtonType.OK) {
+                            Main.LOGGER.info(gameStarter.getGameEntry().getProcessName() + " : waiting for until next launch to count playtime.");
+                            return new Long(-1);
+                        }
+                        gameStarter.onStop();
 
-                    Optional<ButtonType> dialogResult = alert.showAndWait();
-                    if (dialogResult.get() == ButtonType.OK) {
-                        Main.LOGGER.info(gameStarter.getGameEntry().getProcessName() + " : waiting for until next launch to count playtime.");
-                        return new Long(-1);
+                        return result;
                     }
-                    gameStarter.onStop();
+                });
+                Platform.runLater(query);
 
+                try {
+                    if (query.get().equals(new Long(-1))) {
+                        //we wait for next game launch
+                        FutureTask<Long> monitor = new Task() {
+                            @Override
+                            protected Object call() throws Exception {
+                                return start(creationDate);
+                            }
+                        };
+                        Thread th = new Thread(monitor);
+                        th.setDaemon(true);
+                        th.start();
+                        return monitor.get();
+                    } else {
+                        return query.get();
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
                     return result;
                 }
-            });
-            Platform.runLater(query);
-
-            try {
-                if (query.get().equals(new Long(-1))) {
-                    //we wait for next game launch
-                    FutureTask<Long> monitor = new Task() {
-                        @Override
-                        protected Object call() throws Exception {
-                            return start(creationDate);
-                        }
-                    };
-                    Thread th = new Thread(monitor);
-                    th.setDaemon(true);
-                    th.start();
-                    return monitor.get();
-                } else {
-                    return query.get();
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+            } else {
+                gameStarter.onStop();
                 return result;
             }
-        } else {
-            gameStarter.onStop();
             return result;
+        }else{
+            Main.LOGGER.info("Not monitoring time for " + gameStarter.getGameEntry().getName()+", is steam game");
+            if(SteamLocalScrapper.isSteamGameInstalled(gameStarter.getGameEntry().getSteam_id())){
+                //waiting for the game to start
+                while (!SteamLocalScrapper.isSteamGameRunning(gameStarter.getGameEntry().getSteam_id())
+                        && !SteamLocalScrapper.isSteamGameLaunching(gameStarter.getGameEntry().getSteam_id())) {
+                    try {
+                        Thread.sleep(MONITOR_REFRESH);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            while (SteamLocalScrapper.isSteamGameRunning(gameStarter.getGameEntry().getSteam_id())
+                    || SteamLocalScrapper.isSteamGameLaunching(gameStarter.getGameEntry().getSteam_id())) {
+                try {
+                    Thread.sleep(MONITOR_REFRESH);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            Main.LOGGER.info(gameStarter.getGameEntry().getProcessName() + " killed");
+            gameStarter.onStop();
+            return 0;
         }
-        return result;
     }
     protected long computeTrueRunningTime() throws IOException {
         long currentTime = System.currentTimeMillis();

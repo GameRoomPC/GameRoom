@@ -7,7 +7,7 @@
         </Console>
 
         <RollingFile name="RollingFile" filename="log/GameRoom.log"
-                     filepattern="log/%d{YYYYMMddHHmmss}-app.log">
+                     filepattern="log/GameRoom.log">
             <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p %c{1}:%L - %msg%n" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="1 MB" />

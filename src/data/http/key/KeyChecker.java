@@ -74,11 +74,16 @@ public class KeyChecker {
     }
     public static boolean isKeyValid(String key){
         if(!testInet("igdb.com") && !testInet(API_URL.replace("https://",""))){
+            Main.LOGGER.error("IGDB not joinable");
             return false;
         }
         try {
             JSONObject response = askKeyValid(key);
             if(response!=null){
+                if(Main.DEV_MODE){
+                    Main.LOGGER.error(response.toString(4));
+                }
+
                 if(response.getString(FIELD_RESULT).equals(RESULT_SUCCESS)){
                     String status = response.getString(FIELD_STATUS);
                     if(status.equals(STATUS_ACTIVE)){

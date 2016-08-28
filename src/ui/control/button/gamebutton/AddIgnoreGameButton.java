@@ -65,7 +65,7 @@ public class AddIgnoreGameButton extends GameButton {
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                GameEditScene addScene = new GameEditScene(mainScene, entry, GameEditScene.MODE_ADD, null);
+                GameEditScene addScene = new GameEditScene(mainScene, getEntry(), GameEditScene.MODE_ADD, null);
                 mainScene.fadeTransitionTo(addScene, mainScene.getParentStage());
             }
         });

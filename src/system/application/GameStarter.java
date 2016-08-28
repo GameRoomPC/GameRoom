@@ -33,8 +33,9 @@ public class GameStarter {
         this.entry = entry;
     }
     public void start(){
+        Main.LOGGER.info("Starting game : "+entry.getName());
         originalPowerMode = PowerMode.getActivePowerMode();
-        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isAlreadyStartedInGameRoom()){
+        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isAlreadyStartedInGameRoom() && !entry.isNotInstalled()){
             GENERAL_SETTINGS.getPowerMode(PredefinedSetting.GAMING_POWER_MODE).activate();
         }
         String logFolder = "Games"+File.separator+entry.getUuid()+File.separator;
@@ -43,13 +44,14 @@ public class GameStarter {
         Terminal terminal = new Terminal();
         String cmdBefore = entry.getCmd(GameEntry.CMD_BEFORE_START);
         entry.setLastPlayedDate(new Date());
-        if(entry.getPath().startsWith(STEAM_PREFIX)){
+        if(entry.isSteamGame() || entry.getPath().startsWith(STEAM_PREFIX)){
             if(cmdBefore!=null){
                 String[] cmds = cmdBefore.split("\n");
                 terminal.execute(cmds,preLog);
             }
             try {
-                Desktop.getDesktop().browse(new URI(entry.getPath()));
+                String steamUri = entry.isNotInstalled() ? "steam://install/"+entry.getSteam_id() : entry.getPath();
+                Desktop.getDesktop().browse(new URI(steamUri));
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (URISyntaxException e) {
@@ -112,7 +114,7 @@ public class GameStarter {
                     entry.addPlayTimeSeconds(Math.round(newValue/1000.0));
                     MAIN_SCENE.updateGame(entry);
                     entry.setSavedLocaly(false);
-                    if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS)) {
+                    if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS) && newValue!=0) {
                         Main.TRAY_ICON.displayMessage("GameRoom"
                                 , GameEntry.getPlayTimeFormatted(Math.round(newValue/1000.0),GameEntry.TIME_FORMAT_HMS_CASUAL) + " "
                                         + Main.RESSOURCE_BUNDLE.getString("tray_icon_time_recorded") + " "

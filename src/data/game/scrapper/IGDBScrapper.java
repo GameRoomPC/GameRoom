@@ -94,7 +94,7 @@ public class IGDBScrapper {
             return ((releaseDates.size() > 0) ? releaseDates.get(0) : null);
         }catch (JSONException jse){
             if(jse.toString().contains("not found")){
-                Main.LOGGER.error("Year not found");
+                //Main.LOGGER.error("Year not found");
             }else{
                 jse.printStackTrace();
             }
@@ -146,7 +146,7 @@ public class IGDBScrapper {
             entry.setDescription(game_data.getString("summary"));
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.LOGGER.warn(entry.getName()+" : no synopsis");
+                //Main.LOGGER.warn(entry.getName()+" : no synopsis");
             }else{
                 je.printStackTrace();
             }
@@ -155,7 +155,7 @@ public class IGDBScrapper {
             entry.setSerie(getSerie(game_data));
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.LOGGER.warn(entry.getName()+" : no serie");
+                //Main.LOGGER.warn(entry.getName()+" : no serie");
             }else{
                 je.printStackTrace();
             }
@@ -179,7 +179,7 @@ public class IGDBScrapper {
             entry.setReleaseDate(getReleaseDate(game_data));
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.LOGGER.warn(entry.getName()+" : no release date");
+                //Main.LOGGER.warn(entry.getName()+" : no release date");
             }else{
                 je.printStackTrace();
             }
@@ -203,7 +203,7 @@ public class IGDBScrapper {
             entry.setPublisher(publishers);
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.LOGGER.warn(entry.getName()+" : no publishers");
+                //Main.LOGGER.warn(entry.getName()+" : no publishers");
             }else{
                 je.printStackTrace();
             }
@@ -212,7 +212,7 @@ public class IGDBScrapper {
             entry.setGenres(getGenres(game_data));
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.LOGGER.warn(entry.getName()+" : no developers");
+                //Main.LOGGER.warn(entry.getName()+" : no developers");
             }else{
                 je.printStackTrace();
             }
@@ -221,7 +221,7 @@ public class IGDBScrapper {
             entry.setThemes(getThemes(game_data));
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.LOGGER.warn(entry.getName()+" : no developers");
+                //Main.LOGGER.warn(entry.getName()+" : no developers");
             }else{
                 je.printStackTrace();
             }
@@ -244,7 +244,7 @@ public class IGDBScrapper {
             entry.setDeveloper(developers);
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.LOGGER.warn(entry.getName()+" : no developers");
+                //Main.LOGGER.warn(entry.getName()+" : no developers");
             }else{
                 je.printStackTrace();
             }
@@ -257,7 +257,7 @@ public class IGDBScrapper {
             }
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.LOGGER.warn(entry.getName()+" : no cover");
+                //Main.LOGGER.warn(entry.getName()+" : no cover");
             }else{
                 je.printStackTrace();
             }
@@ -266,7 +266,7 @@ public class IGDBScrapper {
             entry.setIgdb_id(game_data.getInt("id"));
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.LOGGER.warn(entry.getName()+" : no id");
+                //Main.LOGGER.warn(entry.getName()+" : no id");
             }else{
                 je.printStackTrace();
             }
@@ -275,7 +275,7 @@ public class IGDBScrapper {
             entry.setAggregated_rating(game_data.getInt("aggregated_rating"));
         } catch (JSONException je) {
             if(je.toString().contains("not found")){
-                Main.LOGGER.warn(entry.getName()+" : no aggregated_rating");
+                //Main.LOGGER.warn(entry.getName()+" : no aggregated_rating");
             }else{
                 je.printStackTrace();
             }
@@ -367,7 +367,7 @@ public class IGDBScrapper {
             return gameGenres;
         } catch (JSONException jse){
             if(jse.toString().contains("not found")){
-                Main.LOGGER.error("Genres not found");
+                //Main.LOGGER.error("Genres not found");
             }else{
                 jse.printStackTrace();
             }
@@ -385,7 +385,7 @@ public class IGDBScrapper {
             return gameThemes;
         }catch (JSONException jse){
             if(jse.toString().contains("not found")){
-                Main.LOGGER.error("Themes not found");
+                //Main.LOGGER.error("Themes not found");
             }else{
                 jse.printStackTrace();
             }
@@ -406,7 +406,7 @@ public class IGDBScrapper {
             return new JSONArray(tokener).getJSONObject(0).getString("name");
         }catch (JSONException jse){
             if(jse.toString().contains("not found")){
-                Main.LOGGER.error("Serie not found");
+                //Main.LOGGER.error("Serie not found");
             }else{
                 jse.printStackTrace();
             }
