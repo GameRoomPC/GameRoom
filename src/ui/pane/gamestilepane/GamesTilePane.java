@@ -99,7 +99,6 @@ public abstract class GamesTilePane extends BorderPane{
     }
 
     public void removeGame(GameEntry entry){
-        ArrayList<GameButton> toRemoveButtons = new ArrayList<>();
         int index = indexOfTile(entry);
         if(index!=-1){
            removeTile(tilesList.get(index));
@@ -138,7 +137,6 @@ public abstract class GamesTilePane extends BorderPane{
 
 
     protected int indexOfTile(GameEntry entry) {
-        ArrayList<Integer> integers = new ArrayList<>();
         int i = 0;
         for (Node n : tilesList) {
             if (((GameButton) n).getEntry().getUuid().equals(entry.getUuid())) {

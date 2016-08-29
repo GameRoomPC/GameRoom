@@ -8,6 +8,7 @@ import data.game.scanner.*;
 import data.game.scrapper.*;
 import data.http.key.KeyChecker;
 import javafx.application.Platform;
+import javafx.scene.Node;
 import org.json.JSONArray;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
@@ -293,5 +294,21 @@ public class GameWatcher {
                 .replace("-", "")
                 .replace("_", "")
                 .replace(".", "");
+    }
+
+    public void removeGame(GameEntry entry) {
+        ArrayList<GameEntry> toRemoveEntries = new ArrayList<>();
+        for (GameEntry n : entriesToAdd) {
+            if(n.getUuid().equals(entry.getUuid())){
+                toRemoveEntries.add(n);
+                n.deleteFiles();
+            }else{
+                if (n.getPath().trim().toLowerCase().equals(entry.getPath().trim().toLowerCase())) {
+                    toRemoveEntries.add(n);
+                    n.deleteFiles();
+                }
+            }
+        }
+        entriesToAdd.removeAll(toRemoveEntries);
     }
 }

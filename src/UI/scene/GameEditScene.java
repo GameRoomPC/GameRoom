@@ -157,6 +157,10 @@ public class GameEditScene extends BaseScene {
                     }
                 }
                 if (allConditionsMet) {
+                    if(entry.isToAdd()){
+                        entry.deleteFiles();
+                        entry.setToAdd(false);
+                    }
                     for (int i = 0; i < chosenImageFiles.length; i++) {
                         if (chosenImageFiles[i] != null) {
                             String type = i == 0 ? ImageUtils.IGDB_TYPE_COVER : ImageUtils.IGDB_TYPE_SCREENSHOT;

@@ -77,6 +77,8 @@ public class MainScene extends BaseScene {
     private RowCoverTilePane recentlyAddedTilePane;
     private ToAddRowTilePane toAddTilePane;
 
+    private GameWatcher gameWatcher=null;
+
     private ArrayList<GroupRowTilePane> groupRowList = new ArrayList<>();
 
     private TextField searchField;
@@ -695,6 +697,9 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.removeGame(entry);
         recentlyAddedTilePane.removeGame(entry);
         toAddTilePane.removeGame(entry);
+        if(gameWatcher!=null) {
+            gameWatcher.removeGame(entry);
+        }
         for (GroupRowTilePane tilePane : groupRowList) {
             tilePane.removeGame(entry);
         }
@@ -720,6 +725,9 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.addGame(entry);
         recentlyAddedTilePane.addGame(entry);
         toAddTilePane.removeGame(entry);
+        if(gameWatcher!=null) {
+            gameWatcher.removeGame(entry);
+        }
         for (GroupRowTilePane tilePane : groupRowList) {
             tilePane.addGame(entry);
         }
@@ -778,7 +786,7 @@ public class MainScene extends BaseScene {
         toAddTilePane.setAutomaticSort(false);
         toAddTilePane.fold();
         toAddTilePane.hide();
-        GameWatcher looker = new GameWatcher(new OnGameFoundHandler() {
+        gameWatcher = new GameWatcher(new OnGameFoundHandler() {
             @Override
             public GameButton gameToAddFound(GameEntry entry) {
                 toAddTilePane.addGame(entry);
@@ -794,7 +802,7 @@ public class MainScene extends BaseScene {
                 });
             }
         });
-        looker.startService();
+        gameWatcher.startService();
     }
 
 
