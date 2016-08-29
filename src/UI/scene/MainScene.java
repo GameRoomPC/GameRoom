@@ -51,6 +51,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 import static ui.Main.*;
 import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
@@ -103,6 +104,7 @@ public class MainScene extends BaseScene {
     public void initAll() {
         initCenter();
         initTop();
+        loadGames();
     }
 
     @Override
@@ -167,49 +169,6 @@ public class MainScene extends BaseScene {
 
         statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + "...");
         wrappingPane.setOpacity(0);
-        Task<Void> task = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                ArrayList<UUID> uuids = AllGameEntries.readUUIDS();
-                int i = 0;
-                for (UUID uuid : uuids) {
-                    int finalI = i;
-
-                    final GameEntry entry = new GameEntry(uuid);
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + " " + (finalI + 1) + "/" + uuids.size() + "...");
-                            updateProgress(finalI, uuids.size() - 1);
-
-                            //TODO reduce loading time here
-                            long strat = System.currentTimeMillis();
-                            addGame(entry);
-                            Main.LOGGER.debug("Added tile in : "+(System.currentTimeMillis()-strat));
-                        }
-                    });
-                    i++;
-                }
-                return null;
-            }
-        };
-        task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-            @Override
-            public void handle(WorkerStateEvent event) {
-                //dialog.getDialogStage().close();
-                statusLabel.setText("");
-                setChangeBackgroundNextTime(false);
-                fadeTransitionTo(MainScene.this, getParentStage(), false);
-                Platform.runLater(() -> {
-                    startGameLookerService();
-                });
-            }
-        });
-        //dialog.activateProgressBar(task);
-
-        Thread th = new Thread(task);
-        th.setDaemon(true);
-        th.start();
 
         try {
             remapArrowKeys(scrollPane);
@@ -242,6 +201,70 @@ public class MainScene extends BaseScene {
         scrollPane.setContent(tilesPaneWrapper);
         wrappingPane.setCenter(scrollPane);
 
+    }
+    private void loadGames(){
+        backgroundView.setVisible(false);
+        maskView.setVisible(false);
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                ArrayList<UUID> uuids = AllGameEntries.readUUIDS();
+                int i = 0;
+                for (UUID uuid : uuids) {
+                    int finalI = i;
+
+                    final GameEntry entry = new GameEntry(uuid);
+                    runAndWait(new Runnable() {
+                        @Override
+                        public void run() {
+                            //TODO reduce loading time here
+                            long strat = System.currentTimeMillis();
+                            setChangeBackgroundNextTime(true);
+                            addGame(entry);
+                            Main.LOGGER.debug("Added tile in : "+(System.currentTimeMillis()-strat));
+                        }
+                    });
+                    updateProgress(finalI, uuids.size() - 1);
+                    i++;
+                }
+                return null;
+            }
+        };
+        task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent event) {
+
+                backgroundView.setOpacity(0);
+                backgroundView.setVisible(true);
+                maskView.setOpacity(0);
+                maskView.setVisible(true);
+                setChangeBackgroundNextTime(false);
+
+                //dialog.getDialogStage().close();
+                statusLabel.setText("");
+                fadeTransitionTo(MainScene.this, getParentStage(), false);
+                Platform.runLater(() -> {
+                    startGameLookerService();
+                });
+            }
+        });
+        task.progressProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                Platform.runLater(() -> {
+                    if(newValue.doubleValue() == 1.0){
+                        statusLabel.setText("");
+                    }else{
+                        statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + " " + Math.round(newValue.doubleValue()*100) + "%...");
+                    }
+                });
+            }
+        });
+        //dialog.activateProgressBar(task);
+
+        Thread th = new Thread(task);
+        th.setDaemon(true);
+        th.start();
     }
 
     private void initTop() {
@@ -889,6 +912,39 @@ public class MainScene extends BaseScene {
                 fadeOutTimeline.setAutoReverse(false);
                 fadeOutTimeline.play();
             }
+        }
+    }
+    /**
+     * Runs the specified {@link Runnable} on the
+     * JavaFX application thread and waits for completion.
+     *
+     * @param action the {@link Runnable} to run
+     * @throws NullPointerException if {@code action} is {@code null}
+     */
+    private static void runAndWait(Runnable action) {
+        if (action == null)
+            throw new NullPointerException("action");
+
+        // run synchronously on JavaFX thread
+        if (Platform.isFxApplicationThread()) {
+            action.run();
+            return;
+        }
+
+        // queue on JavaFX thread and wait for completion
+        final CountDownLatch doneLatch = new CountDownLatch(1);
+        Platform.runLater(() -> {
+            try {
+                action.run();
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+
+        try {
+            doneLatch.await();
+        } catch (InterruptedException e) {
+            // ignore exception
         }
     }
 }
