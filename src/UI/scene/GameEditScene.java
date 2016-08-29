@@ -860,7 +860,7 @@ public class GameEditScene extends BaseScene {
         map.put("publisher", entry.getPublisher()!= null &&!entry.getPublisher().equals(""));
         map.put("genre", entry.getGenres() != null);
         map.put("theme", entry.getThemes() != null);
-        map.put("cover", mode!=MODE_ADD && entry.getImagePath(0) != null && !entry.getImagePath(0).equals(GameEntry.DEFAULT_IMAGES_PATHS[0]));
+        map.put("cover", mode!=MODE_ADD && entry.getImagePath(0) != null);
         return map;
     }
 

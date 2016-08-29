@@ -26,6 +26,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import ui.scene.exitaction.ExitAction;
 
+import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.SCREEN_WIDTH;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 
@@ -50,7 +51,7 @@ public abstract class BaseScene extends Scene {
     public BaseScene(StackPane stackPane,Stage parentStage){
         super(stackPane, Main.GENERAL_SETTINGS.getWindowWidth(), Main.GENERAL_SETTINGS.getWindowHeight());
         this.rootStackPane = stackPane;
-        this.parentStage = parentStage;
+        setParentStage(parentStage);
         getStylesheets().add("res/flatterfx.css");
         if(backgroundMaskImage == null || backgroundMaskImage.getWidth()!=Main.GENERAL_SETTINGS.getWindowWidth() || backgroundMaskImage.getHeight() != Main.GENERAL_SETTINGS.getWindowHeight()){
             backgroundMaskImage = new Image("res/ui/backgroundMask.png"
@@ -61,6 +62,23 @@ public abstract class BaseScene extends Scene {
         }
         backgroundView = new ImageView();
         maskView = new ImageView(backgroundMaskImage);
+
+
+        widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                maskView.setFitWidth(newValue.doubleValue());
+                backgroundView.setFitWidth(newValue.doubleValue());
+            }
+        });
+        heightProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                maskView.setFitHeight(newValue.doubleValue());
+                backgroundView.setFitHeight(newValue.doubleValue());
+            }
+        });
+
         rootStackPane.getChildren().add(backgroundView);
         rootStackPane.getChildren().add(maskView);
         initAndAddWrappingPaneToRoot();
@@ -109,6 +127,7 @@ public abstract class BaseScene extends Scene {
                 }
                 scene2.getWrappingPane().setOpacity(0);
                 stage.setScene(scene2);
+                stage.setFullScreen(GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN));
                 Timeline fadeInTimeline = new Timeline(
                         new KeyFrame(Duration.seconds(0),
                                 new KeyValue(scene2.getWrappingPane().opacityProperty(), 0, Interpolator.LINEAR),
@@ -135,6 +154,10 @@ public abstract class BaseScene extends Scene {
 
     public Stage getParentStage() {
         return parentStage;
+    }
+
+    public void setParentStage(Stage parentStage) {
+        this.parentStage = parentStage;
     }
 
     public void setOnSceneFadedOutAction(Runnable onSceneFadedOutAction) {

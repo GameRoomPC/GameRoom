@@ -619,6 +619,7 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.show();
         recentlyAddedTilePane.show();
         toAddTilePane.setForcedHidden(false);
+        toAddTilePane.show();
 
         tilesPaneWrapper.getChildren().removeAll(groupRowList);
         groupRowList.clear();

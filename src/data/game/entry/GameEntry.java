@@ -275,10 +275,6 @@ public class GameEntry {
         File currFile = getImagePath(index);
         if (currFile == null) {
             return null;
-        } else if (DEFAULT_IMAGES_PATHS.length > index && currFile.equals(DEFAULT_IMAGES_PATHS[index])) {
-            Image result = new Image(currFile.getPath().replace("\\", "/"), width, height, preserveRatio, smooth);
-            createdImages.put(index, result);
-            return result;
         } else {
             Image result = new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth);
             createdImages.put(index, result);
@@ -296,12 +292,9 @@ public class GameEntry {
     public File getImagePath(int index) {
         if (index < imagesPaths.length) {
             File result = imagesPaths[index];
-            if (result == null) {
-                return DEFAULT_IMAGES_PATHS[index];
-            }
             return result;
         }
-        return DEFAULT_IMAGES_PATHS[0];
+        return null;
     }
 
     public String getPath() {

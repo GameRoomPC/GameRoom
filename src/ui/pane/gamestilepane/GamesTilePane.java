@@ -5,6 +5,8 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.*;
@@ -62,6 +64,26 @@ public abstract class GamesTilePane extends BorderPane{
                 , 10 * Main.SCREEN_WIDTH / 1920
                 , 0 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920));
+        managedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if (newValue){
+                    if(forcedHidden){
+                        hide(false);
+                    }
+                }
+            }
+        });
+        visibleProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if (newValue){
+                    if(forcedHidden){
+                        hide(false);
+                    }
+                }
+            }
+        });
     }
 
     protected abstract TilePane getTilePane();
@@ -364,8 +386,6 @@ public abstract class GamesTilePane extends BorderPane{
         this.forcedHidden = forcedHidden;
         if(forcedHidden){
             hide(false);
-        }else{
-            show(false);
         }
     }
 

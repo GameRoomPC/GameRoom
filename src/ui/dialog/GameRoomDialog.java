@@ -22,7 +22,8 @@ public abstract class GameRoomDialog<T> extends Dialog<T> {
         mainPane = new BorderPane();
         rootStackPane = new StackPane();
         rootStackPane.getChildren().add(mainPane);
-        initOwner(MAIN_SCENE.getParentStage());
+        if(MAIN_SCENE.getParentStage()!=null)
+            initOwner(MAIN_SCENE.getParentStage());
         dialogPane.setContent(rootStackPane);
         dialogPane.getStylesheets().add("res/flatterfx.css");
         dialogPane.getStyleClass().add("custom-choice-dialog");

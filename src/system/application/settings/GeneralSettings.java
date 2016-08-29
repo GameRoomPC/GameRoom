@@ -15,8 +15,6 @@ import java.util.Properties;
  */
 public class GeneralSettings {
     private HashMap<String, SettingValue> settingsMap = new HashMap<>();
-    private boolean fullScreen = false; //TODO fix fullscreen exiting after changing scene, see https://bugs.openjdk.java.net/browse/JDK-8089209
-
 
     public GeneralSettings(){
         loadSettings();

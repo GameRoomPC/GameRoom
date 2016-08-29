@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.scene.Node;
+import javafx.scene.control.Tooltip;
 import javafx.scene.effect.*;
 import javafx.scene.layout.TilePane;
 import javafx.scene.paint.Color;
@@ -79,6 +80,7 @@ public abstract class GameButton extends BorderPane {
 
     private ContextMenu contextMenu;
     protected ImageView coverView;
+    protected ImageView defaultCoverView;
     private ImageView notInstalledImage = new ImageView();
 
     protected ImageButton playButton;
@@ -122,8 +124,9 @@ public abstract class GameButton extends BorderPane {
         releaseDateLabel.setText(entry.getReleaseDate()!=null ? buttonDateFormat.format(entry.getReleaseDate()) : "-");
 
         titleLabel.setText(entry.getName());
-        double width = coverView.getImage().getWidth();
-        double height = coverView.getImage().getHeight();
+        titleLabel.setTooltip(new Tooltip(entry.getName()));
+        double width = getCoverWidth();
+        double height = getCoverHeight();
 
         Task<Image> loadImageTask = new Task<Image>() {
             @Override
@@ -173,6 +176,7 @@ public abstract class GameButton extends BorderPane {
 
     private void initNameText() {
         titleLabel = new Label(entry.getName());
+        titleLabel.setTooltip(new Tooltip(entry.getName()));
         BorderPane.setMargin(titleLabel, new Insets(10 * GENERAL_SETTINGS.getWindowHeight() / 1080, 0, 0, 0));
         setAlignment(titleLabel, Pos.CENTER);
 
@@ -288,6 +292,21 @@ public abstract class GameButton extends BorderPane {
 
         initCoverView();
 
+        if (DEFAULT_COVER_IMAGE == null || DEFAULT_COVER_IMAGE.getWidth() != getCoverWidth() || DEFAULT_COVER_IMAGE.getWidth() != getCoverHeight()) {
+            boolean changed = false;
+            /*for (int i = 256; i < 1025; i *= 2) {
+                if (i > getCoverHeight()) {
+                    DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover" + i + ".jpg", getCoverWidth(), getCoverHeight(), false, true);
+                    changed = true;
+                    break;
+                }
+            }*/
+            if (!changed) {
+                DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover.jpg", getCoverWidth(), getCoverHeight(), false, true);
+            }
+        }
+        defaultCoverView = new ImageView(DEFAULT_COVER_IMAGE);
+
         Task<Image> loadImageTask = new Task<Image>() {
             @Override
             protected Image call() throws Exception {
@@ -332,6 +351,7 @@ public abstract class GameButton extends BorderPane {
         GaussianBlur blur = new GaussianBlur(0.0);
         blur.setInput(coverColorAdjust);
         coverView.setEffect(blur);
+        defaultCoverView.setEffect(blur);
 
         setFocusTraversable(true);
         focusedProperty().addListener(new ChangeListener<Boolean>() {
@@ -499,6 +519,7 @@ public abstract class GameButton extends BorderPane {
         });
 
         coverPane.getChildren().addAll(
+                defaultCoverView,
                 coverView,
                 playButton,
                 infoButton,
@@ -570,6 +591,7 @@ public abstract class GameButton extends BorderPane {
         setPrefWidth(width);
         setWidth(width);
         coverView.setFitWidth(width);
+        defaultCoverView.setFitWidth(width);
         playButton.setFitWidth(width * RATIO_PLAYBUTTON_COVER);
         infoButton.setFitWidth(width * RATIO_INFOBUTTON_COVER);
         notInstalledImage.setFitWidth(width * RATIO_NOTINSTALLEDIMAGE_COVER);
@@ -580,6 +602,7 @@ public abstract class GameButton extends BorderPane {
         setPrefHeight(height);
         setHeight(height);
         coverView.setFitHeight(height);
+        defaultCoverView.setFitHeight(height);
         playButton.setFitHeight(height * RATIO_PLAYBUTTON_COVER);
         infoButton.setFitHeight(height * RATIO_INFOBUTTON_COVER);
         notInstalledImage.setFitHeight(height * RATIO_NOTINSTALLEDIMAGE_COVER);

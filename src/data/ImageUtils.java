@@ -166,6 +166,9 @@ public class ImageUtils {
     }
 
     public static boolean imagesEquals(Image img1, Image img2){
+        if(img1 == null || img2 == null){
+            return false;
+        }
         if(img1.getWidth()!= img2.getWidth() || img1.getHeight()!=img2.getHeight()){
             return false;
         }

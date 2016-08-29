@@ -166,6 +166,9 @@ public class RowCoverTilePane extends CoverTilePane {
                         hideTilePane = hideTilePane && !visible;
                     }
                     setForcedHidden(hideTilePane);
+                    if(!hideTilePane){
+                        show();
+                    }
                 }
             }
         });

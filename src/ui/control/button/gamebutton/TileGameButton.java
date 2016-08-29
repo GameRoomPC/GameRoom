@@ -37,20 +37,7 @@ public class TileGameButton extends GameButton {
 
     @Override
     protected void initCoverView() {
-        if (DEFAULT_COVER_IMAGE == null || DEFAULT_COVER_IMAGE.getWidth() != getCoverWidth() || DEFAULT_COVER_IMAGE.getWidth() != getCoverHeight()) {
-            boolean changed = false;
-            /*for (int i = 256; i < 1025; i *= 2) {
-                if (i > getCoverHeight()) {
-                    DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover" + i + ".jpg", getCoverWidth(), getCoverHeight(), false, true);
-                    changed = true;
-                    break;
-                }
-            }*/
-            if (!changed) {
-                DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover.jpg", getCoverWidth(), getCoverHeight(), false, true);
-            }
-        }
-        coverView = new ImageView(DEFAULT_COVER_IMAGE);
+        coverView = new ImageView();
     }
 
     @Override
