@@ -13,7 +13,7 @@ public class ToAddRowTilePane extends RowCoverTilePane {
     public ToAddRowTilePane(MainScene parentScene) {
         super(parentScene, RowCoverTilePane.TYPE_RECENTLY_ADDED);
         setTitle(Main.RESSOURCE_BUNDLE.getString("to_add"));
-        maxColumn = 10;
+        maxColumn = Integer.MAX_VALUE;
     }
     @Override
     protected GameButton createGameButton(GameEntry newEntry) {
@@ -25,5 +25,10 @@ public class ToAddRowTilePane extends RowCoverTilePane {
             return getGameButtons().get(indexOfTile(entry));
         }
         return null;
+    }
+
+    @Override
+    public void sort() {
+
     }
 }

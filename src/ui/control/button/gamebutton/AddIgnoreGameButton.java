@@ -78,6 +78,7 @@ public class AddIgnoreGameButton extends GameButton {
                 }else{
                     addToFolderIgnoredList();
                 }
+                entry.deleteFiles();
 
                 mainScene.removeGame(entry);
                 parentPane.removeGame(entry);
@@ -118,20 +119,17 @@ public class AddIgnoreGameButton extends GameButton {
                         Task backGroundImageTask = new Task() {
                             @Override
                             protected Object call() throws Exception {
-                                Thread.currentThread().sleep(300);
-                                if (isFocused()) {
                                     Image screenshotImage = entry.getImage(1,
                                             Main.GENERAL_SETTINGS.getWindowWidth(),
                                             Main.GENERAL_SETTINGS.getWindowHeight()
                                             , false, true);
 
-                                    Platform.runLater(new Runnable() {
+                                    Main.runAndWait(new Runnable() {
                                         @Override
                                         public void run() {
                                             MAIN_SCENE.setImageBackground(screenshotImage);
                                         }
                                     });
-                                }
                                 return null;
                             }
                         };

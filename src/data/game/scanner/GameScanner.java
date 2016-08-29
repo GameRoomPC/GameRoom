@@ -15,6 +15,7 @@ public abstract class GameScanner {
     protected volatile boolean scanDone = false;
     protected ArrayList<GameEntry> foundGames = new ArrayList<>();
     protected GameWatcher parentLooker;
+    protected boolean isLocalScanner = true;
 
     public GameScanner(GameWatcher parentLooker){
         this.parentLooker = parentLooker;
@@ -37,8 +38,12 @@ public abstract class GameScanner {
         entryFound.setWaitingToBeScrapped(true);
         foundGames.add(entryFound);
 
-        Platform.runLater(() -> {
+        Main.runAndWait(() -> {
             onGameFound(entryFound);
         });
+    }
+
+    public boolean isLocalScanner() {
+        return isLocalScanner;
     }
 }

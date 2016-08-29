@@ -4,6 +4,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleGroup;
@@ -76,6 +77,12 @@ public abstract class SelectListPane<T> extends ScrollPane {
         }
         resultsPane.getChildren().add(item);
         items.add(item);
+    }
+    public void addSeparator(String text){
+        Label textLabel = new Label(text);
+        textLabel.setPadding(new Insets(20 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920));
+        textLabel.setAlignment(Pos.CENTER);
+        resultsPane.getChildren().add(new Label(text));
     }
 
     //override if necessary

@@ -6,6 +6,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import sun.nio.ch.Net;
 import ui.Main;
 
 import java.io.BufferedReader;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
+import java.util.Enumeration;
 
 /**
  * Created by LM on 05/08/2016.
@@ -43,7 +45,7 @@ public class KeyChecker {
         HttpResponse<String> response = Unirest.post(API_URL)
                 .field("secret_key", VALIDATION_KEY)
                 .field("slm_action", "slm_deactivate")
-                .field("registered_domain", getMACAddress())
+                .field("registered_domain", getAllMACAddresses())
                 .field("license_key", key)
                 .asString();
 
@@ -51,16 +53,16 @@ public class KeyChecker {
         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
         String json = reader.readLine();
         if (DEBUGGING) {
-            Main.LOGGER.debug("deactivateKey response : "+json);
+            Main.LOGGER.debug("deactivateKey response : " + json);
         }
         return new JSONObject(json);
     }
 
     public static JSONObject activateKey(String key) throws IOException, UnirestException {
         HttpResponse<String> response = Unirest.post(API_URL)
-                .field("secret_key",VALIDATION_KEY)
+                .field("secret_key", VALIDATION_KEY)
                 .field("slm_action", "slm_activate")
-                .field("registered_domain", getMACAddress())
+                .field("registered_domain", getAllMACAddresses())
                 .field("license_key", key)
                 .asString();
 
@@ -68,43 +70,55 @@ public class KeyChecker {
         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
         String json = reader.readLine();
         if (DEBUGGING) {
-            Main.LOGGER.debug("activateKey response : "+json);
+            Main.LOGGER.debug("activateKey response : " + json);
         }
         return new JSONObject(json);
     }
-    public static boolean isKeyValid(String key){
-        if(!testInet("igdb.com") && !testInet(API_URL.replace("https://",""))){
-            Main.LOGGER.error("IGDB not joinable");
+
+    public static boolean isKeyValid(String key) {
+        if (!testInet("igdb.com") && !testInet(API_URL.replace("https://", ""))) {
+            Main.LOGGER.error("KeyChecker : IGDB not joinable");
             return false;
         }
         try {
             JSONObject response = askKeyValid(key);
-            if(response!=null){
-                if(Main.DEV_MODE){
-                    Main.LOGGER.error(response.toString(4));
-                }
-
-                if(response.getString(FIELD_RESULT).equals(RESULT_SUCCESS)){
+            if (response != null) {
+                if (response.getString(FIELD_RESULT).equals(RESULT_SUCCESS)) {
                     String status = response.getString(FIELD_STATUS);
-                    if(status.equals(STATUS_ACTIVE)){
+                    if (status.equals(STATUS_ACTIVE)) {
                         JSONArray registeredDomains = response.getJSONArray(FIELD_REGISTERED_DOMAINS);
 
                         boolean found = false;
-                        for(int i = 0; i<registeredDomains.length() && !found; i++){
-                            found = registeredDomains.getJSONObject(i).getString(FIELD_REGISTERED_DOMAIN).equals(getMACAddress());
+                        for (int i = 0; i < registeredDomains.length() && !found; i++) {
+                            found = registeredDomains.getJSONObject(i).getString(FIELD_REGISTERED_DOMAIN).contains(getMACAddress());
+                        }
+                        if(found){
+                            Main.LOGGER.info("KeyChecker : Supporter mode activated!");
+                        }else{
+                            Main.LOGGER.info("KeyChecker : invalid MAC Address, "+getMACAddress()/*+". Valid addresses are : "*/);
+                            /*for (int i = 0; i < registeredDomains.length() && !found; i++) {
+                                Main.LOGGER.info("\t"+registeredDomains.getJSONObject(i).getString(FIELD_REGISTERED_DOMAIN));
+                            }*/
                         }
                         return found;
+                    }else {
+                        Main.LOGGER.error("KeyChecker : "+response.toString());
                     }
+                } else {
+                    Main.LOGGER.error("KeyChecker : "+response.toString());
                 }
+            }else{
+                Main.LOGGER.info("KeyChecker : received null");
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
+
     private static JSONObject askKeyValid(String key) throws IOException, UnirestException {
         HttpResponse<String> response = Unirest.post(API_URL)
-                .field("secret_key",VALIDATION_KEY)
+                .field("secret_key", VALIDATION_KEY)
                 .field("slm_action", "slm_check")
                 .field("license_key", key)
                 .asString();
@@ -113,48 +127,75 @@ public class KeyChecker {
         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
         String json = reader.readLine();
         if (DEBUGGING) {
-            Main.LOGGER.debug("isKeyValid response : "+json);
+            Main.LOGGER.debug("isKeyValid response : " + json);
         }
         return new JSONObject(json);
     }
 
+    public static String getAllMACAddresses() throws SocketException {
+        String MACAddresses = " ";
+        Enumeration<NetworkInterface> networkInterfaceEnumeration = NetworkInterface.getNetworkInterfaces();
+        while(networkInterfaceEnumeration.hasMoreElements()){
+            NetworkInterface networkInterface = networkInterfaceEnumeration.nextElement();
+            byte[] macAddressBytes = networkInterface.getHardwareAddress();
+            if(macAddressBytes!=null) {
+                StringBuilder macAddressBuilder = new StringBuilder();
+
+                for (int macAddressByteIndex = 0; macAddressByteIndex < macAddressBytes.length; macAddressByteIndex++) {
+                    String macAddressHexByte = String.format("%02X",
+                            macAddressBytes[macAddressByteIndex]);
+                    macAddressBuilder.append(macAddressHexByte);
+
+                    if (macAddressByteIndex != macAddressBytes.length - 1) {
+                        macAddressBuilder.append(":");
+                    }
+                }
+                if(!macAddressBuilder.toString().equals("00:00:00:00:00:00:00:E0") && !MACAddresses.contains(macAddressBuilder.toString())){
+                    MACAddresses += macAddressBuilder.toString() + ",";
+                }
+            }
+        }
+        return MACAddresses.substring(0,MACAddresses.length()-1);
+    }
     public static String getMACAddress() throws UnknownHostException,
-            SocketException
-    {
+            SocketException {
+
         InetAddress ipAddress = InetAddress.getLocalHost();
         NetworkInterface networkInterface = NetworkInterface
                 .getByInetAddress(ipAddress);
         byte[] macAddressBytes = networkInterface.getHardwareAddress();
         StringBuilder macAddressBuilder = new StringBuilder();
 
-        for (int macAddressByteIndex = 0; macAddressByteIndex < macAddressBytes.length; macAddressByteIndex++)
-        {
+        for (int macAddressByteIndex = 0; macAddressByteIndex < macAddressBytes.length; macAddressByteIndex++) {
             String macAddressHexByte = String.format("%02X",
                     macAddressBytes[macAddressByteIndex]);
             macAddressBuilder.append(macAddressHexByte);
 
-            if (macAddressByteIndex != macAddressBytes.length - 1)
-            {
+            if (macAddressByteIndex != macAddressBytes.length - 1) {
                 macAddressBuilder.append(":");
             }
         }
 
         return macAddressBuilder.toString();
     }
+
     private static boolean testInet(String site) {
         Socket sock = new Socket();
-        InetSocketAddress addr = new InetSocketAddress(site,80);
+        InetSocketAddress addr = new InetSocketAddress(site, 80);
         try {
-            sock.connect(addr,3000);
+            sock.connect(addr, 3000);
             return true;
         } catch (IOException e) {
             return false;
         } finally {
-            try {sock.close();}
-            catch (IOException e) {}
+            try {
+                sock.close();
+            } catch (IOException e) {
+            }
         }
     }
-    public static void main(String[] args){
+
+    public static void main(String[] args) {
         String key = "57a49ece72e10";
         try {
 

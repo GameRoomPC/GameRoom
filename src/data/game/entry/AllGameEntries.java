@@ -13,14 +13,11 @@ import java.util.UUID;
 public class AllGameEntries {
     public static final ArrayList<GameEntry> ENTRIES_LIST = new ArrayList<>();
 
-    public static ArrayList<UUID> readUUIDS(){
+
+    public static ArrayList<UUID> readUUIDS(File entriesFile){
         ArrayList<UUID> uuids = new ArrayList<>();
-        File entriesFolder = null;
-        try {
-            entriesFolder = entriesFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        File entriesFolder = initOrCreateFile(entriesFile);
+
         for(File gameFolder : entriesFolder.listFiles()){
             String name = gameFolder.getName();
             try{
@@ -31,7 +28,7 @@ public class AllGameEntries {
                 Main.LOGGER.warn("Folder "+name+" is not a valid UUID, ignoring");
             }
         }
-        Main.LOGGER.info("Loaded " + uuids.size()+" uuids.");
+        Main.LOGGER.info("Loaded " + uuids.size()+" uuids from folder "+entriesFile.getName());
         return uuids;
     }
     private static int indexOf(GameEntry entry){
@@ -61,9 +58,8 @@ public class AllGameEntries {
         ENTRIES_LIST.remove(entry);
         Main.LOGGER.info("Removed game : " + entry.getName());
     }
-
-    private static File entriesFile() throws IOException {
-        File file = new File("games");
+    private static File initOrCreateFile(File f){
+        File file = f;
         if (!file.exists()) {
             file.mkdirs();
         }

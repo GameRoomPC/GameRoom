@@ -10,6 +10,8 @@ import ui.Main;
 import java.io.File;
 import java.util.ArrayList;
 
+import static data.game.GameWatcher.cleanNameForCompareason;
+
 /**
  * Created by LM on 19/08/2016.
  */
@@ -20,6 +22,7 @@ public class FolderGameScanner extends GameScanner{
 
     public FolderGameScanner(GameWatcher parentLooker) {
         super(parentLooker);
+        isLocalScanner = true;
     }
 
     @Override
@@ -48,14 +51,14 @@ public class FolderGameScanner extends GameScanner{
         steamTask.setOnSucceeded(event -> {
             scanDone = true;
             if(foundGames.size() > 0) {
-                Main.LOGGER.info(FolderGameScanner.class.getName() + " : total games found = " + foundGames.size());
+                Main.LOGGER.info(this.getClass().getName() + " : found = " + foundGames.size());
             }
         });
         Thread th = new Thread(steamTask);
         th.setDaemon(false);
         th.start();
     }
-    private boolean folderGameIgnored(GameEntry entry){
+    protected boolean folderGameIgnored(GameEntry entry){
         boolean ignored = false;
         for(File ignoredFile : Main.GENERAL_SETTINGS.getFiles(PredefinedSetting.IGNORED_GAME_FOLDERS)){
             ignored = ignoredFile.toPath().toAbsolutePath().toString().toLowerCase().contains(entry.getPath().toLowerCase());
@@ -65,7 +68,7 @@ public class FolderGameScanner extends GameScanner{
         }
         return false;
     }
-    private ArrayList<GameEntry> getPotentialEntries(){
+    protected ArrayList<GameEntry> getPotentialEntries(){
         File gamesFolder = Main.GENERAL_SETTINGS.getFile(PredefinedSetting.GAMES_FOLDER);
         ArrayList<GameEntry> entriesFound = new ArrayList<>();
         if(!gamesFolder.exists() || !gamesFolder.isDirectory()){
@@ -104,10 +107,12 @@ public class FolderGameScanner extends GameScanner{
         }
         return hasAValidExtension;
     }
-    private boolean gameAlreadyInLibrary(GameEntry foundEntry){
+    protected boolean gameAlreadyInLibrary(GameEntry foundEntry){
         boolean alreadyAddedToLibrary = false;
         for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
-            alreadyAddedToLibrary = entry.getPath().toLowerCase().contains(foundEntry.getPath().toLowerCase()); //cannot use UUID as they are different at this pre-add-time
+            alreadyAddedToLibrary = entry.getPath().toLowerCase().trim().contains(foundEntry.getPath().trim().toLowerCase())
+                || foundEntry.getPath().trim().toLowerCase().contains(entry.getPath().trim().toLowerCase())
+                || cleanNameForCompareason(foundEntry.getName()).equals(cleanNameForCompareason(entry.getName())); //cannot use UUID as they are different at this pre-add-time
             if (alreadyAddedToLibrary) {
                 break;
             }

@@ -20,6 +20,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.util.ResourceBundle;
+import java.util.concurrent.CountDownLatch;
 
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
 
@@ -84,6 +85,7 @@ public class Main {
         //}
 
         CACHE_FOLDER.mkdirs();
+        GameEntry.TOADD_FOLDER.mkdirs();
         GameEntry.ENTRIES_FOLDER.mkdirs();
 
     }
@@ -180,5 +182,39 @@ public class Main {
         }
         Main.LOGGER.info("App version : " + version);
         return version;
+    }
+
+    /**
+     * Runs the specified {@link Runnable} on the
+     * JavaFX application thread and waits for completion.
+     *
+     * @param action the {@link Runnable} to run
+     * @throws NullPointerException if {@code action} is {@code null}
+     */
+    public static void runAndWait(Runnable action) {
+        if (action == null)
+            throw new NullPointerException("action");
+
+        // run synchronously on JavaFX thread
+        if (Platform.isFxApplicationThread()) {
+            action.run();
+            return;
+        }
+
+        // queue on JavaFX thread and wait for completion
+        final CountDownLatch doneLatch = new CountDownLatch(1);
+        Platform.runLater(() -> {
+            try {
+                action.run();
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+
+        try {
+            doneLatch.await();
+        } catch (InterruptedException e) {
+            // ignore exception
+        }
     }
 }

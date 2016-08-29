@@ -139,7 +139,7 @@ public abstract class GameButton extends BorderPane {
             @Override
             public void handle(WorkerStateEvent event) {
                 if(!ImageUtils.imagesEquals(loadImageTask.getValue(),coverView.getImage())) {
-                    Platform.runLater(() -> {
+                    Main.runAndWait(() -> {
                         ImageUtils.transitionToImage(loadImageTask.getValue(), coverView);
                     });
                 }
@@ -317,7 +317,7 @@ public abstract class GameButton extends BorderPane {
         loadImageTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent event) {
-                Platform.runLater(() -> {
+                Main.runAndWait(() -> {
                     ImageUtils.transitionToImage(loadImageTask.getValue(), coverView);
                 });
             }
@@ -390,12 +390,16 @@ public abstract class GameButton extends BorderPane {
                         Task backGroundImageTask = new Task() {
                             @Override
                             protected Object call() throws Exception {
-                                Thread.currentThread().sleep(300);
+                                Image screenshotImage = entry.getImage(1,
+                                        Main.GENERAL_SETTINGS.getWindowWidth(),
+                                        Main.GENERAL_SETTINGS.getWindowHeight()
+                                        , false, true);
+
+                                Main.runAndWait(() -> {
+                                    MAIN_SCENE.setImageBackground(screenshotImage);
+                                });
+                                /*Thread.currentThread().sleep(300);
                                 if (isFocused()) {
-                                    Image screenshotImage = entry.getImage(1,
-                                            Main.GENERAL_SETTINGS.getWindowWidth(),
-                                            Main.GENERAL_SETTINGS.getWindowHeight()
-                                            , false, true);
 
                                     Platform.runLater(new Runnable() {
                                         @Override
@@ -403,7 +407,7 @@ public abstract class GameButton extends BorderPane {
                                             MAIN_SCENE.setImageBackground(screenshotImage);
                                         }
                                     });
-                                }
+                                }*/
                                 return null;
                             }
                         };

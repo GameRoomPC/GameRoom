@@ -23,6 +23,7 @@ public class GameEntry {
     public static DateFormat DATE_DISPLAY_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
     public final static DateFormat DATE_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     public final static File ENTRIES_FOLDER = new File("Games");
+    public final static File TOADD_FOLDER = new File("ToAdd");
     public final static File[] DEFAULT_IMAGES_PATHS = {new File("res/defaultImages/cover.jpg"), null};
     private final static int IMAGES_NUMBER = 3;
 
@@ -66,9 +67,20 @@ public class GameEntry {
 
     private int steam_id = -1;
 
+    private boolean toAdd = false;
+
     public GameEntry(String name) {
         uuid = UUID.randomUUID();
         this.name = name;
+    }
+    public GameEntry(UUID uuid, boolean toAdd) {
+        this.uuid = uuid;
+        this.toAdd = toAdd;
+        try {
+            loadEntry();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public GameEntry(UUID uuid) {
@@ -81,11 +93,11 @@ public class GameEntry {
     }
 
     private File propertyFile() throws IOException {
-        File dir = new File(ENTRIES_FOLDER + File.separator + uuid.toString());
+        File dir = new File((isToAdd() ? TOADD_FOLDER : ENTRIES_FOLDER) + File.separator + uuid.toString());
         if (!dir.exists()) {
             dir.mkdirs();
         }
-        File configFile = new File(ENTRIES_FOLDER + File.separator + uuid.toString() + File.separator + "entry.properties");
+        File configFile = new File((isToAdd() ? TOADD_FOLDER : ENTRIES_FOLDER) + File.separator + uuid.toString() + File.separator + "entry.properties");
         if (!configFile.exists()) {
             configFile.createNewFile();
         }
@@ -127,6 +139,8 @@ public class GameEntry {
                 prop.setProperty("addedDate", addedDate != null ? DATE_STORE_FORMAT.format(addedDate) : "");
                 prop.setProperty("lastPlayedDate", lastPlayedDate != null ? DATE_STORE_FORMAT.format(lastPlayedDate) : "");
                 prop.setProperty("notInstalled", Boolean.toString(notInstalled));
+                prop.setProperty("waitingToBeScrapped", Boolean.toString(waitingToBeScrapped));
+                prop.setProperty("toAdd", Boolean.toString(toAdd));
 
                 // save properties to project root folder
                 prop.store(output, null);
@@ -221,6 +235,12 @@ public class GameEntry {
         if (prop.getProperty("notInstalled") != null) {
             notInstalled = Boolean.parseBoolean(prop.getProperty("notInstalled"));
         }
+        if (prop.getProperty("waitingToBeScrapped") != null) {
+            waitingToBeScrapped = Boolean.parseBoolean(prop.getProperty("waitingToBeScrapped"));
+        }
+        if (prop.getProperty("toAdd") != null) {
+            toAdd = Boolean.parseBoolean(prop.getProperty("toAdd"));
+        }
 
         input.close();
 
@@ -298,11 +318,11 @@ public class GameEntry {
     }
 
     public String getPath() {
-        return path;
+        return path.trim();
     }
 
     public void setPath(String path) {
-        this.path = path;
+        this.path = path.trim();
         saveEntry();
     }
 
@@ -490,7 +510,7 @@ public class GameEntry {
     }
 
     public void deleteFiles() {
-        File file = new File(ENTRIES_FOLDER + File.separator + getUuid().toString());
+        File file = new File((isToAdd() ? TOADD_FOLDER : ENTRIES_FOLDER) + File.separator + getUuid().toString());
         String[] entries = file.list();
         if (entries != null) {
             for (String s : entries) {
@@ -605,6 +625,7 @@ public class GameEntry {
 
     public void setWaitingToBeScrapped(boolean waitingToBeScrapped) {
         this.waitingToBeScrapped = waitingToBeScrapped;
+        saveEntry();
     }
 
     public void setIgdb_imageHash(int index, String hash) {
@@ -642,5 +663,14 @@ public class GameEntry {
 
     public void setUuid(UUID uuid) {
         this.uuid = uuid;
+    }
+
+    public boolean isToAdd() {
+        return toAdd;
+    }
+
+    public void setToAdd(boolean toAdd) {
+        this.toAdd = toAdd;
+        saveEntry();
     }
 }

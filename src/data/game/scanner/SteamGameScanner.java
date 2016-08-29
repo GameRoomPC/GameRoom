@@ -25,6 +25,7 @@ public class SteamGameScanner extends GameScanner {
 
     public SteamGameScanner(GameWatcher parentLooker) {
         super(parentLooker);
+        isLocalScanner = false;
     }
 
     @Override

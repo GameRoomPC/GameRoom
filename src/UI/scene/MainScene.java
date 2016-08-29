@@ -208,20 +208,20 @@ public class MainScene extends BaseScene {
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                ArrayList<UUID> uuids = AllGameEntries.readUUIDS();
+                ArrayList<UUID> uuids = AllGameEntries.readUUIDS(GameEntry.ENTRIES_FOLDER);
                 int i = 0;
                 for (UUID uuid : uuids) {
                     int finalI = i;
 
                     final GameEntry entry = new GameEntry(uuid);
-                    runAndWait(new Runnable() {
+                    Main.runAndWait(new Runnable() {
                         @Override
                         public void run() {
                             //TODO reduce loading time here
                             long strat = System.currentTimeMillis();
                             setChangeBackgroundNextTime(true);
                             addGame(entry);
-                            Main.LOGGER.debug("Added tile in : "+(System.currentTimeMillis()-strat));
+                            //Main.LOGGER.debug("Added tile in : "+(System.currentTimeMillis()-strat));
                         }
                     });
                     updateProgress(finalI, uuids.size() - 1);
@@ -912,39 +912,6 @@ public class MainScene extends BaseScene {
                 fadeOutTimeline.setAutoReverse(false);
                 fadeOutTimeline.play();
             }
-        }
-    }
-    /**
-     * Runs the specified {@link Runnable} on the
-     * JavaFX application thread and waits for completion.
-     *
-     * @param action the {@link Runnable} to run
-     * @throws NullPointerException if {@code action} is {@code null}
-     */
-    private static void runAndWait(Runnable action) {
-        if (action == null)
-            throw new NullPointerException("action");
-
-        // run synchronously on JavaFX thread
-        if (Platform.isFxApplicationThread()) {
-            action.run();
-            return;
-        }
-
-        // queue on JavaFX thread and wait for completion
-        final CountDownLatch doneLatch = new CountDownLatch(1);
-        Platform.runLater(() -> {
-            try {
-                action.run();
-            } finally {
-                doneLatch.countDown();
-            }
-        });
-
-        try {
-            doneLatch.await();
-        } catch (InterruptedException e) {
-            // ignore exception
         }
     }
 }

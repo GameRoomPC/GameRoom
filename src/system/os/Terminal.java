@@ -14,8 +14,13 @@ import java.util.Arrays;
  */
 public class Terminal {
     private ProcessBuilder processBuilder;
+    private boolean redirectErrorStream = true;
 
-    public Terminal() {
+    public Terminal(){
+        this(true);
+    }
+    public Terminal(boolean redirectErrorStream) {
+        this.redirectErrorStream = redirectErrorStream;
         processBuilder = new ProcessBuilder();
     }
 
@@ -58,8 +63,10 @@ public class Terminal {
 
         String s = "";
         // read any errors from the attempted command
-        while ((s = stdError.readLine()) != null) {
-            Main.LOGGER.error("[cmd=" + command + "] " + s);
+        if(redirectErrorStream){
+            while ((s = stdError.readLine()) != null) {
+                Main.LOGGER.error("[cmd=" + command + "] " + s);
+            }
         }
         String[] result = stdInput.lines().toArray(size -> new String[size]);
 

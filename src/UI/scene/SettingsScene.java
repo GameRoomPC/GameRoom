@@ -190,6 +190,8 @@ public class SettingsScene extends BaseScene {
                             String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
                             actDeactButton.setText(buttonText);
                             supporterKeyLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
+                        }else{
+                            Main.LOGGER.error("Error while trying to deactivate key : "+response.toString(4));
                         }
                     } catch (IOException e) {
                         e.printStackTrace();

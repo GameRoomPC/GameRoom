@@ -62,11 +62,9 @@ public class GameFoldersIgnoredSelector extends GameRoomDialog<ButtonType> {
 
             GameFoldersList list = new GameFoldersList(Main.SCREEN_HEIGHT / 3.0, mainPane.prefWidthProperty());
 
-            File gameFolder = GENERAL_SETTINGS.getFile(PredefinedSetting.GAMES_FOLDER);
-            if(gameFolder.exists() && gameFolder.isDirectory()){
-                list.addItems(gameFolder.listFiles());
-                statusLabel.setText(null);
-            }
+            loadIgnoredFolders(list);
+            statusLabel.setText(null);
+
             mainPane.setCenter(list);
 
             getDialogPane().getButtonTypes().addAll(
@@ -81,6 +79,29 @@ public class GameFoldersIgnoredSelector extends GameRoomDialog<ButtonType> {
                 selectedList = temp_entries;
             });
         }
+    private void loadIgnoredFolders(GameFoldersList list){
+        File gameFolder = GENERAL_SETTINGS.getFile(PredefinedSetting.GAMES_FOLDER);
+        if(gameFolder.exists() && gameFolder.isDirectory()){
+            list.addItems(gameFolder.listFiles());
+        }
+        File[] ignoredFiles = GENERAL_SETTINGS.getFiles(PredefinedSetting.IGNORED_GAME_FOLDERS);
+        list.addSeparator(Main.RESSOURCE_BUNDLE.getString("others"));
+        for(File ignoredFile : ignoredFiles){
+            ignoredFile = new File(ignoredFile.getPath());
+            boolean addFolder = true;
+            if(gameFolder.exists() && gameFolder.isDirectory()) {
+                for(File subFolder : gameFolder.listFiles()){
+                    addFolder = !subFolder.getAbsolutePath().toLowerCase().trim().equals(ignoredFile.getAbsolutePath().toLowerCase().trim());
+                    if(!addFolder){
+                        break;
+                    }
+                }
+            }
+            if(addFolder){
+                list.addItems(new File[]{ignoredFile});
+            }
+        }
+    }
 
         public File[] getSelectedEntries() {
             return selectedList;
@@ -139,6 +160,7 @@ public class GameFoldersIgnoredSelector extends GameRoomDialog<ButtonType> {
                 GridPane.setMargin(coverPane, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
                 add(coverPane, columnCount++, 0);
                 Label titleLabel = new Label(file.getName());
+                titleLabel.setTooltip(new Tooltip(file.getAbsolutePath()));
 
                 GridPane.setMargin(titleLabel, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
                 add(titleLabel, columnCount++, 0);
