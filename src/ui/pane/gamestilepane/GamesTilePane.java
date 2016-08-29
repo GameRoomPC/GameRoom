@@ -350,7 +350,7 @@ public abstract class GamesTilePane extends BorderPane{
         }
     }
     protected void show(boolean transition){
-        if(!forcedHidden) {
+        if(!forcedHidden && !isManaged() && !isVisible() && isMouseTransparent()) {
             Runnable showAction = new Runnable() {
                 @Override
                 public void run() {

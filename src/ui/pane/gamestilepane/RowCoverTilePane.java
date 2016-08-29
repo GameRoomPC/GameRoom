@@ -31,6 +31,7 @@ import ui.scene.MainScene;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.UUID;
 
 import static ui.Main.SCREEN_HEIGHT;
 import static ui.Main.SCREEN_WIDTH;
@@ -138,6 +139,11 @@ public class RowCoverTilePane extends CoverTilePane {
                     sort = sort || c.wasAdded() || c.wasRemoved() || c.wasReplaced() || c.wasUpdated();
                 }
                 if (sort) {
+                    ArrayList<UUID> uuids = new ArrayList<UUID>();
+                    for(GameButton button : tilesList){
+                        uuids.add(button.getEntry().getUuid());
+                    }
+
                     tilesList.sort(new Comparator<Node>() {
                         @Override
                         public int compare(Node o1, Node o2) {
@@ -167,7 +173,13 @@ public class RowCoverTilePane extends CoverTilePane {
                     }
                     setForcedHidden(hideTilePane);
                     if(!hideTilePane){
-                        show();
+                        boolean changedOrder = false;
+                        for (int i = 0; i < uuids.size() && !changedOrder ; i++) {
+                            changedOrder = uuids.get(i).equals(tilesList.get(i).getEntry().getUuid());
+                        }
+                        if(changedOrder){
+                            show();
+                        }
                     }
                 }
             }
