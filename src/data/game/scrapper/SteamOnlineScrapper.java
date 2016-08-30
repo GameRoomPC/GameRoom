@@ -143,12 +143,13 @@ public class SteamOnlineScrapper {
     }
 
     private static JSONObject getInfoForGame(long steam_id) throws ConnectTimeoutException {
+        String json = null;
         try {
             HttpResponse<String> response = Unirest.get("http://store.steampowered.com/api/appdetails?appids=" + steam_id)
                     .header("Accept", "application/json")
                     .asString();
             BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
-            String json = reader.readLine();
+            json = reader.readLine();
             reader.close();
             //Main.LOGGER.debug("Recevied : "+json);
 
@@ -166,6 +167,8 @@ public class SteamOnlineScrapper {
                 System.err.println("Data not found");
             } else if (e.toString().contains("Connect to store.steampowered.com:80")) {
                 Main.LOGGER.info("Could not join store.steampowered, timeout. (SteamOnlineScrapper.getInfoForGame)");
+            } else if(e.toString().contains("A JSONObject text must begin with '{' at ")) {
+                Main.LOGGER.error("Receveid invalid json from steam : "+json);
             } else {
                 e.printStackTrace();
             }
