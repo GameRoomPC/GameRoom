@@ -11,6 +11,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import static data.game.GameWatcher.cleanNameForCompareason;
+import static ui.Main.GENERAL_SETTINGS;
 
 /**
  * Created by LM on 19/08/2016.
@@ -69,7 +70,7 @@ public class FolderGameScanner extends GameScanner{
         return false;
     }
     protected ArrayList<GameEntry> getPotentialEntries(){
-        File gamesFolder = Main.GENERAL_SETTINGS.getFile(PredefinedSetting.GAMES_FOLDER);
+        File gamesFolder = new File(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER));
         ArrayList<GameEntry> entriesFound = new ArrayList<>();
         if(!gamesFolder.exists() || !gamesFolder.isDirectory()){
             return entriesFound;

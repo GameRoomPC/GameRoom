@@ -323,7 +323,10 @@ public class Launcher extends Application {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    Desktop.getDesktop().open(GENERAL_SETTINGS.getFile(PredefinedSetting.GAMES_FOLDER));
+                    String dir = GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER);
+                    File gamesFolder = new File(dir);
+                    if(gamesFolder.exists() && gamesFolder.isDirectory())
+                    Desktop.getDesktop().open(gamesFolder);
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -355,7 +358,8 @@ public class Launcher extends Application {
         popup.addSeparator();
         popup.add(gameRoomFolderItem);
 
-        if(GENERAL_SETTINGS.getFile(PredefinedSetting.GAMES_FOLDER) != null && GENERAL_SETTINGS.getFile(PredefinedSetting.GAMES_FOLDER).isDirectory()){
+        File gameFolder = new File(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER));
+        if( gameFolder.exists() && gameFolder.isDirectory()){
             popup.add(gamesFolderItem);
         }
         popup.add(settingsItem);

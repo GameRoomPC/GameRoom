@@ -490,15 +490,15 @@ public class SettingsScene extends BaseScene {
                     }
                 });
                 node2 = localeComboBox;
-            } else if (setting.isClass(File.class)) {
+            } else if (setting.isClass(String.class)) {
                 /**************** PATH **************/
-                File p = GENERAL_SETTINGS.getFile(setting);
-                PathTextField gamesFolderField = new PathTextField(p != null ? p.toString() : "", this, PathTextField.FILE_CHOOSER_FOLDER, RESSOURCE_BUNDLE.getString("select_a_folder"));
+                String p = GENERAL_SETTINGS.getString(setting);
+                PathTextField gamesFolderField = new PathTextField(p, this, PathTextField.FILE_CHOOSER_FOLDER, RESSOURCE_BUNDLE.getString("select_a_folder"));
                 gamesFolderField.setId(setting.getKey());
                 gamesFolderField.getTextField().textProperty().addListener(new ChangeListener<String>() {
                     @Override
                     public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                        GENERAL_SETTINGS.setSettingValue(setting, new File(newValue));
+                        GENERAL_SETTINGS.setSettingValue(setting, newValue);
 
                         if (changeListener != null) {
                             changeListener.changed(observable, oldValue, newValue);
@@ -510,7 +510,11 @@ public class SettingsScene extends BaseScene {
                     @Override
                     public boolean isValid() {
                         if(setting.equals(PredefinedSetting.GAMES_FOLDER)){
-                            File gamesFolder = GENERAL_SETTINGS.getFile(PredefinedSetting.GAMES_FOLDER);
+                            String dir = GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER);
+                            if(dir.equals("")){
+                                return true;
+                            }
+                            File gamesFolder = new File(dir);
                             if (!gamesFolder.exists()) {
                                 message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_gamesFolder_exist"));
                                 return false;

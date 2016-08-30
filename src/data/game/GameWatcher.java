@@ -98,13 +98,16 @@ public class GameWatcher {
     private void validateKey() {
         if (!Main.SUPPORTER_MODE) {
             Main.SUPPORTER_MODE = !Main.GENERAL_SETTINGS.getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(Main.GENERAL_SETTINGS.getString(SUPPORTER_KEY));
+            if(Main.SUPPORTER_MODE){
+                IGDBScrapper.key = IGDBScrapper.IGDB_PRO_KEY;
+            }
         }
     }
 
     private void tryScrapToAddEntries() {
         ArrayList<Integer> searchIGDBIDs = new ArrayList<>();
         ArrayList<GameEntry> toScrapEntries = new ArrayList<>();
-        if (Main.SUPPORTER_MODE) {
+        if (true) {
             for (GameEntry entry : entriesToAdd) {
                 if (entry.isWaitingToBeScrapped()) {
                     try {
@@ -126,21 +129,21 @@ public class GameWatcher {
                 int i = 0;
                 for (GameEntry scrappedEntry : scrappedEntries) {
                     scrappedEntry.setUuid(toScrapEntries.get(i).getUuid());
-                    scrappedEntry.setName(toScrapEntries.get(i).getName());
-                    scrappedEntry.setPath(toScrapEntries.get(i).getPath());
-                    if (toScrapEntries.get(i).getPlayTimeSeconds() != 0) {
-                        scrappedEntry.setPlayTimeSeconds(toScrapEntries.get(i).getPlayTimeSeconds());
-                    }
                     if (toScrapEntries.get(i).getSteam_id() != -1) {
                         scrappedEntry.setSteam_id(toScrapEntries.get(i).getSteam_id());
                     }
                     scrappedEntry.setNotInstalled(toScrapEntries.get(i).isNotInstalled());
-                    if (toScrapEntries.get(i).getDescription() != null && !toScrapEntries.get(i).getDescription().equals("")) {
-                        scrappedEntry.setDescription(toScrapEntries.get(i).getDescription());
+                    if (toScrapEntries.get(i).getDescription() == null ||toScrapEntries.get(i).getDescription().equals("")) {
+                        toScrapEntries.get(i).setDescription(scrappedEntry.getDescription());
                     }
-                    if (scrappedEntry.getReleaseDate() == null) {
-                        scrappedEntry.setReleaseDate(toScrapEntries.get(i).getReleaseDate());
+                    if (toScrapEntries.get(i).getReleaseDate() == null) {
+                        toScrapEntries.get(i).setReleaseDate(scrappedEntry.getReleaseDate());
                     }
+                    toScrapEntries.get(i).setThemes(scrappedEntry.getThemes());
+                    toScrapEntries.get(i).setGenres(scrappedEntry.getGenres());
+                    toScrapEntries.get(i).setSerie(scrappedEntry.getSerie());
+                    toScrapEntries.get(i).setDeveloper(scrappedEntry.getDeveloper());
+                    toScrapEntries.get(i).setPublisher(scrappedEntry.getPublisher());
                     int finalI = i;
                     ImageUtils.downloadIGDBImageToCache(scrappedEntry.getIgdb_id()
                             , scrappedEntry.getIgdb_imageHash(0)

@@ -80,7 +80,7 @@ public class GameFoldersIgnoredSelector extends GameRoomDialog<ButtonType> {
             });
         }
     private void loadIgnoredFolders(GameFoldersList list){
-        File gameFolder = GENERAL_SETTINGS.getFile(PredefinedSetting.GAMES_FOLDER);
+        File gameFolder = new File(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER));
         if(gameFolder.exists() && gameFolder.isDirectory()){
             list.addItems(gameFolder.listFiles());
         }

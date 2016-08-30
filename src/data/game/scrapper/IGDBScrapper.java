@@ -24,7 +24,10 @@ import java.util.Date;
  * Created by LM on 03/07/2016.
  */
 public class IGDBScrapper {
-
+    public static final String IGDB_BASIC_KEY = "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5";
+    public static final String IGDB_PRO_KEY = "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5";
+    public static String key = IGDB_BASIC_KEY;
+    
     public static void main(String[] args) throws ConnectTimeoutException {
         JSONArray bf4_results = searchGame("iwuefbuiw");
         ArrayList list = new ArrayList();
@@ -54,7 +57,7 @@ public class IGDBScrapper {
     public static JSONArray getAllFields(int id) {
         try {
             HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + id + "?fields=*")
-                    .header("X-Mashape-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
+                    .header("X-Mashape-Key", key)
                     .header("Accept", "application/json")
                     .asString();
             BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
@@ -410,7 +413,7 @@ public class IGDBScrapper {
         gameName = gameName.replace(' ', '+');
         try {
             HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/?fields=name&limit=10&offset=0&search=" + gameName)
-                    .header("X-Mashape-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
+                    .header("X-Mashape-Key", key)
                     .header("Accept", "application/json")
                     .asString();
             BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
@@ -441,7 +444,7 @@ public class IGDBScrapper {
                 idsString += id + ",";
             }
             HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/genres/" + idsString.substring(0, idsString.length() - 1) + "?fields=name")
-                    .header("X-Mashape-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
+                    .header("X-Mashape-Key", key)
                     .header("Accept", "application/json")
                     .asString();
             BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
@@ -466,7 +469,7 @@ public class IGDBScrapper {
                 idsString += id + ",";
             }
             HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + idsString.substring(0, idsString.length() - 1) + "?fields=*")
-                    .header("X-Mashape-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
+                    .header("X-Mashape-Key", key)
                     .header("Accept", "application/json")
                     .asString();
             BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
@@ -524,7 +527,7 @@ public class IGDBScrapper {
         try {
             int serieId = gameData.getInt("collection");
             HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/collections/" + serieId + "?fields=name")
-                    .header("X-Mashape-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
+                    .header("X-Mashape-Key", key)
                     .header("Accept", "application/json")
                     .asString();
             BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
@@ -567,7 +570,7 @@ public class IGDBScrapper {
         }
         try {
             HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/collections/" + idsString.substring(0, idsString.length() - 1) + /*"?fields=*"+*/ "?fields=name")
-                    .header("X-Mashape-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
+                    .header("X-Mashape-Key", key)
                     .header("Accept", "application/json")
                     .asString();
             BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
@@ -604,7 +607,7 @@ public class IGDBScrapper {
         }
         try {
             HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/companies/" + idsString.substring(0, idsString.length() - 1) + /*"?fields=*"+*/ "?fields=name")
-                    .header("X-Mashape-Key", "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5")
+                    .header("X-Mashape-Key", key)
                     .header("Accept", "application/json")
                     .asString();
             BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
