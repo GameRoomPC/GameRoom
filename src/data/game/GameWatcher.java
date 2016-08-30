@@ -303,11 +303,13 @@ public class GameWatcher {
         for (GameEntry n : entriesToAdd) {
             if (n.getUuid().equals(entry.getUuid())) {
                 toRemoveEntries.add(n);
-                n.deleteFiles();
+                if(n.isToAdd()) //check if not added to Games folder
+                    n.deleteFiles();
             } else {
                 if (n.getPath().trim().toLowerCase().equals(entry.getPath().trim().toLowerCase())) {
                     toRemoveEntries.add(n);
-                    n.deleteFiles();
+                    if(n.isToAdd()) //check if not added to Games folder
+                        n.deleteFiles();
                 }
             }
         }

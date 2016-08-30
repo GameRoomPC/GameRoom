@@ -158,27 +158,31 @@ public class GameEditScene extends BaseScene {
                     }
                 }
                 if (allConditionsMet) {
-                    if(entry.isToAdd()){
-                        entry.deleteFiles();
-                        entry.setToAdd(false);
-                    }
                     for (int i = 0; i < chosenImageFiles.length; i++) {
                         if (chosenImageFiles[i] != null) {
                             String type = i == 0 ? ImageUtils.IGDB_TYPE_COVER : ImageUtils.IGDB_TYPE_SCREENSHOT;
                             File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + type + "." + getExtension(chosenImageFiles[i].getName()));
                             try {
+                                if(!localCoverFile.getParentFile().exists()){
+                                    localCoverFile.getParentFile().mkdirs();
+                                }
                                 if (!localCoverFile.exists()) {
-                                    localCoverFile.mkdirs();
                                     localCoverFile.createNewFile();
                                 }
                                 Files.copy(chosenImageFiles[i].toPath().toAbsolutePath(), localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
                                 entry.setImagePath(i,localCoverFile);
+                                Main.LOGGER.debug("Moving from \n\t"+chosenImageFiles[i].toPath().toAbsolutePath()+"\n\tto "+localCoverFile.toPath().toAbsolutePath());
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
                         }
                     }
+                    if(entry.isToAdd()){
+                        entry.deleteFiles();
+                        entry.setToAdd(false);
+                    }
                     entry.setSavedLocaly(true);
+
                     switch (mode) {
                         case MODE_ADD:
                             entry.setAddedDate(new Date());
@@ -852,7 +856,6 @@ public class GameEditScene extends BaseScene {
                 if (result.get() == ButtonType.OK) {
                     switch (mode) {
                         case MODE_ADD:
-                            entry.deleteFiles(); //just in case, should not be useful in any way
                             break;
                         case MODE_EDIT:
                             try {
@@ -1052,7 +1055,6 @@ public class GameEditScene extends BaseScene {
                     if (result.get() == ButtonType.OK) {
                         switch (mode) {
                             case MODE_ADD:
-                                entry.deleteFiles(); //just in case, should not be useful in any way
                                 break;
                             case MODE_EDIT:
                                 try {
