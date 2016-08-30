@@ -604,3 +604,48 @@
  .separator .line {
     -fx-background: -flatter-red;
  }
+
+
+/*******************************************************************************
+ *                                                                             *
+ * Tab                                                         *
+ *                                                                             *
+ ******************************************************************************/
+ .tab-pane .tab-header-area .tab-header-background {
+     -fx-opacity: 0;
+ }
+.tab .tab-label{
+    -fx-alignment: CENTER;
+    -fx-font-size: 26px;
+}
+.tab-pane .tab
+{
+    -fx-background-color: derive(-dark, 10.0%);
+    -fx-border-color: transparent;
+}
+ .tab-pane .tab:default
+  {
+    -fx-border-color: transparent;
+    -fx-background-color: derive(-dark, 10.0%);
+  }
+ .tab-pane .tab:selected
+ {
+    -fx-background-color: derive(-flatter-red, -20.0%);
+ }
+ .tab-pane .tab:hover
+  {
+    -fx-border-color: transparent;
+    -fx-background-color: derive(-flatter-red, 50.0%);
+  }
+  .tab-content-area
+  {
+  -fx-background-color: derive(-dark, 10.0%);
+  }
+  .tab-pane.floating *.tab:selected
+  {
+  -fx-border-color: transparent;
+  }
+.tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}

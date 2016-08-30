@@ -21,18 +21,19 @@ public enum PredefinedSetting {
     ,WINDOW_WIDTH("windowWidth", new SettingValue(1366,Integer.class,CATEGORY_NONE))
     ,WINDOW_HEIGHT("windowHeight", new SettingValue(768,Integer.class,CATEGORY_NONE))
     ,GAMING_POWER_MODE("gamingPowerMode", new SettingValue(PowerMode.getActivePowerMode(),PowerMode.class,CATEGORY_ON_GAME_START))
-    ,ENABLE_GAMING_POWER_MODE("enableGamingPowerMode", new SettingValue(false,Boolean.class,CATEGORY_NONE))
-    , NO_NOTIFICATIONS("noNotifications", new SettingValue(false,Boolean.class,CATEGORY_NONE))
-    ,START_MINIMIZED("startMinimized", new SettingValue(false,Boolean.class,CATEGORY_NONE))
+    ,ENABLE_GAMING_POWER_MODE("enableGamingPowerMode", new SettingValue(false,Boolean.class,CATEGORY_ON_GAME_START))
+    , NO_NOTIFICATIONS("noNotifications", new SettingValue(false,Boolean.class, CATEGORY_UI))
+    ,START_MINIMIZED("startMinimized", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     ,NO_MORE_ICON_TRAY_WARNING("noMoreIconTrayWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
-    ,ENABLE_XBOX_CONTROLLER_SUPPORT("enableXboxControllerSupport", new SettingValue(false,Boolean.class,CATEGORY_NONE))
+    ,ENABLE_XBOX_CONTROLLER_SUPPORT("enableXboxControllerSupport", new SettingValue(false,Boolean.class,CATEGORY_UI))
     ,GAMES_FOLDER("gamesFolder", new SettingValue(null,File.class,CATEGORY_GENERAL))
     , SUPPORTER_KEY("supporterKey", new SettingValue("",String.class,CATEGORY_GENERAL))
     ,DISABLE_MAINSCENE_WALLPAPER("disableMainSceneWallpaper", new SettingValue(false,Boolean.class,CATEGORY_UI))
-    ,IGNORED_STEAM_APPS("ignoredSteamApps",new SettingValue(new SteamPreEntry[]{},SteamPreEntry[].class,CATEGORY_NONE))
-    ,IGNORED_GAME_FOLDERS("ignoredGameFolders",new SettingValue(new File[]{},File[].class,CATEGORY_NONE))
+    ,IGNORED_STEAM_APPS("ignoredSteamApps",new SettingValue(new SteamPreEntry[]{},SteamPreEntry[].class,CATEGORY_GENERAL))
+    ,IGNORED_GAME_FOLDERS("ignoredGameFolders",new SettingValue(new File[]{},File[].class,CATEGORY_GENERAL))
     , DISABLE_GAME_MAIN_THEME("disableGameMainTheme", new SettingValue(true,Boolean.class,CATEGORY_UI))
     , ADVANCED_MODE("advancedMode", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
+    , DEBUG_MODE("debugMode", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     , FOLDED_ROW_LAST_PLAYED("foldedRowLastPlay", new SettingValue(false,Boolean.class,CATEGORY_UI))
     , FOLDED_ROW_RECENTLY_ADDED("foldedRowRecentlyAdded", new SettingValue(false,Boolean.class,CATEGORY_UI))
     ;
@@ -74,5 +75,9 @@ public enum PredefinedSetting {
     @Override
     public String toString(){
         return key;
+    }
+
+    public String getCategory() {
+        return defaultValue.getCategory();
     }
 }

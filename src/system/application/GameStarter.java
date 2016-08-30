@@ -14,6 +14,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Date;
 
 import static ui.Main.GENERAL_SETTINGS;
@@ -62,9 +63,14 @@ public class GameStarter {
                 String[] cmds = cmdBefore.split("\n");
                 terminal.execute(cmds,preLog,new File(new File(entry.getPath()).getParent()));
             }
-
+            String[] args = entry.getArgs().split(" ");
+            ArrayList<String> commands = new ArrayList<>();
+            commands.add('"'+entry.getPath()+'"');
+            for(String arg : args){
+                commands.add(arg);
+            }
             File gameLog = new File(logFolder+entry.getProcessName()+".log");
-            ProcessBuilder gameProcessBuilder = new ProcessBuilder('"'+entry.getPath()+'"').inheritIO();
+            ProcessBuilder gameProcessBuilder = new ProcessBuilder(commands).inheritIO();
             gameProcessBuilder.redirectOutput(gameLog);
             gameProcessBuilder.redirectError(gameLog);
             gameProcessBuilder.directory(new File(new File(entry.getPath()).getParent()));

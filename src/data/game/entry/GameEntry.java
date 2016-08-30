@@ -49,6 +49,8 @@ public class GameEntry {
     private UUID uuid;
     private boolean alreadyStartedInGameRoom = false;
     private String[] cmd = new String[4];
+    private String args = "";
+    private String youtubeSoundtrackHash = "";
     private Date addedDate = new Date();
     private Date lastPlayedDate;
     private boolean notInstalled = false;
@@ -141,6 +143,9 @@ public class GameEntry {
                 prop.setProperty("notInstalled", Boolean.toString(notInstalled));
                 prop.setProperty("waitingToBeScrapped", Boolean.toString(waitingToBeScrapped));
                 prop.setProperty("toAdd", Boolean.toString(toAdd));
+                prop.setProperty("args", args);
+                prop.setProperty("youtubeSoundtrackHash", youtubeSoundtrackHash);
+
 
                 // save properties to project root folder
                 prop.store(output, null);
@@ -240,6 +245,12 @@ public class GameEntry {
         }
         if (prop.getProperty("toAdd") != null) {
             toAdd = Boolean.parseBoolean(prop.getProperty("toAdd"));
+        }
+        if (prop.getProperty("youtubeSoundtrackHash") != null) {
+            youtubeSoundtrackHash = prop.getProperty("youtubeSoundtrackHash");
+        }
+        if (prop.getProperty("args") != null) {
+            args = prop.getProperty("args");
         }
 
         input.close();
@@ -672,5 +683,22 @@ public class GameEntry {
     public void setToAdd(boolean toAdd) {
         this.toAdd = toAdd;
         saveEntry();
+    }
+
+    public String getYoutubeSoundtrackHash() {
+        return youtubeSoundtrackHash;
+    }
+
+    public void setYoutubeSoundtrackHash(String youtubeSoundtrackHash) {
+        this.youtubeSoundtrackHash = youtubeSoundtrackHash;
+        saveEntry();
+    }
+
+    public String getArgs() {
+        return args;
+    }
+
+    public void setArgs(String args) {
+        this.args = args;
     }
 }

@@ -71,7 +71,7 @@ public class GameWatcher {
             public void run() {
                 ArrayList<UUID> uuids = AllGameEntries.readUUIDS(GameEntry.TOADD_FOLDER);
                 for (UUID uuid : uuids) {
-                    GameEntry entry = new GameEntry(uuid,true);
+                    GameEntry entry = new GameEntry(uuid, true);
                     entry.setSavedLocaly(true);
                     Main.runAndWait(() -> {
                         onGameFound(entry);
@@ -126,7 +126,6 @@ public class GameWatcher {
                 int i = 0;
                 for (GameEntry scrappedEntry : scrappedEntries) {
                     scrappedEntry.setUuid(toScrapEntries.get(i).getUuid());
-                    scrappedEntry.setWaitingToBeScrapped(false);
                     scrappedEntry.setName(toScrapEntries.get(i).getName());
                     scrappedEntry.setPath(toScrapEntries.get(i).getPath());
                     if (toScrapEntries.get(i).getPlayTimeSeconds() != 0) {
@@ -142,6 +141,7 @@ public class GameWatcher {
                     if (scrappedEntry.getReleaseDate() == null) {
                         scrappedEntry.setReleaseDate(toScrapEntries.get(i).getReleaseDate());
                     }
+                    int finalI = i;
                     ImageUtils.downloadIGDBImageToCache(scrappedEntry.getIgdb_id()
                             , scrappedEntry.getIgdb_imageHash(0)
                             , ImageUtils.IGDB_TYPE_COVER
@@ -178,7 +178,9 @@ public class GameWatcher {
                                                         scrappedEntry.setImagePath(1, localCoverFile);
                                                     } catch (Exception e) {
                                                         scrappedEntry.setImagePath(1, outputfile);
-                                                    }                                                    Main.runAndWait(() -> {
+                                                    }
+                                                    toScrapEntries.get(finalI).setWaitingToBeScrapped(false);
+                                                    Main.runAndWait(() -> {
                                                         Main.MAIN_SCENE.updateGame(scrappedEntry);
                                                     });
                                                 }
@@ -230,11 +232,11 @@ public class GameWatcher {
 
             for (GameScanner scanner : gameScanners) {
                 allScannersDone = allScannersDone && scanner.isScanDone();
-                if(scanner.isLocalScanner()){
+                if (scanner.isLocalScanner()) {
                     allLocalScannersDone = allLocalScannersDone && scanner.isScanDone();
                 }
             }
-            if(allLocalScannersDone){
+            if (allLocalScannersDone) {
                 tryScrapToAddEntries();
                 Main.LOGGER.debug("All local scanners done, trying to scrap now");
             }
@@ -299,10 +301,10 @@ public class GameWatcher {
     public void removeGame(GameEntry entry) {
         ArrayList<GameEntry> toRemoveEntries = new ArrayList<>();
         for (GameEntry n : entriesToAdd) {
-            if(n.getUuid().equals(entry.getUuid())){
+            if (n.getUuid().equals(entry.getUuid())) {
                 toRemoveEntries.add(n);
                 n.deleteFiles();
-            }else{
+            } else {
                 if (n.getPath().trim().toLowerCase().equals(entry.getPath().trim().toLowerCase())) {
                     toRemoveEntries.add(n);
                     n.deleteFiles();

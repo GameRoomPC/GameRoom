@@ -13,6 +13,7 @@ import system.application.MessageListener;
 import system.application.MessageTag;
 import system.application.OnLaunchAction;
 import system.application.settings.PredefinedSetting;
+import system.application.settings.SettingValue;
 import system.os.PowerMode;
 import ui.Main;
 import javafx.beans.value.ChangeListener;
@@ -37,10 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import static ui.Main.*;
 
@@ -50,7 +48,9 @@ import static ui.Main.*;
 public class SettingsScene extends BaseScene {
     public final static String ADVANCE_MODE_LABEL_STYLE = "    -fx-text-fill: derive(-flatter-red, -20.0%);";
     private BorderPane wrappingPane;
-    private TilePane contentPane = new TilePane();
+    private HashMap<String, TilePane> tilePaneHashMap = new HashMap<>();
+    private HashMap<String, Tab> tabHashMap = new HashMap<>();
+    private TabPane tabPane = new TabPane();
     private ArrayList<ValidEntryCondition> validEntriesConditions = new ArrayList<>();
 
 
@@ -74,17 +74,44 @@ public class SettingsScene extends BaseScene {
     }
 
     private void initCenter() {
-        contentPane.setHgap(50);
-        contentPane.setVgap(15);
-        contentPane.setPrefColumns(2);
-        //contentPane.setAlignment(Pos.TOP_LEFT);
-        contentPane.setOrientation(Orientation.VERTICAL);
-        contentPane.setTileAlignment(Pos.CENTER_LEFT);
+        String[] categoriesToDisplay = new String[]{SettingValue.CATEGORY_GENERAL
+                ,SettingValue.CATEGORY_ON_GAME_START
+                ,SettingValue.CATEGORY_UI
+        };
+
+        for(String category : categoriesToDisplay){
+            TilePane tilePane = new TilePane();
+            tilePane.setHgap(50*GENERAL_SETTINGS.getWindowHeight()/1080);
+            tilePane.setVgap(15*GENERAL_SETTINGS.getWindowWidth()/1920);
+            tilePane.setPrefColumns(2);
+            tilePane.setOrientation(Orientation.VERTICAL);
+            tilePane.setTileAlignment(Pos.CENTER_LEFT);
+            //tilePane.setPrefRows(8);
+            tilePaneHashMap.put(category,tilePane);
+
+            ScrollPane scrollPane = new ScrollPane();
+            scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            scrollPane.setContent(tilePane);
+            tilePane.maxWidthProperty().bind(scrollPane.widthProperty());
+            tilePane.setPadding(new Insets(20 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920, 20 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920));
+
+
+            Tab tab = new Tab(Main.RESSOURCE_BUNDLE.getString(category));
+            tab.setClosable(false);
+            tab.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString(category)));
+            tab.setContent(scrollPane);
+            tabHashMap.put(category,tab);
+
+            tabPane.getTabs().add(tab);
+
+        }
+
 
         addPropertyLine(PredefinedSetting.LOCALE);
         addPropertyLine(PredefinedSetting.ON_GAME_LAUNCH_ACTION);
         addPropertyLine(PredefinedSetting.NO_NOTIFICATIONS);
-        addPropertyLine(PredefinedSetting.START_MINIMIZED,true);
+        addPropertyLine(PredefinedSetting.START_MINIMIZED,false);
         addPropertyLine(PredefinedSetting.DISABLE_GAME_MAIN_THEME,true);
         addPropertyLine(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER,true, new ChangeListener<Boolean>() {
             @Override
@@ -139,7 +166,7 @@ public class SettingsScene extends BaseScene {
             }
         });
 
-        contentPane.getChildren().add(createLine(gameFoldersIgnoredLabel, manageGameFoldersIgnoredButton));
+        tilePaneHashMap.get(PredefinedSetting.IGNORED_GAME_FOLDERS.getCategory()).getChildren().add(createLine(gameFoldersIgnoredLabel, manageGameFoldersIgnoredButton));
 
 
         /***********************STEAM GAMES IGNORED****************************/
@@ -164,7 +191,7 @@ public class SettingsScene extends BaseScene {
             }
         });
 
-        contentPane.getChildren().add(createLine(steamIgnoredGamesLabel, manageSteamGamesIgnoredButton));
+        tilePaneHashMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getCategory()).getChildren().add(createLine(steamIgnoredGamesLabel, manageSteamGamesIgnoredButton));
 
         /***********************SUPPORTER KEY****************************/
         String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
@@ -246,7 +273,7 @@ public class SettingsScene extends BaseScene {
             }
         });
 
-        contentPane.getChildren().add(createLine(supporterKeyLabel, actDeactButton));
+        tilePaneHashMap.get(PredefinedSetting.SUPPORTER_KEY.getCategory()).getChildren().add(createLine(supporterKeyLabel, actDeactButton));
 
         /***********************VERSION CHECK****************************/
         Label versionLabel = new Label(Main.RESSOURCE_BUNDLE.getString("version") + ": " + Main.getVersion());
@@ -271,7 +298,7 @@ public class SettingsScene extends BaseScene {
                 Main.startUpdater();
             }
         });
-        contentPane.getChildren().add(createLine(versionLabel, checkUpdatesButton));
+        tilePaneHashMap.get(SettingValue.CATEGORY_GENERAL).getChildren().add(createLine(versionLabel, checkUpdatesButton));
 
 
         /***********************ADVANCED MODE **************************************/
@@ -281,22 +308,13 @@ public class SettingsScene extends BaseScene {
                 fadeTransitionTo(new SettingsScene(new StackPane(), getParentStage(), previousScene), getParentStage());
             }
         });
+        addPropertyLine(PredefinedSetting.DEBUG_MODE, true);
 
         /***********************ROW CONSTRAINTS****************************/
         /**********************NO CONTROL INIT BELOW THIS*******************/
 
-
-        /*GridPane pane = new GridPane();
-        pane.add(contentPane,0,0);
-        GridPane.setFillWidth(contentPane,false);*/
-        ScrollPane scrollPane = new ScrollPane();
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setContent(contentPane);
-        contentPane.maxWidthProperty().bind(scrollPane.widthProperty());
-        contentPane.setPrefRows(8);
-        wrappingPane.setCenter(scrollPane);
-        BorderPane.setMargin(scrollPane, new Insets(50 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920, 20 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920));
+        wrappingPane.setCenter(tabPane);
+        BorderPane.setMargin(tabPane, new Insets(10 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920, 20 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920));
 
     }
 
@@ -471,23 +489,25 @@ public class SettingsScene extends BaseScene {
             if (node2 != null) {
                 node2.setId(setting.getKey());
             }
-            contentPane.getChildren().add(createLine(label, node2));
+            tilePaneHashMap.get(setting.getCategory()).getChildren().add(createLine(label, node2));
         }
     }
     private void setLineInvalid(String property_key) {
         String style = "-fx-text-inner-color: red;\n";
-        for (Node node : contentPane.getChildren()) {
-            if (node.getId() != null && node.getId().equals(property_key)) {
-                node.setStyle(style);
-                node.focusedProperty().addListener(new ChangeListener<Boolean>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                        if (newValue) {
-                            node.setStyle("");
+        for(TilePane contentPane : tilePaneHashMap.values()) {
+            for (Node node : contentPane.getChildren()) {
+                if (node.getId() != null && node.getId().equals(property_key)) {
+                    node.setStyle(style);
+                    node.focusedProperty().addListener(new ChangeListener<Boolean>() {
+                        @Override
+                        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                            if (newValue) {
+                                node.setStyle("");
+                            }
                         }
-                    }
-                });
-                break;
+                    });
+                    break;
+                }
             }
         }
     }
@@ -530,7 +550,13 @@ public class SettingsScene extends BaseScene {
     }
 
     private Node searchNode(String id) {
-        return searchNodeInPane(id, contentPane);
+        for(TilePane contentPane : tilePaneHashMap.values()) {
+            Node n = searchNodeInPane(id, contentPane);
+            if(n!=null){
+                return n;
+            }
+        }
+        return null;
     }
 
     private Node searchNodeInPane(String id, Pane pane) {

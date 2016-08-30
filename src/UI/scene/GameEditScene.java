@@ -6,6 +6,7 @@ import data.game.entry.GameTheme;
 import data.game.scrapper.IGDBScrapper;
 import data.ImageUtils;
 import data.game.scrapper.OnDLDoneHandler;
+import data.http.YoutubeSoundtrackScrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -570,8 +571,43 @@ public class GameEditScene extends BaseScene {
         contentPane.add(gameDescriptionField, 1, row_count);
         row_count++;
 
-        /**************************CMD*********************************************/
+        /**************************YOUTUBE*********************************************/
+        Label youtubeSoundtrackLabel = new Label(RESSOURCE_BUNDLE.getString("youtube_soundtrack_label") + " :");
+        youtubeSoundtrackLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("youtube_soundtrack_tooltip")));
+        contentPane.add(youtubeSoundtrackLabel, 0, row_count);
+        TextField youtubeSoundtrackField = new TextField(entry.getYoutubeSoundtrackHash().equals("") ? "" : YoutubeSoundtrackScrapper.toYoutubeUrl(entry.getYoutubeSoundtrackHash()));
+        youtubeSoundtrackField.setId("youtube_soundtrack");
+        youtubeSoundtrackField.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                String hash = YoutubeSoundtrackScrapper.hashFromYoutubeUrl(newValue);
+                if(hash!=null){
+                    entry.setYoutubeSoundtrackHash(newValue);
+                }else{
+                    entry.setYoutubeSoundtrackHash("");
+                }
+            }
+        });
+        contentPane.add(youtubeSoundtrackField, 1, row_count);
+        row_count++;
+
+        /**************************CMD & ARGS*********************************************/
         if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)) {
+            Label argsLabel = new Label(RESSOURCE_BUNDLE.getString("args_label") + " :");
+            argsLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("args_tooltip")));
+            argsLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            contentPane.add(argsLabel, 0, row_count);
+            TextField argsField = new TextField(entry.getArgs());
+            argsField.setId("args");
+            argsField.textProperty().addListener(new ChangeListener<String>() {
+                @Override
+                public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                    entry.setArgs(newValue);
+                }
+            });
+            contentPane.add(argsField, 1, row_count);
+            row_count++;
+
             Label cmdBeforeLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_before_label") + " :");
             cmdBeforeLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_before_tooltip")));
             cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);

@@ -12,10 +12,10 @@ import java.util.Properties;
  * Created by LM on 08/08/2016.
  */
 public class SettingValue<T> {
-    protected final static String CATEGORY_GENERAL = "general";
-    protected final static String CATEGORY_NONE = "none";
-    protected final static String CATEGORY_UI = "ui";
-    protected final static String CATEGORY_ON_GAME_START = "onGameStart";
+    public final static String CATEGORY_GENERAL = "general";
+    public final static String CATEGORY_NONE = "none";
+    public final static String CATEGORY_UI = "ui";
+    public final static String CATEGORY_ON_GAME_START = "onGameStart";
 
 
     private final static Gson GSON = new Gson();

@@ -55,7 +55,7 @@ public class Launcher extends Application {
             public void print(final String string) {
                 //System.err.print(string);
                 LOGGER.error(string);
-                if(DEV_MODE) {
+                if(DEV_MODE || GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
                     Platform.runLater(() -> {
                         if (console[0] == null) {
                             console[0] = new ConsoleOutputDialog();

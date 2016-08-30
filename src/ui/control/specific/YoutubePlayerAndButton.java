@@ -96,7 +96,11 @@ public class YoutubePlayerAndButton {
     }
     private String getHash(GameEntry entry) {
         try {
-           return YoutubeSoundtrackScrapper.getThemeYoutubeHash(entry);
+            if(entry.getYoutubeSoundtrackHash().equals("")) {
+                String hash = YoutubeSoundtrackScrapper.getThemeYoutubeHash(entry);
+                entry.setYoutubeSoundtrackHash(hash);
+            }
+            return entry.getYoutubeSoundtrackHash();
         }  catch (Exception e) {
             e.printStackTrace();
             try {

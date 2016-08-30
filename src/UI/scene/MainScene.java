@@ -107,6 +107,20 @@ public class MainScene extends BaseScene {
         initCenter();
         initTop();
         loadGames();
+        Main.runAndWait(() -> {
+            //TODO fix this comment not working
+            /*if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)){
+                lastPlayedTilePane.fold();
+            }else{
+                lastPlayedTilePane.unfold();
+            }
+            if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED)){
+                recentlyAddedTilePane.fold();
+            }else{
+                recentlyAddedTilePane.unfold();
+            }*/
+
+        });
     }
 
     @Override
@@ -143,18 +157,6 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_LAST_PLAYED);
         recentlyAddedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_RECENTLY_ADDED);
         toAddTilePane = new ToAddRowTilePane(this);
-
-        //TODO fix this comment not working
-        /*if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)){
-            lastPlayedTilePane.fold();
-        }else{
-            lastPlayedTilePane.unfold();
-        }
-        if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED)){
-            recentlyAddedTilePane.fold();
-        }else{
-            recentlyAddedTilePane.unfold();
-        }*/
 
         lastPlayedTilePane.addOnFoldedChangeListener(new ChangeListener<Boolean>() {
             @Override
@@ -784,7 +786,7 @@ public class MainScene extends BaseScene {
     private void startGameLookerService() {
         toAddTilePane.disableFoldButton(true);
         toAddTilePane.setAutomaticSort(false);
-        toAddTilePane.fold();
+
         toAddTilePane.hide();
         gameWatcher = new GameWatcher(new OnGameFoundHandler() {
             @Override
