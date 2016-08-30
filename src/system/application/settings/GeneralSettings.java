@@ -129,6 +129,10 @@ public class GeneralSettings {
         SettingValue setting = settingsMap.get(key.getKey());
         return (File[]) setting.getSettingValue();
     }
+    public String[] getStrings(PredefinedSetting key){
+        SettingValue setting = settingsMap.get(key.getKey());
+        return (String[]) setting.getSettingValue();
+    }
     public String getString(PredefinedSetting key){
         SettingValue setting = settingsMap.get(key.getKey());
         return (String) setting.getSettingValue();

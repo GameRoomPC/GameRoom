@@ -1,6 +1,7 @@
 package ui.scene;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
+import data.game.entry.GameEntry;
 import data.http.key.KeyChecker;
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
@@ -8,6 +9,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import org.json.JSONObject;
 import system.application.MessageListener;
 import system.application.MessageTag;
@@ -48,7 +50,7 @@ import static ui.Main.*;
 public class SettingsScene extends BaseScene {
     public final static String ADVANCE_MODE_LABEL_STYLE = "    -fx-text-fill: derive(-flatter-red, -20.0%);";
     private BorderPane wrappingPane;
-    private HashMap<String, TilePane> tilePaneHashMap = new HashMap<>();
+    private HashMap<String, FlowPane> flowPaneHashMap = new HashMap<>();
     private HashMap<String, Tab> tabHashMap = new HashMap<>();
     private TabPane tabPane = new TabPane();
     private ArrayList<ValidEntryCondition> validEntriesConditions = new ArrayList<>();
@@ -80,21 +82,25 @@ public class SettingsScene extends BaseScene {
         };
 
         for(String category : categoriesToDisplay){
-            TilePane tilePane = new TilePane();
-            tilePane.setHgap(50*GENERAL_SETTINGS.getWindowHeight()/1080);
-            tilePane.setVgap(15*GENERAL_SETTINGS.getWindowWidth()/1920);
-            tilePane.setPrefColumns(2);
-            tilePane.setOrientation(Orientation.VERTICAL);
-            tilePane.setTileAlignment(Pos.CENTER_LEFT);
+            FlowPane flowPane = new FlowPane();
+            flowPane.setHgap(50*GENERAL_SETTINGS.getWindowHeight()/1080);
+            flowPane.setVgap(30*GENERAL_SETTINGS.getWindowWidth()/1920);
+            //tilePane.setPrefColumns(2);
+            flowPane.setOrientation(Orientation.VERTICAL);
+            //flowPane.setAlignment(Pos.TOP_LEFT);
+            //tilePane.setTileAlignment(Pos.CENTER_LEFT);
             //tilePane.setPrefRows(8);
-            tilePaneHashMap.put(category,tilePane);
+            flowPaneHashMap.put(category,flowPane);
 
             ScrollPane scrollPane = new ScrollPane();
             scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-            scrollPane.setContent(tilePane);
-            tilePane.maxWidthProperty().bind(scrollPane.widthProperty());
-            tilePane.setPadding(new Insets(20 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920, 20 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920));
+            scrollPane.setContent(flowPane);
+            //flowPane.maxWidthProperty().bind(scrollPane.widthProperty());
+            flowPane.maxWidthProperty().bind(scrollPane.widthProperty());
+            flowPane.prefHeightProperty().bind(scrollPane.heightProperty());
+
+            flowPane.setPadding(new Insets(20 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920, 20 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920));
 
 
             Tab tab = new Tab(Main.RESSOURCE_BUNDLE.getString(category));
@@ -166,7 +172,7 @@ public class SettingsScene extends BaseScene {
             }
         });
 
-        tilePaneHashMap.get(PredefinedSetting.IGNORED_GAME_FOLDERS.getCategory()).getChildren().add(createLine(gameFoldersIgnoredLabel, manageGameFoldersIgnoredButton));
+        flowPaneHashMap.get(PredefinedSetting.IGNORED_GAME_FOLDERS.getCategory()).getChildren().add(createLine(gameFoldersIgnoredLabel, manageGameFoldersIgnoredButton));
 
 
         /***********************STEAM GAMES IGNORED****************************/
@@ -191,7 +197,7 @@ public class SettingsScene extends BaseScene {
             }
         });
 
-        tilePaneHashMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getCategory()).getChildren().add(createLine(steamIgnoredGamesLabel, manageSteamGamesIgnoredButton));
+        flowPaneHashMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getCategory()).getChildren().add(createLine(steamIgnoredGamesLabel, manageSteamGamesIgnoredButton));
 
         /***********************SUPPORTER KEY****************************/
         String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
@@ -273,7 +279,7 @@ public class SettingsScene extends BaseScene {
             }
         });
 
-        tilePaneHashMap.get(PredefinedSetting.SUPPORTER_KEY.getCategory()).getChildren().add(createLine(supporterKeyLabel, actDeactButton));
+        flowPaneHashMap.get(PredefinedSetting.SUPPORTER_KEY.getCategory()).getChildren().add(createLine(supporterKeyLabel, actDeactButton));
 
         /***********************VERSION CHECK****************************/
         Label versionLabel = new Label(Main.RESSOURCE_BUNDLE.getString("version") + ": " + Main.getVersion());
@@ -298,8 +304,47 @@ public class SettingsScene extends BaseScene {
                 Main.startUpdater();
             }
         });
-        tilePaneHashMap.get(SettingValue.CATEGORY_GENERAL).getChildren().add(createLine(versionLabel, checkUpdatesButton));
+        flowPaneHashMap.get(SettingValue.CATEGORY_GENERAL).getChildren().add(createLine(versionLabel, checkUpdatesButton));
 
+        /***********************CMD****************************/
+        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)){
+            Label cmdBeforeLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_before_label") + " :");
+            cmdBeforeLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_before_tooltip")));
+            cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+
+            TextArea cmdBeforeField = new TextArea(GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_BEFORE_START]);
+            cmdBeforeField.setWrapText(true);
+            cmdBeforeField.setId("cmd_before");
+            cmdBeforeField.setPrefRowCount(5);
+            cmdBeforeField.textProperty().addListener(new ChangeListener<String>() {
+                @Override
+                public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                    String[] cmds = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD);
+                    cmds[GameEntry.CMD_BEFORE_START] = newValue;
+                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.CMD,cmds);
+                }
+            });
+            flowPaneHashMap.get(SettingValue.CATEGORY_ON_GAME_START).getChildren().add(createLine(cmdBeforeLabel,cmdBeforeField));
+
+            Label cmdAfterLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_after_label") + " :");
+            cmdAfterLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_after_tooltip")));
+            cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+
+            TextArea cmdAfterField = new TextArea(GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_AFTER_END]);
+            cmdAfterField.setWrapText(true);
+            cmdAfterField.setId("cmd_after");
+            cmdAfterField.setPrefRowCount(5);
+            cmdAfterField.textProperty().addListener(new ChangeListener<String>() {
+                @Override
+                public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                    String[] cmds = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD);
+                    cmds[GameEntry.CMD_AFTER_END] = newValue;
+                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.CMD,cmds);
+                }
+            });
+            flowPaneHashMap.get(SettingValue.CATEGORY_ON_GAME_START).getChildren().add(createLine(cmdAfterLabel,cmdAfterField));
+
+        }
 
         /***********************ADVANCED MODE **************************************/
         addPropertyLine(PredefinedSetting.ADVANCED_MODE, false, new ChangeListener() {
@@ -489,12 +534,12 @@ public class SettingsScene extends BaseScene {
             if (node2 != null) {
                 node2.setId(setting.getKey());
             }
-            tilePaneHashMap.get(setting.getCategory()).getChildren().add(createLine(label, node2));
+            flowPaneHashMap.get(setting.getCategory()).getChildren().add(createLine(label, node2));
         }
     }
     private void setLineInvalid(String property_key) {
         String style = "-fx-text-inner-color: red;\n";
-        for(TilePane contentPane : tilePaneHashMap.values()) {
+        for(FlowPane contentPane : flowPaneHashMap.values()) {
             for (Node node : contentPane.getChildren()) {
                 if (node.getId() != null && node.getId().equals(property_key)) {
                     node.setStyle(style);
@@ -550,7 +595,7 @@ public class SettingsScene extends BaseScene {
     }
 
     private Node searchNode(String id) {
-        for(TilePane contentPane : tilePaneHashMap.values()) {
+        for(FlowPane contentPane : flowPaneHashMap.values()) {
             Node n = searchNodeInPane(id, contentPane);
             if(n!=null){
                 return n;

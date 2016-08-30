@@ -36,6 +36,7 @@ public enum PredefinedSetting {
     , DEBUG_MODE("debugMode", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     , FOLDED_ROW_LAST_PLAYED("foldedRowLastPlay", new SettingValue(false,Boolean.class,CATEGORY_UI))
     , FOLDED_ROW_RECENTLY_ADDED("foldedRowRecentlyAdded", new SettingValue(false,Boolean.class,CATEGORY_UI))
+    ,CMD("cmd", new SettingValue(new String[]{"",""},String[].class,CATEGORY_ON_GAME_START))
     ;
 
 
@@ -46,7 +47,6 @@ public enum PredefinedSetting {
         this.key = key;
         this.defaultValue = setting;
     }
-
     public String getLabel(){
         String label = Main.SETTINGS_BUNDLE.getString(key.toString()+"_label");
         return label!=null ? label : key.toString();
