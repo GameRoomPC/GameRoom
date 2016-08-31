@@ -177,7 +177,8 @@ public class RowCoverTilePane extends CoverTilePane {
                         for (int i = 0; i < uuids.size() && !changedOrder ; i++) {
                             changedOrder = uuids.get(i).equals(tilesList.get(i).getEntry().getUuid());
                         }
-                        if(changedOrder){
+                        //TODO fix comment not working
+                        if(changedOrder/*&&hidden*/){
                             show();
                         }
                     }
@@ -216,17 +217,15 @@ public class RowCoverTilePane extends CoverTilePane {
     }
 
     public void fold() {
-        if (!folded) {
             foldToggleButton.forceState("hide");
+        foldToggleButton.fireEvent(new ActionEvent());
             folded = true;
-        }
     }
 
     public void unfold() {
-        if (folded) {
             foldToggleButton.forceState("show");
-            folded = true;
-        }
+        foldToggleButton.fireEvent(new ActionEvent());
+        folded = false;
     }
 
     private void openTilePane() {

@@ -108,8 +108,7 @@ public class MainScene extends BaseScene {
         initTop();
         loadGames();
         Main.runAndWait(() -> {
-            //TODO fix this comment not working
-            /*if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)){
+            if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)){
                 lastPlayedTilePane.fold();
             }else{
                 lastPlayedTilePane.unfold();
@@ -118,7 +117,7 @@ public class MainScene extends BaseScene {
                 recentlyAddedTilePane.fold();
             }else{
                 recentlyAddedTilePane.unfold();
-            }*/
+            }
 
         });
     }
@@ -181,15 +180,22 @@ public class MainScene extends BaseScene {
         }
         GridPane topTilesPaneGridPane = new GridPane();
         ColumnConstraints halfConstraint = new ColumnConstraints();
+        halfConstraint.setPercentWidth(50);
         //halfConstraint.maxWidthProperty().bind(lastPlayedTilePane.maxWidthProperty());
         lastPlayedTilePane.managedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 if (newValue) {
-                    halfConstraint.setMaxWidth(lastPlayedTilePane.getWidth());
+                    halfConstraint.setPercentWidth(50);
                 } else {
                     halfConstraint.setPercentWidth(0);
                 }
+            }
+        });
+        lastPlayedTilePane.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+
             }
         });
         topTilesPaneGridPane.getColumnConstraints().add(halfConstraint);
@@ -875,6 +881,12 @@ public class MainScene extends BaseScene {
 
     public void setImageBackground(Image img) {
         if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
+            if(!backgroundView.isVisible()){
+                backgroundView.setVisible(true);
+            }
+            if(!maskView.isVisible()){
+                maskView.setVisible(true);
+            }
             if (!changeBackgroundNextTime) {
                 if (img != null) {
                     if (backgroundView.getImage() == null || !backgroundView.getImage().equals(img)) {
@@ -909,7 +921,12 @@ public class MainScene extends BaseScene {
                 changeBackgroundNextTime = false;
             }
         } else {
-            if (backgroundView.getOpacity() != 0) {
+            if(backgroundView.isVisible()){
+                backgroundView.setVisible(false);
+            }
+            if(maskView.isVisible()){
+                maskView.setVisible(false);
+            }            /*if (backgroundView.getOpacity() != 0) {
                 Timeline fadeOutTimeline = new Timeline(
                         new KeyFrame(Duration.seconds(0),
                                 new KeyValue(backgroundView.opacityProperty(), backgroundView.opacityProperty().getValue(), Interpolator.EASE_IN),
@@ -921,7 +938,7 @@ public class MainScene extends BaseScene {
                 fadeOutTimeline.setCycleCount(1);
                 fadeOutTimeline.setAutoReverse(false);
                 fadeOutTimeline.play();
-            }
+            }*/
         }
     }
 }

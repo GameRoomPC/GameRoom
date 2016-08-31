@@ -8,6 +8,7 @@ import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.*;
 import javafx.geometry.Insets;
@@ -44,6 +45,8 @@ public abstract class GamesTilePane extends BorderPane{
     protected MainScene parentScene;
     private boolean forcedHidden = false;
     private boolean searching = false;
+    protected boolean hidden = false;
+
     protected boolean automaticSort = true;
 
     public GamesTilePane(MainScene parentScene){
@@ -84,6 +87,23 @@ public abstract class GamesTilePane extends BorderPane{
                 }
             }
         });
+        tilePane.getChildren().addListener(new ListChangeListener<Node>() {
+            @Override
+            public void onChanged(Change<? extends Node> c) {
+                boolean hide = true;
+                if(tilePane.getChildren().size() > 0){
+                    for(Node n : tilePane.getChildren()){
+                        hide = hide && !n.isVisible();
+                    }
+                }
+                if(hide){
+                    hide(false);
+                }else{
+                    show(false);
+                }
+            }
+        });
+        hide(false); //
     }
 
     protected abstract TilePane getTilePane();
@@ -319,6 +339,7 @@ public abstract class GamesTilePane extends BorderPane{
         show(true);
     }
     protected void hide(boolean transition){
+        hidden = true;
         Runnable hideAction = new Runnable() {
             @Override
             public void run() {
@@ -348,7 +369,8 @@ public abstract class GamesTilePane extends BorderPane{
         }
     }
     protected void show(boolean transition){
-        if(!forcedHidden && !isManaged() && !isVisible() && isMouseTransparent()) {
+        if(!forcedHidden && (hidden || !isVisible() || getOpacity()!=1.0)) {
+            hidden = false;
             Runnable showAction = new Runnable() {
                 @Override
                 public void run() {
