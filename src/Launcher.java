@@ -1,6 +1,7 @@
 import com.sun.jna.Native;
 import com.sun.jna.NativeLong;
 import com.sun.jna.WString;
+import data.game.scrapper.IGDBScrapper;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -81,6 +82,11 @@ public class Launcher extends Application {
 
         if (args.length > 0) {
             Main.DEV_MODE = args[0].equals("dev");
+        }
+        if(args.length > 1){
+            IGDBScrapper.IGDB_BASIC_KEY = args[1];
+            IGDBScrapper.IGDB_PRO_KEY = args[1];
+            IGDBScrapper.key = args[1];
         }
         Main.main(args);
         launch(args);

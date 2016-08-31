@@ -24,8 +24,8 @@ import java.util.Date;
  * Created by LM on 03/07/2016.
  */
 public class IGDBScrapper {
-    public static final String IGDB_BASIC_KEY = "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5";
-    public static final String IGDB_PRO_KEY = "8nsMgKEZ37mshwMwg2TC3Y3FYJRGp15lZycjsnduYWVMRNN8e5";
+    public static String IGDB_BASIC_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
+    public static String IGDB_PRO_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
     public static String key = IGDB_BASIC_KEY;
     
     public static void main(String[] args) throws ConnectTimeoutException {
