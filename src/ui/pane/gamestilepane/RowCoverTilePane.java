@@ -174,13 +174,11 @@ public class RowCoverTilePane extends CoverTilePane {
                     if(hideTilePane){
                         hide();
                     }
-                    //setForcedHidden(hideTilePane);
                     if (!hideTilePane) {
                         boolean changedOrder = false;
                         for (int i = 0; i < uuids.size() && !changedOrder; i++) {
                             changedOrder = uuids.get(i).equals(tilesList.get(i).getEntry().getUuid());
                         }
-                        //TODO fix comment not working
                         if (changedOrder || hidden) {
                             show();
                         }

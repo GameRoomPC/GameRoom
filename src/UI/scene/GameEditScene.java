@@ -747,6 +747,13 @@ public class GameEditScene extends BaseScene {
         coverView.setFitWidth(coverWidth);
         coverView.setFitHeight(coverHeight);
 
+        Image defaultImage = new Image("res/defaultImages/cover1024.jpg", coverWidth, coverHeight, false, true);
+
+        ImageView defaultImageView = new ImageView(defaultImage);
+        defaultImageView.setFitWidth(coverWidth);
+        defaultImageView.setFitHeight(coverHeight);
+
+
         if (coverImage != null) {
             ImageUtils.transitionToImage(coverImage, coverView);
         } else {
@@ -798,6 +805,7 @@ public class GameEditScene extends BaseScene {
         GaussianBlur blur = new GaussianBlur(0.0);
         blur.setInput(coverColorAdjust);
         coverView.setEffect(blur);
+        defaultImageView.setEffect(blur);
 
 
         pane.setOnMouseEntered(e -> {
@@ -839,7 +847,7 @@ public class GameEditScene extends BaseScene {
 
             fadeOutTimeline.play();
         });
-        pane.getChildren().addAll(coverView, changeImageButton);
+        pane.getChildren().addAll(defaultImageView,coverView, changeImageButton);
         wrappingPane.setLeft(pane);
         BorderPane.setMargin(pane, new Insets(50 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920, 50 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920));
         return pane;
