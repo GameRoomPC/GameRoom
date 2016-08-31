@@ -51,7 +51,7 @@ public class GameEntry {
     private String[] cmd = new String[4];
     private String args = "";
     private String youtubeSoundtrackHash = "";
-    private Date addedDate = new Date();
+    private Date addedDate;
     private Date lastPlayedDate;
     private boolean notInstalled = false;
 

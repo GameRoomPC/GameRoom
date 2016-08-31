@@ -140,7 +140,7 @@ public class RowCoverTilePane extends CoverTilePane {
                 }
                 if (sort) {
                     ArrayList<UUID> uuids = new ArrayList<UUID>();
-                    for(GameButton button : tilesList){
+                    for (GameButton button : tilesList) {
                         uuids.add(button.getEntry().getUuid());
                     }
 
@@ -172,13 +172,13 @@ public class RowCoverTilePane extends CoverTilePane {
                         hideTilePane = hideTilePane && !visible;
                     }
                     setForcedHidden(hideTilePane);
-                    if(!hideTilePane){
+                    if (!hideTilePane) {
                         boolean changedOrder = false;
-                        for (int i = 0; i < uuids.size() && !changedOrder ; i++) {
+                        for (int i = 0; i < uuids.size() && !changedOrder; i++) {
                             changedOrder = uuids.get(i).equals(tilesList.get(i).getEntry().getUuid());
                         }
                         //TODO fix comment not working
-                        if(changedOrder/*&&hidden*/){
+                        if (changedOrder/*&&hidden*/) {
                             show();
                         }
                     }
@@ -200,10 +200,10 @@ public class RowCoverTilePane extends CoverTilePane {
             @Override
             public void handle(ActionEvent me) {
                 if (foldToggleButton.inFirstState()) {
-                    folded=false;
+                    folded = false;
                     openTilePane();
                 } else {
-                    folded=true;
+                    folded = true;
                     closeTilePane();
                 }
             }
@@ -217,13 +217,13 @@ public class RowCoverTilePane extends CoverTilePane {
     }
 
     public void fold() {
-            foldToggleButton.forceState("hide");
+        foldToggleButton.forceState("show");
         foldToggleButton.fireEvent(new ActionEvent());
-            folded = true;
+        folded = true;
     }
 
     public void unfold() {
-            foldToggleButton.forceState("show");
+        foldToggleButton.forceState("hide");
         foldToggleButton.fireEvent(new ActionEvent());
         folded = false;
     }
@@ -231,6 +231,8 @@ public class RowCoverTilePane extends CoverTilePane {
     private void openTilePane() {
         tilePane.setManaged(true);
         tilePane.setVisible(true);
+        separator.setManaged(true);
+        separator.setVisible(true);
         Timeline fadeInTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(tilePane.opacityProperty(), 0, Interpolator.EASE_IN)),
@@ -241,8 +243,8 @@ public class RowCoverTilePane extends CoverTilePane {
         fadeInTimeline.setAutoReverse(false);
         fadeInTimeline.play();
 
-        for(ChangeListener listener : onFoldedListeners){
-            listener.changed(null,false,false);
+        for (ChangeListener listener : onFoldedListeners) {
+            listener.changed(null, false, false);
         }
     }
 
@@ -258,14 +260,16 @@ public class RowCoverTilePane extends CoverTilePane {
         fadeOutTimeline.setOnFinished(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                separator.setManaged(false);
+                separator.setVisible(false);
                 tilePane.setManaged(false);
                 tilePane.setVisible(false);
             }
         });
         fadeOutTimeline.play();
 
-        for(ChangeListener listener : onFoldedListeners){
-            listener.changed(null,false,true);
+        for (ChangeListener listener : onFoldedListeners) {
+            listener.changed(null, false, true);
         }
     }
 
@@ -295,7 +299,8 @@ public class RowCoverTilePane extends CoverTilePane {
             }
         });
     }
-    public void addOnFoldedChangeListener(ChangeListener<Boolean> listener){
+
+    public void addOnFoldedChangeListener(ChangeListener<Boolean> listener) {
         onFoldedListeners.add(listener);
     }
 

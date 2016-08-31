@@ -36,6 +36,7 @@ public enum PredefinedSetting {
     , DEBUG_MODE("debugMode", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     , FOLDED_ROW_LAST_PLAYED("foldedRowLastPlay", new SettingValue(false,Boolean.class,CATEGORY_UI))
     , FOLDED_ROW_RECENTLY_ADDED("foldedRowRecentlyAdded", new SettingValue(false,Boolean.class,CATEGORY_UI))
+    , FOLDED_TOADD_ROW("foldedToAddRow", new SettingValue(false,Boolean.class,CATEGORY_UI))
     ,CMD("cmd", new SettingValue(new String[]{"",""},String[].class,CATEGORY_ON_GAME_START))
     ;
 

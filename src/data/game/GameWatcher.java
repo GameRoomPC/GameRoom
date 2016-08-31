@@ -241,6 +241,7 @@ public class GameWatcher {
             }
             if (allLocalScannersDone) {
                 tryScrapToAddEntries();
+                //TODO fix this not called
                 Main.LOGGER.debug("All local scanners done, trying to scrap now");
             }
             try {

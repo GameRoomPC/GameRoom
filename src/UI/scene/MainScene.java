@@ -118,6 +118,11 @@ public class MainScene extends BaseScene {
             }else{
                 recentlyAddedTilePane.unfold();
             }
+            if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_TOADD_ROW)){
+                toAddTilePane.fold();
+            }else{
+                toAddTilePane.unfold();
+            }
 
         });
     }
@@ -167,6 +172,12 @@ public class MainScene extends BaseScene {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED, newValue);
+            }
+        });
+        toAddTilePane.addOnFoldedChangeListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FOLDED_TOADD_ROW, newValue);
             }
         });
 
@@ -790,7 +801,7 @@ public class MainScene extends BaseScene {
     }
 
     private void startGameLookerService() {
-        toAddTilePane.disableFoldButton(true);
+        //toAddTilePane.disableFoldButton(true);
         toAddTilePane.setAutomaticSort(false);
 
         toAddTilePane.hide();
@@ -803,7 +814,7 @@ public class MainScene extends BaseScene {
 
             @Override
             public void onAllGamesFound() {
-                toAddTilePane.disableFoldButton(false);
+                //toAddTilePane.disableFoldButton(false);
                 toAddTilePane.show();
                 Platform.runLater(() -> {
                     toAddTilePane.unfold();
