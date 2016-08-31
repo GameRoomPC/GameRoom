@@ -171,14 +171,17 @@ public class RowCoverTilePane extends CoverTilePane {
                         setGameButtonVisible(tilesList.get(i), visible);
                         hideTilePane = hideTilePane && !visible;
                     }
-                    setForcedHidden(hideTilePane);
+                    if(hideTilePane){
+                        hide();
+                    }
+                    //setForcedHidden(hideTilePane);
                     if (!hideTilePane) {
                         boolean changedOrder = false;
                         for (int i = 0; i < uuids.size() && !changedOrder; i++) {
                             changedOrder = uuids.get(i).equals(tilesList.get(i).getEntry().getUuid());
                         }
                         //TODO fix comment not working
-                        if (changedOrder/*&&hidden*/) {
+                        if (changedOrder || hidden) {
                             show();
                         }
                     }

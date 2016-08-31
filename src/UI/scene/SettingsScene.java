@@ -200,86 +200,90 @@ public class SettingsScene extends BaseScene {
         flowPaneHashMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getCategory()).getChildren().add(createLine(steamIgnoredGamesLabel, manageSteamGamesIgnoredButton));
 
         /***********************SUPPORTER KEY****************************/
-        String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
-        String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
+        //TODO pay IGDB play and set supporter key pay public, and replace by true
 
-        Label supporterKeyLabel = new Label(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
-        supporterKeyLabel.setTooltip(new Tooltip(PredefinedSetting.SUPPORTER_KEY.getTooltip()));
-        Button actDeactButton = new Button(buttonText);
+        if(DEV_MODE) {
+            String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
+            String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
 
-        actDeactButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                if (SUPPORTER_MODE) {
-                    try {
-                        JSONObject response = KeyChecker.deactivateKey(GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY));
-                        if (response.getString(KeyChecker.FIELD_RESULT).equals(KeyChecker.RESULT_SUCCESS)) {
-                            GameRoomAlert successDialog = new GameRoomAlert(Alert.AlertType.INFORMATION, Main.RESSOURCE_BUNDLE.getString("key_deactivated_message"));
-                            successDialog.showAndWait();
+            Label supporterKeyLabel = new Label(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
+            supporterKeyLabel.setTooltip(new Tooltip(PredefinedSetting.SUPPORTER_KEY.getTooltip()));
+            Button actDeactButton = new Button(buttonText);
 
-                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SUPPORTER_KEY, "");
-                            SUPPORTER_MODE = false;
-                            String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
-                            String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
-                            actDeactButton.setText(buttonText);
-                            supporterKeyLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
-                        }else{
-                            Main.LOGGER.error("Error while trying to deactivate key : "+response.toString(4));
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (UnirestException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    ActivationKeyDialog dialog = new ActivationKeyDialog();
+            actDeactButton.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    if (SUPPORTER_MODE) {
+                        try {
+                            JSONObject response = KeyChecker.deactivateKey(GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY));
+                            if (response.getString(KeyChecker.FIELD_RESULT).equals(KeyChecker.RESULT_SUCCESS)) {
+                                GameRoomAlert successDialog = new GameRoomAlert(Alert.AlertType.INFORMATION, Main.RESSOURCE_BUNDLE.getString("key_deactivated_message"));
+                                successDialog.showAndWait();
 
-                    Optional<ButtonType> result = dialog.showAndWait();
-                    result.ifPresent(letter -> {
-                        if (letter.getText().contains(Main.RESSOURCE_BUNDLE.getString("supporter_key_buy_one"))) {
-                            try {
-                                Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/key"));
-                            } catch (IOException e1) {
-                                e1.printStackTrace();
-                            } catch (URISyntaxException e1) {
-                                e1.printStackTrace();
+                                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SUPPORTER_KEY, "");
+                                SUPPORTER_MODE = false;
+                                String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
+                                String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
+                                actDeactButton.setText(buttonText);
+                                supporterKeyLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
+                            } else {
+                                Main.LOGGER.error("Error while trying to deactivate key : " + response.toString(4));
                             }
-                        } else if (letter.getText().equals(Main.RESSOURCE_BUNDLE.getString("activate"))) {
-                            try {
-                                JSONObject response = KeyChecker.activateKey(dialog.getSupporterKey());
-                                String message = Main.RESSOURCE_BUNDLE.getString(response.getString(KeyChecker.FIELD_MESSAGE).replace(' ', '_'));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (UnirestException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        ActivationKeyDialog dialog = new ActivationKeyDialog();
 
-                                switch (response.getString(KeyChecker.FIELD_RESULT)) {
-                                    case KeyChecker.RESULT_SUCCESS:
-                                        GameRoomAlert successDialog = new GameRoomAlert(Alert.AlertType.INFORMATION, message);
-                                        successDialog.showAndWait();
-
-                                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SUPPORTER_KEY, dialog.getSupporterKey());
-                                        SUPPORTER_MODE = KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY));
-                                        String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
-                                        String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
-                                        actDeactButton.setText(buttonText);
-                                        supporterKeyLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
-                                        break;
-                                    case KeyChecker.RESULT_ERROR:
-                                        GameRoomAlert errorDialog = new GameRoomAlert(Alert.AlertType.ERROR, message);
-                                        errorDialog.showAndWait();
-                                        break;
-                                    default:
-                                        break;
+                        Optional<ButtonType> result = dialog.showAndWait();
+                        result.ifPresent(letter -> {
+                            if (letter.getText().contains(Main.RESSOURCE_BUNDLE.getString("supporter_key_buy_one"))) {
+                                try {
+                                    Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/key"));
+                                } catch (IOException e1) {
+                                    e1.printStackTrace();
+                                } catch (URISyntaxException e1) {
+                                    e1.printStackTrace();
                                 }
-                            } catch (IOException e1) {
-                                e1.printStackTrace();
-                            } catch (UnirestException e1) {
-                                e1.printStackTrace();
-                            }
-                        }
-                    });
-                }
-            }
-        });
+                            } else if (letter.getText().equals(Main.RESSOURCE_BUNDLE.getString("activate"))) {
+                                try {
+                                    JSONObject response = KeyChecker.activateKey(dialog.getSupporterKey());
+                                    String message = Main.RESSOURCE_BUNDLE.getString(response.getString(KeyChecker.FIELD_MESSAGE).replace(' ', '_'));
 
-        flowPaneHashMap.get(PredefinedSetting.SUPPORTER_KEY.getCategory()).getChildren().add(createLine(supporterKeyLabel, actDeactButton));
+                                    switch (response.getString(KeyChecker.FIELD_RESULT)) {
+                                        case KeyChecker.RESULT_SUCCESS:
+                                            GameRoomAlert successDialog = new GameRoomAlert(Alert.AlertType.INFORMATION, message);
+                                            successDialog.showAndWait();
+
+                                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SUPPORTER_KEY, dialog.getSupporterKey());
+                                            SUPPORTER_MODE = KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY));
+                                            String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
+                                            String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
+                                            actDeactButton.setText(buttonText);
+                                            supporterKeyLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
+                                            break;
+                                        case KeyChecker.RESULT_ERROR:
+                                            GameRoomAlert errorDialog = new GameRoomAlert(Alert.AlertType.ERROR, message);
+                                            errorDialog.showAndWait();
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                } catch (IOException e1) {
+                                    e1.printStackTrace();
+                                } catch (UnirestException e1) {
+                                    e1.printStackTrace();
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+            flowPaneHashMap.get(PredefinedSetting.SUPPORTER_KEY.getCategory()).getChildren().add(createLine(supporterKeyLabel, actDeactButton));
+        }
 
         /***********************VERSION CHECK****************************/
         Label versionLabel = new Label(Main.RESSOURCE_BUNDLE.getString("version") + ": " + Main.getVersion());

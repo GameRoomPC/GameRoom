@@ -90,12 +90,7 @@ public abstract class GamesTilePane extends BorderPane{
         tilePane.getChildren().addListener(new ListChangeListener<Node>() {
             @Override
             public void onChanged(Change<? extends Node> c) {
-                boolean hide = true;
-                if(tilePane.getChildren().size() > 0){
-                    for(Node n : tilePane.getChildren()){
-                        hide = hide && !n.isVisible();
-                    }
-                }
+                boolean hide = checkIfHide();
                 if(hide){
                     hide(false);
                 }else{
@@ -104,6 +99,15 @@ public abstract class GamesTilePane extends BorderPane{
             }
         });
         hide(false); //
+    }
+    private boolean checkIfHide(){
+        boolean hide = true;
+        if(tilePane.getChildren().size() > 0){
+            for(Node n : tilePane.getChildren()){
+                hide = hide && !n.isVisible();
+            }
+        }
+        return hide;
     }
 
     protected abstract TilePane getTilePane();
@@ -339,37 +343,40 @@ public abstract class GamesTilePane extends BorderPane{
         show(true);
     }
     protected void hide(boolean transition){
-        hidden = true;
-        Runnable hideAction = new Runnable() {
-            @Override
-            public void run() {
-                setManaged(false);
-                setVisible(false);
-                setMouseTransparent(true);
-            }
-        };
-        if(transition){
-            Timeline fadeOutTimeline = new Timeline(
-                    new KeyFrame(Duration.seconds(0),
-                            new KeyValue(opacityProperty(), opacityProperty().getValue(), Interpolator.EASE_IN)),
-                    new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                            new KeyValue(opacityProperty(), 0, Interpolator.EASE_OUT)
-                    ));
-            fadeOutTimeline.setCycleCount(1);
-            fadeOutTimeline.setAutoReverse(false);
-            fadeOutTimeline.setOnFinished(new EventHandler<ActionEvent>() {
+        if(checkIfHide() || forcedHidden) {
+            hidden = true;
+            Runnable hideAction = new Runnable() {
                 @Override
-                public void handle(javafx.event.ActionEvent event) {
-                    hideAction.run();
+                public void run() {
+                    setManaged(false);
+                    setVisible(false);
+                    setMouseTransparent(true);
                 }
-            });
-            fadeOutTimeline.play();
-        }else{
-            hideAction.run();
+            };
+            if (transition) {
+                Timeline fadeOutTimeline = new Timeline(
+                        new KeyFrame(Duration.seconds(0),
+                                new KeyValue(opacityProperty(), opacityProperty().getValue(), Interpolator.EASE_IN)),
+                        new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                new KeyValue(opacityProperty(), 0, Interpolator.EASE_OUT)
+                        ));
+                fadeOutTimeline.setCycleCount(1);
+                fadeOutTimeline.setAutoReverse(false);
+                fadeOutTimeline.setOnFinished(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(javafx.event.ActionEvent event) {
+                        hideAction.run();
+                    }
+                });
+                fadeOutTimeline.play();
+            } else {
+                hideAction.run();
+            }
         }
     }
     protected void show(boolean transition){
-        if(!forcedHidden && (hidden || !isVisible() || getOpacity()!=1.0)) {
+        boolean hide = checkIfHide();
+        if(!forcedHidden && !hide && (hidden || !isVisible() || !isManaged() || getOpacity()!=1.0)) {
             hidden = false;
             Runnable showAction = new Runnable() {
                 @Override
@@ -406,6 +413,8 @@ public abstract class GamesTilePane extends BorderPane{
         this.forcedHidden = forcedHidden;
         if(forcedHidden){
             hide(false);
+        }else{
+            show(false);
         }
     }
 

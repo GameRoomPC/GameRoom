@@ -11,7 +11,7 @@ import ui.scene.MainScene;
  */
 public class ToAddRowTilePane extends RowCoverTilePane {
     public ToAddRowTilePane(MainScene parentScene) {
-        super(parentScene, RowCoverTilePane.TYPE_RECENTLY_ADDED);
+        super(parentScene, RowCoverTilePane.TYPE_NAME);
         setTitle(Main.RESSOURCE_BUNDLE.getString("to_add"));
         maxColumn = Integer.MAX_VALUE;
     }

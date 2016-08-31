@@ -107,6 +107,8 @@ public class MainScene extends BaseScene {
         initCenter();
         initTop();
         loadGames();
+        statusLabel.setText("");
+        home();
         Main.runAndWait(() -> {
             if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)){
                 lastPlayedTilePane.fold();
@@ -354,8 +356,9 @@ public class MainScene extends BaseScene {
             showTilesPaneAgainAfterCancelSearch = false;
 
             tilePane.sortByName();
-            lastPlayedTilePane.hide();
-            recentlyAddedTilePane.hide();
+            tilePane.setForcedHidden(false);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
             toAddTilePane.setForcedHidden(true);
 
             for (GroupRowTilePane groupPane : groupRowList) {
@@ -368,8 +371,9 @@ public class MainScene extends BaseScene {
             showTilesPaneAgainAfterCancelSearch = false;
 
             tilePane.sortByRating();
-            lastPlayedTilePane.hide();
-            recentlyAddedTilePane.hide();
+            tilePane.setForcedHidden(false);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
             toAddTilePane.setForcedHidden(true);
 
             for (GroupRowTilePane groupPane : groupRowList) {
@@ -382,9 +386,9 @@ public class MainScene extends BaseScene {
             showTilesPaneAgainAfterCancelSearch = false;
 
             tilePane.sortByTimePlayed();
-            lastPlayedTilePane.hide();
-            recentlyAddedTilePane.hide();
-            toAddTilePane.hide();
+            tilePane.setForcedHidden(false);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
             toAddTilePane.setForcedHidden(true);
 
             for (GroupRowTilePane groupPane : groupRowList) {
@@ -397,8 +401,9 @@ public class MainScene extends BaseScene {
             showTilesPaneAgainAfterCancelSearch = false;
 
             tilePane.sortByReleaseDate();
-            lastPlayedTilePane.hide();
-            recentlyAddedTilePane.hide();
+            tilePane.setForcedHidden(false);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
             toAddTilePane.setForcedHidden(true);
 
             for (GroupRowTilePane groupPane : groupRowList) {
@@ -436,9 +441,9 @@ public class MainScene extends BaseScene {
         groupByAll.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
 
-            tilePane.show();
-            lastPlayedTilePane.hide();
-            recentlyAddedTilePane.hide();
+            tilePane.setForcedHidden(false);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
             toAddTilePane.setForcedHidden(true);
 
             tilesPaneWrapper.getChildren().removeAll(groupRowList);
@@ -450,9 +455,9 @@ public class MainScene extends BaseScene {
         groupByTheme.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
 
-            tilePane.hide();
-            lastPlayedTilePane.hide();
-            recentlyAddedTilePane.hide();
+            tilePane.setForcedHidden(true);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
             toAddTilePane.setForcedHidden(true);
 
             tilesPaneWrapper.getChildren().removeAll(groupRowList);
@@ -466,9 +471,9 @@ public class MainScene extends BaseScene {
         groupByGenre.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
 
-            tilePane.hide();
-            lastPlayedTilePane.hide();
-            recentlyAddedTilePane.hide();
+            tilePane.setForcedHidden(true);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
             toAddTilePane.setForcedHidden(true);
 
             tilesPaneWrapper.getChildren().removeAll(groupRowList);
@@ -482,9 +487,9 @@ public class MainScene extends BaseScene {
         groupBySerie.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
 
-            tilePane.hide();
-            lastPlayedTilePane.hide();
-            recentlyAddedTilePane.hide();
+            tilePane.setForcedHidden(true);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
             toAddTilePane.setForcedHidden(true);
 
             tilesPaneWrapper.getChildren().removeAll(groupRowList);
@@ -664,18 +669,16 @@ public class MainScene extends BaseScene {
 
     private void home() {
         tilePane.sortByName();
+        tilePane.setForcedHidden(false);
         if (tilePane.isSearching()) {
             searchField.clear();
         }
-        lastPlayedTilePane.show();
-        recentlyAddedTilePane.show();
+        lastPlayedTilePane.setForcedHidden(false);
+        recentlyAddedTilePane.setForcedHidden(false);
         toAddTilePane.setForcedHidden(false);
-        toAddTilePane.show();
 
         tilesPaneWrapper.getChildren().removeAll(groupRowList);
         groupRowList.clear();
-
-        tilePane.show();
 
         scrollPane.setVvalue(scrollPane.getVmin());
     }
@@ -804,7 +807,6 @@ public class MainScene extends BaseScene {
         //toAddTilePane.disableFoldButton(true);
         toAddTilePane.setAutomaticSort(false);
 
-        toAddTilePane.hide();
         gameWatcher = new GameWatcher(new OnGameFoundHandler() {
             @Override
             public GameButton gameToAddFound(GameEntry entry) {
