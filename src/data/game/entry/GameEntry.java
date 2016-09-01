@@ -2,6 +2,7 @@ package data.game.entry;
 
 import system.application.GameStarter;
 import javafx.scene.image.Image;
+import ui.Main;
 
 import java.io.*;
 import java.text.DateFormat;
@@ -17,11 +18,11 @@ import java.util.regex.Pattern;
  * Created by LM on 02/07/2016.
  */
 public class GameEntry {
-    public static int CMD_BEFORE_START = 0;
-    public static int CMD_AFTER_END = 1;
+    public final static int CMD_BEFORE_START = 0;
+    public final static int CMD_AFTER_END = 1;
 
-    public static DateFormat DATE_DISPLAY_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
-    public final static DateFormat DATE_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+    public final static DateFormat DATE_DISPLAY_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
+    public final static DateFormat DATE_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss SSS");
     public final static File ENTRIES_FOLDER = new File("Games");
     public final static File TOADD_FOLDER = new File("ToAdd");
     public final static File[] DEFAULT_IMAGES_PATHS = {new File("res/defaultImages/cover.jpg"), null};
@@ -65,9 +66,14 @@ public class GameEntry {
     /*FOR IGDB PURPOSE ONLY, should not be stored*/
     private int igdb_id = -1;
     private String[] igdb_imageHash = new String[IMAGES_NUMBER];
-    private boolean waitingToBeScrapped = false;
 
+
+    private boolean waitingToBeScrapped = false;
     private int steam_id = -1;
+    private int gog_id = -1;
+    private int uplay_id = -1;
+    private int origin_id = -1;
+    private int battlenet_id = -1;
 
     private boolean toAdd = false;
 
@@ -129,6 +135,10 @@ public class GameEntry {
                 }
                 prop.setProperty("playTime", Long.toString(playTime));
                 prop.setProperty("steam_id", Integer.toString(steam_id));
+                prop.setProperty("gog_id", Integer.toString(gog_id));
+                prop.setProperty("origin_id", Integer.toString(origin_id));
+                prop.setProperty("uplay_id", Integer.toString(uplay_id));
+                prop.setProperty("battlenet_id", Integer.toString(battlenet_id));
                 prop.setProperty("igdb_id", Integer.toString(igdb_id));
                 prop.setProperty("genres", GameGenre.toJson(genres));
                 prop.setProperty("themes", GameTheme.toJson(themes));
@@ -197,6 +207,18 @@ public class GameEntry {
         }
         if (prop.getProperty("steam_id") != null) {
             steam_id = Integer.parseInt(prop.getProperty("steam_id"));
+        }
+        if (prop.getProperty("gog_id") != null) {
+            gog_id = Integer.parseInt(prop.getProperty("gog_id"));
+        }
+        if (prop.getProperty("uplay_id") != null) {
+            uplay_id = Integer.parseInt(prop.getProperty("uplay_id"));
+        }
+        if (prop.getProperty("origin_id") != null) {
+            origin_id = Integer.parseInt(prop.getProperty("origin_id"));
+        }
+        if (prop.getProperty("battlenet_id") != null) {
+            battlenet_id = Integer.parseInt(prop.getProperty("battlenet_id"));
         }
         if (prop.getProperty("igdb_id") != null) {
             igdb_id = Integer.parseInt(prop.getProperty("igdb_id"));
@@ -381,6 +403,59 @@ public class GameEntry {
 
     public boolean isSteamGame() {
         return steam_id != -1;
+    }
+
+    public boolean isGoGGame() {
+        return gog_id != -1;
+    }
+
+    public boolean isOriginGame() {
+        return origin_id != -1;
+    }
+
+    public boolean isBattlenetGame() {
+        return battlenet_id != -1;
+    }
+
+    public boolean isUplayGame() {
+        return uplay_id != -1;
+    }
+
+
+    public int getBattlenet_id() {
+        return battlenet_id;
+    }
+
+    public void setBattlenet_id(int battlenet_id) {
+        this.battlenet_id = battlenet_id;
+        saveEntry();
+    }
+
+    public int getOrigin_id() {
+        return origin_id;
+    }
+
+    public void setOrigin_id(int origin_id) {
+        this.origin_id = origin_id;
+        saveEntry();
+    }
+
+    public int getUplay_id() {
+        return uplay_id;
+    }
+
+    public void setUplay_id(int uplay_id) {
+        this.uplay_id = uplay_id;
+        saveEntry();
+    }
+
+    public int getGog_id() {
+        return gog_id;
+    }
+
+    public void setGog_id(int gog_id) {
+        this.gog_id = gog_id;
+        saveEntry();
     }
 
     public long getPlayTimeSeconds() {

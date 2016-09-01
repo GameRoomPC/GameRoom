@@ -44,14 +44,12 @@ import ui.scene.exitaction.ExitAction;
 import ui.scene.exitaction.MultiAddExitAction;
 
 import java.awt.*;
-import java.awt.Menu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 import static ui.Main.*;
 import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
@@ -162,7 +160,12 @@ public class MainScene extends BaseScene {
         tilePane = new CoverTilePane(this, Main.RESSOURCE_BUNDLE.getString("all_games"));
         lastPlayedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_LAST_PLAYED);
         recentlyAddedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_RECENTLY_ADDED);
-        toAddTilePane = new ToAddRowTilePane(this);
+        toAddTilePane = new ToAddRowTilePane(this) {
+            @Override
+            protected void batchAddEntries(ArrayList<GameEntry> entries) {
+                batchAddGameEntries(entries,0).run();
+            }
+        };
 
         lastPlayedTilePane.addOnFoldedChangeListener(new ChangeListener<Boolean>() {
             @Override
@@ -572,7 +575,7 @@ public class MainScene extends BaseScene {
                                 ArrayList<File> files = new ArrayList<File>();
                                 files.addAll(Arrays.asList(selectedFolder.listFiles()));
                                 if (files.size() != 0) {
-                                    createFolderAddExitAction(files, 0).run();
+                                    batchAddFolderEntries(files, 0).run();
                                     //startMultiAddScenes(files);
                                 }
                             }
@@ -757,7 +760,25 @@ public class MainScene extends BaseScene {
         refreshTrayMenu();
     }
 
-    private ExitAction createFolderAddExitAction(ArrayList<File> files, int fileCount) {
+    private ExitAction batchAddGameEntries(ArrayList<GameEntry> entries, int entriesCount) {
+        if (entriesCount < entries.size()) {
+            GameEntry currentEntry = entries.get(entriesCount);
+            GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentEntry,GameEditScene.MODE_ADD,null);
+            gameEditScene.disableBackButton();
+            return new MultiAddExitAction(new Runnable() {
+                @Override
+                public void run() {
+                    ExitAction action = batchAddGameEntries(entries, entriesCount + 1);
+                    gameEditScene.setOnExitAction(action); //create interface runnable to access property GameEditScene
+                    gameEditScene.addCancelButton(action);
+                    fadeTransitionTo(gameEditScene, getParentStage());
+                }
+            }, gameEditScene);
+        } else {
+            return new ClassicExitAction(this, getParentStage(), MAIN_SCENE);
+        }
+    }
+    private ExitAction batchAddFolderEntries(ArrayList<File> files, int fileCount) {
         if (fileCount < files.size()) {
             File currentFile = files.get(fileCount);
             try {
@@ -773,7 +794,7 @@ public class MainScene extends BaseScene {
             return new MultiAddExitAction(new Runnable() {
                 @Override
                 public void run() {
-                    ExitAction action = createFolderAddExitAction(files, fileCount + 1);
+                    ExitAction action = batchAddFolderEntries(files, fileCount + 1);
                     gameEditScene.setOnExitAction(action); //create interface runnable to access property GameEditScene
                     gameEditScene.addCancelButton(action);
                     fadeTransitionTo(gameEditScene, getParentStage());

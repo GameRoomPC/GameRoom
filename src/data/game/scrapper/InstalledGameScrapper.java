@@ -12,8 +12,12 @@ import java.util.ArrayList;
  * Created by LM on 29/08/2016.
  */
 public class InstalledGameScrapper {
+    private final static int SCRAPPING_GOG = 0;
+    private final static int SCRAPPING_UPLAY = 1;
+    private final static int SCRAPPING_ORIGIN = 2;
+    private final static int SCRAPPING_BATTLE_NET = 3;
 
-    private static ArrayList<GameEntry> getInstalledGames(String regFolder,String installDirPrefix,String namePrefix) {
+        private static ArrayList<GameEntry> getInstalledGames(String regFolder,String installDirPrefix,String namePrefix, int scrappingCode) {
         ArrayList<GameEntry> entries = new ArrayList<>();
         Terminal terminal = new Terminal(false);
         String[] output = new String[0];
@@ -45,6 +49,32 @@ public class InstalledGameScrapper {
                             GameEntry potentialEntry = new GameEntry(name);
                             potentialEntry.setPath(file.getAbsolutePath());
                             potentialEntry.setNotInstalled(false);
+
+                            int id = 0;
+                            try {
+                                id = Integer.parseInt(subFolder);
+                                if(id==-1){
+                                    id=0;
+                                }
+                            }catch (NumberFormatException nfe){
+                                //no id to scrap!
+                            }
+                            switch (scrappingCode) {
+                                case SCRAPPING_GOG:
+                                    potentialEntry.setGog_id(id);
+                                    break;
+                                case SCRAPPING_UPLAY:
+                                    potentialEntry.setUplay_id(id);
+                                    break;
+                                case SCRAPPING_BATTLE_NET:
+                                    potentialEntry.setBattlenet_id(id);
+                                    break;
+                                case SCRAPPING_ORIGIN:
+                                    potentialEntry.setOrigin_id(id);
+                                    break;
+                                default:
+                                    break;
+                            }
                             entries.add(potentialEntry);
                         }
                     }
@@ -56,10 +86,10 @@ public class InstalledGameScrapper {
         return entries;
     }
     public static ArrayList<GameEntry> getUplayGames(){
-        return getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Ubisoft\\Launcher\\Installs","InstallDir    REG_SZ    ",null);
+        return getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Ubisoft\\Launcher\\Installs","InstallDir    REG_SZ    ",null,SCRAPPING_UPLAY);
     }
     public static ArrayList<GameEntry> getGOGGames(){
-        return getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\GOG.com\\Games","EXE    REG_SZ    ","GAMENAME    REG_SZ    ");
+        return getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\GOG.com\\Games","EXE    REG_SZ    ","GAMENAME    REG_SZ    ",SCRAPPING_GOG);
     }
     /**
      *
@@ -71,8 +101,8 @@ public class InstalledGameScrapper {
     }
     public static ArrayList<GameEntry> getOriginGames(){
         ArrayList<GameEntry> entries = new ArrayList<>();
-        entries.addAll(getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\EA Games","Install Dir    REG_SZ    ","DisplayName    REG_SZ    "));
-        entries.addAll(getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Electronic Arts","Install Dir    REG_SZ    ","DisplayName    REG_SZ    "));
+        entries.addAll(getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\EA Games","Install Dir    REG_SZ    ","DisplayName    REG_SZ    ",SCRAPPING_ORIGIN));
+        entries.addAll(getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Electronic Arts","Install Dir    REG_SZ    ","DisplayName    REG_SZ    ",SCRAPPING_ORIGIN));
         return entries;
     }
     public static ArrayList<GameEntry> getBattleNetGames(){
@@ -121,6 +151,7 @@ public class InstalledGameScrapper {
                             String path = file.isDirectory()?file.getAbsolutePath() : new File(file.getAbsolutePath()).getParent();
                             GameEntry potentialEntry = new GameEntry(name);
                             potentialEntry.setPath(path);
+                            potentialEntry.setBattlenet_id(0);
                             potentialEntry.setNotInstalled(false);
                             entries.add(potentialEntry);
                         }

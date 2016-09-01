@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.UUID;
 
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
@@ -36,7 +38,6 @@ public class GameWatcher {
 
     public GameWatcher(OnGameFoundHandler onGameFoundHandler) {
         this.onGameFoundHandler = onGameFoundHandler;
-        gameScanners.add(new FolderGameScanner(this));
         gameScanners.add(new OtherLaunchersScanner(this) {
             @Override
             public ArrayList<GameEntry> getEntriesInstalled() {
@@ -61,7 +62,20 @@ public class GameWatcher {
                 return InstalledGameScrapper.getBattleNetGames();
             }
         });
+        gameScanners.add(new OtherLaunchersScanner(this) {
+            @Override
+            public ArrayList<GameEntry> getEntriesInstalled() {
+                try {
+                    return SteamLocalScrapper.getSteamAppsInstalled();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return new ArrayList<GameEntry>();
+            }
+        });
+        gameScanners.add(new FolderGameScanner(this));
         gameScanners.add(new SteamGameScanner(this));
+
 
     }
 
@@ -70,13 +84,44 @@ public class GameWatcher {
             @Override
             public void run() {
                 ArrayList<UUID> uuids = AllGameEntries.readUUIDS(GameEntry.TOADD_FOLDER);
+
+                ArrayList<GameEntry> savedEntries = new ArrayList<>();
                 for (UUID uuid : uuids) {
                     GameEntry entry = new GameEntry(uuid, true);
                     entry.setSavedLocaly(true);
+                    savedEntries.add(entry);
+                }
+                savedEntries.sort(new Comparator<GameEntry>() {
+                    @Override
+                    public int compare(GameEntry o1, GameEntry o2) {
+                        int result = 0;
+                        Date date1 = o1.getAddedDate();
+                        Date date2 = o2.getAddedDate();
+
+                        if (date1 == null && date2 != null) {
+                            return 1;
+                        } else if (date2 == null && date1 != null) {
+                            return -1;
+                        } else if (date1 == null && date2 == null) {
+                            result = 0;
+                        } else {
+                            result = date1.compareTo(date2);
+                        }
+                        if (result == 0) {
+                            String name1 = o1.getName();
+                            String name2 = o2.getName();
+                            result = name1.compareToIgnoreCase(name2);
+                        }
+
+                        return result;
+                    }
+                });
+                for(GameEntry savedEntry : savedEntries){
                     Main.runAndWait(() -> {
-                        onGameFound(entry);
+                        onGameFound(savedEntry);
                     });
                 }
+
                 while (Main.KEEP_THREADS_RUNNING) {
                     validateKey();
                     scanNewGamesRoutine();
@@ -107,7 +152,7 @@ public class GameWatcher {
     private void tryScrapToAddEntries() {
         ArrayList<Integer> searchIGDBIDs = new ArrayList<>();
         ArrayList<GameEntry> toScrapEntries = new ArrayList<>();
-        if (true) {
+        synchronized (entriesToAdd){
             for (GameEntry entry : entriesToAdd) {
                 if (entry.isWaitingToBeScrapped()) {
                     try {
@@ -283,13 +328,16 @@ public class GameWatcher {
     }
 
     public GameButton onGameFound(GameEntry foundEntry) {
-        if (!alreadyWaitingToBeAdded(foundEntry)) {
-            foundEntry.setToAdd(true);
-            foundEntry.setSavedLocaly(true);
+        synchronized (entriesToAdd) {
+            if (!alreadyWaitingToBeAdded(foundEntry)) {
+                foundEntry.setAddedDate(new Date());
+                foundEntry.setToAdd(true);
+                foundEntry.setSavedLocaly(true);
 
-            Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
-            entriesToAdd.add(foundEntry);
-            return onGameFoundHandler.gameToAddFound(foundEntry);
+                Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
+                entriesToAdd.add(foundEntry);
+                return onGameFoundHandler.gameToAddFound(foundEntry);
+            }
         }
         return null;
     }

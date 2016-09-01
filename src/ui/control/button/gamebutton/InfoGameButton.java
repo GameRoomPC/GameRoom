@@ -17,7 +17,7 @@ public class InfoGameButton extends GameButton {
     public InfoGameButton(GameEntry entry, BaseScene scene, Pane parent) {
         super(entry, scene, parent);
         COVER_SCALE_EFFECT_FACTOR = 1.03;
-        disableNode(titleLabel,true);
+        disableNode(titleBox,true);
         disableNode(infoButton,true);
         disableNode(playTimeLabel,true);
         setOnMouseExited(eh -> {

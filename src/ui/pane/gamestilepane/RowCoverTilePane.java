@@ -51,6 +51,7 @@ public class RowCoverTilePane extends CoverTilePane {
     private boolean folded = false;
     //private ScrollPane horizontalScrollPane;
     private DualImageButton foldToggleButton;
+    protected HBox buttonsBox = new HBox();
 
     private ArrayList<ChangeListener<Boolean>> onFoldedListeners = new ArrayList<>();
 
@@ -138,12 +139,11 @@ public class RowCoverTilePane extends CoverTilePane {
                 while (c.next() && !sort) {
                     sort = sort || c.wasAdded() || c.wasRemoved() || c.wasReplaced() || c.wasUpdated();
                 }
-                if (sort) {
+                if (automaticSort && sort) {
                     ArrayList<UUID> uuids = new ArrayList<UUID>();
                     for (GameButton button : tilesList) {
                         uuids.add(button.getEntry().getUuid());
                     }
-
                     tilesList.sort(new Comparator<Node>() {
                         @Override
                         public int compare(Node o1, Node o2) {
@@ -209,10 +209,9 @@ public class RowCoverTilePane extends CoverTilePane {
                 }
             }
         });
-        HBox box = new HBox();
-        box.setAlignment(Pos.CENTER_LEFT);
-        box.getChildren().addAll(titleLabel, foldToggleButton);
-        setTop(box);
+        buttonsBox.setAlignment(Pos.CENTER_LEFT);
+        buttonsBox.getChildren().addAll(titleLabel, foldToggleButton);
+        setTop(buttonsBox);
 
         setBottom(separator);
     }

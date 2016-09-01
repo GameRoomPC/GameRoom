@@ -1,13 +1,12 @@
 package ui.control.button.gamebutton;
 
 import data.ImageUtils;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.*;
-import javafx.scene.layout.TilePane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
@@ -35,9 +34,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
@@ -72,6 +68,8 @@ public abstract class GameButton extends BorderPane {
     private BaseScene parentScene;
 
     protected StackPane coverPane;
+    protected HBox titleBox;
+    protected ImageView titleLogoView;
     protected Label titleLabel;
     protected Label playTimeLabel;
     protected Label ratingLabel;
@@ -125,6 +123,8 @@ public abstract class GameButton extends BorderPane {
 
         titleLabel.setText(entry.getName());
         titleLabel.setTooltip(new Tooltip(entry.getName()));
+        setLauncherLogo();
+
         double width = getCoverWidth();
         double height = getCoverHeight();
 
@@ -149,6 +149,26 @@ public abstract class GameButton extends BorderPane {
         imageThread.setDaemon(true);
         imageThread.start();
     }
+    private void setLauncherLogo(){
+        double width = 20*Main.SCREEN_WIDTH/1920;
+        double height =  20*Main.SCREEN_HEIGHT/1080;
+
+        Image titleLogoImage = null;
+        if(entry.isSteamGame()){
+            titleLogoImage = new Image("res/ui/launcherIcons/steamChar.png",width,height,true,true);
+        }else if (entry.isGoGGame()){
+            titleLogoImage = new Image("res/ui/launcherIcons/gogChar.png",width,height,true,true);
+        }else if (entry.isUplayGame()){
+            titleLogoImage = new Image("res/ui/launcherIcons/uplayChar.png",width,height,true,true);
+        }else if (entry.isOriginGame()){
+            titleLogoImage = new Image("res/ui/launcherIcons/originChar.png",width,height,true,true);
+        }else if (entry.isBattlenetGame()){
+            titleLogoImage = new Image("res/ui/launcherIcons/battle.netChar.png",width,height,true,true);
+        }
+        if(!ImageUtils.imagesEquals(titleLogoImage,titleLogoView.getImage())) {
+            titleLogoView.setImage(titleLogoImage);
+        }
+    }
 
     protected void initAll() {
         if (coverPane != null) {
@@ -171,17 +191,26 @@ public abstract class GameButton extends BorderPane {
             }
         });
         setCenter(coverPane);
-        setBottom(titleLabel);
+        setBottom(titleBox);
     }
 
     private void initNameText() {
+        titleBox = new HBox();
+        titleBox.setSpacing(5*Main.SCREEN_WIDTH/1920);
+        BorderPane.setMargin(titleBox, new Insets(10 * GENERAL_SETTINGS.getWindowHeight() / 1080, 0, 0, 0));
+        setAlignment(titleBox, Pos.CENTER);
+
         titleLabel = new Label(entry.getName());
         titleLabel.setTooltip(new Tooltip(entry.getName()));
-        BorderPane.setMargin(titleLabel, new Insets(10 * GENERAL_SETTINGS.getWindowHeight() / 1080, 0, 0, 0));
-        setAlignment(titleLabel, Pos.CENTER);
+
+        titleLogoView = new ImageView();
+        titleBox.setAlignment(Pos.CENTER);
+        setLauncherLogo();
 
         titleLabel.setScaleX(0.90f);
         titleLabel.setScaleY(0.90f);
+
+        titleBox.getChildren().addAll(titleLogoView,titleLabel);
     }
 
     private void initContextMenu() {
@@ -230,10 +259,10 @@ public abstract class GameButton extends BorderPane {
         coverPane = new StackPane();
 
         if (DEFAULT_PLAY_IMAGE == null) {
-            DEFAULT_PLAY_IMAGE = new Image("res/ui/playButton.png", SCREEN_WIDTH/10, SCREEN_WIDTH/10, true, true);
+            DEFAULT_PLAY_IMAGE = new Image("res/ui/playButton.png", SCREEN_WIDTH/10, SCREEN_WIDTH/10, true, true, true);
         }
         if (DEFAULT_INFO_IMAGE == null) {
-            DEFAULT_INFO_IMAGE = new Image("res/ui/infoButton.png", SCREEN_WIDTH/20, SCREEN_WIDTH/20, true, true);
+            DEFAULT_INFO_IMAGE = new Image("res/ui/infoButton.png", SCREEN_WIDTH/20, SCREEN_WIDTH/20, true, true, true);
         }
         DropShadow ds = new DropShadow();
         ds.setOffsetY(2.0f);
@@ -302,7 +331,7 @@ public abstract class GameButton extends BorderPane {
                 }
             }*/
             if (!changed) {
-                DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover.jpg", getCoverWidth(), getCoverHeight(), false, true);
+                DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover1024.jpg", getCoverWidth(), getCoverHeight(), false, true, true);
             }
         }
         defaultCoverView = new ImageView(DEFAULT_COVER_IMAGE);

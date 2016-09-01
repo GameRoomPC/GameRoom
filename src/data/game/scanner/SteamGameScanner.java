@@ -31,39 +31,33 @@ public class SteamGameScanner extends GameScanner {
     @Override
     public void scanForGames() {
         scanDone = false;
-        Task steamTask = new Task() {
-            @Override
-            protected Object call() throws Exception {
-                ArrayList<SteamPreEntry> steamEntriesToAdd = new ArrayList<SteamPreEntry>();
-                initGameLists();
+        ArrayList<SteamPreEntry> steamEntriesToAdd = new ArrayList<SteamPreEntry>();
+        try {
+            initGameLists();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-                for (SteamPreEntry steamEntry : ownedSteamApps) {
-                    if (!steamGameAlreadyInLibrary(steamEntry) && !steamGameIgnored(steamEntry) && !parentLooker.alreadyWaitingToBeAdded(steamEntry)) {
-                        steamEntriesToAdd.add(steamEntry);
-                    }
-                }
-                if (steamEntriesToAdd.size() != 0) {
-                    for (SteamPreEntry preEntryToAdd : steamEntriesToAdd) {
-                        GameEntry entryToAdd = automaticSteamScrap(preEntryToAdd);
-                        if (!parentLooker.alreadyWaitingToBeAdded(entryToAdd)) {
-                            addGameEntryFound(entryToAdd);
-                        }
-                    }
-                }
-                return steamEntriesToAdd;
+        for (SteamPreEntry steamEntry : ownedSteamApps) {
+            if (!steamGameAlreadyInLibrary(steamEntry) && !steamGameIgnored(steamEntry) && !parentLooker.alreadyWaitingToBeAdded(steamEntry)) {
+                steamEntriesToAdd.add(steamEntry);
             }
-        };
-        steamTask.setOnSucceeded(event -> {
-            scanDone = true;
-            if(foundGames.size() >0){
-                Main.LOGGER.info(SteamGameScanner.class.getName()+" : total games found = "+foundGames.size());
+        }
+        if (steamEntriesToAdd.size() != 0) {
+            for (SteamPreEntry preEntryToAdd : steamEntriesToAdd) {
+                GameEntry entryToAdd = automaticSteamScrap(preEntryToAdd);
+                if (!parentLooker.alreadyWaitingToBeAdded(entryToAdd)) {
+                    addGameEntryFound(entryToAdd);
+                }
             }
-        });
-        Thread th = new Thread(steamTask);
-        th.setDaemon(false);
-        th.start();
+        }
+        scanDone = true;
+        if (foundGames.size() > 0) {
+            Main.LOGGER.info(SteamGameScanner.class.getName() + " : total games found = " + foundGames.size());
+        }
     }
-    private GameEntry automaticSteamScrap(SteamPreEntry steamEntryFound){
+
+    private GameEntry automaticSteamScrap(SteamPreEntry steamEntryFound) {
         GameEntry convertedEntry = new GameEntry(steamEntryFound.getName());
         convertedEntry.setSteam_id(steamEntryFound.getId());
 
@@ -77,6 +71,7 @@ public class SteamGameScanner extends GameScanner {
         }
         return fetchedEntry != null ? fetchedEntry : convertedEntry;
     }
+
     private void initGameLists() throws IOException {
         ownedSteamApps.clear();
         ownedSteamApps.addAll(SteamOnlineScrapper.getOwnedSteamGamesPreEntry());
@@ -84,7 +79,8 @@ public class SteamGameScanner extends GameScanner {
         installedSteamApps.addAll(SteamLocalScrapper.getSteamAppsInstalledPreEntries());
         foundGames.clear();
     }
-    private boolean steamGameIgnored(SteamPreEntry steamEntry){
+
+    private boolean steamGameIgnored(SteamPreEntry steamEntry) {
         boolean ignored = false;
         SteamPreEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
         for (SteamPreEntry ignoredEntry : ignoredSteamApps) {
@@ -96,7 +92,7 @@ public class SteamGameScanner extends GameScanner {
         return ignored;
     }
 
-    private boolean steamGameAlreadyInLibrary(SteamPreEntry steamEntry){
+    private boolean steamGameAlreadyInLibrary(SteamPreEntry steamEntry) {
         boolean alreadyAddedToLibrary = false;
         for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
             alreadyAddedToLibrary = steamEntry.getId() == entry.getSteam_id();

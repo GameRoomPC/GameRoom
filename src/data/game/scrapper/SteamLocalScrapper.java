@@ -3,6 +3,7 @@ package data.game.scrapper;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import data.game.entry.GameEntry;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -31,6 +32,16 @@ public class SteamLocalScrapper {
             returnValue = temp;
         }
         return returnValue;
+    }
+    public static ArrayList<GameEntry> getSteamAppsInstalled() throws IOException {
+        ArrayList<SteamPreEntry> installedPreEntries = getSteamAppsInstalledPreEntries();
+        ArrayList<GameEntry> result = new ArrayList<>();
+        for(SteamPreEntry s : installedPreEntries){
+            GameEntry g = new GameEntry(s.getName());
+            g.setSteam_id(s.getId());
+            result.add(g);
+        }
+        return result;
     }
     public static ArrayList<SteamPreEntry> getSteamAppsInstalledPreEntries() throws IOException {
         ArrayList<SteamPreEntry> steamApps = new ArrayList<>();
