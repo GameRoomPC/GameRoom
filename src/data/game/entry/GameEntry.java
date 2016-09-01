@@ -185,7 +185,7 @@ public class GameEntry {
                 if (!prop.getProperty("releaseDate").equals("")) {
                     try {
                         releaseDate = DATE_STORE_FORMAT.parse(prop.getProperty("releaseDate"));
-                    }catch (DateTimeParseException dtpe){
+                    }catch (ParseException dtpe){
                         setReleaseDate(DATE_OLD_STORE_FORMAT.parse(prop.getProperty("releaseDate")));
                     }
                 }
@@ -252,7 +252,7 @@ public class GameEntry {
                 if (!prop.getProperty("addedDate").equals("")) {
                     try {
                         addedDate = DATE_STORE_FORMAT.parse(prop.getProperty("addedDate"));
-                    }catch (DateTimeParseException dtpe){
+                    }catch (ParseException dtpe){
                         setAddedDate(DATE_OLD_STORE_FORMAT.parse(prop.getProperty("addedDate")));
                     }
                 }
@@ -265,7 +265,7 @@ public class GameEntry {
                 if (!prop.getProperty("lastPlayedDate").equals("")) {
                     try{
                     lastPlayedDate = DATE_STORE_FORMAT.parse(prop.getProperty("lastPlayedDate"));
-                }catch (DateTimeParseException dtpe){
+                }catch (ParseException dtpe){
                     setLastPlayedDate(DATE_OLD_STORE_FORMAT.parse(prop.getProperty("lastPlayedDate")));
                 }
                 }

@@ -1,6 +1,7 @@
 package ui.pane.gamestilepane;
 
 import data.game.entry.GameEntry;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import ui.Main;
 import ui.control.button.ImageButton;
@@ -22,7 +23,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
         maxColumn = Integer.MAX_VALUE;
         automaticSort=false;
 
-        ImageButton addAllButton = new ImageButton(new Image("res/ui/validIcon.png",SCREEN_WIDTH / 70,SCREEN_WIDTH / 70,true,true));
+        ImageButton addAllButton = new ImageButton(new Image("res/ui/doubleValidIcon.png",SCREEN_WIDTH / 65,SCREEN_WIDTH / 65,true,true));
         addAllButton.setOnAction(event -> {
             ArrayList<GameEntry> entries = new ArrayList<GameEntry>();
             for(GameButton b : tilesList){
@@ -30,6 +31,8 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
             }
             batchAddEntries(entries);
         });
+        addAllButton.setFocusTraversable(false);
+        addAllButton.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("add_all_games")));
         buttonsBox.getChildren().add(addAllButton);
     }
     protected abstract void batchAddEntries(ArrayList<GameEntry> entries);
