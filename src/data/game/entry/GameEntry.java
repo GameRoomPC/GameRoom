@@ -259,6 +259,9 @@ public class GameEntry {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
+            if(addedDate == null){
+                setAddedDate(new Date());
+            }
         }
         if (prop.getProperty("lastPlayedDate") != null) {
             try {
@@ -288,6 +291,7 @@ public class GameEntry {
         if (prop.getProperty("args") != null) {
             args = prop.getProperty("args");
         }
+        saveEntry();
 
         input.close();
 

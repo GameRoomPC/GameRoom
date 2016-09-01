@@ -158,14 +158,19 @@ public class MainScene extends BaseScene {
 
         tilesPaneWrapper.setSpacing(5 * Main.SCREEN_HEIGHT / 1080);
         tilePane = new CoverTilePane(this, Main.RESSOURCE_BUNDLE.getString("all_games"));
+        tilePane.setId("mainTilePane");
         lastPlayedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_LAST_PLAYED);
+        lastPlayedTilePane.setId("lastPlayedTilePane");
         recentlyAddedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_RECENTLY_ADDED);
+        recentlyAddedTilePane.setId("recentlyAddedTilePane");
         toAddTilePane = new ToAddRowTilePane(this) {
             @Override
             protected void batchAddEntries(ArrayList<GameEntry> entries) {
                 batchAddGameEntries(entries,0).run();
             }
         };
+        toAddTilePane.setId("toAddTilePane");
+
 
         lastPlayedTilePane.addOnFoldedChangeListener(new ChangeListener<Boolean>() {
             @Override
@@ -247,6 +252,12 @@ public class MainScene extends BaseScene {
                             long strat = System.currentTimeMillis();
                             setChangeBackgroundNextTime(true);
                             addGame(entry);
+                            try {
+                                //TODO fix entries being removed from tilePane.getChildren() (but still in tilesList) if no wait!
+                                Thread.sleep(100);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
                             //Main.LOGGER.debug("Added tile in : "+(System.currentTimeMillis()-strat));
                         }
                     });

@@ -20,7 +20,6 @@ import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
-import ui.control.button.gamebutton.TileGameButton;
 import ui.scene.MainScene;
 
 import java.util.*;
@@ -112,17 +111,17 @@ public abstract class GamesTilePane extends BorderPane{
 
     protected abstract TilePane getTilePane();
 
-    protected void addTile(GameButton button){
+    protected final void addTile(GameButton button){
         addTileToTilePane(button);
         tilesList.add(button);
     }
 
-    protected void removeTile(GameButton button){
+    protected final void removeTile(GameButton button){
         removeTileFromTilePane(button);
         tilesList.remove(button);
     }
 
-    public void removeGame(GameEntry entry){
+    public final void removeGame(GameEntry entry){
         int index = indexOfTile(entry);
         if(index!=-1){
            removeTile(tilesList.get(index));
@@ -130,15 +129,13 @@ public abstract class GamesTilePane extends BorderPane{
         if(automaticSort)
         sort();
     }
-    public final void addGames(Collection<GameEntry> newEntries){
-        for(GameEntry entry : newEntries){
-            addGame(entry);
-        };
-    }
+    public abstract boolean isValidToAdd(GameEntry entry);
 
-    public void addGame(GameEntry newEntry){
-        if(indexOfTile(newEntry) == -1) {
-            addTile(createGameButton(newEntry));
+    public final void addGame(GameEntry newEntry){
+        if(indexOfTile(newEntry) == -1 && isValidToAdd(newEntry)) {
+            GameButton b = createGameButton(newEntry);
+            //setGameButtonVisible(b,true);
+            addTile(b);
             if (automaticSort)
                 sort();
         }
@@ -148,19 +145,28 @@ public abstract class GamesTilePane extends BorderPane{
         return tilesList;
     }
 
-    public void updateGame(GameEntry newEntry){
+    public final void updateGame(GameEntry newEntry){
         int index = indexOfTile(newEntry);
         if(index!=-1){
-            tilesList.get(index).reloadWith(newEntry);
-            tilesList.set(index,tilesList.get(index));//to fire updated/replaced event
+            if(isValidToAdd(newEntry)) {
+                tilesList.get(index).reloadWith(newEntry);
+                tilesList.set(index, tilesList.get(index));//to fire updated/replaced event
+            }else{
+                removeGame(newEntry);
+            }
+        }else{
+            onNotFoundForUpdate(newEntry);
         }
         if(automaticSort)
             sort();
     }
+    protected void onNotFoundForUpdate(GameEntry newEntry){
+        //by default do nothing
+    }
 
 
 
-    protected int indexOfTile(GameEntry entry) {
+    public final int indexOfTile(GameEntry entry) {
         int i = 0;
         for (Node n : tilesList) {
             if (((GameButton) n).getEntry().getUuid().equals(entry.getUuid())) {
@@ -170,10 +176,13 @@ public abstract class GamesTilePane extends BorderPane{
         }
         return -1;
     }
-    protected abstract void removeTileFromTilePane(GameButton button);
+    protected void removeTileFromTilePane(GameButton button) {
+        tilePane.getChildren().remove(button);
+    }
 
-    protected abstract void addTileToTilePane(GameButton button);
-
+    protected void addTileToTilePane(GameButton button) {
+        tilePane.getChildren().add(button);
+    }
     protected abstract GameButton createGameButton(GameEntry newEntry);
 
     public void sort(){

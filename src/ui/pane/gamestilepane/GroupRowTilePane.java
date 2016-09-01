@@ -17,30 +17,14 @@ public abstract class GroupRowTilePane extends RowCoverTilePane {
         maxColumn = Integer.MAX_VALUE;
     }
     @Override
-    public void addGame(GameEntry game){
-        if(indexOfTile(game) == -1 && fillsRequirement(game)) {
-            addTile(createGameButton(game));
-            if (automaticSort)
-                sort();
-        }
+    public boolean isValidToAdd(GameEntry entry) {
+        return fillsRequirement(entry);
     }
     @Override
-    public void updateGame(GameEntry newEntry){
-        int index=indexOfTile(newEntry);
-        if(index!=-1){
-            if(fillsRequirement(newEntry)){
-                tilesList.get(index).reloadWith(newEntry);
-                tilesList.set(index,tilesList.get(index));//to fire updated/replaced event
-            }else{
-                removeGame(newEntry);
-            }
-        }else{
-            if(autoAddMatchingEntries && fillsRequirement(newEntry)){
-                addGame(newEntry);
-            }
+    protected void onNotFoundForUpdate(GameEntry newEntry){
+        if(autoAddMatchingEntries && fillsRequirement(newEntry)){
+            addGame(newEntry);
         }
-        if(automaticSort)
-            sort();
     }
     public abstract boolean fillsRequirement(GameEntry entry);
 

@@ -36,13 +36,8 @@ public class CoverTilePane extends GamesTilePane{
     }
 
     @Override
-    protected void removeTileFromTilePane(GameButton button) {
-        tilePane.getChildren().remove(button);
-    }
-
-    @Override
-    protected void addTileToTilePane(GameButton button) {
-        tilePane.getChildren().add(button);
+    public boolean isValidToAdd(GameEntry entry) {
+        return true;
     }
 
     @Override

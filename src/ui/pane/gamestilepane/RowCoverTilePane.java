@@ -151,6 +151,7 @@ public class RowCoverTilePane extends CoverTilePane {
                         }
                     });
                     boolean hideTilePane = true;
+                    int shownCount = 0;
                     for (int i = 0; i < tilesList.size(); i++) {
                         boolean hide = false;
 
@@ -167,9 +168,12 @@ public class RowCoverTilePane extends CoverTilePane {
                             default:
                                 break;
                         }
-                        boolean visible = i < maxColumn && !hide;
+                        boolean visible = shownCount < maxColumn && !hide;
                         setGameButtonVisible(tilesList.get(i), visible);
                         hideTilePane = hideTilePane && !visible;
+                        if(visible){
+                            shownCount++;
+                        }
                     }
                     if(hideTilePane){
                         hide();
@@ -304,8 +308,4 @@ public class RowCoverTilePane extends CoverTilePane {
         onFoldedListeners.add(listener);
     }
 
-
-    public void disableFoldButton(boolean b) {
-        foldToggleButton.setDisable(b);
-    }
 }
