@@ -3,11 +3,13 @@ package data.game.scrapper;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.sun.jna.platform.win32.WinNT;
 import data.game.entry.GameEntry;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import system.os.Terminal;
+import ui.Main;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -33,7 +35,23 @@ public class SteamLocalScrapper {
         }
         return returnValue;
     }
-    public static ArrayList<GameEntry> getSteamAppsInstalled() throws IOException {
+    public static ArrayList<GameEntry> getSteamAppsInstalledExcludeIgnored() throws IOException {
+        ArrayList<GameEntry> steamEntries = getSteamAppsInstalled();
+        ArrayList<GameEntry> result = new ArrayList<>();
+        SteamPreEntry[] ignoredEntries = Main.GENERAL_SETTINGS.getSteamAppsIgnored();
+        for(GameEntry entry : steamEntries){
+            boolean ignored = false;
+            for(SteamPreEntry pre : ignoredEntries){
+                ignored = ignored || pre.getId() == entry.getSteam_id();
+            }
+            if(!ignored){
+                result.add(entry);
+            }
+        }
+        return result;
+    }
+
+        private static ArrayList<GameEntry> getSteamAppsInstalled() throws IOException {
         ArrayList<SteamPreEntry> installedPreEntries = getSteamAppsInstalledPreEntries();
         ArrayList<GameEntry> result = new ArrayList<>();
         for(SteamPreEntry s : installedPreEntries){

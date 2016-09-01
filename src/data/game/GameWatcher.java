@@ -66,7 +66,7 @@ public class GameWatcher {
             @Override
             public ArrayList<GameEntry> getEntriesInstalled() {
                 try {
-                    return SteamLocalScrapper.getSteamAppsInstalled();
+                    return SteamLocalScrapper.getSteamAppsInstalledExcludeIgnored();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -173,11 +173,6 @@ public class GameWatcher {
 
                 int i = 0;
                 for (GameEntry scrappedEntry : scrappedEntries) {
-                    scrappedEntry.setUuid(toScrapEntries.get(i).getUuid());
-                    if (toScrapEntries.get(i).getSteam_id() != -1) {
-                        scrappedEntry.setSteam_id(toScrapEntries.get(i).getSteam_id());
-                    }
-                    scrappedEntry.setNotInstalled(toScrapEntries.get(i).isNotInstalled());
                     if (toScrapEntries.get(i).getDescription() == null ||toScrapEntries.get(i).getDescription().equals("")) {
                         toScrapEntries.get(i).setDescription(scrappedEntry.getDescription());
                     }
@@ -189,6 +184,7 @@ public class GameWatcher {
                     toScrapEntries.get(i).setSerie(scrappedEntry.getSerie());
                     toScrapEntries.get(i).setDeveloper(scrappedEntry.getDeveloper());
                     toScrapEntries.get(i).setPublisher(scrappedEntry.getPublisher());
+                    toScrapEntries.get(i).setIgdb_id(scrappedEntry.getIgdb_id());
                     int finalI = i;
                     ImageUtils.downloadIGDBImageToCache(scrappedEntry.getIgdb_id()
                             , scrappedEntry.getIgdb_imageHash(0)

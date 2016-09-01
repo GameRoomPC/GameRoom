@@ -38,6 +38,7 @@ import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 
 import static ui.Main.*;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -48,7 +49,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
  * Created by LM on 12/07/2016.
  */
 public abstract class GameButton extends BorderPane {
-    public static Image DEFAULT_COVER_IMAGE;
+    protected static HashMap<String,Image> DEFAULT_IMAGES = new HashMap<>();
     private static Image DEFAULT_PLAY_IMAGE;
     private static Image DEFAULT_INFO_IMAGE;
 
@@ -123,35 +124,21 @@ public abstract class GameButton extends BorderPane {
 
         titleLabel.setText(entry.getName());
         titleLabel.setTooltip(new Tooltip(entry.getName()));
-        setLauncherLogo();
+        //setLauncherLogo();
 
         double width = getCoverWidth();
         double height = getCoverHeight();
 
-        Task<Image> loadImageTask = new Task<Image>() {
-            @Override
-            protected Image call() throws Exception {
-                Image img = entry.getImage(0, width, height, false, true);
-                return img;
-            }
-        };
-        loadImageTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-            @Override
-            public void handle(WorkerStateEvent event) {
-                if(!ImageUtils.imagesEquals(loadImageTask.getValue(),coverView.getImage())) {
-                    Main.runAndWait(() -> {
-                        ImageUtils.transitionToImage(loadImageTask.getValue(), coverView);
-                    });
-                }
-            }
-        });
-        Thread imageThread = new Thread(loadImageTask);
-        imageThread.setDaemon(true);
-        imageThread.start();
+        Image coverImage = entry.getImage(0, width, height, false, true, true);
+        if(!ImageUtils.imagesEquals(coverImage,coverView.getImage())) {
+            Main.runAndWait(() -> {
+                ImageUtils.transitionToImage(coverImage, coverView);
+            });
+        }
     }
     private void setLauncherLogo(){
-        double width = 20*Main.SCREEN_WIDTH/1920;
-        double height =  20*Main.SCREEN_HEIGHT/1080;
+        double width = 18*Main.SCREEN_WIDTH/1920;
+        double height =  18*Main.SCREEN_HEIGHT/1080;
 
         Image titleLogoImage = null;
         if(entry.isSteamGame()){
@@ -196,7 +183,7 @@ public abstract class GameButton extends BorderPane {
 
     private void initNameText() {
         titleBox = new HBox();
-        titleBox.setSpacing(5*Main.SCREEN_WIDTH/1920);
+        titleBox.setSpacing(3*Main.SCREEN_WIDTH/1920);
         BorderPane.setMargin(titleBox, new Insets(10 * GENERAL_SETTINGS.getWindowHeight() / 1080, 0, 0, 0));
         setAlignment(titleBox, Pos.CENTER);
 
@@ -321,40 +308,25 @@ public abstract class GameButton extends BorderPane {
 
         initCoverView();
 
-        if (DEFAULT_COVER_IMAGE == null || DEFAULT_COVER_IMAGE.getWidth() != getCoverWidth() || DEFAULT_COVER_IMAGE.getWidth() != getCoverHeight()) {
-            boolean changed = false;
-            /*for (int i = 256; i < 1025; i *= 2) {
+        Image defaultCoverImage = DEFAULT_IMAGES.get("cover"+getCoverWidth()+"x"+getCoverHeight());
+        if(defaultCoverImage == null){
+            for (int i = 256; i < 1025; i *= 2) {
                 if (i > getCoverHeight()) {
-                    DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover" + i + ".jpg", getCoverWidth(), getCoverHeight(), false, true);
-                    changed = true;
+                    defaultCoverImage = new Image("res/defaultImages/cover" + i + ".jpg", getCoverWidth(), getCoverHeight(), false, true);
                     break;
                 }
-            }*/
-            if (!changed) {
-                DEFAULT_COVER_IMAGE = new Image("res/defaultImages/cover1024.jpg", getCoverWidth(), getCoverHeight(), false, true, true);
             }
+            if (defaultCoverImage == null) {
+                defaultCoverImage = new Image("res/defaultImages/cover1024.jpg", getCoverWidth(), getCoverHeight(), false, true);
+            }
+            DEFAULT_IMAGES.put("cover"+getCoverWidth()+"x"+getCoverHeight(),defaultCoverImage);
         }
-        defaultCoverView = new ImageView(DEFAULT_COVER_IMAGE);
+        defaultCoverView = new ImageView(defaultCoverImage);
 
-        Task<Image> loadImageTask = new Task<Image>() {
-            @Override
-            protected Image call() throws Exception {
-                Image img = entry.getImage(0, getCoverWidth(), getCoverHeight(), false, true);
-                return img;
-            }
-        };
-        loadImageTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-            @Override
-            public void handle(WorkerStateEvent event) {
-                Main.runAndWait(() -> {
-                    ImageUtils.transitionToImage(loadImageTask.getValue(), coverView);
-                });
-            }
+        Image coverImage = entry.getImage(0, getCoverWidth(), getCoverHeight(), false, true,true);
+        Main.runAndWait(() -> {
+            ImageUtils.transitionToImage(coverImage, coverView);
         });
-        Thread imageThread = new Thread(loadImageTask);
-        imageThread.setDaemon(true);
-        imageThread.start();
-
         //coverView.setPreserveRatio(true);
 
         playButton.setOnMouseClicked(mc -> {

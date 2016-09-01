@@ -8,6 +8,7 @@ import java.io.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
@@ -23,6 +24,7 @@ public class GameEntry {
 
     public final static DateFormat DATE_DISPLAY_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
     public final static DateFormat DATE_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss SSS");
+    public final static DateFormat DATE_OLD_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     public final static File ENTRIES_FOLDER = new File("Games");
     public final static File TOADD_FOLDER = new File("ToAdd");
     public final static File[] DEFAULT_IMAGES_PATHS = {new File("res/defaultImages/cover.jpg"), null};
@@ -63,8 +65,8 @@ public class GameEntry {
     private long playTime = 0; //Time in seconds
 
 
-    /*FOR IGDB PURPOSE ONLY, should not be stored*/
     private int igdb_id = -1;
+        /*FOR IGDB PURPOSE ONLY, should not be stored*/
     private String[] igdb_imageHash = new String[IMAGES_NUMBER];
 
 
@@ -181,7 +183,11 @@ public class GameEntry {
         if (prop.getProperty("releaseDate") != null) {
             try {
                 if (!prop.getProperty("releaseDate").equals("")) {
-                    releaseDate = DATE_STORE_FORMAT.parse(prop.getProperty("releaseDate"));
+                    try {
+                        releaseDate = DATE_STORE_FORMAT.parse(prop.getProperty("releaseDate"));
+                    }catch (DateTimeParseException dtpe){
+                        setReleaseDate(DATE_OLD_STORE_FORMAT.parse(prop.getProperty("releaseDate")));
+                    }
                 }
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -244,7 +250,11 @@ public class GameEntry {
         if (prop.getProperty("addedDate") != null) {
             try {
                 if (!prop.getProperty("addedDate").equals("")) {
-                    addedDate = DATE_STORE_FORMAT.parse(prop.getProperty("addedDate"));
+                    try {
+                        addedDate = DATE_STORE_FORMAT.parse(prop.getProperty("addedDate"));
+                    }catch (DateTimeParseException dtpe){
+                        setAddedDate(DATE_OLD_STORE_FORMAT.parse(prop.getProperty("addedDate")));
+                    }
                 }
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -253,7 +263,11 @@ public class GameEntry {
         if (prop.getProperty("lastPlayedDate") != null) {
             try {
                 if (!prop.getProperty("lastPlayedDate").equals("")) {
+                    try{
                     lastPlayedDate = DATE_STORE_FORMAT.parse(prop.getProperty("lastPlayedDate"));
+                }catch (DateTimeParseException dtpe){
+                    setLastPlayedDate(DATE_OLD_STORE_FORMAT.parse(prop.getProperty("lastPlayedDate")));
+                }
                 }
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -320,6 +334,9 @@ public class GameEntry {
     }
 
     public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth) {
+        return getImage(index,width,height,preserveRatio,smooth,false);
+    }
+    public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth,boolean backGroundloading) {
         if (createdImages.get(index) != null && !imageNeedsRefresh[index]) {
             if (createdImages.get(index).getWidth() == width && createdImages.get(index).getHeight() == height) {
                 return createdImages.get(index);
@@ -329,7 +346,7 @@ public class GameEntry {
         if (currFile == null) {
             return null;
         } else {
-            Image result = new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth);
+            Image result = new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth, backGroundloading);
             createdImages.put(index, result);
             imageNeedsRefresh[index] = false;
             return result;
