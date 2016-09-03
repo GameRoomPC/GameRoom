@@ -7,7 +7,6 @@ import data.game.scrapper.SteamLocalScrapper;
 import data.game.scrapper.SteamOnlineScrapper;
 import data.game.scrapper.SteamPreEntry;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import ui.Main;
 
 import java.io.IOException;
@@ -19,18 +18,17 @@ import static ui.Main.MAIN_SCENE;
 /**
  * Created by LM on 19/08/2016.
  */
-public class SteamGameScanner extends GameScanner {
+public class SteamOnlineGameScanner extends GameScanner {
     private ArrayList<SteamPreEntry> ownedSteamApps = new ArrayList<>();
     private ArrayList<SteamPreEntry> installedSteamApps = new ArrayList<>();
 
-    public SteamGameScanner(GameWatcher parentLooker) {
+    public SteamOnlineGameScanner(GameWatcher parentLooker) {
         super(parentLooker);
         isLocalScanner = false;
     }
 
     @Override
     public void scanForGames() {
-        scanDone = false;
         ArrayList<SteamPreEntry> steamEntriesToAdd = new ArrayList<SteamPreEntry>();
         try {
             initGameLists();
@@ -51,9 +49,8 @@ public class SteamGameScanner extends GameScanner {
                 }
             }
         }
-        scanDone = true;
         if (foundGames.size() > 0) {
-            Main.LOGGER.info(SteamGameScanner.class.getName() + " : total games found = " + foundGames.size());
+            Main.LOGGER.info(SteamOnlineGameScanner.class.getName() + " : total games found = " + foundGames.size());
         }
     }
 

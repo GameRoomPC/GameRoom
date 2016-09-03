@@ -252,8 +252,6 @@ public class MainScene extends BaseScene {
                             addGame(entry);
                         }
                     });
-                    Main.LOGGER.debug("after add : "+tilePane.getTilePane().getChildren().size());
-
                     updateProgress(finalI, uuids.size() - 1);
                     i++;
                 }

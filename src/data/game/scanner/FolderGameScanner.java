@@ -28,7 +28,6 @@ public class FolderGameScanner extends GameScanner {
 
     @Override
     public void scanForGames() {
-        scanDone = false;
         foundGames.clear();
 
         ArrayList<GameEntry> potentialEntries = getPotentialEntries();
@@ -43,7 +42,6 @@ public class FolderGameScanner extends GameScanner {
                 addGameEntryFound(potentialEntry);
             }
         }
-        scanDone = true;
         if (foundGames.size() > 0) {
             Main.LOGGER.info(this.getClass().getName() + " : found = " + foundGames.size());
         }

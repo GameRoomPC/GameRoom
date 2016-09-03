@@ -11,6 +11,7 @@ import java.util.ArrayList;
 public abstract class OtherLaunchersScanner extends FolderGameScanner {
     public OtherLaunchersScanner(GameWatcher parentLooker) {
         super(parentLooker);
+        isLocalScanner = true;
     }
     public abstract ArrayList<GameEntry> getEntriesInstalled();
 

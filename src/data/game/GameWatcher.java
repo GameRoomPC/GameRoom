@@ -8,7 +8,7 @@ import data.game.scanner.*;
 import data.game.scrapper.*;
 import data.http.key.KeyChecker;
 import javafx.application.Platform;
-import javafx.scene.Node;
+import javafx.concurrent.Task;
 import org.json.JSONArray;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
@@ -74,7 +74,7 @@ public class GameWatcher {
             }
         });
         gameScanners.add(new FolderGameScanner(this));
-        gameScanners.add(new SteamGameScanner(this));
+        gameScanners.add(new SteamOnlineGameScanner(this));
 
 
     }
@@ -83,45 +83,7 @@ public class GameWatcher {
         Thread th = new Thread(new Runnable() {
             @Override
             public void run() {
-                ArrayList<UUID> uuids = AllGameEntries.readUUIDS(GameEntry.TOADD_FOLDER);
-
-                ArrayList<GameEntry> savedEntries = new ArrayList<>();
-                for (UUID uuid : uuids) {
-                    GameEntry entry = new GameEntry(uuid, true);
-                    entry.setSavedLocaly(true);
-                    savedEntries.add(entry);
-                }
-                savedEntries.sort(new Comparator<GameEntry>() {
-                    @Override
-                    public int compare(GameEntry o1, GameEntry o2) {
-                        int result = 0;
-                        Date date1 = o1.getAddedDate();
-                        Date date2 = o2.getAddedDate();
-
-                        if (date1 == null && date2 != null) {
-                            return 1;
-                        } else if (date2 == null && date1 != null) {
-                            return -1;
-                        } else if (date1 == null && date2 == null) {
-                            result = 0;
-                        } else {
-                            result = date1.compareTo(date2);
-                        }
-                        if (result == 0) {
-                            String name1 = o1.getName();
-                            String name2 = o2.getName();
-                            result = name1.compareToIgnoreCase(name2);
-                        }
-
-                        return result;
-                    }
-                });
-                for(GameEntry savedEntry : savedEntries){
-                    Main.runAndWait(() -> {
-                        onGameFound(savedEntry);
-                    });
-                }
-
+                initToAddEntries();
                 while (Main.KEEP_THREADS_RUNNING) {
                     validateKey();
                     scanNewGamesRoutine();
@@ -138,6 +100,46 @@ public class GameWatcher {
         });
         th.setDaemon(true);
         th.start();
+    }
+    private void initToAddEntries(){
+        ArrayList<UUID> uuids = AllGameEntries.readUUIDS(GameEntry.TOADD_FOLDER);
+
+        ArrayList<GameEntry> savedEntries = new ArrayList<>();
+        for (UUID uuid : uuids) {
+            GameEntry entry = new GameEntry(uuid, true);
+            entry.setSavedLocaly(true);
+            savedEntries.add(entry);
+        }
+        savedEntries.sort(new Comparator<GameEntry>() {
+            @Override
+            public int compare(GameEntry o1, GameEntry o2) {
+                int result = 0;
+                Date date1 = o1.getAddedDate();
+                Date date2 = o2.getAddedDate();
+
+                if (date1 == null && date2 != null) {
+                    return 1;
+                } else if (date2 == null && date1 != null) {
+                    return -1;
+                } else if (date1 == null && date2 == null) {
+                    result = 0;
+                } else {
+                    result = date1.compareTo(date2);
+                }
+                if (result == 0) {
+                    String name1 = o1.getName();
+                    String name2 = o2.getName();
+                    result = name1.compareToIgnoreCase(name2);
+                }
+
+                return result;
+            }
+        });
+        for(GameEntry savedEntry : savedEntries){
+            Main.runAndWait(() -> {
+                onGameFound(savedEntry);
+            });
+        }
     }
 
     private void validateKey() {
@@ -264,8 +266,9 @@ public class GameWatcher {
 
     private void scanNewGamesRoutine() {
         final int originalGameFoundNumber = entriesToAdd.size();
+
         for (GameScanner scanner : gameScanners) {
-            scanner.scanForGames();
+            scanner.startScanning();
         }
         //now we wait for the scanners to have all finished
         boolean allScannersDone = true;
