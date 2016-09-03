@@ -105,8 +105,6 @@ public class MainScene extends BaseScene {
         initCenter();
         initTop();
         loadGames();
-        statusLabel.setText("");
-        home();
         Main.runAndWait(() -> {
             if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)){
                 lastPlayedTilePane.fold();
@@ -239,28 +237,23 @@ public class MainScene extends BaseScene {
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
+                tilePane.setAutomaticSort(false);
                 ArrayList<UUID> uuids = AllGameEntries.readUUIDS(GameEntry.ENTRIES_FOLDER);
                 int i = 0;
                 for (UUID uuid : uuids) {
                     int finalI = i;
 
                     final GameEntry entry = new GameEntry(uuid);
+                    Main.LOGGER.debug("before add : "+tilePane.getTilePane().getChildren().size());
                     Main.runAndWait(new Runnable() {
                         @Override
                         public void run() {
-                            //TODO reduce loading time here
-                            long strat = System.currentTimeMillis();
                             setChangeBackgroundNextTime(true);
                             addGame(entry);
-                            try {
-                                //TODO fix entries being removed from tilePane.getChildren() (but still in tilesList) if no wait!
-                                Thread.sleep(100);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            //Main.LOGGER.debug("Added tile in : "+(System.currentTimeMillis()-strat));
                         }
                     });
+                    Main.LOGGER.debug("after add : "+tilePane.getTilePane().getChildren().size());
+
                     updateProgress(finalI, uuids.size() - 1);
                     i++;
                 }
@@ -270,7 +263,7 @@ public class MainScene extends BaseScene {
         task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent event) {
-
+                tilePane.setAutomaticSort(true);
                 backgroundView.setOpacity(0);
                 backgroundView.setVisible(true);
                 maskView.setOpacity(0);
@@ -283,6 +276,7 @@ public class MainScene extends BaseScene {
                 Platform.runLater(() -> {
                     startGameLookerService();
                 });
+                home();
             }
         });
         task.progressProperty().addListener(new ChangeListener<Number>() {

@@ -129,12 +129,19 @@ public abstract class GameButton extends BorderPane {
         double width = getCoverWidth();
         double height = getCoverHeight();
 
-        Image coverImage = entry.getImage(0, width, height, false, true, true);
-        if(!ImageUtils.imagesEquals(coverImage,coverView.getImage())) {
-            Main.runAndWait(() -> {
-                ImageUtils.transitionToImage(coverImage, coverView);
-            });
-        }
+        Task coverTask = new Task() {
+            @Override
+            protected Object call() throws Exception {
+                Image coverImage = entry.getImage(0, width, height, false, true);
+                if(!ImageUtils.imagesEquals(coverImage,coverView.getImage())) {
+                    ImageUtils.transitionToImage(coverImage, coverView);
+                }
+                return null;
+            }
+        };
+        Thread setCoverThread = new Thread(coverTask);
+        setCoverThread.setDaemon(true);
+        setCoverThread.start();
     }
     private void setLauncherLogo(){
         double width = 18*Main.SCREEN_WIDTH/1920;
@@ -323,11 +330,19 @@ public abstract class GameButton extends BorderPane {
         }
         defaultCoverView = new ImageView(defaultCoverImage);
 
-        Image coverImage = entry.getImage(0, getCoverWidth(), getCoverHeight(), false, true,true);
-        Main.runAndWait(() -> {
-            ImageUtils.transitionToImage(coverImage, coverView);
-        });
-        //coverView.setPreserveRatio(true);
+        Task coverTask = new Task() {
+            @Override
+            protected Object call() throws Exception {
+                Image coverImage = entry.getImage(0, getCoverWidth(), getCoverHeight(), false, true);
+                if(!ImageUtils.imagesEquals(coverImage,coverView.getImage())) {
+                    ImageUtils.transitionToImage(coverImage, coverView);
+                }
+                return null;
+            }
+        };
+        Thread setCoverThread = new Thread(coverTask);
+        setCoverThread.setDaemon(true);
+        setCoverThread.start();
 
         playButton.setOnMouseClicked(mc -> {
             entry.startGame();
@@ -399,16 +414,6 @@ public abstract class GameButton extends BorderPane {
                                 Main.runAndWait(() -> {
                                     MAIN_SCENE.setImageBackground(screenshotImage);
                                 });
-                                /*Thread.currentThread().sleep(300);
-                                if (isFocused()) {
-
-                                    Platform.runLater(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            MAIN_SCENE.setImageBackground(screenshotImage);
-                                        }
-                                    });
-                                }*/
                                 return null;
                             }
                         };

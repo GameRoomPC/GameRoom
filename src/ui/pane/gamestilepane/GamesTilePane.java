@@ -109,7 +109,7 @@ public abstract class GamesTilePane extends BorderPane{
         return hide;
     }
 
-    protected abstract TilePane getTilePane();
+    public abstract TilePane getTilePane();
 
     protected final void addTile(GameButton button){
         addTileToTilePane(button);
@@ -136,8 +136,9 @@ public abstract class GamesTilePane extends BorderPane{
             GameButton b = createGameButton(newEntry);
             //setGameButtonVisible(b,true);
             addTile(b);
-            if (automaticSort)
+            if (automaticSort) {
                 sort();
+            }
         }
     }
 

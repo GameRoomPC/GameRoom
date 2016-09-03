@@ -119,17 +119,14 @@ public class AddIgnoreGameButton extends GameButton {
                         Task backGroundImageTask = new Task() {
                             @Override
                             protected Object call() throws Exception {
-                                    Image screenshotImage = entry.getImage(1,
-                                            Main.GENERAL_SETTINGS.getWindowWidth(),
-                                            Main.GENERAL_SETTINGS.getWindowHeight()
-                                            , false, true);
+                                Image screenshotImage = entry.getImage(1,
+                                        Main.GENERAL_SETTINGS.getWindowWidth(),
+                                        Main.GENERAL_SETTINGS.getWindowHeight()
+                                        , false, true);
 
-                                    Main.runAndWait(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            MAIN_SCENE.setImageBackground(screenshotImage);
-                                        }
-                                    });
+                                Main.runAndWait(() -> {
+                                    MAIN_SCENE.setImageBackground(screenshotImage);
+                                });
                                 return null;
                             }
                         };
