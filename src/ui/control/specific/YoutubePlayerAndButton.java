@@ -25,9 +25,7 @@ public class YoutubePlayerAndButton {
 
     public YoutubePlayerAndButton(GameEntry entry) throws MalformedURLException {
         super();
-        if(WEB_VIEW == null) {
-            WEB_VIEW = new WebView();
-        }
+        WEB_VIEW = new WebView();
         WEB_VIEW.setPrefWidth(200);
         WEB_VIEW.setPrefHeight(180);
         WEB_VIEW.setOpacity(100);
@@ -100,7 +98,9 @@ public class YoutubePlayerAndButton {
         try {
             if(entry.getYoutubeSoundtrackHash().equals("")) {
                 String hash = YoutubeSoundtrackScrapper.getThemeYoutubeHash(entry);
+                entry.setSavedLocaly(true);
                 entry.setYoutubeSoundtrackHash(hash);
+                entry.setSavedLocaly(false);
             }
             return entry.getYoutubeSoundtrackHash();
         }  catch (Exception e) {
