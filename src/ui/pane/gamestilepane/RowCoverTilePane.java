@@ -135,11 +135,11 @@ public class RowCoverTilePane extends CoverTilePane {
         tilesList.addListener(new ListChangeListener<GameButton>() {
             @Override
             public void onChanged(Change<? extends GameButton> c) {
-                boolean sort = false;
-                while (c.next() && !sort) {
-                    sort = sort || c.wasAdded() || c.wasRemoved() || c.wasReplaced() || c.wasUpdated();
+                boolean orderMayChange = false;
+                while (c.next() && !orderMayChange) {
+                    orderMayChange = orderMayChange || c.wasAdded() || c.wasRemoved() || c.wasReplaced() || c.wasUpdated();
                 }
-                if (automaticSort && sort) {
+                if (orderMayChange) {
                     ArrayList<UUID> uuids = new ArrayList<UUID>();
                     for (GameButton button : tilesList) {
                         uuids.add(button.getEntry().getUuid());
@@ -185,6 +185,9 @@ public class RowCoverTilePane extends CoverTilePane {
                         }
                         if (changedOrder || hidden) {
                             show();
+                        }
+                        if(changedOrder && automaticSort){
+                            sort();
                         }
                     }
                 }

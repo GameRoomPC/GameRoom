@@ -17,7 +17,7 @@ import static ui.Main.GENERAL_SETTINGS;
  * Created by LM on 19/08/2016.
  */
 public class FolderGameScanner extends GameScanner {
-    private final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library"};
+    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library","SteamLibrary","SteamVR"};
     private final static String[] VALID_EXECUTABLE_EXTENSION = new String[]{".exe", ".ink", ".jar"};
 
 

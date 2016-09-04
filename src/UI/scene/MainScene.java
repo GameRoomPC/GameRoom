@@ -238,13 +238,15 @@ public class MainScene extends BaseScene {
             @Override
             protected Void call() throws Exception {
                 tilePane.setAutomaticSort(false);
+                recentlyAddedTilePane.setAutomaticSort(false);
+                lastPlayedTilePane.setAutomaticSort(false);
+                toAddTilePane.setAutomaticSort(false);
                 ArrayList<UUID> uuids = AllGameEntries.readUUIDS(GameEntry.ENTRIES_FOLDER);
                 int i = 0;
                 for (UUID uuid : uuids) {
                     int finalI = i;
 
                     final GameEntry entry = new GameEntry(uuid);
-                    Main.LOGGER.debug("before add : "+tilePane.getTilePane().getChildren().size());
                     Main.runAndWait(new Runnable() {
                         @Override
                         public void run() {
@@ -262,6 +264,8 @@ public class MainScene extends BaseScene {
             @Override
             public void handle(WorkerStateEvent event) {
                 tilePane.setAutomaticSort(true);
+                recentlyAddedTilePane.setAutomaticSort(true);
+                lastPlayedTilePane.setAutomaticSort(true);
                 backgroundView.setOpacity(0);
                 backgroundView.setVisible(true);
                 maskView.setOpacity(0);

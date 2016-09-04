@@ -5,6 +5,7 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.sun.jna.platform.win32.WinNT;
 import data.game.entry.GameEntry;
+import data.game.scanner.FolderGameScanner;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -38,11 +39,16 @@ public class SteamLocalScrapper {
     public static ArrayList<GameEntry> getSteamAppsInstalledExcludeIgnored() throws IOException {
         ArrayList<GameEntry> steamEntries = getSteamAppsInstalled();
         ArrayList<GameEntry> result = new ArrayList<>();
+
         SteamPreEntry[] ignoredEntries = Main.GENERAL_SETTINGS.getSteamAppsIgnored();
+
         for(GameEntry entry : steamEntries){
             boolean ignored = false;
             for(SteamPreEntry pre : ignoredEntries){
                 ignored = ignored || pre.getId() == entry.getSteam_id();
+            }
+            for(String name : FolderGameScanner.EXCLUDED_FILE_NAMES){
+                ignored = ignored || name.equals(entry.getName());
             }
             if(!ignored){
                 result.add(entry);

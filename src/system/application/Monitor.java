@@ -25,7 +25,7 @@ import java.util.concurrent.FutureTask;
 public class Monitor {
     private static String TIME_TAG = "$$time$$";
 
-    private static int MONITOR_REFRESH = 2500;
+    private static int MONITOR_REFRESH = 1000;
     private static final int MIN_MONITOR_TIME = 20000;
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss", Locale.ENGLISH);
