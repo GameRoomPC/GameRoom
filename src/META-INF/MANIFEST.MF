@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
 Main-Class: Launcher
-Implementation-Version: 0.0.0.1
+Implementation-Version: 0.0.0.2
