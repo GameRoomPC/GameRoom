@@ -20,18 +20,20 @@ import java.net.MalformedURLException;
  * Created by LM on 07/08/2016.
  */
 public class YoutubePlayerAndButton {
-    private WebView webView;
+    private static WebView WEB_VIEW;
     private DualImageButton soundMuteButton;
 
     public YoutubePlayerAndButton(GameEntry entry) throws MalformedURLException {
         super();
-        webView = new WebView();
-        webView.setPrefWidth(200);
-        webView.setPrefHeight(180);
-        webView.setOpacity(100);
-        webView.setVisible(false);
-        webView.setMouseTransparent(true);
-        webView.setFocusTraversable(false);
+        if(WEB_VIEW == null) {
+            WEB_VIEW = new WebView();
+        }
+        WEB_VIEW.setPrefWidth(200);
+        WEB_VIEW.setPrefHeight(180);
+        WEB_VIEW.setOpacity(100);
+        WEB_VIEW.setVisible(false);
+        WEB_VIEW.setMouseTransparent(true);
+        WEB_VIEW.setFocusTraversable(false);
 
         Image muteImage = new Image("res/ui/muteIcon.png"
                 , Main.GENERAL_SETTINGS.getWindowWidth() / 18
@@ -49,9 +51,9 @@ public class YoutubePlayerAndButton {
             @Override
             public void handle(ActionEvent me) {
                 if (soundMuteButton.inFirstState()) {
-                    webView.getEngine().executeScript("player.pauseVideo()");
+                    WEB_VIEW.getEngine().executeScript("player.pauseVideo()");
                 } else {
-                    webView.getEngine().executeScript("player.playVideo()");
+                    WEB_VIEW.getEngine().executeScript("player.playVideo()");
                 }
             }
         });
@@ -64,9 +66,9 @@ public class YoutubePlayerAndButton {
                     YoutubePlayerHTML html = new YoutubePlayerHTML(hash);
 
                     Platform.runLater(() -> {
-                        webView.getEngine().loadContent(html.getHTMLCode());
+                        WEB_VIEW.getEngine().loadContent(html.getHTMLCode());
                         JSObject win
-                                = (JSObject) webView.getEngine().executeScript("window");
+                                = (JSObject) WEB_VIEW.getEngine().executeScript("window");
                         win.setMember("buttonToggler", new ButtonToggler(soundMuteButton));
                         //soundMuteButton.toggleState();
                     });
@@ -82,7 +84,7 @@ public class YoutubePlayerAndButton {
         th.setDaemon(true);
         th.start();
         //getChildren().add(webView);
-        StackPane.setAlignment(webView, Pos.TOP_RIGHT);
+        StackPane.setAlignment(WEB_VIEW, Pos.TOP_RIGHT);
         StackPane.setAlignment(soundMuteButton, Pos.TOP_RIGHT);
 
     }
@@ -90,7 +92,7 @@ public class YoutubePlayerAndButton {
         return soundMuteButton;
     }
     public void quitYoutube(){
-        webView.getEngine().load("about:blank");
+        WEB_VIEW.getEngine().load("about:blank");
 // Delete cookies
         java.net.CookieHandler.setDefault(new java.net.CookieManager());
     }
