@@ -855,9 +855,9 @@ public class GameEditScene extends BaseScene {
     }
 
     private void initTop() {
-        EventHandler<MouseEvent> backButtonHandler = new EventHandler<MouseEvent>() {
+        EventHandler<ActionEvent> backButtonHandler = new EventHandler<ActionEvent>() {
             @Override
-            public void handle(MouseEvent event) {
+            public void handle(ActionEvent event) {
                 GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION);
                 alert.setContentText(RESSOURCE_BUNDLE.getString("ignore_changes?"));
 
