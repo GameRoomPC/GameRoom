@@ -488,11 +488,6 @@ public class GameEntry {
         saveEntry();
     }
 
-    public void addPlayTimeSeconds(long seconds) {
-        this.playTime += seconds;
-        saveEntry();
-    }
-
     public static String getPlayTimeFormatted(long playTime, int format) {
         String result = "";
         long seconds = playTime, minutes = 0, hours = 0;

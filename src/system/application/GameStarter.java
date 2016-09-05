@@ -117,10 +117,7 @@ public class GameStarter {
                         terminal.execute(commandsAfter, postLog, new File(new File(entry.getPath()).getParent()));
                     }
                     entry.setAlreadyStartedInGameRoom(false);
-                    entry.setSavedLocaly(true);
-                    entry.addPlayTimeSeconds(Math.round(newValue / 1000.0));
                     MAIN_SCENE.updateGame(entry);
-                    entry.setSavedLocaly(false);
                     if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS) && newValue != 0) {
                         Main.TRAY_ICON.displayMessage("GameRoom"
                                 , GameEntry.getPlayTimeFormatted(Math.round(newValue / 1000.0), GameEntry.TIME_FORMAT_HMS_CASUAL) + " "
