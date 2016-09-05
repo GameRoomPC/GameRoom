@@ -584,11 +584,12 @@ public class GameEditScene extends BaseScene {
         youtubeSoundtrackField.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if(newValue.equals("")){
+                    entry.setYoutubeSoundtrackHash("");
+                }
                 String hash = YoutubeSoundtrackScrapper.hashFromYoutubeUrl(newValue);
                 if(hash!=null){
-                    entry.setYoutubeSoundtrackHash(newValue);
-                }else{
-                    entry.setYoutubeSoundtrackHash("");
+                    entry.setYoutubeSoundtrackHash(hash);
                 }
             }
         });
