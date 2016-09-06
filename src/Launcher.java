@@ -9,9 +9,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.*;
 import javafx.scene.layout.StackPane;
@@ -23,7 +20,6 @@ import system.device.ControllerButtonListener;
 import system.device.XboxController;
 import ui.Main;
 import ui.dialog.ConsoleOutputDialog;
-import ui.dialog.GameRoomAlert;
 import ui.scene.BaseScene;
 import ui.scene.MainScene;
 import ui.scene.SettingsScene;
@@ -288,9 +284,7 @@ public class Launcher extends Application {
                         MAIN_SCENE.getParentStage().hide();
                         if (trayMessageCount < 2 && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING) && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS)) {
                             TRAY_ICON.displayMessage("GameRoom"
-                                    , RESSOURCE_BUNDLE.getString("tray_icon_still_running_1")
-                                            + RESSOURCE_BUNDLE.getString("always_in_background")
-                                            + RESSOURCE_BUNDLE.getString("tray_icon_still_running_2"), TrayIcon.MessageType.INFO);
+                                    , RESSOURCE_BUNDLE.getString("tray_icon_still_running"), TrayIcon.MessageType.INFO);
                             trayMessageCount++;
                         } else {
                             if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING)) {
