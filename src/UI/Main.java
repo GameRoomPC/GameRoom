@@ -84,17 +84,6 @@ public class Main {
         SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
-        String showMode = getArg(ARGS_FLAG_SHOW,args,true);
-        if(showMode!=null){
-            switch (showMode){
-                case "0" :
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.START_MINIMIZED,true);
-                    break;
-                default:
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.START_MINIMIZED,false);
-                    break;
-            }
-        }
         initNetworkManager();
         //if(!DEV_MODE){
         startUpdater();

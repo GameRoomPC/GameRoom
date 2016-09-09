@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import mslinks.ShellLink;
 import org.json.JSONObject;
 import system.application.MessageListener;
 import system.application.MessageTag;
@@ -117,7 +118,7 @@ public class SettingsScene extends BaseScene {
         addPropertyLine(PredefinedSetting.LOCALE);
         addPropertyLine(PredefinedSetting.ON_GAME_LAUNCH_ACTION);
         addPropertyLine(PredefinedSetting.NO_NOTIFICATIONS);
-        addPropertyLine(PredefinedSetting.START_MINIMIZED,false);
+        //addPropertyLine(PredefinedSetting.START_MINIMIZED,false);
         addPropertyLine(PredefinedSetting.DISABLE_GAME_MAIN_THEME,true);
         addPropertyLine(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER,true, new ChangeListener<Boolean>() {
             @Override
@@ -627,6 +628,12 @@ public class SettingsScene extends BaseScene {
 
         }
         return null;
+    }
+    private static void createStartupInk() throws IOException {
+
+    }
+    public static void main(String[] args) throws IOException {
+        createStartupInk();
     }
 
     @Override

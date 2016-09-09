@@ -44,6 +44,7 @@ public class Launcher extends Application {
     private static ConsoleOutputDialog[] console = new ConsoleOutputDialog[1];
     private double widthBeforeFullScreen = -1;
     private double heightBeforeFullScreen = -1;
+    private static boolean START_MINIMIZED = true;
 
     public static void main(String[] args) throws URISyntaxException {
         setCurrentProcessExplicitAppUserModelID("GameRoom");
@@ -85,6 +86,17 @@ public class Launcher extends Application {
             IGDBScrapper.IGDB_PRO_KEY = igdbKey;
             IGDBScrapper.key = igdbKey;
         }
+        String showMode = getArg(ARGS_FLAG_SHOW,args,true);
+        if(showMode!=null){
+            switch (showMode){
+                case "0" :
+                    START_MINIMIZED = true;
+                    break;
+                default:
+                    START_MINIMIZED = false;
+                    break;
+            }
+        }
 
         Main.main(args);
         launch(args);
@@ -101,11 +113,11 @@ public class Launcher extends Application {
         setFullScreen(primaryStage,GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN),true);
     }
     private void openStage(Stage primaryStage, boolean appStart){
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.START_MINIMIZED) && appStart) {
+        if (START_MINIMIZED && appStart) {
             primaryStage.setOpacity(0);
         }
         primaryStage.show();
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.START_MINIMIZED) && appStart) {
+        if (START_MINIMIZED && appStart) {
             primaryStage.hide();
             primaryStage.setOpacity(1);
         }
@@ -278,7 +290,7 @@ public class Launcher extends Application {
             }
         });
         TRAY_ICON.setImageAutoSize(true);
-        Platform.setImplicitExit(DEV_MODE);
+        //Platform.setImplicitExit(DEV_MODE);
 
         MAIN_SCENE.getParentStage().setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
