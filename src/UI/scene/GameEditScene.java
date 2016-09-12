@@ -20,6 +20,7 @@ import ui.Main;
 import ui.control.ValidEntryCondition;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
+import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
 import ui.control.textfield.PlayTimeField;
 import ui.dialog.GameRoomAlert;
@@ -617,10 +618,9 @@ public class GameEditScene extends BaseScene {
             cmdBeforeLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_before_tooltip")));
             cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
             contentPane.add(cmdBeforeLabel, 0, row_count);
-            TextArea cmdBeforeField = new TextArea(entry.getCmd(GameEntry.CMD_BEFORE_START));
+            CMDTextField cmdBeforeField = new CMDTextField(entry.getCmd(GameEntry.CMD_BEFORE_START));
             cmdBeforeField.setWrapText(true);
             cmdBeforeField.setId("cmd_before");
-            cmdBeforeField.setPrefRowCount(6);
             cmdBeforeField.textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -634,10 +634,9 @@ public class GameEditScene extends BaseScene {
             cmdAfterLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_after_tooltip")));
             cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
             contentPane.add(cmdAfterLabel, 0, row_count);
-            TextArea cmdAfterField = new TextArea(entry.getCmd(GameEntry.CMD_AFTER_END));
+            CMDTextField cmdAfterField = new CMDTextField(entry.getCmd(GameEntry.CMD_AFTER_END));
             cmdAfterField.setWrapText(true);
             cmdAfterField.setId("cmd_after");
-            cmdAfterField.setPrefRowCount(6);
             cmdAfterField.textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {

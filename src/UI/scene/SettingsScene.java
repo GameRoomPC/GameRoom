@@ -30,6 +30,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import ui.control.ValidEntryCondition;
+import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ActivationKeyDialog;
 import ui.dialog.GameFoldersIgnoredSelector;
@@ -353,10 +354,9 @@ public class SettingsScene extends BaseScene {
             cmdBeforeLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_before_tooltip")));
             cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
 
-            TextArea cmdBeforeField = new TextArea(GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_BEFORE_START]);
+            CMDTextField cmdBeforeField = new CMDTextField(GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_BEFORE_START]);
             cmdBeforeField.setWrapText(true);
             cmdBeforeField.setId("cmd_before");
-            cmdBeforeField.setPrefRowCount(5);
             cmdBeforeField.textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -371,10 +371,9 @@ public class SettingsScene extends BaseScene {
             cmdAfterLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_after_tooltip")));
             cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
 
-            TextArea cmdAfterField = new TextArea(GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_AFTER_END]);
+            CMDTextField cmdAfterField = new CMDTextField(GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_AFTER_END]);
             cmdAfterField.setWrapText(true);
             cmdAfterField.setId("cmd_after");
-            cmdAfterField.setPrefRowCount(5);
             cmdAfterField.textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
