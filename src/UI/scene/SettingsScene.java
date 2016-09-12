@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import system.os.mslinks.ShellLink;
 import org.json.JSONObject;
 import system.application.MessageListener;
 import system.application.MessageTag;
@@ -42,6 +43,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.function.BooleanSupplier;
 
 import static ui.Main.*;
 
@@ -49,6 +51,7 @@ import static ui.Main.*;
  * Created by LM on 03/07/2016.
  */
 public class SettingsScene extends BaseScene {
+    private final static String GAMEROOM_LNK_NAME = "GameRoom.lnk";
     public final static String ADVANCE_MODE_LABEL_STYLE = "    -fx-text-fill: derive(-flatter-red, -20.0%);";
     private BorderPane wrappingPane;
     private HashMap<String, FlowPane> flowPaneHashMap = new HashMap<>();
@@ -78,20 +81,20 @@ public class SettingsScene extends BaseScene {
 
     private void initCenter() {
         String[] categoriesToDisplay = new String[]{SettingValue.CATEGORY_GENERAL
-                ,SettingValue.CATEGORY_ON_GAME_START
-                ,SettingValue.CATEGORY_UI
+                , SettingValue.CATEGORY_ON_GAME_START
+                , SettingValue.CATEGORY_UI
         };
 
-        for(String category : categoriesToDisplay){
+        for (String category : categoriesToDisplay) {
             FlowPane flowPane = new FlowPane();
-            flowPane.setHgap(50*GENERAL_SETTINGS.getWindowHeight()/1080);
-            flowPane.setVgap(30*GENERAL_SETTINGS.getWindowWidth()/1920);
+            flowPane.setHgap(50 * GENERAL_SETTINGS.getWindowHeight() / 1080);
+            flowPane.setVgap(30 * GENERAL_SETTINGS.getWindowWidth() / 1920);
             //tilePane.setPrefColumns(2);
             flowPane.setOrientation(Orientation.VERTICAL);
             //flowPane.setAlignment(Pos.TOP_LEFT);
             //tilePane.setTileAlignment(Pos.CENTER_LEFT);
             //tilePane.setPrefRows(8);
-            flowPaneHashMap.put(category,flowPane);
+            flowPaneHashMap.put(category, flowPane);
 
             ScrollPane scrollPane = new ScrollPane();
             scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -108,7 +111,7 @@ public class SettingsScene extends BaseScene {
             tab.setClosable(false);
             tab.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString(category)));
             tab.setContent(scrollPane);
-            tabHashMap.put(category,tab);
+            tabHashMap.put(category, tab);
 
             tabPane.getTabs().add(tab);
 
@@ -118,9 +121,43 @@ public class SettingsScene extends BaseScene {
         addPropertyLine(PredefinedSetting.LOCALE);
         addPropertyLine(PredefinedSetting.ON_GAME_LAUNCH_ACTION);
         addPropertyLine(PredefinedSetting.NO_NOTIFICATIONS);
-        addPropertyLine(PredefinedSetting.START_MINIMIZED,false);
-        addPropertyLine(PredefinedSetting.DISABLE_GAME_MAIN_THEME,true);
-        addPropertyLine(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER,true, new ChangeListener<Boolean>() {
+        addPropertyLine(PredefinedSetting.START_WITH_WINDOWS, false, new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                Node startMinimizedNode = getNode(PredefinedSetting.START_MINIMIZED.getKey());
+                if (startMinimizedNode != null && startMinimizedNode instanceof CheckBox) {
+                    boolean startMinimized = ((CheckBox) startMinimizedNode).isSelected();
+                    if (newValue != null && newValue instanceof Boolean) {
+                        startMinimizedNode.setDisable(!(Boolean) newValue);
+
+                        if ((Boolean) newValue) {
+                            try {
+                                createStartupInk(!startMinimized);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            deleteStartupLink();
+                        }
+                    }
+                }
+            }
+        });
+        addPropertyLine(PredefinedSetting.START_MINIMIZED, false, new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                if (newValue != null && newValue instanceof Boolean) {
+                    try {
+                        createStartupInk(!(Boolean) newValue);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        getNode(PredefinedSetting.START_MINIMIZED.getKey()).setDisable(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.START_WITH_WINDOWS));
+        addPropertyLine(PredefinedSetting.DISABLE_GAME_MAIN_THEME, true);
+        addPropertyLine(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER, true, new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue observable, Boolean oldValue, Boolean newValue) {
                 if (newValue) {
@@ -129,7 +166,7 @@ public class SettingsScene extends BaseScene {
                 }
             }
         });
-        addPropertyLine(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT,true, new ChangeListener<Boolean>() {
+        addPropertyLine(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT, true, new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 if (newValue) {
@@ -139,10 +176,10 @@ public class SettingsScene extends BaseScene {
                 }
             }
         });
-        addPropertyLine(PredefinedSetting.ENABLE_GAMING_POWER_MODE,false, new ChangeListener<Boolean>() {
+        addPropertyLine(PredefinedSetting.ENABLE_GAMING_POWER_MODE, false, new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Node node = searchNode(PredefinedSetting.GAMING_POWER_MODE.getKey());
+                Node node = getNode(PredefinedSetting.GAMING_POWER_MODE.getKey());
                 if (node != null) {
                     node.setDisable(!newValue);
                 }
@@ -203,7 +240,7 @@ public class SettingsScene extends BaseScene {
         /***********************SUPPORTER KEY****************************/
         //TODO pay IGDB play and set supporter key pay public, and replace by true
 
-        if(DEV_MODE) {
+        if (DEV_MODE) {
             String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
             String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
 
@@ -312,7 +349,7 @@ public class SettingsScene extends BaseScene {
         flowPaneHashMap.get(SettingValue.CATEGORY_GENERAL).getChildren().add(createLine(versionLabel, checkUpdatesButton));
 
         /***********************CMD****************************/
-        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)){
+        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)) {
             Label cmdBeforeLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_before_label") + " :");
             cmdBeforeLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_before_tooltip")));
             cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
@@ -325,10 +362,10 @@ public class SettingsScene extends BaseScene {
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                     String[] cmds = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD);
                     cmds[GameEntry.CMD_BEFORE_START] = newValue;
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.CMD,cmds);
+                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.CMD, cmds);
                 }
             });
-            flowPaneHashMap.get(SettingValue.CATEGORY_ON_GAME_START).getChildren().add(createLine(cmdBeforeLabel,cmdBeforeField));
+            flowPaneHashMap.get(SettingValue.CATEGORY_ON_GAME_START).getChildren().add(createLine(cmdBeforeLabel, cmdBeforeField));
 
             Label cmdAfterLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_after_label") + " :");
             cmdAfterLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_after_tooltip")));
@@ -342,10 +379,10 @@ public class SettingsScene extends BaseScene {
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                     String[] cmds = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD);
                     cmds[GameEntry.CMD_AFTER_END] = newValue;
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.CMD,cmds);
+                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.CMD, cmds);
                 }
             });
-            flowPaneHashMap.get(SettingValue.CATEGORY_ON_GAME_START).getChildren().add(createLine(cmdAfterLabel,cmdAfterField));
+            flowPaneHashMap.get(SettingValue.CATEGORY_ON_GAME_START).getChildren().add(createLine(cmdAfterLabel, cmdAfterField));
 
         }
 
@@ -371,7 +408,7 @@ public class SettingsScene extends BaseScene {
     }
 
     private void addPropertyLine(PredefinedSetting setting, boolean advanceSetting) {
-        addPropertyLine(setting, advanceSetting,null);
+        addPropertyLine(setting, advanceSetting, null);
     }
 
     /**
@@ -384,7 +421,7 @@ public class SettingsScene extends BaseScene {
         if (!advancedSetting || (advancedSetting && GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE))) {
             Label label = new Label(setting.getLabel() + " :");
             label.setTooltip(new Tooltip(setting.getTooltip()));
-            if ((advancedSetting && GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE))){
+            if ((advancedSetting && GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE))) {
                 label.setStyle(ADVANCE_MODE_LABEL_STYLE);
             }
 
@@ -512,9 +549,9 @@ public class SettingsScene extends BaseScene {
 
                     @Override
                     public boolean isValid() {
-                        if(setting.equals(PredefinedSetting.GAMES_FOLDER)){
+                        if (setting.equals(PredefinedSetting.GAMES_FOLDER)) {
                             String dir = GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER);
-                            if(dir.equals("")){
+                            if (dir.equals("")) {
                                 return true;
                             }
                             File gamesFolder = new File(dir);
@@ -522,7 +559,7 @@ public class SettingsScene extends BaseScene {
                                 message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_gamesFolder_exist"));
                                 return false;
                             }
-                            if(!gamesFolder.isDirectory()){
+                            if (!gamesFolder.isDirectory()) {
                                 message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_gamesFolder_is_no_folder"));
                                 return false;
                             }
@@ -544,9 +581,10 @@ public class SettingsScene extends BaseScene {
             flowPaneHashMap.get(setting.getCategory()).getChildren().add(createLine(label, node2));
         }
     }
+
     private void setLineInvalid(String property_key) {
         String style = "-fx-text-inner-color: red;\n";
-        for(FlowPane contentPane : flowPaneHashMap.values()) {
+        for (FlowPane contentPane : flowPaneHashMap.values()) {
             for (Node node : contentPane.getChildren()) {
                 if (node.getId() != null && node.getId().equals(property_key)) {
                     node.setStyle(style);
@@ -563,6 +601,7 @@ public class SettingsScene extends BaseScene {
             }
         }
     }
+
     private HBox createLine(Node nodeLeft, Node nodeRight) {
         HBox box = new HBox();
 
@@ -601,10 +640,10 @@ public class SettingsScene extends BaseScene {
         }, RESSOURCE_BUNDLE.getString("Settings")));
     }
 
-    private Node searchNode(String id) {
-        for(FlowPane contentPane : flowPaneHashMap.values()) {
+    private Node getNode(String id) {
+        for (FlowPane contentPane : flowPaneHashMap.values()) {
             Node n = searchNodeInPane(id, contentPane);
-            if(n!=null){
+            if (n != null) {
                 return n;
             }
         }
@@ -626,6 +665,35 @@ public class SettingsScene extends BaseScene {
 
         }
         return null;
+    }
+
+    private static void deleteStartupLink() {
+        File f = new File(getUserStartupFolder() + GAMEROOM_LNK_NAME);
+        f.delete();
+    }
+
+    private static String getUserStartupFolder() {
+        return System.getProperty("user.home") + "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\";
+    }
+
+    private static void createStartupInk(boolean show) throws IOException {
+        try {
+            String currentDir = Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+            if (currentDir.startsWith("/")) {
+                currentDir = currentDir.substring(1);
+            }
+            currentDir.replace("/", "\\");
+
+            String showString = show ? "1" : "0";
+            ShellLink sl = ShellLink.createLink(currentDir)
+                    .setWorkingDir(".")
+                    .setCMDArgs("-show " + showString);
+
+            sl.saveTo(getUserStartupFolder() + GAMEROOM_LNK_NAME);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override

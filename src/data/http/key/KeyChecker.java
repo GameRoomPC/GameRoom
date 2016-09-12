@@ -16,6 +16,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.Enumeration;
 
+import static ui.Main.LOGGER;
+
 /**
  * Created by LM on 05/08/2016.
  */
@@ -53,7 +55,7 @@ public class KeyChecker {
         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
         String json = reader.readLine();
         if (DEBUGGING) {
-            Main.LOGGER.debug("deactivateKey response : " + json);
+            LOGGER.debug("deactivateKey response : " + json);
         }
         return new JSONObject(json);
     }
@@ -70,14 +72,14 @@ public class KeyChecker {
         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
         String json = reader.readLine();
         if (DEBUGGING) {
-            Main.LOGGER.debug("activateKey response : " + json);
+            LOGGER.debug("activateKey response : " + json);
         }
         return new JSONObject(json);
     }
 
     public static boolean isKeyValid(String key) {
         if (!testInet("igdb.com") && !testInet(API_URL.replace("https://", ""))) {
-            Main.LOGGER.error("KeyChecker : IGDB not joinable");
+            LOGGER.error("KeyChecker : IGDB not joinable");
             return false;
         }
         try {
@@ -93,24 +95,27 @@ public class KeyChecker {
                             found = registeredDomains.getJSONObject(i).getString(FIELD_REGISTERED_DOMAIN).contains(getMACAddress());
                         }
                         if(found){
-                            Main.LOGGER.info("KeyChecker : Supporter mode activated!");
+                            LOGGER.info("KeyChecker : Supporter mode activated!");
                         }else{
-                            Main.LOGGER.info("KeyChecker : invalid MAC Address, "+getMACAddress()/*+". Valid addresses are : "*/);
+                            LOGGER.info("KeyChecker : invalid MAC Address, "+getMACAddress()/*+". Valid addresses are : "*/);
                             /*for (int i = 0; i < registeredDomains.length() && !found; i++) {
                                 Main.LOGGER.info("\t"+registeredDomains.getJSONObject(i).getString(FIELD_REGISTERED_DOMAIN));
                             }*/
                         }
                         return found;
                     }else {
-                        Main.LOGGER.error("KeyChecker : "+response.toString());
+                        LOGGER.error("KeyChecker : "+response.toString());
                     }
                 } else {
-                    Main.LOGGER.error("KeyChecker : "+response.toString());
+                    LOGGER.error("KeyChecker : "+response.toString());
                 }
             }else{
-                Main.LOGGER.info("KeyChecker : received null");
+                LOGGER.info("KeyChecker : received null");
             }
         } catch (Exception e) {
+            if(e.toString().contains("org.apache.http.conn.ConnectTimeoutException")){
+                LOGGER.error("[KeyChecker] gameroom.me not reachable");
+            }
             e.printStackTrace();
         }
         return false;
@@ -127,7 +132,7 @@ public class KeyChecker {
         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
         String json = reader.readLine();
         if (DEBUGGING) {
-            Main.LOGGER.debug("isKeyValid response : " + json);
+            LOGGER.debug("isKeyValid response : " + json);
         }
         return new JSONObject(json);
     }

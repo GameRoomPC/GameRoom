@@ -44,6 +44,7 @@ public class Launcher extends Application {
     private static ConsoleOutputDialog[] console = new ConsoleOutputDialog[1];
     private double widthBeforeFullScreen = -1;
     private double heightBeforeFullScreen = -1;
+    private static boolean START_MINIMIZED = false;
 
     public static void main(String[] args) throws URISyntaxException {
         setCurrentProcessExplicitAppUserModelID("GameRoom");
@@ -69,6 +70,7 @@ public class Launcher extends Application {
                 LOGGER.debug(string);
             }
         });
+
         System.out.println("\n\n==========================================NEW START============================================");
 
         Main.LOGGER.debug("Received args : ");
@@ -76,17 +78,31 @@ public class Launcher extends Application {
             Main.LOGGER.debug("\t\""+arg+"\"");
         }
 
-        if (args.length > 0) {
-            Main.DEV_MODE = args[0].equals("dev");
+        Main.DEV_MODE = getArg(ARGS_FLAG_DEV,args,false) != null;
+
+        String igdbKey = getArg(ARGS_FLAG_IGDB_KEY,args,true);
+        if(igdbKey!=null){
+            IGDBScrapper.IGDB_BASIC_KEY = igdbKey;
+            IGDBScrapper.IGDB_PRO_KEY = igdbKey;
+            IGDBScrapper.key = igdbKey;
         }
-        if(args.length > 1){
-            IGDBScrapper.IGDB_BASIC_KEY = args[1];
-            IGDBScrapper.IGDB_PRO_KEY = args[1];
-            IGDBScrapper.key = args[1];
+        String showMode = getArg(ARGS_FLAG_SHOW,args,true);
+        if(showMode!=null){
+            switch (showMode){
+                case "0" :
+                    START_MINIMIZED = true;
+                    break;
+                default:
+                    START_MINIMIZED = false;
+                    break;
+            }
         }
+
         Main.main(args);
         launch(args);
     }
+
+
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -97,11 +113,11 @@ public class Launcher extends Application {
         setFullScreen(primaryStage,GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN),true);
     }
     private void openStage(Stage primaryStage, boolean appStart){
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.START_MINIMIZED) && appStart) {
+        if (START_MINIMIZED && appStart) {
             primaryStage.setOpacity(0);
         }
         primaryStage.show();
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.START_MINIMIZED) && appStart) {
+        if (START_MINIMIZED && appStart) {
             primaryStage.hide();
             primaryStage.setOpacity(1);
         }

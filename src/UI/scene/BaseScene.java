@@ -164,15 +164,15 @@ public abstract class BaseScene extends Scene {
         this.onSceneFadedOutAction = onSceneFadedOutAction;
     }
 
-    private ImageButton createBackButton(EventHandler<MouseEvent> eventHandler){
+    private ImageButton createBackButton(EventHandler<ActionEvent> eventHandler){
         Image leftArrowImage = new Image("res/ui/arrowLeft.png", SCREEN_WIDTH /45, SCREEN_WIDTH /45,true,true);
         ImageButton backButton = new ImageButton(leftArrowImage);
-        backButton.setOnMouseClicked(eventHandler);
+        backButton.setOnAction(event -> eventHandler.handle(event));
         backButton.setId("backButton");
         addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             switch (event.getCode()){
                 case ESCAPE:
-                    backButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
+                    backButton.fireEvent(new ActionEvent());
                     break;
                 default:
                     break;
@@ -187,7 +187,7 @@ public abstract class BaseScene extends Scene {
         titleLabel.setId("titleLabel");
         return titleLabel;
     }
-    protected StackPane createTop(EventHandler<MouseEvent> backButtonEventHandler, String title){
+    protected StackPane createTop(EventHandler<ActionEvent> backButtonEventHandler, String title){
         StackPane topPane = new StackPane();
         backButton = createBackButton(backButtonEventHandler);
         Label titleLabel = createTitleLabel(title);

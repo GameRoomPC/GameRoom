@@ -33,6 +33,11 @@ public class Main {
     private final static String URL_VERSION_XML_SUFFIX = "/software/version.xml";
     private final static String URL_CHANGELOG_MD_SUFFIX = "/software/changelog.md";
 
+
+    public final static String ARGS_FLAG_DEV = "-dev";
+    public final static String ARGS_FLAG_IGDB_KEY = "-igdb_key";
+    public final static String ARGS_FLAG_SHOW = "-show";
+
     public static boolean DEV_MODE = false;
     public static boolean SUPPORTER_MODE = false;
     public static double SCREEN_WIDTH;
@@ -70,15 +75,15 @@ public class Main {
         PredefinedSetting.WINDOW_HEIGHT.setDefaultValue(new SettingValue((int)SCREEN_HEIGHT,Integer.class,PredefinedSetting.WINDOW_HEIGHT.getDefaultValue().getCategory()));
 
         LOGGER.info("Started app with resolution : " + (int) SCREEN_WIDTH + "x" + (int) SCREEN_HEIGHT);
+
         GENERAL_SETTINGS = new GeneralSettings();
-        //SUPPORTER_MODE = true;
+
         SUPPORTER_MODE = !GENERAL_SETTINGS.getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(SUPPORTER_KEY));
         LOGGER.info("Supporter mode : "+ SUPPORTER_MODE);
         RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
-
         initNetworkManager();
         //if(!DEV_MODE){
         startUpdater();
@@ -88,6 +93,31 @@ public class Main {
         GameEntry.TOADD_FOLDER.mkdirs();
         GameEntry.ENTRIES_FOLDER.mkdirs();
 
+    }
+    public static String getArg(String flag,String[] args, boolean hasOption){
+        boolean argsHere = false;
+        int index = 0;
+        if(args!=null) {
+            for (String arg : args) {
+                argsHere = argsHere || arg.compareToIgnoreCase(flag) == 0;
+                if (!argsHere) {
+                    index++;
+                } else {
+                    break;
+                }
+            }
+            if (argsHere && args.length > index + 1 && hasOption) {
+                String option = args[index + 1];
+                if (!option.startsWith("-")) {
+                    return option;
+                }
+                return null;
+            }
+            if (argsHere) {
+                return "";
+            }
+        }
+        return null;
     }
 
     public static void forceStop(Stage stage) {
