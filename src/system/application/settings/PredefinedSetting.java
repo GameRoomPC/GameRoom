@@ -24,6 +24,7 @@ public enum PredefinedSetting {
     ,ENABLE_GAMING_POWER_MODE("enableGamingPowerMode", new SettingValue(false,Boolean.class,CATEGORY_ON_GAME_START))
     , NO_NOTIFICATIONS("noNotifications", new SettingValue(false,Boolean.class, CATEGORY_UI))
     ,START_MINIMIZED("startMinimized", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
+    ,START_WITH_WINDOWS("startWithWindows", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     ,NO_MORE_ICON_TRAY_WARNING("noMoreIconTrayWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,ENABLE_XBOX_CONTROLLER_SUPPORT("enableXboxControllerSupport", new SettingValue(false,Boolean.class,CATEGORY_UI))
     ,GAMES_FOLDER("gamesFolder", new SettingValue("",String.class,CATEGORY_GENERAL))
