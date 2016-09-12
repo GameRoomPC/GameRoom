@@ -686,7 +686,7 @@ public class SettingsScene extends BaseScene {
             currentDir.replace("/", "\\");
 
             String showString = show ? "1" : "0";
-            ShellLink sl = ShellLink.createLink(currentDir + "GameRoom.exe")
+            ShellLink sl = ShellLink.createLink(currentDir)
                     .setWorkingDir(".")
                     .setCMDArgs("-show " + showString);
 

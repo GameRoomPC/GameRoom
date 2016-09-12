@@ -97,23 +97,25 @@ public class Main {
     public static String getArg(String flag,String[] args, boolean hasOption){
         boolean argsHere = false;
         int index = 0;
-        for(String arg : args){
-            argsHere = argsHere || arg.compareToIgnoreCase(flag) == 0;
-            if(!argsHere){
-                index++;
-            }else{
-                break;
+        if(args!=null) {
+            for (String arg : args) {
+                argsHere = argsHere || arg.compareToIgnoreCase(flag) == 0;
+                if (!argsHere) {
+                    index++;
+                } else {
+                    break;
+                }
             }
-        }
-        if(argsHere && args.length > index + 1 && hasOption){
-            String option = args[index+1];
-            if(!option.startsWith("-")){
-                return option;
+            if (argsHere && args.length > index + 1 && hasOption) {
+                String option = args[index + 1];
+                if (!option.startsWith("-")) {
+                    return option;
+                }
+                return null;
             }
-            return null;
-        }
-        if(argsHere){
-            return "";
+            if (argsHere) {
+                return "";
+            }
         }
         return null;
     }

@@ -44,7 +44,7 @@ public class Launcher extends Application {
     private static ConsoleOutputDialog[] console = new ConsoleOutputDialog[1];
     private double widthBeforeFullScreen = -1;
     private double heightBeforeFullScreen = -1;
-    private static boolean START_MINIMIZED = true;
+    private static boolean START_MINIMIZED = false;
 
     public static void main(String[] args) throws URISyntaxException {
         setCurrentProcessExplicitAppUserModelID("GameRoom");
@@ -290,7 +290,7 @@ public class Launcher extends Application {
             }
         });
         TRAY_ICON.setImageAutoSize(true);
-        //Platform.setImplicitExit(DEV_MODE);
+        Platform.setImplicitExit(DEV_MODE);
 
         MAIN_SCENE.getParentStage().setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
