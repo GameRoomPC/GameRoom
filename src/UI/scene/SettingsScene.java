@@ -32,10 +32,7 @@ import javafx.util.StringConverter;
 import ui.control.ValidEntryCondition;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
-import ui.dialog.ActivationKeyDialog;
-import ui.dialog.GameFoldersIgnoredSelector;
-import ui.dialog.GameRoomAlert;
-import ui.dialog.SteamIgnoredSelector;
+import ui.dialog.*;
 
 import java.awt.*;
 import java.io.File;
@@ -156,7 +153,18 @@ public class SettingsScene extends BaseScene {
             }
         });
         getNode(PredefinedSetting.START_MINIMIZED.getKey()).setDisable(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.START_WITH_WINDOWS));
-        addPropertyLine(PredefinedSetting.DISABLE_GAME_MAIN_THEME, true);
+        addPropertyLine(PredefinedSetting.DISABLE_GAME_MAIN_THEME, true, new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                if(newValue instanceof Boolean){
+                    if(!(Boolean)newValue){
+                        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
+                        alert.setContentText(Main.RESSOURCE_BUNDLE.getString("warning_youtube_player"));
+                        alert.showAndWait();
+                    }
+                }
+            }
+        });
         addPropertyLine(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER, true, new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue observable, Boolean oldValue, Boolean newValue) {

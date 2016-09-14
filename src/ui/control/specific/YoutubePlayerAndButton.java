@@ -104,13 +104,18 @@ public class YoutubePlayerAndButton {
             }
             return entry.getYoutubeSoundtrackHash();
         }  catch (Exception e) {
-            e.printStackTrace();
+            if(e.toString().contains("java.net.UnknownHostException: www.youtube.com")){
+                Main.LOGGER.error("Could not connect to youtube");
+            }else {
+                e.printStackTrace();
+            }
             try {
                 Thread.currentThread().wait(100);
             } catch (InterruptedException e1) {
                 e1.printStackTrace();
             }
             return getHash(entry);
+
         }
         }
         // JavaScript interface object
