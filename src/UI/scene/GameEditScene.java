@@ -596,25 +596,29 @@ public class GameEditScene extends BaseScene {
         row_count++;
 
         /**************************YOUTUBE*********************************************/
-        Label youtubeSoundtrackLabel = new Label(RESSOURCE_BUNDLE.getString("youtube_soundtrack_label") + " :");
-        youtubeSoundtrackLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("youtube_soundtrack_tooltip")));
-        contentPane.add(youtubeSoundtrackLabel, 0, row_count);
-        TextField youtubeSoundtrackField = new TextField(entry.getYoutubeSoundtrackHash().equals("") ? "" : YoutubeSoundtrackScrapper.toYoutubeUrl(entry.getYoutubeSoundtrackHash()));
-        youtubeSoundtrackField.setId("youtube_soundtrack");
-        youtubeSoundtrackField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if(newValue.equals("")){
-                    entry.setYoutubeSoundtrackHash("");
+        if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)){
+            Label youtubeSoundtrackLabel = new Label(RESSOURCE_BUNDLE.getString("youtube_soundtrack_label") + " :");
+            youtubeSoundtrackLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("youtube_soundtrack_tooltip")));
+            youtubeSoundtrackLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            contentPane.add(youtubeSoundtrackLabel, 0, row_count);
+            TextField youtubeSoundtrackField = new TextField(entry.getYoutubeSoundtrackHash().equals("") ? "" : YoutubeSoundtrackScrapper.toYoutubeUrl(entry.getYoutubeSoundtrackHash()));
+            youtubeSoundtrackField.setId("youtube_soundtrack");
+            youtubeSoundtrackField.textProperty().addListener(new ChangeListener<String>() {
+                @Override
+                public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                    if(newValue.equals("")){
+                        entry.setYoutubeSoundtrackHash("");
+                    }
+                    String hash = YoutubeSoundtrackScrapper.hashFromYoutubeUrl(newValue);
+                    if(hash!=null){
+                        entry.setYoutubeSoundtrackHash(hash);
+                    }
                 }
-                String hash = YoutubeSoundtrackScrapper.hashFromYoutubeUrl(newValue);
-                if(hash!=null){
-                    entry.setYoutubeSoundtrackHash(hash);
-                }
-            }
-        });
-        contentPane.add(youtubeSoundtrackField, 1, row_count);
-        row_count++;
+            });
+            contentPane.add(youtubeSoundtrackField, 1, row_count);
+            row_count++;
+        }
+
 
         /**************************CMD & ARGS*********************************************/
         if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)) {
