@@ -16,24 +16,32 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
 
+import static ui.Main.LOGGER;
+
 /**
  * Created by LM on 08/08/2016.
  */
 public class SteamLocalScrapper {
-
     public static String getSteamUserId() throws IOException {
         File vdfFile = new File(getSteamPath()+"\\config\\config.vdf");
         String returnValue=null;
         String fileString = new String(Files.readAllBytes(vdfFile.toPath()));
 
-        String prefix = "\"SteamID\"\t\t\"";
-        String suffix = "\"";
-        if(fileString.contains(prefix)){
-            int indexPrefix = fileString.indexOf(prefix)+prefix.length();
-            String temp = fileString.substring(indexPrefix);
-            temp = temp.substring(0,temp.indexOf(suffix));
-            returnValue = temp;
+        String prefix = "\"SteamID\"";
+        for(String line : fileString.split("\n")){
+            if(line.contains(prefix)){
+                int indexPrefix = line.indexOf(prefix)+prefix.length();
+                String temp = line.substring(indexPrefix);
+                temp = temp.replace(" ","").replace("\"","").trim();
+                returnValue = temp;
+            }
         }
+        if(returnValue == null){
+            LOGGER.error("Could not retrieve user's steam id, here is config.vdf : ");
+            LOGGER.error(fileString);
+        }
+
+        LOGGER.info("Retrieved user steam id : "+returnValue);
         return returnValue;
     }
     public static ArrayList<GameEntry> getSteamAppsInstalledExcludeIgnored() throws IOException {
@@ -72,20 +80,28 @@ public class SteamLocalScrapper {
         File steamAppsFolder = new File(getSteamAppsPath());
         String idPrefix = "appmanifest_";
         String idSuffix = ".acf";
-        String namePrefix = "\t\"name\"\t\t\"";
-        String nameSuffix = "\"\n\t";
+        String namePrefix = "\"name\"";
         for(File file : steamAppsFolder.listFiles()){
             String fileName = file.getName();
-            if(fileName.startsWith(idPrefix)){
+            if(fileName.contains(idPrefix)){
                 int id = Integer.parseInt(fileName.substring(idPrefix.length(),fileName.indexOf(idSuffix)));
+
                 String fileString = new String(Files.readAllBytes(file.toPath()));
-                int indexNamePrefix = fileString.indexOf(namePrefix);
-                fileString = fileString.substring(indexNamePrefix+namePrefix.length());
-                int indexNameSuffix = fileString.indexOf(nameSuffix);
-                String name = fileString.substring(0,fileString.indexOf(nameSuffix));
+                String name = "";
+                for(String line : fileString.split("\n")){
+                    if(line.contains(namePrefix)){
+                        int indexNamePrefix = line.indexOf(namePrefix);
+                        name = line.substring(indexNamePrefix+namePrefix.length());
+                        name = name.replace(" ","").replace("\"","").trim();
+                    }
+                }
 
                 steamApps.add(new SteamPreEntry(name,id));
             }
+        }
+        LOGGER.debug("SteamScrapper : for file "+steamAppsFolder.getPath()+", got files");
+        for(File file : steamAppsFolder.listFiles()) {
+            LOGGER.debug("\t"+file.getName());
         }
         return steamApps;
     }
@@ -94,15 +110,22 @@ public class SteamLocalScrapper {
         String returnValue=null;
         String fileString = new String(Files.readAllBytes(vdfFile.toPath()));
 
-        String prefix = "\t\"1\"\t\t";
-        if(fileString.contains(prefix)){
-            int index = fileString.indexOf(prefix)+prefix.length();
-            returnValue = fileString.substring(index)
-                    .replace("\"","")
-                    .replace("\n","")
-                    .replace("}","")
-                    .replace("\\\\","\\")
-                    +"\\steamapps";
+        String prefix = "\"1\"";
+        for(String line : fileString.split("\n")){
+            if(line.contains(prefix)){
+                int index = line.indexOf(prefix)+prefix.length();
+                returnValue = line.substring(index)
+                        .replace("\"","")
+                        .replace("\n","")
+                        .replace("}","")
+                        .replace("\\\\","\\")
+                        .trim()
+                        +"\\steamapps";
+            }
+        }
+        if(returnValue == null){
+            LOGGER.error("Could not retrieve user's steam apps path, here is libraryfolders.vdf : ");
+            LOGGER.error(fileString);
         }
         return returnValue;
     }
@@ -115,6 +138,11 @@ public class SteamLocalScrapper {
                 int index = s.indexOf(prefix)+prefix.length();
                 return s.substring(index);
             }
+        }
+            LOGGER.error("Could not retrieve user's steam path, here is the reg query result : ");
+        for(String s : output){
+            LOGGER.error("\t"+s);
+
         }
         return null;
     }
