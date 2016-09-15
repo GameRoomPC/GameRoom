@@ -164,6 +164,11 @@ public abstract class SelectListPane<T> extends ScrollPane {
                         setStyle("");
                         parentList.removeSelectedValue((T) getValue());
                     }
+                    if(newValue && !selected){
+                        setSelected(true);
+                    }else if(!newValue && selected){
+                        setSelected(false);
+                    }
                 }
             });
         }
@@ -182,7 +187,9 @@ public abstract class SelectListPane<T> extends ScrollPane {
         }
 
         public void setSelected(boolean selected){
-            if(!this.selected){
+            boolean oldSelection = this.selected;
+            this.selected= selected;
+            if(!oldSelection){
                 radioButton.setSelected(true);
                 parentList.setSelectedId(getItemId());
                 parentList.onItemSelected(this);
@@ -192,8 +199,6 @@ public abstract class SelectListPane<T> extends ScrollPane {
                     radioButton.setSelected(false);
                 }
             }
-            this.selected= selected;
-
         }
 
         public boolean isSelected() {
