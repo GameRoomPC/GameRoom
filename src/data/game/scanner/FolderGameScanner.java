@@ -18,7 +18,7 @@ import static ui.Main.GENERAL_SETTINGS;
  */
 public class FolderGameScanner extends GameScanner {
     public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library","SteamLibrary","SteamVR"};
-    private final static String[] VALID_EXECUTABLE_EXTENSION = new String[]{".exe", ".ink", ".jar"};
+    private final static String[] VALID_EXECUTABLE_EXTENSION = new String[]{".exe", ".lnk", ".jar"};
 
 
     public FolderGameScanner(GameWatcher parentLooker) {
@@ -75,7 +75,7 @@ public class FolderGameScanner extends GameScanner {
         return entriesFound;
     }
 
-    private boolean isPotentiallyAGame(File file) {
+    public static boolean isPotentiallyAGame(File file) {
         for (String excludedName : EXCLUDED_FILE_NAMES) {
             if (file.getName().equals(excludedName)) {
                 return false;
@@ -92,7 +92,7 @@ public class FolderGameScanner extends GameScanner {
         }
     }
 
-    private boolean fileHasValidExtension(File file) {
+    private final static boolean fileHasValidExtension(File file) {
         boolean hasAValidExtension = false;
         for (String validExtension : VALID_EXECUTABLE_EXTENSION) {
             hasAValidExtension = hasAValidExtension || file.getAbsolutePath().endsWith(validExtension.toLowerCase());

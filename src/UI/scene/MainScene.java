@@ -4,6 +4,7 @@ import data.ImageUtils;
 import data.game.GameWatcher;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
+import data.game.scanner.FolderGameScanner;
 import data.game.scanner.OnGameFoundHandler;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -860,25 +861,20 @@ public class MainScene extends BaseScene {
     private ExitAction batchAddFolderEntries(ArrayList<File> files, int fileCount) {
         if (fileCount < files.size()) {
             File currentFile = files.get(fileCount);
-            try {
-                WindowsShortcut shortcut = new WindowsShortcut(currentFile);
-                currentFile = new File(shortcut.getRealFilename());
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ParseException e) {
-                e.printStackTrace();
+            if(FolderGameScanner.isPotentiallyAGame(currentFile)){
+                GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentFile);
+                gameEditScene.disableBackButton();
+                return new MultiAddExitAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        ExitAction action = batchAddFolderEntries(files, fileCount + 1);
+                        gameEditScene.setOnExitAction(action); //create interface runnable to access property GameEditScene
+                        gameEditScene.addCancelButton(action);
+                        fadeTransitionTo(gameEditScene, getParentStage());
+                    }
+                }, gameEditScene);
             }
-            GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentFile);
-            gameEditScene.disableBackButton();
-            return new MultiAddExitAction(new Runnable() {
-                @Override
-                public void run() {
-                    ExitAction action = batchAddFolderEntries(files, fileCount + 1);
-                    gameEditScene.setOnExitAction(action); //create interface runnable to access property GameEditScene
-                    gameEditScene.addCancelButton(action);
-                    fadeTransitionTo(gameEditScene, getParentStage());
-                }
-            }, gameEditScene);
+            return batchAddFolderEntries(files,fileCount+1);
         } else {
             return new ClassicExitAction(this, getParentStage(), MAIN_SCENE);
         }

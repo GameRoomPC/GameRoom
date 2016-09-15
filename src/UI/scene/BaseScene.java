@@ -136,6 +136,7 @@ public abstract class BaseScene extends Scene {
                                 new KeyValue(scene2.getWrappingPane().opacityProperty(), 1, Interpolator.LINEAR),
                                 new KeyValue(scene2.getBackgroundView().opacityProperty(), backgroundViewToo ? BACKGROUND_IMAGE_MAX_OPACITY : BACKGROUND_IMAGE_MAX_OPACITY, Interpolator.LINEAR)
                         ));
+                stage.getScene().getRoot().setMouseTransparent(false);
                 fadeInTimeline.setCycleCount(1);
                 fadeInTimeline.setAutoReverse(false);
                 fadeInTimeline.play();

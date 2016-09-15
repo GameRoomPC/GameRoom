@@ -16,6 +16,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.controlsfx.control.CheckComboBox;
 import org.json.JSONException;
 import system.application.settings.PredefinedSetting;
+import system.os.WindowsShortcut;
 import ui.Main;
 import ui.control.ValidEntryCondition;
 import ui.control.button.ImageButton;
@@ -96,8 +97,26 @@ public class GameEditScene extends BaseScene {
     public GameEditScene(BaseScene previousScene, File chosenFile) {
         super(new StackPane(), previousScene.getParentStage());
         mode = MODE_ADD;
-        entry = new GameEntry(chosenFile.getName());
-        entry.setPath(chosenFile.getAbsolutePath());
+
+        String name = chosenFile.getName();
+        if(!getExtension(name).equals("")) {
+            int extensionIndex = name.lastIndexOf(getExtension(name));
+            if (extensionIndex != -1) {
+                name = name.substring(0, extensionIndex - 1);
+            }
+        }
+        String path = chosenFile.getAbsolutePath();
+        try {
+            WindowsShortcut shortcut = new WindowsShortcut(chosenFile);
+            chosenFile = new File(shortcut.getRealFilename());
+            path = chosenFile.getAbsolutePath();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        entry = new GameEntry(name);
+        entry.setPath(path);
         init(previousScene, null);
     }
 
@@ -919,6 +938,7 @@ public class GameEditScene extends BaseScene {
         return getExtension(file.getAbsolutePath());
     }
 
+    //does not include the .
     private static String getExtension(String filename) {
         if (filename == null) {
             return null;

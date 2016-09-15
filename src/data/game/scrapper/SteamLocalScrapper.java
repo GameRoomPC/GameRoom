@@ -99,10 +99,6 @@ public class SteamLocalScrapper {
                 steamApps.add(new SteamPreEntry(name,id));
             }
         }
-        LOGGER.debug("SteamScrapper : for file "+steamAppsFolder.getPath()+", got files");
-        for(File file : steamAppsFolder.listFiles()) {
-            LOGGER.debug("\t"+file.getName());
-        }
         return steamApps;
     }
     private static String getSteamAppsPath() throws IOException {
