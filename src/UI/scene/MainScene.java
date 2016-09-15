@@ -13,6 +13,8 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.geometry.Bounds;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
@@ -23,6 +25,7 @@ import system.application.settings.PredefinedSetting;
 import system.os.WindowsShortcut;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
+import ui.control.textfield.PathTextField;
 import ui.dialog.ChoiceDialog;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -38,6 +41,7 @@ import javafx.scene.layout.*;
 import javafx.stage.*;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
+import ui.dialog.GameRoomCustomAlert;
 import ui.pane.gamestilepane.*;
 import ui.scene.exitaction.ClassicExitAction;
 import ui.scene.exitaction.ExitAction;
@@ -104,7 +108,12 @@ public class MainScene extends BaseScene {
     public void initAll() {
         initCenter();
         initTop();
+        displayWelcomeMessage();
         loadGames();
+        loadPreviousUIValues();
+    }
+
+    private void loadPreviousUIValues() {
         Main.runAndWait(() -> {
             if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)){
                 lastPlayedTilePane.fold();
@@ -121,8 +130,71 @@ public class MainScene extends BaseScene {
             }else{
                 toAddTilePane.unfold();
             }
-
+            double scrollBarVValue = GENERAL_SETTINGS.getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
+            //TODO fetch the scrollbar position and reset it
+            Set<Node> nodes = scrollPane.lookupAll(".scroll-bar:vertical");
+            for (final Node node : nodes) {
+                if (node instanceof ScrollBar) {
+                    ScrollBar sb = (ScrollBar) node;
+                    if (sb.getOrientation() == Orientation.VERTICAL) {
+                        sb.setValue(scrollBarVValue);
+                    }
+                }
+            }
         });
+    }
+    public void saveScrollBarVValue(){
+        Main.runAndWait(() -> {
+            double scrollBarVValue = 0;
+            Set<Node> nodes = scrollPane.lookupAll(".scroll-bar:vertical");
+            for (final Node node : nodes) {
+                if (node instanceof ScrollBar) {
+                    ScrollBar sb = (ScrollBar) node;
+                    if (sb.getOrientation() == Orientation.VERTICAL) {
+                        scrollBarVValue = sb.getValue();
+                    }
+                }
+            }
+            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SCROLLBAR_VVALUE,scrollBarVValue);
+        });
+    }
+
+    private void displayWelcomeMessage() {
+        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)){
+            Platform.runLater(() -> {
+                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISPLAY_WELCOME_MESSAGE, false);
+                GameRoomAlert welcomeAlert = new GameRoomAlert(Alert.AlertType.INFORMATION,RESSOURCE_BUNDLE.getString("Welcome_message"));
+                welcomeAlert.setOnHidden(event -> {
+                    GameRoomCustomAlert alert = new GameRoomCustomAlert();
+                    Label text = new Label(RESSOURCE_BUNDLE.getString("welcome_input_folder"));
+                    text.setWrapText(true);
+                    text.setPadding(new Insets(20 * Main.SCREEN_HEIGHT / 1080
+                            , 20 * Main.SCREEN_WIDTH / 1920
+                            , 20 * Main.SCREEN_HEIGHT / 1080
+                            , 20 * Main.SCREEN_WIDTH / 1920));
+                    PathTextField field = new PathTextField(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER),this,PathTextField.FILE_CHOOSER_FOLDER,"");
+                    alert.setBottom(field);
+                    alert.setCenter(text);
+                    alert.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
+                    field.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
+                            , 20 * Main.SCREEN_WIDTH / 1920
+                            , 20 * Main.SCREEN_HEIGHT / 1080
+                            , 20 * Main.SCREEN_WIDTH / 1920));
+
+                    alert.getDialogPane().getButtonTypes().addAll(new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE)
+                            ,new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"),ButtonBar.ButtonData.CANCEL_CLOSE));
+                    Optional<ButtonType> result = alert.showAndWait();
+                    if (result.get() == ButtonType.OK) {
+                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.GAMES_FOLDER,field.getTextField().getText());
+                    } else {
+                        // ... user chose CANCEL or closed the dialog
+                    }
+                });
+                welcomeAlert.show();
+
+
+            });
+        }
     }
 
     @Override

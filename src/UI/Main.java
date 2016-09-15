@@ -124,6 +124,7 @@ public class Main {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
+                MAIN_SCENE.saveScrollBarVValue();
                 KEEP_THREADS_RUNNING = false;
                 Platform.setImplicitExit(true);
                 NETWORK_MANAGER.disconnect();

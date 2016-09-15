@@ -91,8 +91,8 @@ public class AddIgnoreGameButton extends GameButton {
 
         StackPane stackPane = new StackPane();
         stackPane.getChildren().addAll(addButton, ignoreButton);
-        StackPane.setAlignment(addButton, Pos.CENTER);
         StackPane.setAlignment(ignoreButton, Pos.BOTTOM_RIGHT);
+        StackPane.setAlignment(addButton, Pos.CENTER);
 
         coverPane.getChildren().add(stackPane);
 

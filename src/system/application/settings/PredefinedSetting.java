@@ -39,6 +39,8 @@ public enum PredefinedSetting {
     , FOLDED_ROW_RECENTLY_ADDED("foldedRowRecentlyAdded", new SettingValue(false,Boolean.class,CATEGORY_UI))
     , FOLDED_TOADD_ROW("foldedToAddRow", new SettingValue(false,Boolean.class,CATEGORY_UI))
     ,CMD("cmd", new SettingValue(new String[]{"",""},String[].class,CATEGORY_ON_GAME_START))
+    , DISPLAY_WELCOME_MESSAGE("displayWelcomeMessage", new SettingValue(true,Boolean.class,CATEGORY_NONE))
+    , SCROLLBAR_VVALUE("scrollbarVValue", new SettingValue(0.0,Double.class,CATEGORY_NONE))
     ;
 
 

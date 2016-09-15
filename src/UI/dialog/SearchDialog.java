@@ -60,9 +60,13 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
 
     private SearchList searchListPane;
 
-    private HashMap<String,Boolean> doNotUpdateFieldsMap;
+    private HashMap<String, Boolean> doNotUpdateFieldsMap;
 
-    public SearchDialog(HashMap<String,Boolean> doNotUpdateFieldsMap) {
+    public SearchDialog(HashMap<String, Boolean> doNotUpdateFieldsMap) {
+        this(doNotUpdateFieldsMap, null);
+    }
+
+    public SearchDialog(HashMap<String, Boolean> doNotUpdateFieldsMap, String gameName) {
         super();
         this.doNotUpdateFieldsMap = doNotUpdateFieldsMap;
         getDialogPane().getStyleClass().add("search-dialog");
@@ -75,11 +79,15 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         searchField = new TextField();
         searchField.setPromptText(Main.RESSOURCE_BUNDLE.getString("example_games"));
         searchField.setPrefColumnCount(20);
+        if (gameName != null) {
+            searchField.setText(gameName);
+        }
+
         showingProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                if(newValue)
-                searchField.requestFocus();
+                if (newValue)
+                    searchField.requestFocus();
             }
         });
         Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
@@ -92,7 +100,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         topBox.setSpacing(15 * Main.SCREEN_WIDTH / 1920);
         topBox.getChildren().addAll(searchField, searchButton);
 
-        searchListPane = new SearchList(Main.SCREEN_HEIGHT / 2.5,topBox.widthProperty());
+        searchListPane = new SearchList(Main.SCREEN_HEIGHT / 2.5, topBox.widthProperty());
 
         searchButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -107,14 +115,14 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 try {
                     JSONArray resultArray = IGDBScrapper.searchGame(searchField.getText());
                     ArrayList<Integer> ids = new ArrayList<Integer>();
-                    if(resultArray == null){
+                    if (resultArray == null) {
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
-                                statusLabel.setText(Main.RESSOURCE_BUNDLE.getString("no_result")+"/"+Main.RESSOURCE_BUNDLE.getString("no_internet"));
+                                statusLabel.setText(Main.RESSOURCE_BUNDLE.getString("no_result") + "/" + Main.RESSOURCE_BUNDLE.getString("no_internet"));
                             }
                         });
-                    }else {
+                    } else {
                         for (Object obj : resultArray) {
                             JSONObject jsob = ((JSONObject) obj);
                             ids.add(jsob.getInt("id"));
@@ -170,7 +178,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         searchListPane.setPadding(new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
         try {
-            remapEnterKey(getDialogPane(),searchButton,searchField);
+            remapEnterKey(getDialogPane(), searchButton, searchField);
         } catch (AWTException e) {
             e.printStackTrace();
         }
@@ -182,7 +190,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         centerPane.getChildren().addAll(searchListPane, statusLabel);
 
         ObservableList<String> fields = FXCollections.observableArrayList();
-        for(String key : doNotUpdateFieldsMap.keySet()){
+        for (String key : doNotUpdateFieldsMap.keySet()) {
             fields.add(key);
         }
         fields.sort(new Comparator<String>() {
@@ -205,29 +213,29 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             }
         });
         for (String key : doNotUpdateFieldsMap.keySet()) {
-            if(doNotUpdateFieldsMap.get(key))
+            if (doNotUpdateFieldsMap.get(key))
                 fieldsComboBox.getCheckModel().check(key);
         }
-        fieldsComboBox.setPrefWidth(250*Main.SCREEN_WIDTH/1920);
+        fieldsComboBox.setPrefWidth(250 * Main.SCREEN_WIDTH / 1920);
         fieldsComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
             @Override
             public void onChanged(Change<? extends String> c) {
-                while (c.next()){
-                    for(String s : c.getAddedSubList()){
-                        SearchDialog.this.doNotUpdateFieldsMap.put(s,true);
+                while (c.next()) {
+                    for (String s : c.getAddedSubList()) {
+                        SearchDialog.this.doNotUpdateFieldsMap.put(s, true);
                     }
-                    for(String s : c.getRemoved()){
-                        SearchDialog.this.doNotUpdateFieldsMap.put(s,false);
+                    for (String s : c.getRemoved()) {
+                        SearchDialog.this.doNotUpdateFieldsMap.put(s, false);
                     }
                 }
             }
         });
-        Label doNotUpdateLabel = new Label(Main.RESSOURCE_BUNDLE.getString("do_not_update")+":");
+        Label doNotUpdateLabel = new Label(Main.RESSOURCE_BUNDLE.getString("do_not_update") + ":");
         doNotUpdateLabel.setFocusTraversable(false);
         HBox notUpdateHbox = new HBox();
         notUpdateHbox.setAlignment(Pos.CENTER);
-        notUpdateHbox.setSpacing(10*Main.SCREEN_WIDTH/1920);
-        notUpdateHbox.getChildren().addAll(doNotUpdateLabel,fieldsComboBox);
+        notUpdateHbox.setSpacing(10 * Main.SCREEN_WIDTH / 1920);
+        notUpdateHbox.getChildren().addAll(doNotUpdateLabel, fieldsComboBox);
 
         mainPane.setTop(topBox);
         mainPane.setCenter(centerPane);
@@ -239,20 +247,23 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         ButtonType cancelButtonType = new ButtonType(ui.Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType nextButtonType = new ButtonType(Main.RESSOURCE_BUNDLE.getString("next"), ButtonBar.ButtonData.OK_DONE);
 
-        getDialogPane().getButtonTypes().addAll(cancelButtonType,nextButtonType);
-        Button cancelButton = (Button) getDialogPane().lookupButton( cancelButtonType );
-        Button nextButton = (Button) getDialogPane().lookupButton( nextButtonType );
+        getDialogPane().getButtonTypes().addAll(cancelButtonType, nextButtonType);
+        Button cancelButton = (Button) getDialogPane().lookupButton(cancelButtonType);
+        Button nextButton = (Button) getDialogPane().lookupButton(nextButtonType);
         cancelButton.setDefaultButton(false);
         cancelButton.setFocusTraversable(false);
         nextButton.setDefaultButton(false);
         nextButton.setFocusTraversable(false);
 
         setOnHiding(event -> {
-            if(searchListPane.getSelectedValue()!=null) {
+            if (searchListPane.getSelectedValue() != null) {
                 selectedEntry = IGDBScrapper.getEntry(searchListPane.getSelectedValue());
                 String coverHash = IGDBScrapper.getEntry(searchListPane.getSelectedValue()).getIgdb_imageHash(0);
             }
         });
+        if(gameName!=null){
+            searchButton.fireEvent(new ActionEvent());
+        }
     }
 
     public GameEntry getSelectedEntry() {
@@ -287,10 +298,10 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                     je.printStackTrace();
                 }
             }
-            SearchItem row = new SearchItem(value,this,value.getString("name")
+            SearchItem row = new SearchItem(value, this, value.getString("name")
                     , IGDBScrapper.getReleaseDate(value.getInt("id"), gamesDataArray)
                     , value.getInt("id")
-                    , coverHash,prefRowWidth);
+                    , coverHash, prefRowWidth);
             row.prefWidthProperty().bind(prefRowWidth);
             return row;
         }
@@ -300,10 +311,10 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         pane.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
-                if(!event.isShiftDown()) {
+                if (!event.isShiftDown()) {
                     switch (event.getCode()) {
                         case ENTER:
-                            if(searchField.isFocused() && !searchField.getText().equals("")){
+                            if (searchField.isFocused() && !searchField.getText().equals("")) {
                                 searchButton.fireEvent(new ActionEvent());
                             }
                             break;
@@ -323,10 +334,11 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         private String coverHash;
         private String date;
         private int id;
+
         private SearchItem(Object value, SelectListPane parentList, String gameName, Date date, int id, String coverHash, ReadOnlyDoubleProperty prefRowWidth) {
-            super(value,parentList);
+            super(value, parentList);
             this.gameName = gameName;
-            this.date = date!=null ? new SimpleDateFormat("yyyy").format(date) : null;
+            this.date = date != null ? new SimpleDateFormat("yyyy").format(date) : null;
             this.id = id;
             this.coverHash = coverHash;
             this.prefRowWidth = prefRowWidth;
@@ -349,7 +361,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                         }
                         boolean finalKeepRatio = keepRatio;
                         Platform.runLater(() -> {
-                            ImageUtils.transitionToImage(new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, finalKeepRatio, true),coverView);
+                            ImageUtils.transitionToImage(new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, finalKeepRatio, true), coverView);
                         });
                     }
                 });
@@ -357,7 +369,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             coverPane.getChildren().add(new ImageView(new Image("res/defaultImages/cover.jpg", COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, false, true)));
             coverPane.getChildren().add(coverView);
             GridPane.setMargin(coverPane, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
-            add(coverPane,columnCount++,0);
+            add(coverPane, columnCount++, 0);
 
             Label nameLabel = new Label(gameName);
             nameLabel.setPrefWidth(Double.MAX_VALUE);
@@ -374,8 +386,9 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             VBox box = new VBox();
             box.prefWidthProperty().bind(prefRowWidth);
             box.getChildren().addAll(nameLabel, yearLabel);
-            add(box,columnCount++,0);
-            GridPane.setMargin(box, new Insets(20 * Main.SCREEN_HEIGHT / 1080, 30 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 30 * Main.SCREEN_WIDTH / 1920));;
+            add(box, columnCount++, 0);
+            GridPane.setMargin(box, new Insets(20 * Main.SCREEN_HEIGHT / 1080, 30 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 30 * Main.SCREEN_WIDTH / 1920));
+            ;
         }
     }
 }

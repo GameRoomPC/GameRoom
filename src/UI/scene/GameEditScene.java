@@ -207,7 +207,7 @@ public class GameEditScene extends BaseScene {
         igdbButton.setOnAction(new EventHandler<ActionEvent>() {
                                    @Override
                                    public void handle(ActionEvent event) {
-                                       SearchDialog dialog = new SearchDialog(createDoNotUpdateFielsMap());
+                                       SearchDialog dialog = new SearchDialog(createDoNotUpdateFielsMap(), entry.getName());
                                        Optional<ButtonType> result = dialog.showAndWait();
                                        result.ifPresent(val -> {
                                            if (!val.getButtonData().isCancelButton()) {
@@ -522,7 +522,7 @@ public class GameEditScene extends BaseScene {
                                                          }
                                                      }
                                                  } else {
-                                                     SearchDialog dialog = new SearchDialog(createDoNotUpdateFielsMap());
+                                                     SearchDialog dialog = new SearchDialog(createDoNotUpdateFielsMap(), entry.getName());
                                                      Optional<ButtonType> result = dialog.showAndWait();
                                                      result.ifPresent(val -> {
                                                          if (!val.getButtonData().isCancelButton()) {
