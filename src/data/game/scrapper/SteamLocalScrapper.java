@@ -102,6 +102,12 @@ public class SteamLocalScrapper {
         return steamApps;
     }
     private static String getSteamAppsPath() throws IOException {
+        File defaultPath = new File("C:\\Program Files (x86)\\Steam\\steamapps");
+        File defaultCommonPath = new File("C:\\Program Files (x86)\\Steam\\steamapps\\common");
+        if(defaultCommonPath.exists() && defaultPath.exists()){
+            return defaultPath.getAbsolutePath();
+        }
+
         File vdfFile = new File(getSteamPath()+"\\steamapps\\libraryfolders.vdf");
         String returnValue=null;
         String fileString = new String(Files.readAllBytes(vdfFile.toPath()));
