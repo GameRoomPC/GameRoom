@@ -92,7 +92,7 @@ public class SteamLocalScrapper {
                     if(line.contains(namePrefix)){
                         int indexNamePrefix = line.indexOf(namePrefix);
                         name = line.substring(indexNamePrefix+namePrefix.length());
-                        name = name.replace(" ","").replace("\"","").trim();
+                        name = name.replace("\"","").trim();
                     }
                 }
 
