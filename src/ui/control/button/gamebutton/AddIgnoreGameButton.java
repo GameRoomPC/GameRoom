@@ -36,6 +36,8 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.MAIN_SCENE;
+import static ui.Main.SCREEN_WIDTH;
+import static ui.scene.BaseScene.BACKGROUND_IMAGE_LOAD_RATIO;
 
 /**
  * Created by LM on 17/08/2016.
@@ -120,8 +122,8 @@ public class AddIgnoreGameButton extends GameButton {
                             @Override
                             protected Object call() throws Exception {
                                 Image screenshotImage = entry.getImage(1,
-                                        Main.GENERAL_SETTINGS.getWindowWidth(),
-                                        Main.GENERAL_SETTINGS.getWindowHeight()
+                                        Main.GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO,
+                                        Main.GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO
                                         , false, true);
 
                                 Main.runAndWait(() -> {
@@ -160,12 +162,12 @@ public class AddIgnoreGameButton extends GameButton {
 
     @Override
     protected int getCoverHeight() {
-        return (int) (GENERAL_SETTINGS.getWindowHeight() * 2 / 3);
+        return (int) (SCREEN_WIDTH / 14 * COVER_HEIGHT_WIDTH_RATIO);
     }
 
     @Override
     protected int getCoverWidth() {
-        return (int) (GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * COVER_HEIGHT_WIDTH_RATIO));
+        return (int) (SCREEN_WIDTH / 14);
     }
 
     @Override

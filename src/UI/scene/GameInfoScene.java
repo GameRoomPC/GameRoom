@@ -101,9 +101,20 @@ public class GameInfoScene extends BaseScene {
         if (entry.getImagePath(1) != null) {
             //Main.LOGGER.debug("Screenshot available : "+entry.getImagePath(1));
             Image screenshotImage = entry.getImage(1,
-                    Main.GENERAL_SETTINGS.getWindowWidth(),
-                    Main.GENERAL_SETTINGS.getWindowHeight()
+                    Main.GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO,
+                    Main.GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO
                     , false, true);
+
+            double widthScale = 1;
+            double heightScale = 1;
+            if(screenshotImage.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
+                widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/screenshotImage.getWidth();
+            }
+            if(screenshotImage.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
+                heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/screenshotImage.getHeight();
+            }
+            backgroundView.setScaleX(widthScale);
+            backgroundView.setScaleY(heightScale);
             backgroundView.setImage(screenshotImage);
             GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
 

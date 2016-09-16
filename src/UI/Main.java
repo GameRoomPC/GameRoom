@@ -166,7 +166,19 @@ public class Main {
             String urlPrefix = httpsOnline? URLTools.HTTPS_PREFIX + HTTPS_HOST : URLTools.HTTP_PREFIX +HTTP_HOST;
             Main.LOGGER.info("Using URL "+urlPrefix+" for updater.");
 
-            ProcessBuilder builder = new ProcessBuilder("java"
+            String java = "java";
+            File currentFolder = new File(currentDir);
+            for(File f : currentFolder.listFiles()){
+                if(f.isDirectory() && f.getName().startsWith("jre")){
+                    File javaExe = new File(f.getAbsolutePath()+"\\bin\\java.exe");
+                    if(javaExe.exists()){
+                        java = javaExe.getAbsolutePath();
+                        LOGGER.info("Detected bundled "+f.getName()+", using it to start updater");
+                    }
+                }
+            }
+
+            ProcessBuilder builder = new ProcessBuilder(java
                     ,"-jar"
                     ,currentUpdater.getAbsolutePath()
                     , getVersion()

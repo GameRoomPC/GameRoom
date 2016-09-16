@@ -26,6 +26,7 @@ import ui.Main;
 import ui.control.button.DualImageButton;
 import ui.control.button.OnActionHandler;
 import ui.control.button.gamebutton.GameButton;
+import ui.control.button.gamebutton.TileGameButton;
 import ui.scene.MainScene;
 
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import java.util.UUID;
 
 import static ui.Main.SCREEN_HEIGHT;
 import static ui.Main.SCREEN_WIDTH;
+import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
 import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
 
 /**
@@ -309,6 +311,11 @@ public class RowCoverTilePane extends CoverTilePane {
 
     public void addOnFoldedChangeListener(ChangeListener<Boolean> listener) {
         onFoldedListeners.add(listener);
+    }
+
+    @Override
+    protected GameButton createGameButton(GameEntry newEntry) {
+        return new TileGameButton(newEntry, tilePane, parentScene,SCREEN_WIDTH / 14,SCREEN_WIDTH / 14 * COVER_HEIGHT_WIDTH_RATIO);
     }
 
 }

@@ -44,6 +44,7 @@ import static ui.Main.*;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static ui.scene.BaseScene.BACKGROUND_IMAGE_LOAD_RATIO;
 
 /**
  * Created by LM on 12/07/2016.
@@ -407,8 +408,8 @@ public abstract class GameButton extends BorderPane {
                             @Override
                             protected Object call() throws Exception {
                                 Image screenshotImage = entry.getImage(1,
-                                        Main.GENERAL_SETTINGS.getWindowWidth(),
-                                        Main.GENERAL_SETTINGS.getWindowHeight()
+                                        Main.GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO,
+                                        Main.GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO
                                         , false, true);
 
                                 Main.runAndWait(() -> {

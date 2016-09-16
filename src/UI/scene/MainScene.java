@@ -1000,6 +1000,17 @@ public class MainScene extends BaseScene {
                 if (img != null) {
                     if (backgroundView.getImage() == null || !backgroundView.getImage().equals(img)) {
                         //TODO fix the blinking issue where an identical image is being set twice. The above compareason does not work.
+
+                        double widthScale = 1;
+                        double heightScale = 1;
+                        if(img.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
+                            widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/img.getWidth();
+                        }
+                        if(img.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
+                            heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/img.getHeight();
+                        }
+                        backgroundView.setScaleX(widthScale);
+                        backgroundView.setScaleY(heightScale);
                         ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
                         if (maskView.getOpacity() != 1) {
                             Timeline fadeInTimeline = new Timeline(
