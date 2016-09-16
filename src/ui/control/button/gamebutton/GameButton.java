@@ -546,6 +546,7 @@ public abstract class GameButton extends BorderPane {
         coverPane.getChildren().add(notInstalledImage);
         StackPane.setAlignment(notInstalledImage, Pos.TOP_RIGHT);
         setNotInstalledEffect();
+        setCache(true);
     }
 
     protected abstract int getCoverHeight();

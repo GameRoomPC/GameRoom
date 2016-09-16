@@ -169,7 +169,7 @@ public class Main {
             Main.LOGGER.info("Using URL "+urlPrefix+" for updater.");
 
             String java = "java";
-            File currentFolder = new File(currentDir);
+            /*File currentFolder = new File(currentDir);
             for(File f : currentFolder.listFiles()){
                 if(f.isDirectory() && f.getName().startsWith("jre")){
                     File javaExe = new File(f.getAbsolutePath()+"\\bin\\java.exe");
@@ -178,7 +178,7 @@ public class Main {
                         LOGGER.info("Detected bundled "+f.getName()+", using it to start updater");
                     }
                 }
-            }
+            }*/
 
             ProcessBuilder builder = new ProcessBuilder(java
                     ,"-jar"

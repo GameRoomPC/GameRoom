@@ -1012,8 +1012,12 @@ public class MainScene extends BaseScene {
                         if(img.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
                             heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/img.getHeight();
                         }
-                        backgroundView.setScaleX(widthScale);
-                        backgroundView.setScaleY(heightScale);
+                        if(backgroundView.getScaleX()!=widthScale){
+                            backgroundView.setScaleX(widthScale);
+                        }
+                        if(backgroundView.getScaleY()!=heightScale){
+                            backgroundView.setScaleY(heightScale);
+                        }
                         ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
                         if (maskView.getOpacity() != 1) {
                             Timeline fadeInTimeline = new Timeline(
