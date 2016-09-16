@@ -84,7 +84,7 @@ public class GameStarter {
             @Override
             protected Object call() throws Exception {
                 if (GENERAL_SETTINGS.getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.CLOSE)) {
-                    Main.forceStop(MAIN_SCENE.getParentStage());
+                    Main.forceStop(MAIN_SCENE.getParentStage(),"launchAction = OnLaunchAction.CLOSE");
                 } else if (GENERAL_SETTINGS.getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.HIDE)) {
                     Main.LOGGER.debug("Hiding");
                     Platform.runLater(new Runnable() {

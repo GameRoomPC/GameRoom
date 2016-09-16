@@ -545,7 +545,7 @@ public class MainScene extends BaseScene {
 
             tilesPaneWrapper.getChildren().removeAll(groupRowList);
             groupRowList.clear();
-            groupRowList = GroupsFactory.createGroupsByTheme(tilePane, this);
+            groupRowList = GroupsFactory.createGroupsByTheme(lastPlayedTilePane, this);
             tilesPaneWrapper.getChildren().addAll(groupRowList);
 
             scrollPane.setVvalue(scrollPane.getVmin());
@@ -561,7 +561,7 @@ public class MainScene extends BaseScene {
 
             tilesPaneWrapper.getChildren().removeAll(groupRowList);
             groupRowList.clear();
-            groupRowList = GroupsFactory.createGroupsByGenre(tilePane, this);
+            groupRowList = GroupsFactory.createGroupsByGenre(lastPlayedTilePane, this);
             tilesPaneWrapper.getChildren().addAll(groupRowList);
 
             scrollPane.setVvalue(scrollPane.getVmin());
@@ -577,7 +577,7 @@ public class MainScene extends BaseScene {
 
             tilesPaneWrapper.getChildren().removeAll(groupRowList);
             groupRowList.clear();
-            groupRowList = GroupsFactory.createGroupsBySerie(tilePane, this);
+            groupRowList = GroupsFactory.createGroupsBySerie(lastPlayedTilePane, this);
             tilesPaneWrapper.getChildren().addAll(groupRowList);
 
             scrollPane.setVvalue(scrollPane.getVmin());
@@ -753,6 +753,7 @@ public class MainScene extends BaseScene {
     private void home() {
         tilePane.sortByName();
         tilePane.setForcedHidden(false);
+        tilePane.show();
         if (tilePane.isSearching()) {
             searchField.clear();
         }
@@ -768,15 +769,16 @@ public class MainScene extends BaseScene {
 
     public void cancelSearch() {
         if (showTilesPaneAgainAfterCancelSearch) {
-            lastPlayedTilePane.show();
-            recentlyAddedTilePane.show();
-            toAddTilePane.show();
+            lastPlayedTilePane.setForcedHidden(false);
+            recentlyAddedTilePane.setForcedHidden(false);
+            toAddTilePane.setForcedHidden(false);
         }
         tilePane.setTitle(Main.RESSOURCE_BUNDLE.getString("all_games"));
         tilePane.cancelSearchText();
         if (groupRowList.size() > 0) {
             for (GroupRowTilePane tilePane : groupRowList) {
                 tilePane.show();
+                tilePane.cancelSearchText();
             }
             tilePane.hide();
         }
@@ -789,10 +791,11 @@ public class MainScene extends BaseScene {
         }
         for (GroupRowTilePane tilePane : groupRowList) {
             tilePane.hide();
+            tilePane.searchText(text);
         }
-        lastPlayedTilePane.hide();
-        recentlyAddedTilePane.hide();
-        toAddTilePane.hide();
+        lastPlayedTilePane.setForcedHidden(true);
+        recentlyAddedTilePane.setForcedHidden(true);
+        toAddTilePane.setForcedHidden(true);
         int found = tilePane.searchText(text);
         tilePane.setTitle(found + " " + Main.RESSOURCE_BUNDLE.getString("results_found_for") + " \"" + text + "\"");
     }

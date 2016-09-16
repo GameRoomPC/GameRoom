@@ -9,6 +9,7 @@ import system.application.MessageTag;
 import system.application.settings.PredefinedSetting;
 import system.application.settings.SettingValue;
 import system.device.XboxController;
+import system.os.Terminal;
 import ui.scene.MainScene;
 import system.application.settings.GeneralSettings;
 import javafx.application.Platform;
@@ -120,7 +121,8 @@ public class Main {
         return null;
     }
 
-    public static void forceStop(Stage stage) {
+    public static void forceStop(Stage stage, String reason) {
+        LOGGER.info("Stopping GameRoom because : "+reason);
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
@@ -205,7 +207,7 @@ public class Main {
             @Override
             public void onMessageReceived(MessageTag tag, String payload) {
                 if (tag.equals(MessageTag.CLOSE_APP)) {
-                    forceStop(MAIN_SCENE.getParentStage());
+                    forceStop(MAIN_SCENE.getParentStage(),"Network manager, received close app message");
                 }
             }
         });

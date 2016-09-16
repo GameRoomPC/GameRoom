@@ -364,7 +364,7 @@ public class Launcher extends Application {
         exitItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                forceStop(MAIN_SCENE.getParentStage());
+                forceStop(MAIN_SCENE.getParentStage(), "tray icon exitItem called");
             }
         });
 
