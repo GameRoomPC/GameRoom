@@ -69,11 +69,12 @@ public class SettingsScene extends BaseScene {
     }
 
     private void initBottom() {
-        Label igdbLabel = new Label(RESSOURCE_BUNDLE.getString("credit_igdb"));
+        //Removed as there is no need to display it if paying IGDB
+        /*Label igdbLabel = new Label(RESSOURCE_BUNDLE.getString("credit_igdb"));
         wrappingPane.setBottom(igdbLabel);
 
         BorderPane.setAlignment(igdbLabel, Pos.CENTER_RIGHT);
-        BorderPane.setMargin(igdbLabel, new Insets(15, 15, 15, 15));
+        BorderPane.setMargin(igdbLabel, new Insets(15, 15, 15, 15));*/
     }
 
     private void initCenter() {

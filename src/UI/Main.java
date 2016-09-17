@@ -41,6 +41,9 @@ public class Main {
 
     public static boolean DEV_MODE = false;
     public static boolean SUPPORTER_MODE = false;
+    public static double TRUE_SCREEN_WIDTH;
+    public static double TRUE_SCREEN_HEIGHT;
+
     public static double SCREEN_WIDTH;
     public static double SCREEN_HEIGHT;
 
@@ -70,12 +73,17 @@ public class Main {
 
     public static void main(String[] args) {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        Main.SCREEN_WIDTH = (int) screenSize.getWidth();
-        Main.SCREEN_HEIGHT = (int) screenSize.getHeight();
-        PredefinedSetting.WINDOW_WIDTH.setDefaultValue(new SettingValue((int)SCREEN_WIDTH,Integer.class,PredefinedSetting.WINDOW_WIDTH.getDefaultValue().getCategory()));
-        PredefinedSetting.WINDOW_HEIGHT.setDefaultValue(new SettingValue((int)SCREEN_HEIGHT,Integer.class,PredefinedSetting.WINDOW_HEIGHT.getDefaultValue().getCategory()));
 
-        LOGGER.info("Started app with resolution : " + (int) SCREEN_WIDTH + "x" + (int) SCREEN_HEIGHT);
+        Main.TRUE_SCREEN_WIDTH = (int) screenSize.getWidth();
+        Main.TRUE_SCREEN_HEIGHT = (int) screenSize.getHeight();
+        Main.SCREEN_WIDTH = TRUE_SCREEN_WIDTH <= 1920? TRUE_SCREEN_WIDTH : 1920;
+        Main.SCREEN_HEIGHT = TRUE_SCREEN_HEIGHT<= 1080? TRUE_SCREEN_HEIGHT : 1080;
+
+
+        PredefinedSetting.WINDOW_WIDTH.setDefaultValue(new SettingValue((int)TRUE_SCREEN_WIDTH,Integer.class,PredefinedSetting.WINDOW_WIDTH.getDefaultValue().getCategory()));
+        PredefinedSetting.WINDOW_HEIGHT.setDefaultValue(new SettingValue((int)TRUE_SCREEN_HEIGHT,Integer.class,PredefinedSetting.WINDOW_HEIGHT.getDefaultValue().getCategory()));
+
+        LOGGER.info("Started app with screen true resolution : " + (int) TRUE_SCREEN_WIDTH + "x" + (int) TRUE_SCREEN_HEIGHT);
 
         GENERAL_SETTINGS = new GeneralSettings();
 

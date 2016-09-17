@@ -71,6 +71,8 @@ public class MainScene extends BaseScene {
     public final static double MAX_TILE_ZOOM = 0.675;
     public final static double MIN_TILE_ZOOM = 0.25;
 
+    private static boolean GARBAGE_COLLECTED_RECENTLY = false;
+
     private VBox tilesPaneWrapper = new VBox();
     private ScrollPane scrollPane;
     private BorderPane wrappingPane;
@@ -112,6 +114,41 @@ public class MainScene extends BaseScene {
         displayWelcomeMessage();
         loadGames();
         loadPreviousUIValues();
+        configureAutomaticCaching();
+    }
+    private void configureAutomaticCaching(){
+        //to empty ram usage
+        getParentStage().focusedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                String action = newValue ? "Activating" : "Deactivating";
+                LOGGER.debug(action+" caching of GameButtons");
+                tilePane.setCacheGameButtons(newValue);
+                recentlyAddedTilePane.setCacheGameButtons(newValue);
+                toAddTilePane.setCacheGameButtons(newValue);
+                lastPlayedTilePane.setCacheGameButtons(newValue);
+
+                for(GroupRowTilePane g : groupRowList){
+                    g.setCacheGameButtons(newValue);
+                }
+                /*if(false && getParentStage().getScene() instanceof MainScene){
+                    int i = 0;
+                    while(GARBAGE_COLLECTED_RECENTLY){
+                        try {
+                            Thread.sleep(1000);
+                            i++;
+                            GARBAGE_COLLECTED_RECENTLY = i >= 10;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if(!GARBAGE_COLLECTED_RECENTLY){
+                        System.gc ();
+                        System.runFinalization ();
+                    }
+                }*/
+            }
+        });
     }
 
     private void loadPreviousUIValues() {

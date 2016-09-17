@@ -22,6 +22,8 @@ import static ui.Main.LOGGER;
  * Created by LM on 08/08/2016.
  */
 public class SteamLocalScrapper {
+    private static boolean STEAM_ID_ALREADY_DISPLAYED = false;
+
     public static String getSteamUserId() throws IOException {
         File vdfFile = new File(getSteamPath()+"\\config\\config.vdf");
         String returnValue=null;
@@ -40,8 +42,10 @@ public class SteamLocalScrapper {
             LOGGER.error("Could not retrieve user's steam id, here is config.vdf : ");
             LOGGER.error(fileString);
         }
-
-        LOGGER.info("Retrieved user steam id : "+returnValue);
+        if(!STEAM_ID_ALREADY_DISPLAYED) {
+            LOGGER.info("Retrieved user steam id : " + returnValue);
+            STEAM_ID_ALREADY_DISPLAYED = true;
+        }
         return returnValue;
     }
     public static ArrayList<GameEntry> getSteamAppsInstalledExcludeIgnored() throws IOException {

@@ -435,6 +435,9 @@ public abstract class GamesTilePane extends BorderPane{
             boolean show = button.getEntry().getName().toLowerCase().contains(text.toLowerCase());
             setGameButtonVisible(button,show);
             if(show){
+                if(num == 0){
+                    //TODO implement here so that button is highlighted and if enter pressed this is launched etc for other keys
+                }
                 num++;
             }
         }
@@ -474,5 +477,11 @@ public abstract class GamesTilePane extends BorderPane{
 
     public Label getTitle() {
         return titleLabel;
+    }
+
+    public void setCacheGameButtons(boolean cache){
+        for (GameButton b : getGameButtons()){
+            b.setCache(cache);
+        }
     }
 }

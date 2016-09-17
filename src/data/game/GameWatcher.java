@@ -29,7 +29,7 @@ import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
  * Created by LM on 17/08/2016.
  */
 public class GameWatcher {
-    private final static int SCAN_DELAY_MINUTES = 5;
+    private final static int SCAN_DELAY_MINUTES = 8;
     protected OnGameFoundHandler onGameFoundHandler;
 
     private ArrayList<GameEntry> entriesToAdd = new ArrayList<>();
