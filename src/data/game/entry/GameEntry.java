@@ -78,6 +78,7 @@ public class GameEntry {
     private int battlenet_id = -1;
 
     private boolean toAdd = false;
+    private boolean beingScrapped;
 
     public GameEntry(String name) {
         uuid = UUID.randomUUID();
@@ -791,5 +792,13 @@ public class GameEntry {
 
     public void setArgs(String args) {
         this.args = args;
+    }
+
+    public boolean isBeingScrapped() {
+        return beingScrapped;
+    }
+
+    public void setBeingScrapped(boolean beingScrapped) {
+        this.beingScrapped = beingScrapped;
     }
 }

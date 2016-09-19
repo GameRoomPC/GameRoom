@@ -114,7 +114,7 @@ public class GameEditScene extends BaseScene {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ParseException e) {
-            e.printStackTrace();
+            //not a shortcut :)
         }
         entry = new GameEntry(name);
         entry.setPath(path);
@@ -1139,7 +1139,7 @@ public class GameEditScene extends BaseScene {
                     alert.setContentText(RESSOURCE_BUNDLE.getString("ignore_changes?"));
 
                     Optional<ButtonType> result = alert.showAndWait();
-                    if (result.get() == ButtonType.OK) {
+                    if (result.isPresent() && result.get() == ButtonType.OK) {
                         switch (mode) {
                             case MODE_ADD:
                                 break;

@@ -3,7 +3,6 @@ package data.game.scanner;
 import data.game.GameWatcher;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
-import javafx.concurrent.Task;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 
@@ -23,7 +22,6 @@ public class FolderGameScanner extends GameScanner {
 
     public FolderGameScanner(GameWatcher parentLooker) {
         super(parentLooker);
-        isLocalScanner = true;
     }
 
     @Override

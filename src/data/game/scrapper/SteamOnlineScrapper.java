@@ -93,6 +93,34 @@ public class SteamOnlineScrapper {
         return entries;
     }
 
+    public static GameEntry getScrappedEntryForSteamId(int steamId, ArrayList<GameEntry> installedSteamApps) throws ConnectTimeoutException,UnirestException {
+        JSONObject gameInfoJson = getInfoForGame(steamId);
+        if (gameInfoJson != null) {
+            GameEntry entry = new GameEntry(gameInfoJson.getString("name"));
+            entry.setDescription(Jsoup.parse(gameInfoJson.getString("about_the_game")).text());
+            try {
+                entry.setReleaseDate(STEAM_DATE_FORMAT.parse(gameInfoJson.getJSONObject("release_date").getString("date")));
+            } catch (ParseException e) {
+                Main.LOGGER.error("Invalid release date format");
+            } catch (NumberFormatException e) {
+                Main.LOGGER.error("Invalid release date format");
+            }
+            entry.setSteam_id(steamId);
+            if (installedSteamApps != null) {
+                boolean installed = false;
+                for (GameEntry installedApp : installedSteamApps) {
+                    installed = entry.getSteam_id() == installedApp.getSteam_id();
+                    if (installed) {
+                        break;
+                    }
+                }
+                entry.setNotInstalled(!installed);
+            }
+            return entry;
+        }
+        return null;
+    }
+
     public static GameEntry getEntryForSteamId(int steamId, ArrayList<SteamPreEntry> installedSteamApps) throws ConnectTimeoutException,UnirestException {
         JSONObject gameInfoJson = getInfoForGame(steamId);
         if (gameInfoJson != null) {
@@ -121,7 +149,7 @@ public class SteamOnlineScrapper {
         return null;
     }
 
-    private static JSONArray getGamesOwned(String steam_profile_id) throws ConnectTimeoutException, UnirestException {
+    protected static JSONArray getGamesOwned(String steam_profile_id) throws ConnectTimeoutException, UnirestException {
         try {
             HttpResponse<String> response = Unirest.get("http://steamcommunity.com/profiles/" + steam_profile_id + "/games/?tab=all&xml=1")
                     .header("Accept", "application/json")
@@ -142,7 +170,7 @@ public class SteamOnlineScrapper {
         return null;
     }
 
-    private static JSONObject getInfoForGame(long steam_id) throws ConnectTimeoutException {
+    protected static JSONObject getInfoForGame(long steam_id) throws ConnectTimeoutException {
         String json = null;
         try {
             HttpResponse<String> response = Unirest.get("http://store.steampowered.com/api/appdetails?appids=" + steam_id)

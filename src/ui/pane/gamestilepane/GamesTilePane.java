@@ -173,6 +173,11 @@ public abstract class GamesTilePane extends BorderPane{
             if (((GameButton) n).getEntry().getUuid().equals(entry.getUuid())) {
                 return i;
             }
+            int steamId1 = ((GameButton) n).getEntry().getSteam_id();
+            int steamId2 = entry.getSteam_id();
+            if (steamId1 == steamId2 && steamId1!=-1) {
+                return i;
+            }
             i++;
         }
         return -1;

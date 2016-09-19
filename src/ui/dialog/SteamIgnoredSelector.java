@@ -2,6 +2,7 @@ package ui.dialog;
 
 import data.ImageUtils;
 import data.game.scrapper.OnDLDoneHandler;
+import data.game.scrapper.SteamLocalScrapper;
 import data.game.scrapper.SteamOnlineScrapper;
 import data.game.scrapper.SteamPreEntry;
 import data.http.SimpleImageInfo;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import static ui.Main.GENERAL_SETTINGS;
+import static ui.Main.RESSOURCE_BUNDLE;
 
 /**
  * Created by LM on 09/08/2016.
@@ -68,7 +70,11 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
             Task<ArrayList<SteamPreEntry>> loadOwnedGames = new Task() {
                 @Override
                 protected Object call() throws Exception {
-                    return SteamOnlineScrapper.getOwnedSteamGamesPreEntry();
+                    ArrayList<SteamPreEntry> preEntries = new ArrayList<>();
+                    for(SteamPreEntry e : GENERAL_SETTINGS.getSteamAppsIgnored()){
+                        preEntries.add(e);
+                    }
+                    return preEntries;
                 }
             };
             loadOwnedGames.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
@@ -77,6 +83,14 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
                     Platform.runLater(() -> {
                         statusLabel.setText(null);
                         list.addItems(loadOwnedGames.getValue());
+                    });
+                }
+            });
+            loadOwnedGames.setOnFailed(new EventHandler<WorkerStateEvent>() {
+                @Override
+                public void handle(WorkerStateEvent event) {
+                    Platform.runLater(() -> {
+                        statusLabel.setText(RESSOURCE_BUNDLE.getString("no_internet")+" ?");
                     });
                 }
             });

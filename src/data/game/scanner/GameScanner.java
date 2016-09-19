@@ -16,7 +16,6 @@ public abstract class GameScanner {
     private volatile boolean scanDone = false;
     protected ArrayList<GameEntry> foundGames = new ArrayList<>();
     protected GameWatcher parentLooker;
-    protected boolean isLocalScanner = true;
 
     public GameScanner(GameWatcher parentLooker){
         this.parentLooker = parentLooker;
@@ -55,7 +54,4 @@ public abstract class GameScanner {
         });
     }
 
-    public boolean isLocalScanner() {
-        return isLocalScanner;
-    }
 }

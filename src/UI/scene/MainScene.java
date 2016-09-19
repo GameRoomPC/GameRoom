@@ -121,8 +121,8 @@ public class MainScene extends BaseScene {
         getParentStage().focusedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                String action = newValue ? "Activating" : "Deactivating";
-                LOGGER.debug(action+" caching of GameButtons");
+                //String action = newValue ? "Activating" : "Deactivating";
+                //LOGGER.debug(action+" caching of GameButtons");
                 tilePane.setCacheGameButtons(newValue);
                 recentlyAddedTilePane.setCacheGameButtons(newValue);
                 toAddTilePane.setCacheGameButtons(newValue);

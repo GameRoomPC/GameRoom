@@ -8,7 +8,6 @@ import data.game.scanner.*;
 import data.game.scrapper.*;
 import data.http.key.KeyChecker;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import org.json.JSONArray;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
@@ -34,35 +33,38 @@ public class GameWatcher {
 
     private ArrayList<GameEntry> entriesToAdd = new ArrayList<>();
 
-    private ArrayList<GameScanner> gameScanners = new ArrayList<>();
+    private ArrayList<GameScanner> localGameScanners = new ArrayList<>();
+    private ArrayList<GameScanner> onlineGameScanners = new ArrayList<>();
+    private int originalGameFoundNumber = entriesToAdd.size();
+
 
     public GameWatcher(OnGameFoundHandler onGameFoundHandler) {
         this.onGameFoundHandler = onGameFoundHandler;
-        gameScanners.add(new OtherLaunchersScanner(this) {
+        localGameScanners.add(new OtherLaunchersScanner(this) {
             @Override
             public ArrayList<GameEntry> getEntriesInstalled() {
                 return InstalledGameScrapper.getGOGGames();
             }
         });
-        gameScanners.add(new OtherLaunchersScanner(this) {
+        localGameScanners.add(new OtherLaunchersScanner(this) {
             @Override
             public ArrayList<GameEntry> getEntriesInstalled() {
                 return InstalledGameScrapper.getOriginGames();
             }
         });
-        gameScanners.add(new OtherLaunchersScanner(this) {
+        localGameScanners.add(new OtherLaunchersScanner(this) {
             @Override
             public ArrayList<GameEntry> getEntriesInstalled() {
                 return InstalledGameScrapper.getUplayGames();
             }
         });
-        gameScanners.add(new OtherLaunchersScanner(this) {
+        localGameScanners.add(new OtherLaunchersScanner(this) {
             @Override
             public ArrayList<GameEntry> getEntriesInstalled() {
                 return InstalledGameScrapper.getBattleNetGames();
             }
         });
-        gameScanners.add(new OtherLaunchersScanner(this) {
+        localGameScanners.add(new OtherLaunchersScanner(this) {
             @Override
             public ArrayList<GameEntry> getEntriesInstalled() {
                 try {
@@ -73,10 +75,8 @@ public class GameWatcher {
                 return new ArrayList<GameEntry>();
             }
         });
-        gameScanners.add(new FolderGameScanner(this));
-        gameScanners.add(new SteamOnlineGameScanner(this));
-
-
+        localGameScanners.add(new FolderGameScanner(this));
+        onlineGameScanners.add(new SteamOnlineGameScanner(this));
     }
 
     public void startService() {
@@ -87,8 +87,10 @@ public class GameWatcher {
                 while (Main.KEEP_THREADS_RUNNING) {
                     validateKey();
                     scanNewGamesRoutine();
-                    tryScrapToAddEntries();
                     scanSteamGamesTime();
+                    tryScrapToAddEntries();
+                    scanNewOnlineGamesRoutine();
+                    tryScrapToAddEntries();
 
                     try {
                         Thread.sleep(SCAN_DELAY_MINUTES * 60 * 100);
@@ -156,8 +158,9 @@ public class GameWatcher {
         ArrayList<GameEntry> toScrapEntries = new ArrayList<>();
         synchronized (entriesToAdd){
             for (GameEntry entry : entriesToAdd) {
-                if (entry.isWaitingToBeScrapped()) {
+                if (entry.isWaitingToBeScrapped() && !entry.isBeingScrapped()) {
                     try {
+                        entry.setBeingScrapped(true);
                         JSONArray search_results = IGDBScrapper.searchGame(entry.getName());
                         searchIGDBIDs.add(search_results.getJSONObject(0).getInt("id"));
                         toScrapEntries.add(entry);
@@ -226,6 +229,7 @@ public class GameWatcher {
                                                         toScrapEntries.get(finalI).setImagePath(1, outputfile);
                                                     }
                                                     toScrapEntries.get(finalI).setWaitingToBeScrapped(false);
+                                                    toScrapEntries.get(finalI).setBeingScrapped(false);
                                                     Main.runAndWait(() -> {
                                                         Main.MAIN_SCENE.updateGame(toScrapEntries.get(finalI));
                                                     });
@@ -264,29 +268,17 @@ public class GameWatcher {
         }
     }
 
-    private void scanNewGamesRoutine() {
-        final int originalGameFoundNumber = entriesToAdd.size();
-
-        for (GameScanner scanner : gameScanners) {
+    private void scanNewOnlineGamesRoutine(){
+        for (GameScanner scanner : onlineGameScanners) {
             scanner.startScanning();
         }
         //now we wait for the scanners to have all finished
         boolean allScannersDone = true;
-        boolean allLocalScannersDone;
         while (!allScannersDone) {
-            allLocalScannersDone = true;
             allScannersDone = true;
 
-            for (GameScanner scanner : gameScanners) {
+            for (GameScanner scanner : onlineGameScanners) {
                 allScannersDone = allScannersDone && scanner.isScanDone();
-                if (scanner.isLocalScanner()) {
-                    allLocalScannersDone = allLocalScannersDone && scanner.isScanDone();
-                }
-            }
-            if (allLocalScannersDone) {
-                tryScrapToAddEntries();
-                //TODO fix this not called
-                Main.LOGGER.debug("All local scanners done, trying to scrap now");
             }
             try {
                 Thread.sleep(2 * 100);
@@ -298,6 +290,27 @@ public class GameWatcher {
         if (entriesToAdd.size() > originalGameFoundNumber) {
             Main.LOGGER.info("GameWatcher : found " + (entriesToAdd.size() - originalGameFoundNumber) + " new games!");
             onGameFoundHandler.onAllGamesFound();
+        }
+    }
+    private void scanNewGamesRoutine() {
+        originalGameFoundNumber = entriesToAdd.size();
+
+        for (GameScanner scanner : localGameScanners) {
+            scanner.startScanning();
+        }
+        //now we wait for the scanners to have all finished
+        boolean allScannersDone = true;
+        while (!allScannersDone) {
+            allScannersDone = true;
+
+            for (GameScanner scanner : localGameScanners) {
+                allScannersDone = allScannersDone && scanner.isScanDone();
+            }
+            try {
+                Thread.sleep(2 * 100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
