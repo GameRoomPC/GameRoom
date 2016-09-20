@@ -87,10 +87,10 @@ public class GameWatcher {
                 while (Main.KEEP_THREADS_RUNNING) {
                     validateKey();
                     scanNewGamesRoutine();
-                    scanSteamGamesTime();
                     tryScrapToAddEntries();
                     scanNewOnlineGamesRoutine();
                     tryScrapToAddEntries();
+                    scanSteamGamesTime();
 
                     try {
                         Thread.sleep(SCAN_DELAY_MINUTES * 60 * 100);

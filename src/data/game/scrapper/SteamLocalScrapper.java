@@ -86,6 +86,10 @@ public class SteamLocalScrapper {
 
     public static ArrayList<SteamPreEntry> getSteamAppsInstalledPreEntries() throws IOException {
         ArrayList<SteamPreEntry> steamApps = new ArrayList<>();
+        String steamAppsPath = getSteamAppsPath();
+        if(steamAppsPath == null){
+            return steamApps;
+        }
         File steamAppsFolder = new File(getSteamAppsPath());
         String idPrefix = "appmanifest_";
         String idSuffix = ".acf";
@@ -143,6 +147,7 @@ public class SteamLocalScrapper {
             }
         }
         if (returnValue == null) {
+            LOGGER.error("Steam's path is : "+ getSteamPath());
             LOGGER.error("Could not retrieve user's steam apps path, here is libraryfolders.vdf : ");
             LOGGER.error(fileString);
         }
