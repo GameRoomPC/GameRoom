@@ -1,8 +1,58 @@
 <?xml version="1.0"?>
 <project name="GameRoom.exe">
-<target name="JAR_to_EXE">
-    <exec executable="C:/Program Files (x86)/Launch4j/launch4jc.exe">
-        <arg value="D:/Google Drive/Projects/GameRoom/production/build/l4j - Gameroom.xml"/>
+<target name="Jar to exe">
+    <echo>Scraping MANIFEST.MF</echo>
+    <loadfile property="implementation.version" srcFile="src/META-INF/MANIFEST.MF">
+        <filterchain>
+            <!-- following filter tokenize input file and return only
+                 the lines that match the pattern. Matched string is
+                 replaced by an empty string to get only the value of the
+                 manifest property.
+            -->
+            <tokenfilter>
+                <containsregex pattern="Implementation-Version:[ \t]*" replace="" flags="i"/>
+            </tokenfilter>
+        </filterchain>
+    </loadfile>
+    <!-- now 'implementation.version' contains the rest of the line that was matching the regex -->
+    <echo>Implementation version is ${implementation.version}</echo>
+    <exec executable="D:/Google Drive/Projects/GameRoom/production/update_version.bat"
+        dir="D:/Google Drive/Projects/GameRoom/production/">
+        <arg value="${implementation.version}"/>
     </exec>
-</target>
+
+    <exec executable="C:/Program Files (x86)/Launch4j/launch4jc.exe">
+        <arg value="D:/Google Drive/Projects/GameRoom/production/config-files/l4j - Gameroom.xml"/>
+    </exec>
+    <echo>Packed app in .exe</echo>
+    <!-- <input message="Pack for release?" addproperty="pack-for-release" validargs="Yes,No" />
+    <condition property="pack.release">
+        <equals arg1="${pack-for-release}" arg2="Yes" />
+    </condition>-->
+    <echo>Done!</echo>
+    </target>
+
+
+    <target name="Pack for Release">
+        <loadfile property="implementation.version" srcFile="src/META-INF/MANIFEST.MF">
+            <filterchain>
+                <!-- following filter tokenize input file and return only
+                     the lines that match the pattern. Matched string is
+                     replaced by an empty string to get only the value of the
+                     manifest property.
+                -->
+                <tokenfilter>
+                    <containsregex pattern="Implementation-Version:[ \t]*" replace="" flags="i"/>
+                </tokenfilter>
+            </filterchain>
+        </loadfile>
+        <input message="Include updater?" addproperty="include.updater" validargs="Yes,No" />
+
+        <exec executable="D:/Google Drive/Projects/GameRoom/production/build_for_release.bat"
+              dir="D:/Google Drive/Projects/GameRoom/production/">
+            <arg value="${implementation.version}"/>
+            <arg value="${include.updater}"/>
+        </exec>
+        <echo>Done!</echo>
+    </target>
 </project>
