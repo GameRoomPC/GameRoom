@@ -16,6 +16,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.TilePane;
@@ -118,19 +119,29 @@ public abstract class GamesTilePane extends BorderPane {
     }
 
     private void initQuickSearch() {
-        setOnKeyTyped(new EventHandler<KeyEvent>() {
+        setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
                 if(quickSearchEnabled) {
                     if (!event.isShiftDown()) {
                         if (event.getCode().isLetterKey()
                                 || event.getCode().isDigitKey()) {
-                            String s = event.getCharacter();
-                            LOGGER.debug("Typed : "+s);
+                            String s = event.getCode().getName();
+                            //TODO implement wait for other events to collect letters
+                            LOGGER.debug("Event type : "+event.getEventType()+"Typed : "+s);
+                            tilesList.sort(new Comparator<GameButton>() {
+                                @Override
+                                public int compare(GameButton o1, GameButton o2) {
+                                    return o1.getEntry().getName().toLowerCase()
+                                            .compareTo(o2.getEntry().getName().toLowerCase());
+                                }
+                            });
                             for (GameButton b : tilesList){
+
                                 String name = b.getEntry().getName().toLowerCase();
                                 if(name.startsWith(s.toLowerCase())){
                                     b.requestFocus();
+                                    break;
                                 }
                             }
                         }

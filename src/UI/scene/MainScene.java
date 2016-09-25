@@ -1005,9 +1005,9 @@ public class MainScene extends BaseScene {
                             javafx.event.Event.fireEvent(event.getTarget(), newEvent);
                             break;
                         default:
-                            if(event.getEventType().equals(KeyEvent.KEY_TYPED)) {
+                            /*if(event.getEventType().equals(KeyEvent.KEY_PRESSED)) {
                                 tilePane.getOnKeyTyped().handle(event);
-                            }
+                            }*/
                             break;
                     }
                 }
