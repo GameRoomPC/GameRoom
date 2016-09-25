@@ -261,7 +261,9 @@ public class GameEntry {
                 e.printStackTrace();
             }
             if(addedDate == null){
+                setSavedLocaly(true);
                 setAddedDate(new Date());
+                setSavedLocaly(false);
             }
         }
         if (prop.getProperty("lastPlayedDate") != null) {

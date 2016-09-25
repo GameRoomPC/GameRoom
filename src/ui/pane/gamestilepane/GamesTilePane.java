@@ -1,5 +1,6 @@
 package ui.pane.gamestilepane;
 
+import com.sun.media.jfxmedia.logging.Logger;
 import data.game.entry.GameEntry;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -15,6 +16,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
@@ -23,13 +25,16 @@ import ui.control.button.gamebutton.GameButton;
 import ui.scene.MainScene;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import static ui.Main.LOGGER;
 import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
 
 /**
  * Created by LM on 13/08/2016.
  */
-public abstract class GamesTilePane extends BorderPane{
+public abstract class GamesTilePane extends BorderPane {
     private final static int SORT_MODE_NAME = 0;
     private final static int SORT_MODE_RATING = 1;
     private final static int SORT_MODE_PLAY_TIME = 2;
@@ -48,7 +53,17 @@ public abstract class GamesTilePane extends BorderPane{
 
     protected boolean automaticSort = true;
 
-    public GamesTilePane(MainScene parentScene){
+    protected boolean quickSearchEnabled = false;
+
+    public boolean isQuickSearchEnabled() {
+        return quickSearchEnabled;
+    }
+
+    public void setQuickSearchEnabled(boolean quickSearchEnabled) {
+        this.quickSearchEnabled = quickSearchEnabled;
+    }
+
+    public GamesTilePane(MainScene parentScene) {
         super();
         this.tilePane = new TilePane();
         this.titleLabel = new Label();
@@ -69,8 +84,8 @@ public abstract class GamesTilePane extends BorderPane{
         managedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                if (newValue){
-                    if(forcedHidden){
+                if (newValue) {
+                    if (forcedHidden) {
                         hide(false);
                     }
                 }
@@ -79,8 +94,8 @@ public abstract class GamesTilePane extends BorderPane{
         visibleProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                if (newValue){
-                    if(forcedHidden){
+                if (newValue) {
+                    if (forcedHidden) {
                         hide(false);
                     }
                 }
@@ -90,19 +105,46 @@ public abstract class GamesTilePane extends BorderPane{
             @Override
             public void onChanged(Change<? extends Node> c) {
                 boolean hide = checkIfHide();
-                if(hide){
+                if (hide) {
                     hide(false);
-                }else{
+                } else {
                     show(false);
                 }
             }
         });
         hide(false); //
+        initQuickSearch();
+
     }
-    private boolean checkIfHide(){
+
+    private void initQuickSearch() {
+        setOnKeyTyped(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                if(quickSearchEnabled) {
+                    if (!event.isShiftDown()) {
+                        if (event.getCode().isLetterKey()
+                                || event.getCode().isDigitKey()) {
+                            String s = event.getCharacter();
+                            LOGGER.debug("Typed : "+s);
+                            for (GameButton b : tilesList){
+                                String name = b.getEntry().getName().toLowerCase();
+                                if(name.startsWith(s.toLowerCase())){
+                                    b.requestFocus();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    }
+
+    private boolean checkIfHide() {
         boolean hide = true;
-        if(tilePane.getChildren().size() > 0){
-            for(Node n : tilePane.getChildren()){
+        if (tilePane.getChildren().size() > 0) {
+            for (Node n : tilePane.getChildren()) {
                 hide = hide && !n.isVisible();
             }
         }
@@ -111,28 +153,30 @@ public abstract class GamesTilePane extends BorderPane{
 
     public abstract TilePane getTilePane();
 
-    protected final void addTile(GameButton button){
+    protected final void addTile(GameButton button) {
         addTileToTilePane(button);
         tilesList.add(button);
     }
 
-    protected final void removeTile(GameButton button){
+    protected final void removeTile(GameButton button) {
         removeTileFromTilePane(button);
         tilesList.remove(button);
     }
 
-    public final void removeGame(GameEntry entry){
+    public final void removeGame(GameEntry entry) {
         int index = indexOfTile(entry);
-        if(index!=-1){
-           removeTile(tilesList.get(index));
+        if (index != -1) {
+            removeTile(tilesList.get(index));
         }
-        if(automaticSort)
-        sort();
+        if (automaticSort)
+            sort();
+        updateTitleGameCount();
     }
+
     public abstract boolean isValidToAdd(GameEntry entry);
 
-    public final void addGame(GameEntry newEntry){
-        if(indexOfTile(newEntry) == -1 && isValidToAdd(newEntry)) {
+    public final void addGame(GameEntry newEntry) {
+        if (indexOfTile(newEntry) == -1 && isValidToAdd(newEntry)) {
             GameButton b = createGameButton(newEntry);
             //setGameButtonVisible(b,true);
             addTile(b);
@@ -140,31 +184,33 @@ public abstract class GamesTilePane extends BorderPane{
                 sort();
             }
         }
+        updateTitleGameCount();
     }
 
-    public ObservableList<GameButton> getGameButtons(){
+    public ObservableList<GameButton> getGameButtons() {
         return tilesList;
     }
 
-    public final void updateGame(GameEntry newEntry){
+    public final void updateGame(GameEntry newEntry) {
         int index = indexOfTile(newEntry);
-        if(index!=-1){
-            if(isValidToAdd(newEntry)) {
+        if (index != -1) {
+            if (isValidToAdd(newEntry)) {
                 tilesList.get(index).reloadWith(newEntry);
                 tilesList.set(index, tilesList.get(index));//to fire updated/replaced event
-            }else{
+            } else {
                 removeGame(newEntry);
             }
-        }else{
+        } else {
             onNotFoundForUpdate(newEntry);
         }
-        if(automaticSort)
+        if (automaticSort)
             sort();
-    }
-    protected void onNotFoundForUpdate(GameEntry newEntry){
-        //by default do nothing
+        updateTitleGameCount();
     }
 
+    protected void onNotFoundForUpdate(GameEntry newEntry) {
+        //by default does nothing
+    }
 
 
     public final int indexOfTile(GameEntry entry) {
@@ -175,13 +221,14 @@ public abstract class GamesTilePane extends BorderPane{
             }
             int steamId1 = ((GameButton) n).getEntry().getSteam_id();
             int steamId2 = entry.getSteam_id();
-            if (steamId1 == steamId2 && steamId1!=-1) {
+            if (steamId1 == steamId2 && steamId1 != -1) {
                 return i;
             }
             i++;
         }
         return -1;
     }
+
     protected void removeTileFromTilePane(GameButton button) {
         tilePane.getChildren().remove(button);
     }
@@ -189,14 +236,16 @@ public abstract class GamesTilePane extends BorderPane{
     protected void addTileToTilePane(GameButton button) {
         tilePane.getChildren().add(button);
     }
+
     protected abstract GameButton createGameButton(GameEntry newEntry);
 
-    public void sort(){
-        switch (SORT_MODE){
-            case SORT_MODE_NAME :
-                sortByName();;
+    public void sort() {
+        switch (SORT_MODE) {
+            case SORT_MODE_NAME:
+                sortByName();
+                ;
                 break;
-            case SORT_MODE_PLAY_TIME :
+            case SORT_MODE_PLAY_TIME:
                 sortByTimePlayed();
                 break;
             case SORT_MODE_RATING:
@@ -233,7 +282,7 @@ public abstract class GamesTilePane extends BorderPane{
                 int rating1 = ((GameButton) o1).getEntry().getAggregated_rating();
                 int rating2 = ((GameButton) o2).getEntry().getAggregated_rating();
                 int result = rating1 > rating2 ? -1 : 1;
-                if(rating1 == rating2){
+                if (rating1 == rating2) {
                     String name1 = ((GameButton) o1).getEntry().getName();
                     String name2 = ((GameButton) o2).getEntry().getName();
                     result = name1.compareToIgnoreCase(name2);
@@ -243,6 +292,7 @@ public abstract class GamesTilePane extends BorderPane{
         });
         return nodes;
     }
+
     protected static ObservableList<Node> sortByTimePlayed(ObservableList<Node> nodes) {
         SORT_MODE = SORT_MODE_PLAY_TIME;
 
@@ -252,7 +302,7 @@ public abstract class GamesTilePane extends BorderPane{
                 long rating1 = ((GameButton) o1).getEntry().getPlayTimeSeconds();
                 long rating2 = ((GameButton) o2).getEntry().getPlayTimeSeconds();
                 int result = rating1 > rating2 ? -1 : 1;
-                if(rating1 == rating2){
+                if (rating1 == rating2) {
                     String name1 = ((GameButton) o1).getEntry().getName();
                     String name2 = ((GameButton) o2).getEntry().getName();
                     result = name1.compareToIgnoreCase(name2);
@@ -262,6 +312,7 @@ public abstract class GamesTilePane extends BorderPane{
         });
         return nodes;
     }
+
     protected static ObservableList<Node> sortByReleaseDate(ObservableList<Node> nodes) {
         SORT_MODE = SORT_MODE_RELEASE_DATE;
 
@@ -272,16 +323,16 @@ public abstract class GamesTilePane extends BorderPane{
                 Date date1 = ((GameButton) o1).getEntry().getReleaseDate();
                 Date date2 = ((GameButton) o2).getEntry().getReleaseDate();
 
-                if(date1 == null && date2 !=null){
+                if (date1 == null && date2 != null) {
                     return -1;
-                }else if(date2 == null && date1!=null){
+                } else if (date2 == null && date1 != null) {
                     return 1;
-                }else if(date1 == null && date2 == null){
+                } else if (date1 == null && date2 == null) {
                     result = 0;
-                }else{
+                } else {
                     result = date2.compareTo(date1);
                 }
-                if(result == 0){
+                if (result == 0) {
                     String name1 = ((GameButton) o1).getEntry().getName();
                     String name2 = ((GameButton) o2).getEntry().getName();
                     result = name1.compareToIgnoreCase(name2);
@@ -292,8 +343,9 @@ public abstract class GamesTilePane extends BorderPane{
         });
         return nodes;
     }
-    protected void replaceChildrensAfterSort(ObservableList<Node> nodes, Runnable betweenTransition){
-        if(!inSameOrder(tilePane.getChildren(),nodes)){
+
+    protected void replaceChildrensAfterSort(ObservableList<Node> nodes, Runnable betweenTransition) {
+        if (!inSameOrder(tilePane.getChildren(), nodes)) {
             Timeline fadeOutTimeline = new Timeline(
                     new KeyFrame(Duration.seconds(0),
                             new KeyValue(tilePane.opacityProperty(), tilePane.opacityProperty().getValue(), Interpolator.EASE_IN)),
@@ -306,7 +358,7 @@ public abstract class GamesTilePane extends BorderPane{
                 @Override
                 public void handle(javafx.event.ActionEvent event) {
                     tilePane.getChildren().setAll(nodes);
-                    if(betweenTransition!=null){
+                    if (betweenTransition != null) {
                         betweenTransition.run();
                     }
                     Timeline fadeInTimeline = new Timeline(
@@ -321,14 +373,16 @@ public abstract class GamesTilePane extends BorderPane{
                 }
             });
             fadeOutTimeline.play();
-        }else {
+        } else {
             betweenTransition.run();
         }
     }
-    public final void setPrefTileWidth(double value){
+
+    public final void setPrefTileWidth(double value) {
         tilePane.setPrefTileWidth(value);
     }
-    public final void setPrefTileHeight(double value){
+
+    public final void setPrefTileHeight(double value) {
         tilePane.setPrefTileHeight(value);
     }
 
@@ -340,25 +394,28 @@ public abstract class GamesTilePane extends BorderPane{
 
     public abstract void sortByName();
 
-    public void setTitle(String title){
-        if(title==null){
+    public void setTitle(String title) {
+        if (title == null) {
             titleLabel.setVisible(false);
             titleLabel.setText(null);
             titleLabel.setManaged(false);
-        }else{
+        } else {
             titleLabel.setVisible(true);
             titleLabel.setText(title);
             titleLabel.setManaged(true);
         }
     }
-    public void hide(){
+
+    public void hide() {
         hide(true);
     }
-    public void show(){
+
+    public void show() {
         show(true);
     }
-    protected void hide(boolean transition){
-        if(checkIfHide() || forcedHidden) {
+
+    protected void hide(boolean transition) {
+        if (checkIfHide() || forcedHidden) {
             hidden = true;
             Runnable hideAction = new Runnable() {
                 @Override
@@ -389,9 +446,10 @@ public abstract class GamesTilePane extends BorderPane{
             }
         }
     }
-    protected void show(boolean transition){
+
+    protected void show(boolean transition) {
         boolean hide = checkIfHide();
-        if(!forcedHidden && !hide && (hidden || !isVisible() || !isManaged() || getOpacity()!=1.0)) {
+        if (!forcedHidden && !hide && (hidden || !isVisible() || !isManaged() || getOpacity() != 1.0)) {
             hidden = false;
             Runnable showAction = new Runnable() {
                 @Override
@@ -426,21 +484,21 @@ public abstract class GamesTilePane extends BorderPane{
 
     public void setForcedHidden(boolean forcedHidden) {
         this.forcedHidden = forcedHidden;
-        if(forcedHidden){
+        if (forcedHidden) {
             hide(false);
-        }else{
+        } else {
             show(false);
         }
     }
 
-    public int searchText(String text){
-        searching=true;
+    public int searchText(String text) {
+        searching = true;
         int num = 0;
-        for(GameButton button : tilesList){
+        for (GameButton button : tilesList) {
             boolean show = button.getEntry().getName().toLowerCase().contains(text.toLowerCase());
-            setGameButtonVisible(button,show);
-            if(show){
-                if(num == 0){
+            setGameButtonVisible(button, show);
+            if (show) {
+                if (num == 0) {
                     //TODO implement here so that button is highlighted and if enter pressed this is launched etc for other keys
                 }
                 num++;
@@ -449,29 +507,50 @@ public abstract class GamesTilePane extends BorderPane{
         return num;
     }
 
-    public void cancelSearchText(){
-        for(GameButton button : tilesList){
-            setGameButtonVisible(button,true);
+    public void cancelSearchText() {
+        for (GameButton button : tilesList) {
+            setGameButtonVisible(button, true);
         }
-        searching=false;
+        searching = false;
     }
-    protected static void setGameButtonVisible(GameButton button, boolean visible){
+
+    protected void setGameButtonVisible(GameButton button, boolean visible) {
         button.setManaged(visible);
         button.setVisible(visible);
         button.setMouseTransparent(!visible);
+
+        updateTitleGameCount();
+    }
+
+    protected void updateTitleGameCount() {
+        int nbVisible = 0;
+        for (GameButton button1 : tilesList) {
+            if (button1.isVisible()) {
+                nbVisible++;
+            }
+        }
+        String title = titleLabel.getText();
+        Pattern pattern = Pattern.compile(".*\\(\\d*\\)");
+        Matcher matcher = pattern.matcher(title);
+        if (!matcher.find()) {
+            setTitle(getTitle().getText() + " (" + nbVisible + ")");
+        } else {
+            title = title.replaceAll("\\(\\d*\\)", "(" + nbVisible + ")");
+            setTitle(title);
+        }
     }
 
     public boolean isSearching() {
         return searching;
     }
 
-    protected static boolean inSameOrder(ObservableList<Node> nodes1,ObservableList<Node> nodes2 ){
-        if(nodes1.size() != nodes2.size()){
+    protected static boolean inSameOrder(ObservableList<Node> nodes1, ObservableList<Node> nodes2) {
+        if (nodes1.size() != nodes2.size()) {
             return false;
         }
         boolean sameOrder = true;
         for (int i = 0; i < nodes1.size() && sameOrder; i++) {
-            sameOrder = ((GameButton)nodes1.get(i)).getEntry().getUuid().equals(((GameButton)nodes2.get(i)).getEntry().getUuid());
+            sameOrder = ((GameButton) nodes1.get(i)).getEntry().getUuid().equals(((GameButton) nodes2.get(i)).getEntry().getUuid());
         }
         return sameOrder;
     }
@@ -484,8 +563,8 @@ public abstract class GamesTilePane extends BorderPane{
         return titleLabel;
     }
 
-    public void setCacheGameButtons(boolean cache){
-        for (GameButton b : getGameButtons()){
+    public void setCacheGameButtons(boolean cache) {
+        for (GameButton b : getGameButtons()) {
             b.setCache(cache);
         }
     }

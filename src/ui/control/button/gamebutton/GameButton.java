@@ -180,7 +180,7 @@ public abstract class GameButton extends BorderPane {
                 if(!playButton.isDisabled())
                     playButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
             }
-            if (ke.getCode() == KeyCode.I) {
+            if (ke.getCode() == KeyCode.SPACE) {
                 if(!infoButton.isDisabled())
                     infoButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
             }

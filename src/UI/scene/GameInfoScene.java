@@ -186,6 +186,9 @@ public class GameInfoScene extends BaseScene {
         row_count++;
         /****************************END SEPARATORS************************************/
         addProperty("release_date", entry.getReleaseDate() != null ? GameEntry.DATE_DISPLAY_FORMAT.format(entry.getReleaseDate()) : "");
+        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)){
+            addProperty("added_date", entry.getAddedDate() != null ? GameEntry.DATE_STORE_FORMAT.format(entry.getAddedDate()) : "").setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+        }
         addProperty("developer", entry.getDeveloper());
         addProperty("publisher", entry.getPublisher());
         addProperty("serie", entry.getSerie());
@@ -273,8 +276,21 @@ public class GameInfoScene extends BaseScene {
         updateProperty("description", editedEntry.getDescription());
         Image backgroundImage = new Image("file:" + File.separator + File.separator + File.separator + editedEntry.getImagePath(1).getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
         //no need to fade transition here as it is the "right" image and no actual change
+        double widthScale = 1;
+        double heightScale = 1;
+        if(backgroundImage.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
+            widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/backgroundImage.getWidth();
+        }
+        if(backgroundImage.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
+            heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/backgroundImage.getHeight();
+        }
+        backgroundView.setScaleX(widthScale);
+        backgroundView.setScaleY(heightScale);
         backgroundView.setImage(backgroundImage);
-        coverButton.setImage(editedEntry.getImagePath(0).getAbsolutePath());
+        GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
+
+        backgroundView.setEffect(blur);
+        backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);        coverButton.setImage(editedEntry.getImagePath(0).getAbsolutePath());
     }
     private void updateProperty(String title, String value) {
         for (Node node : propertiesPane.getChildren()) {

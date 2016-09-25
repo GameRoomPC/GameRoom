@@ -13,6 +13,7 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
+import javafx.event.*;
 import javafx.geometry.Bounds;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -30,7 +31,6 @@ import ui.control.textfield.PathTextField;
 import ui.dialog.ChoiceDialog;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -267,6 +267,8 @@ public class MainScene extends BaseScene {
         tilesPaneWrapper.setSpacing(5 * Main.SCREEN_HEIGHT / 1080);
         tilePane = new CoverTilePane(this, Main.RESSOURCE_BUNDLE.getString("all_games"));
         tilePane.setId("mainTilePane");
+        tilePane.setQuickSearchEnabled(true);
+
         lastPlayedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_LAST_PLAYED);
         lastPlayedTilePane.setId("lastPlayedTilePane");
         recentlyAddedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_RECENTLY_ADDED);
@@ -278,7 +280,6 @@ public class MainScene extends BaseScene {
             }
         };
         toAddTilePane.setId("toAddTilePane");
-
 
         lastPlayedTilePane.addOnFoldedChangeListener(new ChangeListener<Boolean>() {
             @Override
@@ -645,62 +646,57 @@ public class MainScene extends BaseScene {
         ImageButton addButton = new ImageButton(addImage);
         addButton.setFocusTraversable(false);
 
-        addButton.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.isPrimaryButtonDown()) {
-                    getRootStackPane().setMouseTransparent(true);
-                    ChoiceDialog choiceDialog = new ChoiceDialog(
-                            new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_exe"), RESSOURCE_BUNDLE.getString("add_exe_long")),
-                            new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_folder"), RESSOURCE_BUNDLE.getString("add_symlink_long"))
-                    );
-                    choiceDialog.setTitle(RESSOURCE_BUNDLE.getString("add_a_game"));
-                    choiceDialog.setHeader(RESSOURCE_BUNDLE.getString("choose_action"));
+        addButton.setOnAction(event -> {
+                getRootStackPane().setMouseTransparent(true);
+                ChoiceDialog choiceDialog = new ChoiceDialog(
+                        new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_exe"), RESSOURCE_BUNDLE.getString("add_exe_long")),
+                        new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_folder"), RESSOURCE_BUNDLE.getString("add_symlink_long"))
+                );
+                choiceDialog.setTitle(RESSOURCE_BUNDLE.getString("add_a_game"));
+                choiceDialog.setHeader(RESSOURCE_BUNDLE.getString("choose_action"));
 
-                    Optional<ButtonType> result = choiceDialog.showAndWait();
-                    result.ifPresent(letter -> {
-                        if (letter.getText().equals(RESSOURCE_BUNDLE.getString("Add_exe"))) {
-                            FileChooser fileChooser = new FileChooser();
-                            fileChooser.setTitle(RESSOURCE_BUNDLE.getString("select_program"));
-                            fileChooser.setInitialDirectory(
-                                    new File(System.getProperty("user.home"))
-                            );
-                            //TODO fix internet shorcuts problem (bug submitted)
-                            fileChooser.getExtensionFilters().addAll(
-                                    new FileChooser.ExtensionFilter("EXE", "*.exe"),
-                                    new FileChooser.ExtensionFilter("JAR", "*.jar")
-                            );
-                            try {
-                                File selectedFile = fileChooser.showOpenDialog(getParentStage());
-                                if (selectedFile != null) {
-                                    fadeTransitionTo(new GameEditScene(MainScene.this, selectedFile), getParentStage());
-                                }
-                            } catch (NullPointerException ne) {
-                                ne.printStackTrace();
-                                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
-                                alert.setContentText(RESSOURCE_BUNDLE.getString("warning_internet_shortcut"));
-                                alert.showAndWait();
+                Optional<ButtonType> result = choiceDialog.showAndWait();
+                result.ifPresent(letter -> {
+                    if (letter.getText().equals(RESSOURCE_BUNDLE.getString("Add_exe"))) {
+                        FileChooser fileChooser = new FileChooser();
+                        fileChooser.setTitle(RESSOURCE_BUNDLE.getString("select_program"));
+                        fileChooser.setInitialDirectory(
+                                new File(System.getProperty("user.home"))
+                        );
+                        //TODO fix internet shorcuts problem (bug submitted)
+                        fileChooser.getExtensionFilters().addAll(
+                                new FileChooser.ExtensionFilter("EXE", "*.exe"),
+                                new FileChooser.ExtensionFilter("JAR", "*.jar")
+                        );
+                        try {
+                            File selectedFile = fileChooser.showOpenDialog(getParentStage());
+                            if (selectedFile != null) {
+                                fadeTransitionTo(new GameEditScene(MainScene.this, selectedFile), getParentStage());
                             }
-                        } else if (letter.getText().equals(RESSOURCE_BUNDLE.getString("Add_folder"))) {
-                            DirectoryChooser directoryChooser = new DirectoryChooser();
-                            directoryChooser.setTitle(RESSOURCE_BUNDLE.getString("Select_folder_ink"));
-                            directoryChooser.setInitialDirectory(
-                                    new File(System.getProperty("user.home"))
-                            );
-                            File selectedFolder = directoryChooser.showDialog(getParentStage());
-                            if (selectedFolder != null) {
-                                ArrayList<File> files = new ArrayList<File>();
-                                files.addAll(Arrays.asList(selectedFolder.listFiles()));
-                                if (files.size() != 0) {
-                                    batchAddFolderEntries(files, 0).run();
-                                    //startMultiAddScenes(files);
-                                }
+                        } catch (NullPointerException ne) {
+                            ne.printStackTrace();
+                            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
+                            alert.setContentText(RESSOURCE_BUNDLE.getString("warning_internet_shortcut"));
+                            alert.showAndWait();
+                        }
+                    } else if (letter.getText().equals(RESSOURCE_BUNDLE.getString("Add_folder"))) {
+                        DirectoryChooser directoryChooser = new DirectoryChooser();
+                        directoryChooser.setTitle(RESSOURCE_BUNDLE.getString("Select_folder_ink"));
+                        directoryChooser.setInitialDirectory(
+                                new File(System.getProperty("user.home"))
+                        );
+                        File selectedFolder = directoryChooser.showDialog(getParentStage());
+                        if (selectedFolder != null) {
+                            ArrayList<File> files = new ArrayList<File>();
+                            files.addAll(Arrays.asList(selectedFolder.listFiles()));
+                            if (files.size() != 0) {
+                                batchAddFolderEntries(files, 0).run();
+                                //startMultiAddScenes(files);
                             }
                         }
-                    });
-                    getRootStackPane().setMouseTransparent(false);
-                }
-            }
+                    }
+                });
+                getRootStackPane().setMouseTransparent(false);
         });
 
         HBox hbox = new HBox();
@@ -1007,6 +1003,12 @@ public class MainScene extends BaseScene {
                             mappedEvents.add(newEvent);
                             event.consume();
                             javafx.event.Event.fireEvent(event.getTarget(), newEvent);
+                            break;
+                        default:
+                            if(event.getEventType().equals(KeyEvent.KEY_TYPED)) {
+                                tilePane.getOnKeyTyped().handle(event);
+                            }
+                            break;
                     }
                 }
             }

@@ -182,20 +182,7 @@ public class GameEditScene extends BaseScene {
                     for (int i = 0; i < chosenImageFiles.length; i++) {
                         if (chosenImageFiles[i] != null) {
                             String type = i == 0 ? ImageUtils.IGDB_TYPE_COVER : ImageUtils.IGDB_TYPE_SCREENSHOT;
-                            File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + type + "." + getExtension(chosenImageFiles[i].getName()));
-                            try {
-                                if(!localCoverFile.getParentFile().exists()){
-                                    localCoverFile.getParentFile().mkdirs();
-                                }
-                                if (!localCoverFile.exists()) {
-                                    localCoverFile.createNewFile();
-                                }
-                                Files.copy(chosenImageFiles[i].toPath().toAbsolutePath(), localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
-                                entry.setImagePath(i,localCoverFile);
-                                Main.LOGGER.debug("Moving from \n\t"+chosenImageFiles[i].toPath().toAbsolutePath()+"\n\tto "+localCoverFile.toPath().toAbsolutePath());
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            moveImage(entry,chosenImageFiles[i],type);
                         }
                     }
                     if(entry.isToAdd()){
@@ -1162,6 +1149,28 @@ public class GameEditScene extends BaseScene {
                 }
             });
             buttonsBox.getChildren().add(cancelButton);
+        }
+    }
+    public static void moveImage(GameEntry entry, File imageFile, String imageType){
+        if(imageFile!=null) {
+            File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + imageType + "." + getExtension(imageFile.getName()));
+            try {
+                if (!localCoverFile.getParentFile().exists()) {
+                    localCoverFile.getParentFile().mkdirs();
+                }
+                if (!localCoverFile.exists()) {
+                    localCoverFile.createNewFile();
+                }
+                Files.copy(imageFile.toPath().toAbsolutePath(), localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
+                int imageIndex = 0;
+                if (imageType.equals(ImageUtils.IGDB_TYPE_SCREENSHOT)) {
+                    imageIndex = 1;
+                }
+                entry.setImagePath(imageIndex, localCoverFile);
+                Main.LOGGER.debug("Moving from \n\t" + imageFile.toPath().toAbsolutePath() + "\n\tto " + localCoverFile.toPath().toAbsolutePath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
