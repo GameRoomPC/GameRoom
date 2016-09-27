@@ -501,7 +501,7 @@ public class GameEditScene extends BaseScene {
                         backgroundView.setScaleY(heightScale);
                         ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
                         chosenImageFiles[1] = outputfile;
-                        File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
+                        File coverLocalImageFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
                         entry.setImagePath(1, coverLocalImageFile);
                     }
                 });
@@ -520,7 +520,7 @@ public class GameEditScene extends BaseScene {
             chosenImageFiles[1] = imageChooser.showOpenDialog(getParentStage());
             screenshotDlDoneHandler.run(chosenImageFiles[1]);
             //backgroundView.setImage(new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true));
-            File localScreenshotFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(chosenImageFiles[1].getName()));
+            File localScreenshotFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(chosenImageFiles[1].getName()));
             entry.setImagePath(1, localScreenshotFile);
         });
         Label orLabel = new Label(RESSOURCE_BUNDLE.getString("or"));
@@ -817,7 +817,7 @@ public class GameEditScene extends BaseScene {
             @Override
             public void handle(ActionEvent event) {
                 chosenImageFiles[0] = imageChooser.showOpenDialog(getParentStage());
-                File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + getExtension(chosenImageFiles[0].getName()));
+                File localCoverFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + getExtension(chosenImageFiles[0].getName()));
                 Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
                 ImageUtils.transitionToImage(img, coverView);
 
@@ -994,7 +994,7 @@ public class GameEditScene extends BaseScene {
                             ImageUtils.transitionToImage(img, coverView);
 
                             chosenImageFiles[0] = outputfile;
-                            File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + getExtension(outputfile));
+                            File coverLocalImageFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + getExtension(outputfile));
                             entry.setImagePath(0, coverLocalImageFile);
 
                         }
@@ -1057,7 +1057,7 @@ public class GameEditScene extends BaseScene {
                                 ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
 
                                 chosenImageFiles[1] = outputfile;
-                                File coverLocalImageFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
+                                File coverLocalImageFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
                                 entry.setImagePath(1, coverLocalImageFile);
 
                             }
@@ -1108,22 +1108,29 @@ public class GameEditScene extends BaseScene {
         this.onExitAction = onExitAction;
     }
 
+
+    protected void addCancelAllButton() {
+        addCancelButton(new ClassicExitAction(GameEditScene.this,getParentStage(),previousScene),"cancel_all_button","ignore_changes_all");
+    }
     protected void addCancelButton(ExitAction onAction) {
+        addCancelButton(onAction,"cancel_button","ignore_changes?");
+    }
+    private void addCancelButton(ExitAction action, String idAndTitleKey, String warningMessageKey){
         boolean alreadyExists = false;
         for (Node n : buttonsBox.getChildren()) {
-            if (n.getId() != null && n.getId().equals("cancelButton")) {
+            if (n.getId() != null && n.getId().equals(idAndTitleKey)) {
                 alreadyExists = true;
                 break;
             }
         }
         if (!alreadyExists) {
-            Button cancelButton = new Button(RESSOURCE_BUNDLE.getString("cancel"));
-            cancelButton.setId("cancelButton");
+            Button cancelButton = new Button(RESSOURCE_BUNDLE.getString(idAndTitleKey));
+            cancelButton.setId(idAndTitleKey);
             cancelButton.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent event) {
                     GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION);
-                    alert.setContentText(RESSOURCE_BUNDLE.getString("ignore_changes?"));
+                    alert.setContentText(RESSOURCE_BUNDLE.getString(warningMessageKey));
 
                     Optional<ButtonType> result = alert.showAndWait();
                     if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -1141,7 +1148,7 @@ public class GameEditScene extends BaseScene {
                             default:
                                 break;
                         }
-                        onAction.run();
+                        action.run();
                     } else {
                         // ... user chose CANCEL or closed the dialog
                     }
@@ -1153,7 +1160,7 @@ public class GameEditScene extends BaseScene {
     }
     public static void moveImage(GameEntry entry, File imageFile, String imageType){
         if(imageFile!=null) {
-            File localCoverFile = new File(GameEntry.ENTRIES_FOLDER + File.separator + entry.getUuid().toString() + File.separator + imageType + "." + getExtension(imageFile.getName()));
+            File localCoverFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + imageType + "." + getExtension(imageFile.getName()));
             try {
                 if (!localCoverFile.getParentFile().exists()) {
                     localCoverFile.getParentFile().mkdirs();

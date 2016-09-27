@@ -25,8 +25,6 @@ public class GameEntry {
     public final static DateFormat DATE_DISPLAY_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
     public final static DateFormat DATE_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss SSS");
     public final static DateFormat DATE_OLD_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-    public final static File ENTRIES_FOLDER = new File("Games");
-    public final static File TOADD_FOLDER = new File("ToAdd");
     public final static File[] DEFAULT_IMAGES_PATHS = {new File("res/defaultImages/cover.jpg"), null};
     private final static int IMAGES_NUMBER = 3;
 
@@ -104,11 +102,11 @@ public class GameEntry {
     }
 
     private File propertyFile() throws IOException {
-        File dir = new File((isToAdd() ? TOADD_FOLDER : ENTRIES_FOLDER) + File.separator + uuid.toString());
+        File dir = new File((isToAdd() ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + uuid.toString());
         if (!dir.exists()) {
             dir.mkdirs();
         }
-        File configFile = new File((isToAdd() ? TOADD_FOLDER : ENTRIES_FOLDER) + File.separator + uuid.toString() + File.separator + "entry.properties");
+        File configFile = new File((isToAdd() ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + uuid.toString() + File.separator + "entry.properties");
         if (!configFile.exists()) {
             configFile.createNewFile();
         }
@@ -615,7 +613,7 @@ public class GameEntry {
     }
 
     public void deleteFiles() {
-        File file = new File((isToAdd() ? TOADD_FOLDER : ENTRIES_FOLDER) + File.separator + getUuid().toString());
+        File file = new File((isToAdd() ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + getUuid().toString());
         String[] entries = file.list();
         if (entries != null) {
             for (String s : entries) {

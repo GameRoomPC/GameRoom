@@ -1,6 +1,5 @@
 package ui.pane.gamestilepane;
 
-import com.sun.media.jfxmedia.logging.Logger;
 import data.game.entry.GameEntry;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -16,7 +15,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.TilePane;
@@ -30,6 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static ui.Main.LOGGER;
+import static ui.Main.MAIN_SCENE;
 import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
 
 /**
@@ -141,6 +140,7 @@ public abstract class GamesTilePane extends BorderPane {
                                 String name = b.getEntry().getName().toLowerCase();
                                 if(name.startsWith(s.toLowerCase())){
                                     b.requestFocus();
+                                    MAIN_SCENE.centerGameButtonInScrollPane(b,GamesTilePane.this);
                                     break;
                                 }
                             }

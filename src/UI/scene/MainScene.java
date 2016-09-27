@@ -169,32 +169,12 @@ public class MainScene extends BaseScene {
                 toAddTilePane.unfold();
             }
             double scrollBarVValue = GENERAL_SETTINGS.getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
-            //TODO fetch the scrollbar position and reset it
-            Set<Node> nodes = scrollPane.lookupAll(".scroll-bar:vertical");
-            for (final Node node : nodes) {
-                if (node instanceof ScrollBar) {
-                    ScrollBar sb = (ScrollBar) node;
-                    if (sb.getOrientation() == Orientation.VERTICAL) {
-                        sb.setValue(scrollBarVValue);
-                    }
-                }
-            }
+            scrollPane.setVvalue(scrollBarVValue);
         });
     }
     public void saveScrollBarVValue(){
-        Main.runAndWait(() -> {
-            double scrollBarVValue = 0;
-            Set<Node> nodes = scrollPane.lookupAll(".scroll-bar:vertical");
-            for (final Node node : nodes) {
-                if (node instanceof ScrollBar) {
-                    ScrollBar sb = (ScrollBar) node;
-                    if (sb.getOrientation() == Orientation.VERTICAL) {
-                        scrollBarVValue = sb.getValue();
-                    }
-                }
-            }
+            double scrollBarVValue = scrollPane.getVvalue();
             GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SCROLLBAR_VVALUE,scrollBarVValue);
-        });
     }
 
     private void displayWelcomeMessage() {
@@ -352,7 +332,7 @@ public class MainScene extends BaseScene {
                 recentlyAddedTilePane.setAutomaticSort(false);
                 lastPlayedTilePane.setAutomaticSort(false);
                 toAddTilePane.setAutomaticSort(false);
-                ArrayList<UUID> uuids = AllGameEntries.readUUIDS(GameEntry.ENTRIES_FOLDER);
+                ArrayList<UUID> uuids = AllGameEntries.readUUIDS(FILES_MAP.get("games"));
                 int i = 0;
                 for (UUID uuid : uuids) {
                     int finalI = i;
@@ -390,6 +370,9 @@ public class MainScene extends BaseScene {
                     startGameLookerService();
                 });
                 home();
+
+                double scrollBarVValue = GENERAL_SETTINGS.getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
+                scrollPane.setVvalue(scrollBarVValue);
             }
         });
         task.progressProperty().addListener(new ChangeListener<Number>() {
@@ -409,6 +392,15 @@ public class MainScene extends BaseScene {
         Thread th = new Thread(task);
         th.setDaemon(true);
         th.start();
+    }
+    public void centerGameButtonInScrollPane(Node n,GamesTilePane pane){
+        //TODO fix here, input the right calculation to center gameButton
+        double h = pane.getBoundsInLocal().getHeight();
+        double y = (n.getBoundsInParent().getMaxY() +
+                n.getBoundsInParent().getMinY()) / 2.0;
+
+        double v = scrollPane.getViewportBounds().getHeight();
+        scrollPane.setVvalue(scrollPane.getVmax() * ((y - 0.5 * v) / (h - v)));
     }
 
     private void initTop() {
@@ -887,6 +879,7 @@ public class MainScene extends BaseScene {
                     ExitAction action = batchAddGameEntries(entries, entriesCount + 1);
                     gameEditScene.setOnExitAction(action); //create interface runnable to access property GameEditScene
                     gameEditScene.addCancelButton(action);
+                    gameEditScene.addCancelAllButton();
                     fadeTransitionTo(gameEditScene, getParentStage());
                 }
             }, gameEditScene);
@@ -906,6 +899,7 @@ public class MainScene extends BaseScene {
                         ExitAction action = batchAddFolderEntries(files, fileCount + 1);
                         gameEditScene.setOnExitAction(action); //create interface runnable to access property GameEditScene
                         gameEditScene.addCancelButton(action);
+                        gameEditScene.addCancelAllButton();
                         fadeTransitionTo(gameEditScene, getParentStage());
                     }
                 }, gameEditScene);
@@ -927,6 +921,7 @@ public class MainScene extends BaseScene {
                     ExitAction action = createSteamEntryAddExitAction(entries, entryCount + 1);
                     gameEditScene.setOnExitAction(action); //create interface runnable to access property GameEditScene
                     gameEditScene.addCancelButton(action);
+                    gameEditScene.addCancelAllButton();
                     fadeTransitionTo(gameEditScene, getParentStage());
                 }
             }, gameEditScene);

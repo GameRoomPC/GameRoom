@@ -1,6 +1,7 @@
 import com.sun.jna.Native;
 import com.sun.jna.NativeLong;
 import com.sun.jna.WString;
+import data.FileUtils;
 import data.game.scrapper.IGDBScrapper;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -97,12 +98,42 @@ public class Launcher extends Application {
                     break;
             }
         }
-
+        //TODO uncomment and do some more testing
+        initFiles();
         Main.main(args);
         launch(args);
     }
 
+    private static void initFiles(){
+        String appdataFolder = System.getenv("APPDATA");
+        String gameRoomPath = appdataFolder+File.separator+"GameRoom";
+        File gameRoomFolder = FileUtils.initOrCreateFolder(gameRoomPath);
 
+        File configProperties = new File("config.properties");
+        File logFolder = new File("log");
+        File libsFolder = new File("libs");
+        File gamesFolder = new File("Games");
+        File toAddFolder = new File("ToAdd");
+        File cacheFolder = new File("cache");
+
+        /*****************MOVE FILES/FOLDERS IF NEEDED***********************/
+        FileUtils.moveToFolder(gamesFolder,gameRoomFolder);
+        FileUtils.moveToFolder(configProperties,gameRoomFolder);
+        FileUtils.moveToFolder(logFolder,gameRoomFolder);
+        FileUtils.moveToFolder(libsFolder,gameRoomFolder);
+        FileUtils.moveToFolder(toAddFolder,gameRoomFolder);
+        FileUtils.moveToFolder(cacheFolder,gameRoomFolder);
+
+        /*****************INIT FILES AND FOLDER***********************/
+        Main.FILES_MAP.put("working_dir",gameRoomFolder);
+        Main.FILES_MAP.put("cache",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"cache"));
+        Main.FILES_MAP.put("to_add",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"ToAdd"));
+        Main.FILES_MAP.put("libs",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"libs"));
+        Main.FILES_MAP.put("games",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"Games"));
+        Main.FILES_MAP.put("log",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"log"));
+        Main.FILES_MAP.put("config.properties",FileUtils.initOrCreateFile(gameRoomFolder+File.separator+"config.properties"));
+        Main.FILES_MAP.put("GameRoom.log",FileUtils.initOrCreateFile(Main.FILES_MAP.get("log").getAbsolutePath()+File.separator+"GameRoom.log"));
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -243,10 +274,12 @@ public class Launcher extends Application {
     @Override
     public void stop() {
         Main.LOGGER.info("Closing app, saving settings.");
-        for (int i = 0; i < CACHE_FOLDER.listFiles().length; i++) {
-            File temp = CACHE_FOLDER.listFiles()[i];
-            temp.delete();
+        if(MAIN_SCENE!=null){
+            Main.runAndWait(() -> {
+                MAIN_SCENE.saveScrollBarVValue();
+            });
         }
+        FileUtils.clearFolder(Main.FILES_MAP.get("cache"));
         GENERAL_SETTINGS.saveSettings();
 
         System.exit(0);

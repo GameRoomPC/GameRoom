@@ -70,7 +70,7 @@ public class ImageUtils {
     }
 
     private static File getOutputImageCacheFile(String fileName) {
-        return new File(Main.CACHE_FOLDER + File.separator + fileName);
+        return new File(Main.FILES_MAP.get("cache") + File.separator + fileName);
     }
 
     public static Task downloadIGDBImageToCache(int igdb_id, String imageHash, String type, String size, OnDLDoneHandler dlDoneHandler) {
@@ -87,7 +87,7 @@ public class ImageUtils {
                 protected String call() throws Exception {
                     try {
                         Main.LOGGER.debug("Downloading " + url + " to " + fileOutput.getName());
-                        HTTPDownloader.downloadFile(url, Main.CACHE_FOLDER.getAbsolutePath(), fileOutput.getName());
+                        HTTPDownloader.downloadFile(url, Main.FILES_MAP.get("cache").getAbsolutePath(), fileOutput.getName());
                         Main.LOGGER.debug(fileOutput + " downloaded");
                     } catch (Exception e) {
                         Main.LOGGER.error(e.toString());
