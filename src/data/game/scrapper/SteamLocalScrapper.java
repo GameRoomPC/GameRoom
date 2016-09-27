@@ -1,16 +1,7 @@
 package data.game.scrapper;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
-import com.sun.jna.platform.win32.WinNT;
 import data.game.entry.GameEntry;
 import data.game.scanner.FolderGameScanner;
-import data.game.scanner.SteamOnlineGameScanner;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import system.os.Terminal;
 import ui.Main;
 
@@ -25,6 +16,11 @@ import static ui.Main.LOGGER;
  */
 public class SteamLocalScrapper {
     private static boolean STEAM_ID_ALREADY_DISPLAYED = false;
+    private static boolean STEAMAPPS_DEFAULTPATH1_ALREADY_DISPLAYED = false;
+    private static boolean STEAMAPPS_DEFAULTPATH2_ALREADY_DISPLAYED = false;
+    private static boolean STEAMAPPS_DEFAULTPATH3_ALREADY_DISPLAYED = false;
+    private static boolean STEAM_PATH_ALREADY_DISPLAYED = false;
+    private static boolean STEAM_DRIVE_LETTER_ALREADY_DISPLAYED = false;
 
     public static String getSteamUserId() throws IOException {
         File vdfFile = new File(getSteamPath() + "\\config\\config.vdf");
@@ -86,47 +82,86 @@ public class SteamLocalScrapper {
 
     public static ArrayList<SteamPreEntry> getSteamAppsInstalledPreEntries() throws IOException {
         ArrayList<SteamPreEntry> steamApps = new ArrayList<>();
-        String steamAppsPath = getSteamAppsPath();
-        if(steamAppsPath == null){
+        String[] steamAppsPaths = getSteamAppsPath();
+
+        boolean allNull = true;
+        for(String s : steamAppsPaths){
+            allNull = allNull && (s == null);
+        }
+        if(allNull){
             return steamApps;
         }
-        File steamAppsFolder = new File(getSteamAppsPath());
-        String idPrefix = "appmanifest_";
-        String idSuffix = ".acf";
-        String namePrefix = "\"name\"";
-        for (File file : steamAppsFolder.listFiles()) {
-            String fileName = file.getName();
-            if (fileName.contains(idPrefix)) {
-                int id = Integer.parseInt(fileName.substring(idPrefix.length(), fileName.indexOf(idSuffix)));
+        for(String path : steamAppsPaths) {
+            if(path!=null){
+                File steamAppsFolder = new File(path);
+                String idPrefix = "appmanifest_";
+                String idSuffix = ".acf";
+                String namePrefix = "\"name\"";
+                for (File file : steamAppsFolder.listFiles()) {
+                    String fileName = file.getName();
+                    if (fileName.contains(idPrefix)) {
+                        int id = Integer.parseInt(fileName.substring(idPrefix.length(), fileName.indexOf(idSuffix)));
 
-                String fileString = new String(Files.readAllBytes(file.toPath()));
-                String name = "";
-                for (String line : fileString.split("\n")) {
-                    if (line.contains(namePrefix)) {
-                        int indexNamePrefix = line.indexOf(namePrefix);
-                        name = line.substring(indexNamePrefix + namePrefix.length());
-                        name = name.replace("\"", "").trim();
+                        String fileString = new String(Files.readAllBytes(file.toPath()));
+                        String name = "";
+                        for (String line : fileString.split("\n")) {
+                            if (line.contains(namePrefix)) {
+                                int indexNamePrefix = line.indexOf(namePrefix);
+                                name = line.substring(indexNamePrefix + namePrefix.length());
+                                name = name.replace("\"", "").trim();
+                            }
+                        }
+
+                        steamApps.add(new SteamPreEntry(name, id));
                     }
                 }
-
-                steamApps.add(new SteamPreEntry(name, id));
             }
         }
         return steamApps;
     }
 
-    private static String getSteamAppsPath() throws IOException {
+    private static String[] getSteamAppsPath() throws IOException {
+        int dirCounter = 0;
+        String[] pathsToReturn = new String[5];
+
         String steamPath = getSteamPath();
         char driveLetter = 'C';
         if (steamPath != null && (new File(steamPath)).exists()) {
             if (Character.isLetter(steamPath.charAt(0))) {
                 driveLetter = steamPath.charAt(0);
+                if(!STEAM_DRIVE_LETTER_ALREADY_DISPLAYED){
+                    LOGGER.info("SteamLocalScrapper : Steam path on drive '"+driveLetter+"'");
+                    STEAM_DRIVE_LETTER_ALREADY_DISPLAYED = true;
+                }
             }
         }
-        File defaultPath = new File(driveLetter + ":\\Program Files (x86)\\Steam\\steamapps");
-        File defaultCommonPath = new File(driveLetter + ":\\Program Files (x86)\\Steam\\steamapps\\common");
-        if (defaultCommonPath.exists() && defaultPath.exists()) {
-            return defaultPath.getAbsolutePath();
+        String defaultSteamAppsPath = "C:\\Program Files (x86)\\Steam\\steamapps";
+        String defaultCommonPath = "C:\\Program Files (x86)\\Steam\\steamapps\\common";
+        if (new File(defaultCommonPath).exists()) {
+            if (!STEAMAPPS_DEFAULTPATH1_ALREADY_DISPLAYED) {
+                LOGGER.info("Using default Steam's common path at : " + defaultSteamAppsPath);
+                STEAMAPPS_DEFAULTPATH1_ALREADY_DISPLAYED = true;
+            }
+            pathsToReturn[dirCounter++]=defaultSteamAppsPath;
+        }
+
+        defaultSteamAppsPath = defaultSteamAppsPath.replaceFirst("C",driveLetter+"");
+        defaultCommonPath = defaultCommonPath.replaceFirst("C",driveLetter+"");
+        if (new File(defaultCommonPath).exists()) {
+            if (!STEAMAPPS_DEFAULTPATH2_ALREADY_DISPLAYED) {
+                LOGGER.info("Using default Steam's common path at : " + defaultSteamAppsPath);
+                STEAMAPPS_DEFAULTPATH2_ALREADY_DISPLAYED = true;
+            }
+            pathsToReturn[dirCounter++]=defaultSteamAppsPath;
+        }
+        defaultSteamAppsPath = steamPath+"\\steamapps";
+        defaultCommonPath = steamPath+"\\steamapps\\common";
+        if (new File(defaultCommonPath).exists()) {
+            if (!STEAMAPPS_DEFAULTPATH3_ALREADY_DISPLAYED) {
+                LOGGER.info("Using default Steam's common path at : " + defaultSteamAppsPath);
+                STEAMAPPS_DEFAULTPATH3_ALREADY_DISPLAYED = true;
+            }
+            pathsToReturn[dirCounter++]=defaultSteamAppsPath;
         }
 
         File vdfFile = new File(getSteamPath() + "\\steamapps\\libraryfolders.vdf");
@@ -151,7 +186,8 @@ public class SteamLocalScrapper {
             LOGGER.error("Could not retrieve user's steam apps path, here is libraryfolders.vdf : ");
             LOGGER.error(fileString);
         }
-        return returnValue;
+        pathsToReturn[dirCounter++] = returnValue;
+        return pathsToReturn;
     }
 
     private static String getSteamPath() throws IOException {
