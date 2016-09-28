@@ -396,8 +396,8 @@ public class MainScene extends BaseScene {
     }
     public void centerGameButtonInScrollPane(Node n,GamesTilePane pane){
         //TODO fix here, input the right calculation to center gameButton
-        double h = pane.getBoundsInLocal().getHeight();
-        double y = (n.getBoundsInParent().getMaxY() +
+        double h = scrollPane.getContent().getBoundsInLocal().getHeight();
+        double y = pane.getBoundsInParent().getMinY() +(n.getBoundsInParent().getMaxY() +
                 n.getBoundsInParent().getMinY()) / 2.0;
 
         double v = scrollPane.getViewportBounds().getHeight();
@@ -1030,6 +1030,9 @@ public class MainScene extends BaseScene {
                 return newEvent.copyFor(event.getSource(), event.getTarget());
             }
         });
+    }
+    public void triggerKeyPressedOnMainPane(KeyEvent keyPressed){
+        tilePane.getOnKeyPressed().handle(keyPressed);
     }
 
     public void setImageBackground(Image img) {
