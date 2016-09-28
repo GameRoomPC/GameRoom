@@ -404,6 +404,25 @@ public class SettingsScene extends BaseScene {
         });
         addPropertyLine(PredefinedSetting.DEBUG_MODE, true);
 
+        /***********************OPEN LOG FOLDER **************************************/
+        if ((GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE))) {
+            Label logLabel = new Label(Main.RESSOURCE_BUNDLE.getString("open_logs_folder") + ": ");
+            logLabel.setStyle(ADVANCE_MODE_LABEL_STYLE);
+            Button logButton = new Button(Main.RESSOURCE_BUNDLE.getString("open"));
+
+            logButton.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    try {
+                        Desktop.getDesktop().open(Main.FILES_MAP.get("log"));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            flowPaneHashMap.get(SettingValue.CATEGORY_GENERAL).getChildren().add(createLine(logLabel, logButton));
+        }
+
         /***********************ROW CONSTRAINTS****************************/
         /**********************NO CONTROL INIT BELOW THIS*******************/
 
