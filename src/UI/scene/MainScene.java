@@ -1046,8 +1046,6 @@ public class MainScene extends BaseScene {
             if (!changeBackgroundNextTime) {
                 if (img != null) {
                     if (backgroundView.getImage() == null || !backgroundView.getImage().equals(img)) {
-                        //TODO fix the blinking issue where an identical image is being set twice. The above compareason does not work.
-
                         double widthScale = 1;
                         double heightScale = 1;
                         if(img.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
