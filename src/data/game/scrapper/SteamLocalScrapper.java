@@ -16,7 +16,9 @@ import static ui.Main.LOGGER;
  */
 public class SteamLocalScrapper {
     private static boolean STEAM_ID_ALREADY_DISPLAYED = false;
-    private static boolean STEAMAPPS_PATH_ALREADY_DISPLAYED = false;
+    private static boolean STEAMAPPS_DEFAULTPATH1_ALREADY_DISPLAYED = false;
+    private static boolean STEAMAPPS_DEFAULTPATH2_ALREADY_DISPLAYED = false;
+    private static boolean STEAMAPPS_DEFAULTPATH3_ALREADY_DISPLAYED = false;
     private static boolean STEAM_PATH_ALREADY_DISPLAYED = false;
     private static boolean STEAM_DRIVE_LETTER_ALREADY_DISPLAYED = false;
 
@@ -119,27 +121,47 @@ public class SteamLocalScrapper {
     }
 
     private static String[] getSteamAppsPath() throws IOException {
-        String[] pathsToReturn = new String[3];
+        int dirCounter = 0;
+        String[] pathsToReturn = new String[5];
 
         String steamPath = getSteamPath();
         char driveLetter = 'C';
         if (steamPath != null && (new File(steamPath)).exists()) {
             if (Character.isLetter(steamPath.charAt(0))) {
                 driveLetter = steamPath.charAt(0);
-                if(STEAM_DRIVE_LETTER_ALREADY_DISPLAYED){
+                if(!STEAM_DRIVE_LETTER_ALREADY_DISPLAYED){
                     LOGGER.info("SteamLocalScrapper : Steam path on drive '"+driveLetter+"'");
                     STEAM_DRIVE_LETTER_ALREADY_DISPLAYED = true;
                 }
             }
         }
-        File defaultSteamAppsPath = new File(driveLetter + ":\\Program Files (x86)\\Steam\\steamapps");
-        File defaultCommonPath = new File(driveLetter + ":\\Program Files (x86)\\Steam\\steamapps\\common");
-        if (defaultCommonPath.exists() && defaultSteamAppsPath.exists()) {
-            if (!STEAMAPPS_PATH_ALREADY_DISPLAYED) {
-                LOGGER.info("Using default Steam's common path at : " + defaultSteamAppsPath.getAbsolutePath());
-                STEAMAPPS_PATH_ALREADY_DISPLAYED = true;
+        String defaultSteamAppsPath = "C:\\Program Files (x86)\\Steam\\steamapps";
+        String defaultCommonPath = "C:\\Program Files (x86)\\Steam\\steamapps\\common";
+        if (new File(defaultCommonPath).exists()) {
+            if (!STEAMAPPS_DEFAULTPATH1_ALREADY_DISPLAYED) {
+                LOGGER.info("Using default Steam's common path at : " + defaultSteamAppsPath);
+                STEAMAPPS_DEFAULTPATH1_ALREADY_DISPLAYED = true;
             }
-            pathsToReturn[0]=defaultSteamAppsPath.getAbsolutePath();
+            pathsToReturn[dirCounter++]=defaultSteamAppsPath;
+        }
+
+        defaultSteamAppsPath = defaultSteamAppsPath.replaceFirst("C",driveLetter+"");
+        defaultCommonPath = defaultCommonPath.replaceFirst("C",driveLetter+"");
+        if (new File(defaultCommonPath).exists()) {
+            if (!STEAMAPPS_DEFAULTPATH2_ALREADY_DISPLAYED) {
+                LOGGER.info("Using default Steam's common path at : " + defaultSteamAppsPath);
+                STEAMAPPS_DEFAULTPATH2_ALREADY_DISPLAYED = true;
+            }
+            pathsToReturn[dirCounter++]=defaultSteamAppsPath;
+        }
+        defaultSteamAppsPath = steamPath+"\\steamapps";
+        defaultCommonPath = steamPath+"\\steamapps\\common";
+        if (new File(defaultCommonPath).exists()) {
+            if (!STEAMAPPS_DEFAULTPATH3_ALREADY_DISPLAYED) {
+                LOGGER.info("Using default Steam's common path at : " + defaultSteamAppsPath);
+                STEAMAPPS_DEFAULTPATH3_ALREADY_DISPLAYED = true;
+            }
+            pathsToReturn[dirCounter++]=defaultSteamAppsPath;
         }
 
         File vdfFile = new File(getSteamPath() + "\\steamapps\\libraryfolders.vdf");
@@ -164,7 +186,7 @@ public class SteamLocalScrapper {
             LOGGER.error("Could not retrieve user's steam apps path, here is libraryfolders.vdf : ");
             LOGGER.error(fileString);
         }
-        pathsToReturn[1] = returnValue;
+        pathsToReturn[dirCounter++] = returnValue;
         return pathsToReturn;
     }
 
