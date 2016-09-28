@@ -98,7 +98,6 @@ public class Launcher extends Application {
                     break;
             }
         }
-        //TODO uncomment and do some more testing
         initFiles();
         Main.main(args);
         launch(args);
@@ -106,12 +105,13 @@ public class Launcher extends Application {
 
     private static void initFiles(){
         String appdataFolder = System.getenv("APPDATA");
-        String gameRoomPath = appdataFolder+File.separator+"GameRoom";
+        String gameRoomPath = appdataFolder+File.separator+System.getProperty("working.dir");
+        System.out.println("afinfwoeifbnw "+gameRoomPath);
         File gameRoomFolder = FileUtils.initOrCreateFolder(gameRoomPath);
 
         File configProperties = new File("config.properties");
         File logFolder = new File("log");
-        File libsFolder = new File("libs");
+        //File libsFolder = new File("libs");
         File gamesFolder = new File("Games");
         File toAddFolder = new File("ToAdd");
         File cacheFolder = new File("cache");
@@ -120,7 +120,11 @@ public class Launcher extends Application {
         FileUtils.moveToFolder(gamesFolder,gameRoomFolder);
         FileUtils.moveToFolder(configProperties,gameRoomFolder);
         FileUtils.moveToFolder(logFolder,gameRoomFolder);
-        FileUtils.moveToFolder(libsFolder,gameRoomFolder);
+        if(logFolder.exists()){
+            FileUtils.clearFolder(logFolder);
+            logFolder.delete();
+        }
+        //FileUtils.moveToFolder(libsFolder,gameRoomFolder);
         FileUtils.moveToFolder(toAddFolder,gameRoomFolder);
         FileUtils.moveToFolder(cacheFolder,gameRoomFolder);
 
@@ -128,7 +132,7 @@ public class Launcher extends Application {
         Main.FILES_MAP.put("working_dir",gameRoomFolder);
         Main.FILES_MAP.put("cache",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"cache"));
         Main.FILES_MAP.put("to_add",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"ToAdd"));
-        Main.FILES_MAP.put("libs",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"libs"));
+        //Main.FILES_MAP.put("libs",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"libs"));
         Main.FILES_MAP.put("games",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"Games"));
         Main.FILES_MAP.put("log",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"log"));
         Main.FILES_MAP.put("config.properties",FileUtils.initOrCreateFile(gameRoomFolder+File.separator+"config.properties"));

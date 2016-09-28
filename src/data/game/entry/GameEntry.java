@@ -351,7 +351,7 @@ public class GameEntry {
         if (currFile == null) {
             return null;
         } else {
-            Image result = new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth, backGroundloading);
+            Image result = new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir")+File.separator+currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
             createdImages.put(index, result);
             imageNeedsRefresh[index] = false;
             return result;

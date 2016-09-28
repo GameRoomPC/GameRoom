@@ -42,13 +42,13 @@ public class FileUtils {
     }
 
     public static void moveToFolder(File src, File target) {
-        if(src.exists() && ! new File(target.getAbsolutePath()+File.separator+src.getName()).exists()) {
+        File movedFile = new File(target.getAbsolutePath() + File.separator + src.getName());
+        if(src.exists() && ! movedFile.exists()) {
             if (target.isDirectory()) {
                 target.mkdirs();
             } else {
                 target.getParentFile().mkdirs();
             }
-            File movedFile = new File(target.getAbsolutePath() + File.separator + src.getName());
             if (src.isDirectory()) {
                 movedFile.mkdirs();
             } else {
@@ -58,16 +58,23 @@ public class FileUtils {
 
             if (src.exists()) {
                 if (src.isDirectory() && src.listFiles().length > 0) {
+                    //move all subfiles recursively
                     for (File subFile : src.listFiles()) {
-                        moveToFolder(subFile, new File(target.getAbsolutePath() + File.separator + src.getName()));
+                        moveToFolder(subFile, movedFile);
                     }
-                } else {
+                    //delete empty folder afterwards
+                    src.delete();
+                } else if (src.isDirectory() && src.listFiles().length == 0){
+                    //delete empty folder
+                    src.delete();
+                } else{
+                    //is a file, we'll try to move it or at least copy it
                     try {
-                        Files.move(src.toPath(), new File(target.toPath() + File.separator + src.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        Files.move(src.toPath(), movedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException e) {
                         Main.LOGGER.error("Error while moving file : " + src.getAbsolutePath() + ", copying it");
                         try {
-                            Files.copy(src.toPath(), new File(target.toPath() + File.separator + src.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                            Files.copy(src.toPath(), movedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                             src.delete();
                         } catch (IOException e1) {
                             Main.LOGGER.error("Could not copy file " + src.getAbsolutePath());
