@@ -1,6 +1,5 @@
 package ui.pane.gamestilepane;
 
-import com.sun.media.jfxmedia.logging.Logger;
 import data.game.entry.GameEntry;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -11,12 +10,13 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.concurrent.Task;
 import javafx.event.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.TilePane;
@@ -26,10 +26,12 @@ import ui.control.button.gamebutton.GameButton;
 import ui.scene.MainScene;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static ui.Main.LOGGER;
+import static ui.Main.MAIN_SCENE;
 import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
 
 /**
@@ -43,6 +45,8 @@ public abstract class GamesTilePane extends BorderPane {
 
     private static int SORT_MODE = SORT_MODE_NAME;
 
+    private final static int QUICKSEARCH_CLEAR_DELAY = 500;
+
     protected TilePane tilePane;
     protected Label titleLabel;
     protected ObservableList<GameButton> tilesList = FXCollections.observableArrayList();
@@ -55,6 +59,10 @@ public abstract class GamesTilePane extends BorderPane {
     protected boolean automaticSort = true;
 
     protected boolean quickSearchEnabled = false;
+    private char previousTypedChar;
+    private char repeatedCharCounter = 0;
+
+
 
     public boolean isQuickSearchEnabled() {
         return quickSearchEnabled;
@@ -122,13 +130,13 @@ public abstract class GamesTilePane extends BorderPane {
         setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
-                if(quickSearchEnabled) {
+                if (quickSearchEnabled) {
                     if (!event.isShiftDown()) {
                         if (event.getCode().isLetterKey()
                                 || event.getCode().isDigitKey()) {
                             String s = event.getCode().getName();
                             //TODO implement wait for other events to collect letters
-                            LOGGER.debug("Event type : "+event.getEventType()+"Typed : "+s);
+                            //LOGGER.debug("Event type : "+event.getEventType()+"Typed : "+s);
                             tilesList.sort(new Comparator<GameButton>() {
                                 @Override
                                 public int compare(GameButton o1, GameButton o2) {
@@ -136,16 +144,44 @@ public abstract class GamesTilePane extends BorderPane {
                                             .compareTo(o2.getEntry().getName().toLowerCase());
                                 }
                             });
-                            for (GameButton b : tilesList){
-
-                                String name = b.getEntry().getName().toLowerCase();
-                                if(name.startsWith(s.toLowerCase())){
+                            if (previousTypedChar != s.charAt(0)) {
+                                repeatedCharCounter = 0;
+                            } else {
+                                repeatedCharCounter++;
+                            }
+                            FilteredList<GameButton> matchingButtons = tilesList.filtered(new Predicate<GameButton>() {
+                                @Override
+                                public boolean test(GameButton button) {
+                                    String name = button.getEntry().getName().toLowerCase();
+                                    return name.startsWith(s.toLowerCase());
+                                }
+                            });
+                            boolean selectedAButton = false;
+                            int matchingButtonscounter = 0;
+                            for (GameButton b : matchingButtons) {
+                                if (matchingButtonscounter == repeatedCharCounter) {
+                                    MAIN_SCENE.setInputMode(MainScene.INPUT_MODE_KEYBOARD);
                                     b.requestFocus();
+                                    MAIN_SCENE.centerGameButtonInScrollPane(b, GamesTilePane.this);
+                                    selectedAButton = true;
                                     break;
                                 }
+                                matchingButtonscounter++;
                             }
+                            if(!selectedAButton && matchingButtons.size() > 0){
+                                //means we got to the end of the matching buttons and need to loop
+
+                                MAIN_SCENE.setInputMode(MainScene.INPUT_MODE_KEYBOARD);
+                                matchingButtons.get(0).requestFocus();
+                                MAIN_SCENE.centerGameButtonInScrollPane(matchingButtons.get(0), GamesTilePane.this);
+                                selectedAButton = true;
+                                repeatedCharCounter = 0;
+                            }
+                            previousTypedChar = s.charAt(0);
                         }
                     }
+                }else{
+                    MAIN_SCENE.triggerKeyPressedOnMainPane(event);
                 }
             }
         });

@@ -6,8 +6,8 @@
             <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p %c{1}:%L - %msg%n" />
         </Console>
 
-        <RollingFile name="RollingFile" filename="log/GameRoom.log"
-                     filepattern="log/GameRoom - %d{YYYY-MM-dd}.log">
+        <RollingFile name="RollingFile" filename="${env:APPDATA}/${sys:working.dir}/log/GameRoom.log"
+                     filepattern="${env:APPDATA}/${sys:working.dir}/log/GameRoom - %d{YYYY-MM-dd}.log">
             <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p %c{1}:%L - %msg%n" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="500 KB" />

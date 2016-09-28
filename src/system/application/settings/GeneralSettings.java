@@ -24,13 +24,7 @@ public class GeneralSettings {
         InputStream input = null;
 
         try {
-            File configFile = new File("config.properties");
-            if(!configFile.exists()){
-                configFile.createNewFile();
-                saveSettings();
-            }
-
-            input = new FileInputStream("config.properties");
+            input = new FileInputStream(Main.FILES_MAP.get("config.properties"));
 
             // load a properties file
             prop.load(input);
@@ -62,7 +56,7 @@ public class GeneralSettings {
 
         try {
 
-            output = new FileOutputStream("config.properties");
+            output = new FileOutputStream(Main.FILES_MAP.get("config.properties"));
 
             for(PredefinedSetting key : PredefinedSetting.values()){
                 prop.setProperty(key.toString(),settingsMap.get(key.getKey()).toString());

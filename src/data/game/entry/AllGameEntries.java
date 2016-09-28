@@ -1,6 +1,6 @@
 package data.game.entry;
 
-import data.game.entry.GameEntry;
+import data.FileUtils;
 import ui.Main;
 
 import java.io.*;
@@ -16,7 +16,7 @@ public class AllGameEntries {
 
     public static ArrayList<UUID> readUUIDS(File entriesFile){
         ArrayList<UUID> uuids = new ArrayList<>();
-        File entriesFolder = initOrCreateFile(entriesFile);
+        File entriesFolder = FileUtils.initOrCreateFolder(entriesFile);
 
         for(File gameFolder : entriesFolder.listFiles()){
             String name = gameFolder.getName();
@@ -57,12 +57,5 @@ public class AllGameEntries {
     public static void removeGame(GameEntry entry){
         ENTRIES_LIST.remove(entry);
         Main.LOGGER.info("Removed game : " + entry.getName());
-    }
-    private static File initOrCreateFile(File f){
-        File file = f;
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-        return file;
     }
 }

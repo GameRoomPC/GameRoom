@@ -116,7 +116,15 @@ public class SettingsScene extends BaseScene {
         }
 
 
-        addPropertyLine(PredefinedSetting.LOCALE);
+        addPropertyLine(PredefinedSetting.LOCALE, false, new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                if(!oldValue.equals(newValue)){
+                    GameRoomAlert restartDialog = new GameRoomAlert(Alert.AlertType.WARNING, Main.RESSOURCE_BUNDLE.getString("GameRoom_needs_restart"));
+                    restartDialog.showAndWait();
+                }
+            }
+        });
         addPropertyLine(PredefinedSetting.ON_GAME_LAUNCH_ACTION);
         addPropertyLine(PredefinedSetting.NO_NOTIFICATIONS);
         addPropertyLine(PredefinedSetting.START_WITH_WINDOWS, false, new ChangeListener() {
@@ -264,9 +272,6 @@ public class SettingsScene extends BaseScene {
                         try {
                             JSONObject response = KeyChecker.deactivateKey(GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY));
                             if (response.getString(KeyChecker.FIELD_RESULT).equals(KeyChecker.RESULT_SUCCESS)) {
-                                GameRoomAlert successDialog = new GameRoomAlert(Alert.AlertType.INFORMATION, Main.RESSOURCE_BUNDLE.getString("key_deactivated_message"));
-                                successDialog.showAndWait();
-
                                 GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SUPPORTER_KEY, "");
                                 SUPPORTER_MODE = false;
                                 String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
@@ -404,6 +409,25 @@ public class SettingsScene extends BaseScene {
         });
         addPropertyLine(PredefinedSetting.DEBUG_MODE, true);
 
+        /***********************OPEN LOG FOLDER **************************************/
+        if ((GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE))) {
+            Label logLabel = new Label(Main.RESSOURCE_BUNDLE.getString("open_logs_folder") + ": ");
+            logLabel.setStyle(ADVANCE_MODE_LABEL_STYLE);
+            Button logButton = new Button(Main.RESSOURCE_BUNDLE.getString("open"));
+
+            logButton.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    try {
+                        Desktop.getDesktop().open(Main.FILES_MAP.get("log"));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            flowPaneHashMap.get(SettingValue.CATEGORY_GENERAL).getChildren().add(createLine(logLabel, logButton));
+        }
+
         /***********************ROW CONSTRAINTS****************************/
         /**********************NO CONTROL INIT BELOW THIS*******************/
 
@@ -527,15 +551,14 @@ public class SettingsScene extends BaseScene {
                 localeComboBox.setOnAction(new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(ActionEvent event) {
+                        if (changeListener != null) {
+                            changeListener.changed(null,Main.GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE),localeComboBox.getValue());
+                        }
                         Main.RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", localeComboBox.getValue());
                         Main.SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", localeComboBox.getValue());
                         Main.GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", localeComboBox.getValue());
                         Main.GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", localeComboBox.getValue());
                         Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.LOCALE, localeComboBox.getValue());
-
-                        if (changeListener != null) {
-                            changeListener.changed(null, null, localeComboBox.getValue());
-                        }
                     }
                 });
                 node2 = localeComboBox;

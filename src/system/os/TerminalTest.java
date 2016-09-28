@@ -62,11 +62,6 @@ public class TerminalTest extends Application {
         GENERAL_SETTINGS = new GeneralSettings();
         RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
 
-
-        if(!CACHE_FOLDER.exists()){
-            CACHE_FOLDER.mkdirs();
-        }
-
         launch(args);
     }
 }

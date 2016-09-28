@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
+import static ui.Main.FILES_MAP;
 
 /**
  * Created by LM on 17/08/2016.
@@ -104,7 +105,7 @@ public class GameWatcher {
         th.start();
     }
     private void initToAddEntries(){
-        ArrayList<UUID> uuids = AllGameEntries.readUUIDS(GameEntry.TOADD_FOLDER);
+        ArrayList<UUID> uuids = AllGameEntries.readUUIDS(FILES_MAP.get("to_add"));
 
         ArrayList<GameEntry> savedEntries = new ArrayList<>();
         for (UUID uuid : uuids) {
@@ -199,7 +200,7 @@ public class GameWatcher {
                                 @Override
                                 public void run(File outputfile) {
                                     try {
-                                        File localCoverFile = new File(GameEntry.TOADD_FOLDER + File.separator + toScrapEntries.get(finalI).getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + GameEditScene.getExtension(outputfile));
+                                        File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntries.get(finalI).getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + GameEditScene.getExtension(outputfile));
                                         Files.copy(outputfile.getAbsoluteFile().toPath()
                                                 , localCoverFile.getAbsoluteFile().toPath()
                                                 , StandardCopyOption.REPLACE_EXISTING);
@@ -220,7 +221,7 @@ public class GameWatcher {
                                                 @Override
                                                 public void run(File outputfile) {
                                                     try {
-                                                        File localCoverFile = new File(GameEntry.TOADD_FOLDER + File.separator + toScrapEntries.get(finalI).getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + GameEditScene.getExtension(outputfile));
+                                                        File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntries.get(finalI).getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + GameEditScene.getExtension(outputfile));
                                                         Files.copy(outputfile.getAbsoluteFile().toPath()
                                                                 , localCoverFile.getAbsoluteFile().toPath()
                                                                 , StandardCopyOption.REPLACE_EXISTING);

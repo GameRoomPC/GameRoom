@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import java.awt.*;
 import java.io.*;
 import java.net.*;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;
 
@@ -59,7 +60,8 @@ public class Main {
     public static GeneralSettings GENERAL_SETTINGS;
 
     public static final Logger LOGGER = LogManager.getLogger(Main.class);
-    public static final File CACHE_FOLDER = new File("cache");
+
+    public static final HashMap<String, File> FILES_MAP = new HashMap<>();
 
     public static Menu START_TRAY_MENU = new Menu();
 
@@ -97,11 +99,6 @@ public class Main {
         //if(!DEV_MODE){
         startUpdater();
         //}
-
-        CACHE_FOLDER.mkdirs();
-        GameEntry.TOADD_FOLDER.mkdirs();
-        GameEntry.ENTRIES_FOLDER.mkdirs();
-
     }
     public static String getArg(String flag,String[] args, boolean hasOption){
         boolean argsHere = false;
