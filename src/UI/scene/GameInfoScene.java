@@ -290,7 +290,8 @@ public class GameInfoScene extends BaseScene {
         GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
 
         backgroundView.setEffect(blur);
-        backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);        coverButton.setImage(editedEntry.getImagePath(0).getAbsolutePath());
+        backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
+        coverButton.setImage(editedEntry.getImagePath(0).getAbsolutePath());
     }
     private void updateProperty(String title, String value) {
         for (Node node : propertiesPane.getChildren()) {

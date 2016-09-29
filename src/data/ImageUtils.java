@@ -13,9 +13,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 import ui.Main;
+import ui.scene.BaseScene;
 
 import java.io.File;
 
+import static ui.Main.GENERAL_SETTINGS;
 import static ui.scene.BaseScene.FADE_IN_OUT_TIME;
 
 /**
@@ -130,8 +132,23 @@ public class ImageUtils {
     private static Task downloadImgToCache(String url, String filenameOutput, OnDLDoneHandler dlDoneHandler) {
         return downloadImgToCache(url, getOutputImageCacheFile(filenameOutput),dlDoneHandler);
     }
+    public static void transitionToWindowBackground(Image img, ImageView imageView){
+        if(img!=null) {
+            double widthScale = (double) GENERAL_SETTINGS.getWindowWidth() / img.getWidth();
+            double heightScale = (double) GENERAL_SETTINGS.getWindowHeight() / img.getHeight();
 
-    public static void transitionToImage(Image image2, ImageView imageView, double finalOpaycity) {
+            if (imageView.getScaleX() != widthScale) {
+                imageView.setScaleX(widthScale);
+            }
+            if (imageView.getScaleY() != heightScale) {
+                imageView.setScaleY(heightScale);
+            }
+        }
+        ImageUtils.transitionToImage(img, imageView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+
+    }
+
+    public static void transitionToImage(Image image2, ImageView imageView, double finalOpacity) {
         Platform.runLater(() -> {
 
             Timeline fadeOutTimeline = new Timeline(
@@ -150,7 +167,7 @@ public class ImageUtils {
                             new KeyFrame(Duration.seconds(0),
                                     new KeyValue(imageView.opacityProperty(), 0, Interpolator.EASE_IN)),
                             new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                    new KeyValue(imageView.opacityProperty(), finalOpaycity, Interpolator.EASE_OUT)
+                                    new KeyValue(imageView.opacityProperty(), finalOpacity, Interpolator.EASE_OUT)
                             ));
                     fadeInTimeline.setCycleCount(1);
                     fadeInTimeline.setAutoReverse(false);

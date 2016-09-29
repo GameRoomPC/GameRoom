@@ -250,14 +250,9 @@ public class GameEditScene extends BaseScene {
                     Main.GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO
                     , false, true);
 
-            double widthScale = 1;
-            double heightScale = 1;
-            if(screenshotImage.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
-                widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/screenshotImage.getWidth();
-            }
-            if(screenshotImage.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
-                heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/screenshotImage.getHeight();
-            }
+            double widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/screenshotImage.getWidth();
+            double heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/screenshotImage.getHeight();
+
             backgroundView.setScaleX(widthScale);
             backgroundView.setScaleY(heightScale);
             backgroundView.setImage(screenshotImage);
@@ -489,17 +484,7 @@ public class GameEditScene extends BaseScene {
                     @Override
                     public void run() {
                         Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO, false, true);
-                        double widthScale = 1;
-                        double heightScale = 1;
-                        if(img.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
-                            widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/img.getWidth();
-                        }
-                        if(img.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
-                            heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/img.getHeight();
-                        }
-                        backgroundView.setScaleX(widthScale);
-                        backgroundView.setScaleY(heightScale);
-                        ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+                        ImageUtils.transitionToWindowBackground(img, backgroundView);
                         chosenImageFiles[1] = outputfile;
                         File coverLocalImageFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
                         entry.setImagePath(1, coverLocalImageFile);
@@ -1015,18 +1000,7 @@ public class GameEditScene extends BaseScene {
                             @Override
                             public void run(File outputfile) {
                                 Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO, false, true);
-
-                                double widthScale = 1;
-                                double heightScale = 1;
-                                if(img.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
-                                    widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/img.getWidth();
-                                }
-                                if(img.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
-                                    heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/img.getHeight();
-                                }
-                                backgroundView.setScaleX(widthScale);
-                                backgroundView.setScaleY(heightScale);
-                                ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+                                ImageUtils.transitionToWindowBackground(img, backgroundView);
 
                             }
                         });
@@ -1043,18 +1017,7 @@ public class GameEditScene extends BaseScene {
                             @Override
                             public void run(File outputfile) {
                                 Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO, false, true);
-
-                                double widthScale = 1;
-                                double heightScale = 1;
-                                if(img.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
-                                    widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/img.getWidth();
-                                }
-                                if(img.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
-                                    heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/img.getHeight();
-                                }
-                                backgroundView.setScaleX(widthScale);
-                                backgroundView.setScaleY(heightScale);
-                                ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+                                ImageUtils.transitionToWindowBackground(img, backgroundView);
 
                                 chosenImageFiles[1] = outputfile;
                                 File coverLocalImageFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
@@ -1084,18 +1047,7 @@ public class GameEditScene extends BaseScene {
             } else {
                 if (chosenImageFiles[1] != null) {
                     Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO*BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight(), false, true);
-
-                    double widthScale = 1;
-                    double heightScale = 1;
-                    if(img.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
-                        widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/img.getWidth();
-                    }
-                    if(img.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
-                        heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/img.getHeight();
-                    }
-                    backgroundView.setScaleX(widthScale);
-                    backgroundView.setScaleY(heightScale);
-                    ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+                    ImageUtils.transitionToWindowBackground(img, backgroundView);
                 } else {
                     ImageUtils.transitionToImage(null, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
                 }

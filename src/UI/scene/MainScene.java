@@ -70,13 +70,15 @@ public class MainScene extends BaseScene {
     public final static int INPUT_MODE_KEYBOARD = 1;
 
     public final static double MAX_TILE_ZOOM = 0.675;
-    public final static double MIN_TILE_ZOOM = 0.25;
+    public final static double MIN_TILE_ZOOM = 0.10;
 
     private static boolean GARBAGE_COLLECTED_RECENTLY = false;
 
     private VBox tilesPaneWrapper = new VBox();
     private ScrollPane scrollPane;
     private BorderPane wrappingPane;
+
+    private Slider sizeSlider = new Slider();
 
     private GamesTilePane tilePane;
     private RowCoverTilePane lastPlayedTilePane;
@@ -171,6 +173,14 @@ public class MainScene extends BaseScene {
             }
             double scrollBarVValue = GENERAL_SETTINGS.getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
             scrollPane.setVvalue(scrollBarVValue);
+
+            double sizeSliderValue = Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.TILE_ZOOM);
+            if(sizeSliderValue <= MIN_TILE_ZOOM){
+                sizeSliderValue = MIN_TILE_ZOOM + 0.00001; //extreme values of the slider are buggy
+            }else if(sizeSliderValue >=MAX_TILE_ZOOM){
+                sizeSliderValue = MAX_TILE_ZOOM+0.00001; //extreme values of the slider are buggy
+            }
+            sizeSlider.setValue(sizeSliderValue);
         });
     }
     public void saveScrollBarVValue(){
@@ -203,7 +213,7 @@ public class MainScene extends BaseScene {
                     alert.getDialogPane().getButtonTypes().addAll(new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE)
                             ,new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"),ButtonBar.ButtonData.CANCEL_CLOSE));
                     Optional<ButtonType> result = alert.showAndWait();
-                    if (result.get() == ButtonType.OK) {
+                    if (result!=null && result.isPresent() && result.get().getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
                         GENERAL_SETTINGS.setSettingValue(PredefinedSetting.GAMES_FOLDER,field.getTextField().getText());
                     } else {
                         // ... user chose CANCEL or closed the dialog
@@ -405,7 +415,6 @@ public class MainScene extends BaseScene {
     }
 
     private void initTop() {
-        Slider sizeSlider = new Slider();
         sizeSlider.setMin(MIN_TILE_ZOOM);
         sizeSlider.setMax(MAX_TILE_ZOOM);
         sizeSlider.setBlockIncrement(0.1);
@@ -440,8 +449,6 @@ public class MainScene extends BaseScene {
                 Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
             }
         });
-        sizeSlider.setValue(Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.TILE_ZOOM));
-
         sizeSlider.setPrefWidth(Main.SCREEN_WIDTH / 8);
         sizeSlider.setMaxWidth(Main.SCREEN_WIDTH / 8);
         sizeSlider.setPrefHeight(Main.SCREEN_WIDTH / 160);
@@ -1046,21 +1053,7 @@ public class MainScene extends BaseScene {
             if (!changeBackgroundNextTime) {
                 if (img != null) {
                     if (backgroundView.getImage() == null || !backgroundView.getImage().equals(img)) {
-                        double widthScale = 1;
-                        double heightScale = 1;
-                        if(img.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
-                            widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/img.getWidth();
-                        }
-                        if(img.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
-                            heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/img.getHeight();
-                        }
-                        if(backgroundView.getScaleX()!=widthScale){
-                            backgroundView.setScaleX(widthScale);
-                        }
-                        if(backgroundView.getScaleY()!=heightScale){
-                            backgroundView.setScaleY(heightScale);
-                        }
-                        ImageUtils.transitionToImage(img, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+                        ImageUtils.transitionToWindowBackground(img, backgroundView);
                         if (maskView.getOpacity() != 1) {
                             Timeline fadeInTimeline = new Timeline(
                                     new KeyFrame(Duration.seconds(0),
@@ -1095,19 +1088,7 @@ public class MainScene extends BaseScene {
             }
             if(maskView.isVisible()){
                 maskView.setVisible(false);
-            }            /*if (backgroundView.getOpacity() != 0) {
-                Timeline fadeOutTimeline = new Timeline(
-                        new KeyFrame(Duration.seconds(0),
-                                new KeyValue(backgroundView.opacityProperty(), backgroundView.opacityProperty().getValue(), Interpolator.EASE_IN),
-                                new KeyValue(maskView.opacityProperty(), maskView.opacityProperty().getValue(), Interpolator.EASE_IN)),
-                        new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                new KeyValue(backgroundView.opacityProperty(), 0, Interpolator.EASE_OUT),
-                                new KeyValue(maskView.opacityProperty(), 0, Interpolator.EASE_OUT)
-                        ));
-                fadeOutTimeline.setCycleCount(1);
-                fadeOutTimeline.setAutoReverse(false);
-                fadeOutTimeline.play();
-            }*/
+            }
         }
     }
 }
