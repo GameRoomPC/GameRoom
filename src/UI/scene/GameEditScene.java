@@ -1112,23 +1112,30 @@ public class GameEditScene extends BaseScene {
     }
     public static void moveImage(GameEntry entry, File imageFile, String imageType){
         if(imageFile!=null) {
-            File localCoverFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + imageType + "." + getExtension(imageFile.getName()));
-            try {
-                if (!localCoverFile.getParentFile().exists()) {
-                    localCoverFile.getParentFile().mkdirs();
+            if(!imageFile.exists()){
+                imageFile = new File(FILES_MAP.get("working_dir").getPath()+File.separator+imageFile.getPath());
+            }
+            if(imageFile.exists()) {
+                File localCoverFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + imageType + "." + getExtension(imageFile.getName()));
+                try {
+                    if (!localCoverFile.getParentFile().exists()) {
+                        localCoverFile.getParentFile().mkdirs();
+                    }
+                    if (!localCoverFile.exists()) {
+                        localCoverFile.createNewFile();
+                    }
+                    Files.copy(imageFile.toPath().toAbsolutePath(), localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
+                    int imageIndex = 0;
+                    if (imageType.equals(ImageUtils.IGDB_TYPE_SCREENSHOT)) {
+                        imageIndex = 1;
+                    }
+                    entry.setImagePath(imageIndex, localCoverFile);
+                    Main.LOGGER.debug("Moving from \n\t" + imageFile.toPath().toAbsolutePath() + "\n\tto " + localCoverFile.toPath().toAbsolutePath());
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                if (!localCoverFile.exists()) {
-                    localCoverFile.createNewFile();
-                }
-                Files.copy(imageFile.toPath().toAbsolutePath(), localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
-                int imageIndex = 0;
-                if (imageType.equals(ImageUtils.IGDB_TYPE_SCREENSHOT)) {
-                    imageIndex = 1;
-                }
-                entry.setImagePath(imageIndex, localCoverFile);
-                Main.LOGGER.debug("Moving from \n\t" + imageFile.toPath().toAbsolutePath() + "\n\tto " + localCoverFile.toPath().toAbsolutePath());
-            } catch (IOException e) {
-                e.printStackTrace();
+            }else{
+                LOGGER.error("Could not move non existing image : " +imageFile.getPath());
             }
         }
     }

@@ -11,7 +11,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.concurrent.Task;
 import javafx.event.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -30,7 +29,6 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ui.Main.LOGGER;
 import static ui.Main.MAIN_SCENE;
 import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
 
@@ -61,6 +59,8 @@ public abstract class GamesTilePane extends BorderPane {
     protected boolean quickSearchEnabled = false;
     private char previousTypedChar;
     private char repeatedCharCounter = 0;
+
+    private boolean displayGamesCount = true;
 
 
 
@@ -570,20 +570,22 @@ public abstract class GamesTilePane extends BorderPane {
     }
 
     protected void updateTitleGameCount() {
-        int nbVisible = 0;
-        for (GameButton button1 : tilesList) {
-            if (button1.isVisible()) {
-                nbVisible++;
+        if(displayGamesCount) {
+            int nbVisible = 0;
+            for (GameButton button1 : tilesList) {
+                if (button1.isVisible()) {
+                    nbVisible++;
+                }
             }
-        }
-        String title = titleLabel.getText();
-        Pattern pattern = Pattern.compile(".*\\(\\d*\\)");
-        Matcher matcher = pattern.matcher(title);
-        if (!matcher.find()) {
-            setTitle(getTitle().getText() + " (" + nbVisible + ")");
-        } else {
-            title = title.replaceAll("\\(\\d*\\)", "(" + nbVisible + ")");
-            setTitle(title);
+            String title = titleLabel.getText();
+            Pattern pattern = Pattern.compile(".*\\(\\d*\\)");
+            Matcher matcher = pattern.matcher(title);
+            if (!matcher.find()) {
+                setTitle(getTitle().getText() + " (" + nbVisible + ")");
+            } else {
+                title = title.replaceAll("\\(\\d*\\)", "(" + nbVisible + ")");
+                setTitle(title);
+            }
         }
     }
 
@@ -614,5 +616,13 @@ public abstract class GamesTilePane extends BorderPane {
         for (GameButton b : getGameButtons()) {
             b.setCache(cache);
         }
+    }
+
+    public boolean isDisplayGamesCount() {
+        return displayGamesCount;
+    }
+
+    public void setDisplayGamesCount(boolean displayGamesCount) {
+        this.displayGamesCount = displayGamesCount;
     }
 }

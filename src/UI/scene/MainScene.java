@@ -262,8 +262,10 @@ public class MainScene extends BaseScene {
 
         lastPlayedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_LAST_PLAYED);
         lastPlayedTilePane.setId("lastPlayedTilePane");
+        lastPlayedTilePane.setDisplayGamesCount(false);
         recentlyAddedTilePane = new RowCoverTilePane(this, RowCoverTilePane.TYPE_RECENTLY_ADDED);
         recentlyAddedTilePane.setId("recentlyAddedTilePane");
+        recentlyAddedTilePane.setDisplayGamesCount(false);
         toAddTilePane = new ToAddRowTilePane(this) {
             @Override
             protected void batchAddEntries(ArrayList<GameEntry> entries) {

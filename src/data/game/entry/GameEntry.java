@@ -1,5 +1,6 @@
 package data.game.entry;
 
+import data.FileUtils;
 import system.application.GameStarter;
 import javafx.scene.image.Image;
 import ui.Main;
@@ -132,8 +133,8 @@ public class GameEntry {
 
                 for (int i = 0; i < IMAGES_NUMBER; i++) {
                     if (imagesPaths[i] != null) {
-                        String relativePath = Main.FILES_MAP.get("working_dir").toURI().relativize(new File(imagesPaths[i].getPath()).toURI()).getPath();
-                        prop.setProperty("image" + i, new File(relativePath).getPath());
+                        File relativeFile = FileUtils.relativizePath(imagesPaths[i],Main.FILES_MAP.get("working_dir"));
+                        prop.setProperty("image" + i, relativeFile.getPath());
                     }
                 }
                 prop.setProperty("playTime", Long.toString(playTime));
@@ -242,7 +243,8 @@ public class GameEntry {
 
         for (int i = 0; i < IMAGES_NUMBER; i++) {
             if (prop.getProperty("image" + i) != null) {
-                imagesPaths[i] = new File(prop.getProperty("image" + i));
+                File relativeFile = FileUtils.relativizePath(new File(prop.getProperty("image" + i)),Main.FILES_MAP.get("working_dir"));
+                imagesPaths[i] = relativeFile;
             }
         }
         for (int i = 0; i < cmd.length; i++) {
@@ -408,7 +410,8 @@ public class GameEntry {
 
     public void setImagePath(int index, File imagePath) {
         if (imagesPaths.length > index) {
-            imagesPaths[index] = imagePath;
+            File relativeFile = FileUtils.relativizePath(imagePath,Main.FILES_MAP.get("working_dir"));
+            imagesPaths[index] = relativeFile;
             imageNeedsRefresh[index] = true;
         }
         saveEntry();
