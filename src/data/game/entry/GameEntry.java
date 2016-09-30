@@ -5,6 +5,7 @@ import javafx.scene.image.Image;
 import ui.Main;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -131,7 +132,8 @@ public class GameEntry {
 
                 for (int i = 0; i < IMAGES_NUMBER; i++) {
                     if (imagesPaths[i] != null) {
-                        prop.setProperty("image" + i, imagesPaths[i].getPath());
+                        String relativePath = Main.FILES_MAP.get("working_dir").toURI().relativize(new File(imagesPaths[i].getPath()).toURI()).getPath();
+                        prop.setProperty("image" + i, new File(relativePath).getPath());
                     }
                 }
                 prop.setProperty("playTime", Long.toString(playTime));
