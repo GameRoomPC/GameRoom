@@ -67,7 +67,7 @@ public class ChoiceDialog extends GameRoomDialog<ButtonType> {
                     "    -fx-font-weight: 600;");
             descriptionLabel.setWrapText(true);
             BorderPane.setAlignment(descriptionLabel, Pos.CENTER_LEFT);
-            getStyleClass().addAll(new String[]{"search-result-row"});
+            getStyleClass().addAll("search-result-row");
             setTop(titleLabel);
             setCenter(descriptionLabel);
         }

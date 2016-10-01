@@ -50,7 +50,7 @@ import static ui.scene.BaseScene.BACKGROUND_IMAGE_LOAD_RATIO;
  * Created by LM on 12/07/2016.
  */
 public abstract class GameButton extends BorderPane {
-    protected static HashMap<String,Image> DEFAULT_IMAGES = new HashMap<>();
+    private static HashMap<String,Image> DEFAULT_IMAGES = new HashMap<>();
     private static Image DEFAULT_PLAY_IMAGE;
     private static Image DEFAULT_INFO_IMAGE;
 
@@ -63,37 +63,37 @@ public abstract class GameButton extends BorderPane {
 
     public final static double COVER_HEIGHT_WIDTH_RATIO = 127.0 / 90.0;
 
-    protected static double COVER_SCALE_EFFECT_FACTOR = 1.1;
+    static double COVER_SCALE_EFFECT_FACTOR = 1.1;
     private final static double COVER_BLUR_EFFECT_RADIUS = 10;
     private final static double COVER_BRIGHTNESS_EFFECT_FACTOR = 0.1;
 
     private BaseScene parentScene;
 
-    protected StackPane coverPane;
-    protected HBox titleBox;
-    protected ImageView titleLogoView;
-    protected Label titleLabel;
-    protected Label playTimeLabel;
-    protected Label ratingLabel;
-    protected Label releaseDateLabel;
+    StackPane coverPane;
+    HBox titleBox;
+    private ImageView titleLogoView;
+    private Label titleLabel;
+    Label playTimeLabel;
+    private Label ratingLabel;
+    private Label releaseDateLabel;
     private boolean keepTimeLabelVisible = false;
 
     private ContextMenu contextMenu;
-    protected ImageView coverView;
-    protected ImageView defaultCoverView;
+    ImageView coverView;
+    private ImageView defaultCoverView;
     private ImageView notInstalledImage = new ImageView();
 
-    protected ImageButton playButton;
-    protected ImageButton infoButton;
+    ImageButton playButton;
+    ImageButton infoButton;
 
-    protected Pane parent;
+    private Pane parent;
 
 
-    protected GameEntry entry;
+    private GameEntry entry;
     private boolean inContextMenu = false;
 
 
-    public GameButton(GameEntry entry, BaseScene scene, Pane parent) {
+    GameButton(GameEntry entry, BaseScene scene, Pane parent) {
         super();
         this.parent = parent;
         this.entry = entry;
@@ -165,7 +165,7 @@ public abstract class GameButton extends BorderPane {
         }
     }
 
-    protected void initAll() {
+    private void initAll() {
         if (coverPane != null) {
             coverPane.getChildren().clear();
         }
@@ -297,7 +297,6 @@ public abstract class GameButton extends BorderPane {
                 , 10 * Main.SCREEN_WIDTH / 1920
                 , 2 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920));
-        ;
         ratingLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
                 "    -fx-font-size: 38.0px;\n" +
                 "    -fx-stroke: black;\n" +
@@ -307,7 +306,6 @@ public abstract class GameButton extends BorderPane {
                 , 10 * Main.SCREEN_WIDTH / 1920
                 , 2 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920));
-        ;
         releaseDateLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
                 "    -fx-font-size: 28.0px;\n" +
                 "    -fx-stroke: black;\n" +
@@ -577,7 +575,7 @@ public abstract class GameButton extends BorderPane {
         return entry;
     }
 
-    protected void disableNode(Node node, boolean disable) {
+    void disableNode(Node node, boolean disable) {
         node.setVisible(!disable);
         node.setDisable(disable);
         node.setManaged(!disable);
@@ -591,15 +589,15 @@ public abstract class GameButton extends BorderPane {
         releaseDateLabel.setOpacity(1);
     }
 
-    protected final void initContentSize(double width, double size){
+    final void initContentSize(double width, double size){
         updateAllOnTileWidth(width);
         updateAllOnTileHeight(size);
     }
-    protected final void initContentSize(TilePane pane){
+    final void initContentSize(TilePane pane){
         updateAllOnTileWidth(pane.getPrefTileWidth());
         updateAllOnTileHeight(pane.getPrefTileHeight());
     }
-    private final void updateAllOnTileWidth(double width){
+    private void updateAllOnTileWidth(double width){
         setPrefWidth(width);
         setWidth(width);
         coverView.setFitWidth(width);
@@ -610,7 +608,7 @@ public abstract class GameButton extends BorderPane {
 
         onNewTileWidth(width);
     }
-    private final void updateAllOnTileHeight(double height){
+    private void updateAllOnTileHeight(double height){
         setPrefHeight(height);
         setHeight(height);
         coverView.setFitHeight(height);

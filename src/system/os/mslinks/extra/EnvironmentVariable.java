@@ -24,7 +24,7 @@ import java.io.IOException;
 public class EnvironmentVariable implements Serializable {
 
 	public static final int signature = 0xA0000001;
-	public static final int size = 0x314;
+	private static final int size = 0x314;
 	
 	private String variable;
 	

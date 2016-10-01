@@ -30,9 +30,9 @@ import static ui.Main.FILES_MAP;
  */
 public class GameWatcher {
     private final static int SCAN_DELAY_MINUTES = 8;
-    protected OnGameFoundHandler onGameFoundHandler;
+    private OnGameFoundHandler onGameFoundHandler;
 
-    private ArrayList<GameEntry> entriesToAdd = new ArrayList<>();
+    private final ArrayList<GameEntry> entriesToAdd = new ArrayList<>();
 
     private ArrayList<GameScanner> localGameScanners = new ArrayList<>();
     private ArrayList<GameScanner> onlineGameScanners = new ArrayList<>();

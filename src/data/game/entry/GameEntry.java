@@ -24,11 +24,11 @@ public class GameEntry {
 
     public final static DateFormat DATE_DISPLAY_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
     public final static DateFormat DATE_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss SSS");
-    public final static DateFormat DATE_OLD_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+    private final static DateFormat DATE_OLD_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     public final static File[] DEFAULT_IMAGES_PATHS = {new File("res/defaultImages/cover.jpg"), null};
     private final static int IMAGES_NUMBER = 3;
 
-    public final static int TIME_FORMAT_FULL_HMS = 0; // 0h12m0s, 0h5m13s
+    private final static int TIME_FORMAT_FULL_HMS = 0; // 0h12m0s, 0h5m13s
     public final static int TIME_FORMAT_FULL_DOUBLEDOTS = 1; //00:12:00, 00:05:13
     public final static int TIME_FORMAT_HALF_FULL_HMS = 2; // 12m0s, 5m13s
     public final static int TIME_FORMAT_ROUNDED_HMS = 3; // 12m, 5m
@@ -343,7 +343,7 @@ public class GameEntry {
     public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth) {
         return getImage(index,width,height,preserveRatio,smooth,false);
     }
-    public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth,boolean backGroundloading) {
+    private Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth, boolean backGroundloading) {
         if (createdImages.get(index) != null && !imageNeedsRefresh[index]) {
             if (createdImages.get(index).getWidth() == width && createdImages.get(index).getHeight() == height) {
                 return createdImages.get(index);
@@ -373,8 +373,7 @@ public class GameEntry {
      */
     public File getImagePath(int index) {
         if (index < imagesPaths.length) {
-            File result = imagesPaths[index];
-            return result;
+            return imagesPaths[index];
         }
         return null;
     }
@@ -419,7 +418,7 @@ public class GameEntry {
         return steam_id;
     }
 
-    public void setSteam_id(int steam_id, boolean updatePath) {
+    private void setSteam_id(int steam_id, boolean updatePath) {
         this.steam_id = steam_id;
         if (updatePath) {
             this.path = "steam://rungameid/" + steam_id;

@@ -52,12 +52,12 @@ public enum PredefinedSetting {
         this.defaultValue = setting;
     }
     public String getLabel(){
-        String label = Main.SETTINGS_BUNDLE.getString(key.toString()+"_label");
-        return label!=null ? label : key.toString();
+        String label = Main.SETTINGS_BUNDLE.getString(key +"_label");
+        return label!=null ? label : key;
     }
 
     public String getTooltip(){
-        String label = Main.SETTINGS_BUNDLE.getString(key.toString()+"_tooltip");
+        String label = Main.SETTINGS_BUNDLE.getString(key +"_tooltip");
         return label!=null ? label : null;
     }
 

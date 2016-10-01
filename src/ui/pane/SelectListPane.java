@@ -19,7 +19,7 @@ import java.util.Iterator;
  * Created by LM on 09/08/2016.
  */
 public abstract class SelectListPane<T> extends ScrollPane {
-    final ToggleGroup toggleGroup = new ToggleGroup();
+    private final ToggleGroup toggleGroup = new ToggleGroup();
     private VBox resultsPane = new VBox();
     private int selected= -1;
     private ArrayList<ListItem<T>> items = new ArrayList<>();
@@ -69,7 +69,7 @@ public abstract class SelectListPane<T> extends ScrollPane {
     }
 
     private void addItem(T value, int i) {
-        ListItem item = createListItem((T) value);
+        ListItem item = createListItem(value);
         item.setItemId(i);
         if (!multiSelection) {
             item.radioButton.setToggleGroup(toggleGroup);
@@ -117,7 +117,7 @@ public abstract class SelectListPane<T> extends ScrollPane {
     public static abstract class ListItem<T> extends GridPane{
         private boolean selected=false;
         private T value;
-        protected RadioButton radioButton;
+        RadioButton radioButton;
         private int id;
         protected int columnCount = 0;
         private boolean multiSelection = false;
@@ -127,7 +127,7 @@ public abstract class SelectListPane<T> extends ScrollPane {
             this.value = value;
             this.parentList = parentList;
             this.multiSelection = parentList.multiSelection;
-            getStyleClass().addAll(new String[]{"search-result-row"});
+            getStyleClass().addAll("search-result-row");
             setWidth(Double.MAX_VALUE);
             radioButton = new RadioButton();
             radioButton.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -135,7 +135,7 @@ public abstract class SelectListPane<T> extends ScrollPane {
                 public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                     if(!oldValue && newValue){
                         if(multiSelection){
-                            parentList.addSelectedValue((T) getValue());
+                            parentList.addSelectedValue(getValue());
                         }
                     }else if(oldValue && !newValue){
 
@@ -161,7 +161,7 @@ public abstract class SelectListPane<T> extends ScrollPane {
                     }
                     if(!multiSelection && oldValue && !newValue){
                         setStyle("");
-                        parentList.removeSelectedValue((T) getValue());
+                        parentList.removeSelectedValue(getValue());
                     }
                     if(newValue && !selected){
                         setSelected(true);
@@ -194,7 +194,7 @@ public abstract class SelectListPane<T> extends ScrollPane {
                 parentList.onItemSelected(this);
             }else{
                 if(multiSelection){
-                    parentList.removeSelectedValue((T) getValue());
+                    parentList.removeSelectedValue(getValue());
                     radioButton.setSelected(false);
                 }
             }

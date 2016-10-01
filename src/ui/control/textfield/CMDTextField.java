@@ -12,7 +12,7 @@ public class CMDTextField extends TextArea {
     private final static int DEFAULT_PREFERRED_ROW_MAX = 5;
     private int maxRow;
 
-    public CMDTextField(String initialValue, int maxRow){
+    private CMDTextField(String initialValue, int maxRow){
         super(initialValue);
         setPrefRowCount(1);
         setPromptText(Main.RESSOURCE_BUNDLE.getString("warning_cmd"));

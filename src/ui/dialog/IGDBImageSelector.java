@@ -31,7 +31,7 @@ public class IGDBImageSelector extends GameRoomDialog<ButtonType> {
         this(entry.getIgdb_imageHashs(), entry.getIgdb_id(), onImageSelected);
     }
 
-    public IGDBImageSelector(String[] igdbScreenshots, int igdb_id, OnItemSelectedHandler onImageSelected) {
+    private IGDBImageSelector(String[] igdbScreenshots, int igdb_id, OnItemSelectedHandler onImageSelected) {
         super();
         Label titleLabel = new Label(Main.RESSOURCE_BUNDLE.getString("select_a_wallpaper"));
         titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
@@ -80,8 +80,7 @@ public class IGDBImageSelector extends GameRoomDialog<ButtonType> {
 
         @Override
         protected ListItem createListItem(Object value) {
-            ImageItem tile = new ImageItem(igdb_id,this, value,prefRowWidth);
-            return tile;
+            return new ImageItem(igdb_id, this, value,prefRowWidth);
         }
 
         @Override

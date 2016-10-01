@@ -33,7 +33,7 @@ public abstract class BaseScene extends Scene {
     private static Image backgroundMaskImage;
     public final static double FADE_IN_OUT_TIME = 0.1;
     public final static double BACKGROUND_IMAGE_MAX_OPACITY = 0.65;
-    public final static double BACKGROUND_IMAGE_BLUR = 7;
+    final static double BACKGROUND_IMAGE_BLUR = 7;
     public final static double BACKGROUND_IMAGE_LOAD_RATIO = 2/3.0;
 
 
@@ -41,12 +41,12 @@ public abstract class BaseScene extends Scene {
 
     private StackPane rootStackPane;
     private Stage parentStage;
-    protected BaseScene previousScene;
-    protected ImageView backgroundView;
-    protected ImageView maskView;
+    BaseScene previousScene;
+    ImageView backgroundView;
+    ImageView maskView;
     private ImageButton backButton;
 
-    public BaseScene(StackPane stackPane,Stage parentStage){
+    BaseScene(StackPane stackPane, Stage parentStage){
         super(stackPane, Main.GENERAL_SETTINGS.getWindowWidth(), Main.GENERAL_SETTINGS.getWindowHeight());
         this.rootStackPane = stackPane;
         setParentStage(parentStage);
@@ -84,13 +84,13 @@ public abstract class BaseScene extends Scene {
         widthProperty().addListener(new ChangeListener<Number>() {
             @Override public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneWidth, Number newSceneWidth) {
                 //ui.Main.LOGGER.debug("New window's width : "+ newSceneWidth);
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.WINDOW_WIDTH,(int)newSceneWidth.intValue());
+                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.WINDOW_WIDTH, newSceneWidth.intValue());
             }
         });
         heightProperty().addListener(new ChangeListener<Number>() {
             @Override public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneHeight, Number newSceneHeight) {
                 //ui.Main.LOGGER.debug("New window's height : "+ newSceneHeight);
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.WINDOW_HEIGHT,(int)newSceneHeight.intValue());
+                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.WINDOW_HEIGHT, newSceneHeight.intValue());
             }
         });
 
@@ -102,7 +102,7 @@ public abstract class BaseScene extends Scene {
     public void fadeTransitionTo(BaseScene scene2, Stage stage) {
         fadeTransitionTo(scene2,stage,false);
     }
-    public void fadeTransitionTo(BaseScene scene2, Stage stage, boolean backgroundViewToo){
+    void fadeTransitionTo(BaseScene scene2, Stage stage, boolean backgroundViewToo){
         if(scene2 instanceof MainScene){
 
             ((MainScene)scene2).setChangeBackgroundNextTime(true);
@@ -147,7 +147,7 @@ public abstract class BaseScene extends Scene {
      *
      * @return wrapping pane, which is just under the root pane
      */
-    public abstract Pane getWrappingPane();
+    protected abstract Pane getWrappingPane();
 
     abstract void initAndAddWrappingPaneToRoot();
 
@@ -159,7 +159,7 @@ public abstract class BaseScene extends Scene {
         this.parentStage = parentStage;
     }
 
-    public void setOnSceneFadedOutAction(Runnable onSceneFadedOutAction) {
+    void setOnSceneFadedOutAction(Runnable onSceneFadedOutAction) {
         this.onSceneFadedOutAction = onSceneFadedOutAction;
     }
 
@@ -179,14 +179,14 @@ public abstract class BaseScene extends Scene {
         });
         return backButton;
     }
-    protected static Label createTitleLabel(String title){
+    private static Label createTitleLabel(String title){
         Label titleLabel = new Label(title);
         titleLabel.setScaleX(2.5);
         titleLabel.setScaleY(2.5);
         titleLabel.setId("titleLabel");
         return titleLabel;
     }
-    protected StackPane createTop(EventHandler<ActionEvent> backButtonEventHandler, String title){
+    StackPane createTop(EventHandler<ActionEvent> backButtonEventHandler, String title){
         StackPane topPane = new StackPane();
         backButton = createBackButton(backButtonEventHandler);
         Label titleLabel = createTitleLabel(title);
@@ -200,17 +200,17 @@ public abstract class BaseScene extends Scene {
                 , 15 * Main.SCREEN_WIDTH / 1920));
         return topPane;
     }
-    protected StackPane createTop(String title){
+    StackPane createTop(String title){
         return createTop(event -> {
             fadeTransitionTo(previousScene,parentStage);
         },title);
     }
-    protected void disableBackButton(){
+    void disableBackButton(){
         backButton.setDisable(true);
         backButton.setVisible(false);
     }
 
-    public ImageView getBackgroundView() {
+    private ImageView getBackgroundView() {
         return backgroundView;
     }
 }

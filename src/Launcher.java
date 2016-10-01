@@ -432,7 +432,7 @@ public class Launcher extends Application {
         }
     }
 
-    public static void setCurrentProcessExplicitAppUserModelID(final String appID) {
+    private static void setCurrentProcessExplicitAppUserModelID(final String appID) {
         if (SetCurrentProcessExplicitAppUserModelID(new WString(appID)).longValue() != 0)
             throw new RuntimeException("unable to set current process explicit AppUserModelID to: " + appID);
     }

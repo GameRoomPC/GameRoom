@@ -26,6 +26,7 @@ import ui.pane.SelectListPane;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.RESSOURCE_BUNDLE;
@@ -39,7 +40,7 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
     private SteamPreEntry[] selectedList;
     private Label statusLabel;
 
-    public SteamIgnoredSelector(ArrayList<SteamPreEntry> ownedSteamEntries) throws IOException {
+    private SteamIgnoredSelector(ArrayList<SteamPreEntry> ownedSteamEntries) throws IOException {
         statusLabel = new Label(Main.RESSOURCE_BUNDLE.getString("loading")+"...");
         rootStackPane.getChildren().add(statusLabel);
         Label titleLabel = new Label(Main.RESSOURCE_BUNDLE.getString("select_steam_games_ignore"));
@@ -69,9 +70,7 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
                 @Override
                 protected Object call() throws Exception {
                     ArrayList<SteamPreEntry> preEntries = new ArrayList<>();
-                    for(SteamPreEntry e : GENERAL_SETTINGS.getSteamAppsIgnored()){
-                        preEntries.add(e);
-                    }
+                    Collections.addAll(preEntries, GENERAL_SETTINGS.getSteamAppsIgnored());
                     return preEntries;
                 }
             };

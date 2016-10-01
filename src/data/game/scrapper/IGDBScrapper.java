@@ -78,14 +78,14 @@ public class IGDBScrapper {
         return null;
     }
 
-    public static Date getReleaseDate(JSONObject gameData) {
+    private static Date getReleaseDate(JSONObject gameData) {
         ArrayList<Date> releaseDates = new ArrayList<>();
         try {
             for (Object obj : gameData.getJSONArray("release_dates")) {
                 //Windows platform is number 6
                 //if (((JSONObject) obj).getInt("platform") == 6) {
                 try {
-                    releaseDates.add(new Date((long) ((JSONObject) obj).getLong("date")));
+                    releaseDates.add(new Date(((JSONObject) obj).getLong("date")));
                 } catch (JSONException je) {
                     if (!je.toString().contains("date")) {
                         je.printStackTrace();
@@ -114,7 +114,7 @@ public class IGDBScrapper {
         return getReleaseDate(gamesData.getJSONObject(indexOf(id, gamesData)));
     }
 
-    public static int indexOf(int id, JSONArray data) {
+    private static int indexOf(int id, JSONArray data) {
         int i = 0;
         for (Object obj : data) {
             if (((JSONObject) obj).getInt("id") == id) {
@@ -135,8 +135,7 @@ public class IGDBScrapper {
     }
 
     public static String getCoverImageHash(JSONObject jsob) {
-        String cloudinary_id = jsob.getJSONObject("cover").getString("cloudinary_id");
-        return cloudinary_id;
+        return jsob.getJSONObject("cover").getString("cloudinary_id");
     }
 
     public static String[] getScreenshotHash(int id, JSONArray gamesData) {
@@ -261,7 +260,7 @@ public class IGDBScrapper {
         return getEntry(game_data, true);
     }
 
-    public static GameEntry getEntry(JSONObject game_data, boolean allowUseMoreRequest) {
+    private static GameEntry getEntry(JSONObject game_data, boolean allowUseMoreRequest) {
         GameEntry entry = new GameEntry(game_data.getString("name"));
         entry.setSavedLocaly(false);
 
@@ -281,7 +280,7 @@ public class IGDBScrapper {
                 //Windows platform is number 6
                 //if (((JSONObject) obj).getInt("platform") == 6) {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
-                years.add(sdf.format(new Date((long) ((JSONObject) obj).getLong("date"))));
+                years.add(sdf.format(new Date(((JSONObject) obj).getLong("date"))));
                 //}
             }
             years.sort(new Comparator<String>() {

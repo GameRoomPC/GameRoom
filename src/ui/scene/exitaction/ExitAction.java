@@ -5,7 +5,7 @@ package ui.scene.exitaction;
  */
 public abstract class ExitAction {
     private Runnable exitAction;
-    public  ExitAction(Runnable exitAction){
+    ExitAction(Runnable exitAction){
         this.exitAction = exitAction;
     }
     public void run(){

@@ -219,7 +219,7 @@ public class YoutubeSoundtrackScrapper {
         reader.close();
         return result;
     }
-    public static String HTMLtoUTF8(String htmlText){
+    private static String HTMLtoUTF8(String htmlText){
         return  org.apache.commons.lang.StringEscapeUtils.unescapeHtml(htmlText);
     }
 

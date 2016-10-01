@@ -44,7 +44,7 @@ public class ByteWriter extends OutputStream {
 		stream.write(b);
 	}
 	
-	public void write(long b) throws IOException {
+	private void write(long b) throws IOException {
 		write((int)b);
 	}
 	

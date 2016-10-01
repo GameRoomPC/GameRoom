@@ -8,7 +8,7 @@ import ui.control.button.gamebutton.GameButton;
  */
 public interface OnGameFoundHandler {
 
-    public GameButton gameToAddFound(GameEntry entry);
+    GameButton gameToAddFound(GameEntry entry);
 
-    public void onAllGamesFound();
+    void onAllGamesFound();
 }

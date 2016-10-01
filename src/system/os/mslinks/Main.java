@@ -16,7 +16,7 @@ package system.os.mslinks;
 
 import java.io.IOException;
 
-public class Main {
+class Main {
 	public static void main(String[] args) throws IOException {
 		ShellLink sl = ShellLink.createLink("pause.bat")
 			.setWorkingDir("..")

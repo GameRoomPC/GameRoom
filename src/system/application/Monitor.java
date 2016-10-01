@@ -22,14 +22,14 @@ import java.util.concurrent.FutureTask;
 /**
  * Created by LM on 24/07/2016.
  */
-public class Monitor {
+class Monitor {
     private static String TIME_TAG = "$$time$$";
 
     private static int MONITOR_REFRESH = 1000;
     private static final int MIN_MONITOR_TIME = 20000;
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss", Locale.ENGLISH);
-    public static final DateFormat DEBUG_DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+    private static final DateFormat DEBUG_DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
     private GameStarter gameStarter;
     private File vbsWatcher;
@@ -39,7 +39,7 @@ public class Monitor {
 
     private Date creationDate = null;
 
-    protected Monitor(GameStarter starter) throws IOException {
+    Monitor(GameStarter starter) throws IOException {
         this.gameStarter = starter;
         if(!gameStarter.getGameEntry().isSteamGame()){
             DATE_FORMAT.setTimeZone(Calendar.getInstance().getTimeZone());
@@ -174,7 +174,7 @@ public class Monitor {
             return 0;
         }
     }
-    protected long computeTrueRunningTime() throws IOException {
+    private long computeTrueRunningTime() throws IOException {
         long currentTime = System.currentTimeMillis();
 
         while(creationDate == null){

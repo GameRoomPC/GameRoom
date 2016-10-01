@@ -56,15 +56,14 @@ public class SteamLocalScrapper {
         for (GameEntry entry : steamEntries) {
             boolean ignored = false;
 
-            GameEntry returnEntry = entry;
             for (SteamPreEntry pre : ignoredEntries) {
-                ignored = ignored || pre.getId() == returnEntry.getSteam_id();
+                ignored = ignored || pre.getId() == entry.getSteam_id();
             }
             for (String name : FolderGameScanner.EXCLUDED_FILE_NAMES) {
-                ignored = ignored || name.equals(returnEntry.getName());
+                ignored = ignored || name.equals(entry.getName());
             }
             if (!ignored) {
-                result.add(returnEntry);
+                result.add(entry);
             }
         }
         return result;

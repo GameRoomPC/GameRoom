@@ -408,9 +408,7 @@ public class GameEditScene extends BaseScene {
 
         // create the data to show in the CheckComboBox
         final ObservableList<GameGenre> allGamesGenre = FXCollections.observableArrayList();
-        for (GameGenre genre : GameGenre.values()) {
-            allGamesGenre.add(genre);
-        }
+        Collections.addAll(allGamesGenre, GameGenre.values());
         allGamesGenre.sort(new Comparator<GameGenre>() {
             @Override
             public int compare(GameGenre o1, GameGenre o2) {
@@ -443,9 +441,7 @@ public class GameEditScene extends BaseScene {
 
         // create the data to show in the CheckComboBox
         final ObservableList<GameTheme> allGamesTheme = FXCollections.observableArrayList();
-        for (GameTheme theme : GameTheme.values()) {
-            allGamesTheme.add(theme);
-        }
+        Collections.addAll(allGamesTheme, GameTheme.values());
         allGamesTheme.sort(new Comparator<GameTheme>() {
             @Override
             public int compare(GameTheme o1, GameTheme o2) {
@@ -775,8 +771,7 @@ public class GameEditScene extends BaseScene {
             Task<Image> loadImageTask = new Task<Image>() {
                 @Override
                 protected Image call() throws Exception {
-                    Image img = entry.getImage(0, coverWidth, coverHeight, false, true);
-                    return img;
+                    return entry.getImage(0, coverWidth, coverHeight, false, true);
                 }
             };
             loadImageTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
@@ -1054,15 +1049,15 @@ public class GameEditScene extends BaseScene {
         });
     }
 
-    protected void setOnExitAction(ExitAction onExitAction) {
+    void setOnExitAction(ExitAction onExitAction) {
         this.onExitAction = onExitAction;
     }
 
 
-    protected void addCancelAllButton() {
+    void addCancelAllButton() {
         addCancelButton(new ClassicExitAction(GameEditScene.this,getParentStage(),previousScene),"cancel_all_button","ignore_changes_all");
     }
-    protected void addCancelButton(ExitAction onAction) {
+    void addCancelButton(ExitAction onAction) {
         addCancelButton(onAction,"cancel_button","ignore_changes?");
     }
     private void addCancelButton(ExitAction action, String idAndTitleKey, String warningMessageKey){

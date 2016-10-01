@@ -26,9 +26,9 @@ import java.io.IOException;
 public class ConsoleData implements Serializable {
 	
 	public static final int signature = 0xA0000002;
-	public static final int size = 0xcc;
+	private static final int size = 0xcc;
 	
-	public static int rgb(int r, int g, int b) {
+	private static int rgb(int r, int g, int b) {
 		return (r & 0xff) | ((g & 0xff) << 8) | ((b & 0xff) << 16);
 	}	
 	public static int r(int rgb) { return rgb & 0xff; }

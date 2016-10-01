@@ -388,7 +388,6 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             box.getChildren().addAll(nameLabel, yearLabel);
             add(box, columnCount++, 0);
             GridPane.setMargin(box, new Insets(20 * Main.SCREEN_HEIGHT / 1080, 30 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 30 * Main.SCREEN_WIDTH / 1920));
-            ;
         }
     }
 }

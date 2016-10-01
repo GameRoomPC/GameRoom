@@ -41,8 +41,8 @@ public class Main {
 
     public static boolean DEV_MODE = false;
     public static boolean SUPPORTER_MODE = false;
-    public static double TRUE_SCREEN_WIDTH;
-    public static double TRUE_SCREEN_HEIGHT;
+    private static double TRUE_SCREEN_WIDTH;
+    private static double TRUE_SCREEN_HEIGHT;
 
     public static double SCREEN_WIDTH;
     public static double SCREEN_HEIGHT;

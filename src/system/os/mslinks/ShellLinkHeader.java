@@ -24,9 +24,9 @@ public class ShellLinkHeader implements Serializable {
 	private static int headerSize = 0x0000004C;
 	private static GUID clsid = new GUID("00021401-0000-0000-C000-000000000046");
 	
-	public static final int SW_SHOWNORMAL = 1;
-	public static final int SW_SHOWMAXIMIZED = 3;
-	public static final int SW_SHOWMINNOACTIVE = 7;	
+	private static final int SW_SHOWNORMAL = 1;
+	private static final int SW_SHOWMAXIMIZED = 3;
+	private static final int SW_SHOWMINNOACTIVE = 7;
 	
 	private LinkFlags lf;
 	private FileAttributesFlags faf;

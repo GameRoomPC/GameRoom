@@ -48,7 +48,7 @@ public class DualImageButton extends ImageButton {
             }
         }
     }
-    public void toggleState(){
+    private void toggleState(){
         Image currentImage = inFirstState() ? image2 : image1;
         setImage(currentImage);
         currentState = inFirstState() ? state2 : state1;

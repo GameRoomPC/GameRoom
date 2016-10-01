@@ -14,28 +14,26 @@ import java.util.regex.Pattern;
 public class FileUtils {
 
     public static File initOrCreateFolder(File f) {
-        File file = f;
-        if (!file.exists()) {
-            file.mkdirs();
+        if (!f.exists()) {
+            f.mkdirs();
         }
-        return file;
+        return f;
     }
 
     public static File initOrCreateFolder(String f) {
         return initOrCreateFolder(new File(f));
     }
 
-    public static File initOrCreateFile(File f) {
-        File file = f;
-        if (!file.exists()) {
-            file.getParentFile().mkdirs();
+    private static File initOrCreateFile(File f) {
+        if (!f.exists()) {
+            f.getParentFile().mkdirs();
             try {
-                file.createNewFile();
+                f.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        return file;
+        return f;
     }
 
     public static File initOrCreateFile(String f) {

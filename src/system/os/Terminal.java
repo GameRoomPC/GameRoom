@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Created by LM on 14/07/2016.
@@ -49,9 +50,7 @@ public class Terminal {
     public String[] execute(String command, String... args) throws IOException {
         ArrayList<String> commands = new ArrayList<String>();
         commands.addAll(Arrays.asList("cmd.exe", "/c", "chcp", "65001", "&", "cmd.exe", "/c", command));
-        for (int i = 0; i < args.length; i++) {
-            commands.add(args[i]);
-        }
+        Collections.addAll(commands, args);
         processBuilder.command(commands);
 
         Process process = processBuilder.start();

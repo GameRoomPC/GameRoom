@@ -27,7 +27,7 @@ public class SteamIgnoredSelectorTest extends Application {
     private static Scene scene;
 
 
-    public static void initScene() throws IOException {
+    private static void initScene() throws IOException {
         Button launchButton = new Button("Launch");
 
         SteamIgnoredSelector selector = new SteamIgnoredSelector();
@@ -56,8 +56,8 @@ public class SteamIgnoredSelectorTest extends Application {
 
     public static void main(String[] args) {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        SCREEN_WIDTH = (int) 1920;
-        SCREEN_HEIGHT = (int) 1080;
+        SCREEN_WIDTH = 1920;
+        SCREEN_HEIGHT = 1080;
         RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", Locale.getDefault());
 
         System.setErr(new PrintStream(System.err){

@@ -25,7 +25,7 @@ import java.util.Locale;
 
 public class ConsoleFEData implements Serializable {
 	public static final int signature = 0xA0000004;
-	public static final int size = 0xc;
+	private static final int size = 0xc;
 	
 	private String lang;
 	

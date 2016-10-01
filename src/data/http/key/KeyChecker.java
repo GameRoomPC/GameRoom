@@ -25,16 +25,16 @@ public class KeyChecker {
     //fields in json response
     public final static String FIELD_RESULT = "result";
     public final static String FIELD_MESSAGE = "message";
-    public final static String FIELD_STATUS = "status";
-    public final static String FIELD_REGISTERED_DOMAINS = "registered_domains";
-    public final static String FIELD_REGISTERED_DOMAIN = "registered_domain";
+    private final static String FIELD_STATUS = "status";
+    private final static String FIELD_REGISTERED_DOMAINS = "registered_domains";
+    private final static String FIELD_REGISTERED_DOMAIN = "registered_domain";
 
     //possible results
     public final static String RESULT_SUCCESS = "success";
     public final static String RESULT_ERROR = "error";
 
     //possible status
-    public final static String STATUS_ACTIVE = "active";
+    private final static String STATUS_ACTIVE = "active";
     public final static String STATUS_PENDING = "pending";
     public final static String STATUS_BLOCKED = "blocked";
     public final static String STATUS_EXPIRED = "expired";
@@ -133,7 +133,7 @@ public class KeyChecker {
         return new JSONObject(json);
     }
 
-    public static String getAllMACAddresses() throws SocketException {
+    private static String getAllMACAddresses() throws SocketException {
         String MACAddresses = " ";
         Enumeration<NetworkInterface> networkInterfaceEnumeration = NetworkInterface.getNetworkInterfaces();
         while(networkInterfaceEnumeration.hasMoreElements()){
@@ -158,7 +158,7 @@ public class KeyChecker {
         }
         return MACAddresses.substring(0,MACAddresses.length()-1);
     }
-    public static String getMACAddress() throws UnknownHostException,
+    private static String getMACAddress() throws UnknownHostException,
             SocketException {
 
         InetAddress ipAddress = InetAddress.getLocalHost();

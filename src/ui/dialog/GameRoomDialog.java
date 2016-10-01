@@ -12,11 +12,11 @@ import static ui.Main.MAIN_SCENE;
 /**
  * Created by LM on 06/08/2016.
  */
-public abstract class GameRoomDialog<T> extends Dialog<T> {
-    protected StackPane rootStackPane;
-    protected BorderPane mainPane;
+abstract class GameRoomDialog<T> extends Dialog<T> {
+    StackPane rootStackPane;
+    BorderPane mainPane;
 
-    public GameRoomDialog(){
+    GameRoomDialog(){
         super();
         DialogPane dialogPane = new DialogPane();
         mainPane = new BorderPane();

@@ -26,7 +26,7 @@ public class SearchDialogTest extends Application {
     private static Scene scene;
 
 
-    public static void initScene() {
+    private static void initScene() {
         Button launchButton = new Button("Launch");
 
         SearchDialog dialog = new SearchDialog(new HashMap<>());

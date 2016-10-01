@@ -225,8 +225,7 @@ public class GroupsFactory {
                     if (entry.getSerie() == null) {
                         return false;
                     }
-                    boolean sameSerie = entry.getSerie().equals(serie);
-                    return sameSerie;
+                    return entry.getSerie().equals(serie);
                 }
             };
             tilePane.setTitle(serie);

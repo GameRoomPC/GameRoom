@@ -32,7 +32,7 @@ public class ActivationKeyDialogTest extends Application {
     private static Scene scene;
 
 
-    public static void initScene() {
+    private static void initScene() {
         //test key : 57a49ece72e10
         Button launchButton = new Button("Launch");
         ActivationKeyDialog dialog = new ActivationKeyDialog();

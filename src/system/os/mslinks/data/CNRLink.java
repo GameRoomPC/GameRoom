@@ -33,7 +33,7 @@ public class CNRLink implements Serializable {
 	public static final int WNNC_NET_SERNET = 0x001D000;
 	public static final int WNNC_NET_RIVERFRONT1 = 0X001E000;
 	public static final int WNNC_NET_RIVERFRONT2 = 0x001F000;
-	public static final int WNNC_NET_DECORB = 0x0020000;
+	private static final int WNNC_NET_DECORB = 0x0020000;
 	public static final int WNNC_NET_PROTSTOR = 0x0021000;
 	public static final int WNNC_NET_FJ_REDIR = 0x0022000;
 	public static final int WNNC_NET_DISTINCT = 0x0023000;

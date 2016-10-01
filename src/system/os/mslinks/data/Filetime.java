@@ -32,14 +32,14 @@ public class Filetime extends GregorianCalendar implements Serializable {
 		this(data.read8bytes());
 	}
 	
-	public Filetime(long time) {
+	private Filetime(long time) {
 		long t = time / 10000;
 		residue = time - t;
 		setTimeInMillis(t);
 		add(GregorianCalendar.YEAR, -369);
 	}
 	
-	public long toLong() {
+	private long toLong() {
 		GregorianCalendar tmp = (GregorianCalendar)clone();
 		tmp.add(GregorianCalendar.YEAR, 369);
 		return tmp.getTimeInMillis() + residue;		

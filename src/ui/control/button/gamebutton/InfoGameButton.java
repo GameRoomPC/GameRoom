@@ -35,7 +35,7 @@ public class InfoGameButton extends GameButton {
 
     @Override
     protected int getCoverHeight() {
-        return (int) (GENERAL_SETTINGS.getWindowHeight() * 2 / 3);
+        return GENERAL_SETTINGS.getWindowHeight() * 2 / 3;
     }
 
     @Override

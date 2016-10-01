@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 /**
  * Creates a timeformat textfield
  */
-public class TimeTextField extends TextField {
+class TimeTextField extends TextField {
 
     public TimeTextField(String time) {
         super(time);
@@ -136,7 +136,7 @@ public class TimeTextField extends TextField {
      * @param time time to validate
      * @return true if time string valid
      */
-    protected boolean validate(String time){
+    private boolean validate(String time){
         Pattern doubleDecimalsPattern = Pattern.compile("\\d\\d");
         if(!doubleDecimalsPattern.matcher(time).matches()){
             return false;
@@ -153,7 +153,7 @@ public class TimeTextField extends TextField {
         return Integer.parseInt(getText());
     }
 
-    protected final class TimeUnitBinding<E extends Enum<E>> extends IntegerBinding {
+    final class TimeUnitBinding<E extends Enum<E>> extends IntegerBinding {
 
         E unit;
 

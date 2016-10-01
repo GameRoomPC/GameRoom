@@ -67,8 +67,8 @@ public class MainScene extends BaseScene {
     public final static int INPUT_MODE_MOUSE = 0;
     public final static int INPUT_MODE_KEYBOARD = 1;
 
-    public final static double MAX_TILE_ZOOM = 0.675;
-    public final static double MIN_TILE_ZOOM = 0.10;
+    private final static double MAX_TILE_ZOOM = 0.675;
+    private final static double MIN_TILE_ZOOM = 0.10;
 
     private static boolean GARBAGE_COLLECTED_RECENTLY = false;
 
@@ -109,7 +109,7 @@ public class MainScene extends BaseScene {
         initAll();
     }
 
-    public void initAll() {
+    private void initAll() {
         initCenter();
         initTop();
         displayWelcomeMessage();
@@ -806,7 +806,7 @@ public class MainScene extends BaseScene {
         scrollPane.setVvalue(scrollPane.getVmin());
     }
 
-    public void cancelSearch() {
+    private void cancelSearch() {
         if (showTilesPaneAgainAfterCancelSearch) {
             lastPlayedTilePane.setForcedHidden(false);
             recentlyAddedTilePane.setForcedHidden(false);
@@ -823,7 +823,7 @@ public class MainScene extends BaseScene {
         }
     }
 
-    public void searchGame(String text) {
+    private void searchGame(String text) {
         tilePane.show();
         if (!tilePane.isSearching()) {
             showTilesPaneAgainAfterCancelSearch = lastPlayedTilePane.isManaged();

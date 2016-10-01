@@ -6,7 +6,7 @@ import ui.scene.GameEditScene;
  * Created by LM on 17/07/2016.
  */
 public class MultiAddExitAction extends ExitAction {
-    public GameEditScene gameEditScene;
+    private GameEditScene gameEditScene;
 
     public MultiAddExitAction(Runnable exitAction,GameEditScene editScene) {
         super(exitAction);

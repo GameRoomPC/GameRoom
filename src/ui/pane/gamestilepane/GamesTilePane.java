@@ -47,18 +47,18 @@ public abstract class GamesTilePane extends BorderPane {
 
     private final static int QUICKSEARCH_CLEAR_DELAY = 500;
 
-    protected TilePane tilePane;
-    protected Label titleLabel;
-    protected ObservableList<GameButton> tilesList = FXCollections.observableArrayList();
+    TilePane tilePane;
+    Label titleLabel;
+    ObservableList<GameButton> tilesList = FXCollections.observableArrayList();
 
-    protected MainScene parentScene;
+    MainScene parentScene;
     private boolean forcedHidden = false;
     private boolean searching = false;
-    protected boolean hidden = false;
+    boolean hidden = false;
 
-    protected boolean automaticSort = true;
+    boolean automaticSort = true;
 
-    protected boolean quickSearchEnabled = false;
+    private boolean quickSearchEnabled = false;
     private char previousTypedChar;
     private char repeatedCharCounter = 0;
 
@@ -74,7 +74,7 @@ public abstract class GamesTilePane extends BorderPane {
         this.quickSearchEnabled = quickSearchEnabled;
     }
 
-    public GamesTilePane(MainScene parentScene) {
+    GamesTilePane(MainScene parentScene) {
         super();
         this.tilePane = new TilePane();
         this.titleLabel = new Label();
@@ -202,12 +202,12 @@ public abstract class GamesTilePane extends BorderPane {
 
     public abstract TilePane getTilePane();
 
-    protected final void addTile(GameButton button) {
+    private void addTile(GameButton button) {
         addTileToTilePane(button);
         tilesList.add(button);
     }
 
-    protected final void removeTile(GameButton button) {
+    private void removeTile(GameButton button) {
         removeTileFromTilePane(button);
         tilesList.remove(button);
     }
@@ -222,7 +222,7 @@ public abstract class GamesTilePane extends BorderPane {
         updateTitleGameCount();
     }
 
-    public abstract boolean isValidToAdd(GameEntry entry);
+    protected abstract boolean isValidToAdd(GameEntry entry);
 
     public final void addGame(GameEntry newEntry) {
         if (indexOfTile(newEntry) == -1 && isValidToAdd(newEntry)) {
@@ -257,7 +257,7 @@ public abstract class GamesTilePane extends BorderPane {
         updateTitleGameCount();
     }
 
-    protected void onNotFoundForUpdate(GameEntry newEntry) {
+    void onNotFoundForUpdate(GameEntry newEntry) {
         //by default does nothing
     }
 
@@ -278,21 +278,20 @@ public abstract class GamesTilePane extends BorderPane {
         return -1;
     }
 
-    protected void removeTileFromTilePane(GameButton button) {
+    private void removeTileFromTilePane(GameButton button) {
         tilePane.getChildren().remove(button);
     }
 
-    protected void addTileToTilePane(GameButton button) {
+    private void addTileToTilePane(GameButton button) {
         tilePane.getChildren().add(button);
     }
 
     protected abstract GameButton createGameButton(GameEntry newEntry);
 
-    public void sort() {
+    void sort() {
         switch (SORT_MODE) {
             case SORT_MODE_NAME:
                 sortByName();
-                ;
                 break;
             case SORT_MODE_PLAY_TIME:
                 sortByTimePlayed();
@@ -309,7 +308,7 @@ public abstract class GamesTilePane extends BorderPane {
         }
     }
 
-    protected static ObservableList<Node> sortByName(ObservableList<Node> nodes) {
+    static ObservableList<Node> sortByName(ObservableList<Node> nodes) {
         SORT_MODE = SORT_MODE_NAME;
 
         nodes.sort(new Comparator<Node>() {
@@ -323,7 +322,7 @@ public abstract class GamesTilePane extends BorderPane {
         return nodes;
     }
 
-    protected static ObservableList<Node> sortByRating(ObservableList<Node> nodes) {
+    static ObservableList<Node> sortByRating(ObservableList<Node> nodes) {
         SORT_MODE = SORT_MODE_RATING;
         nodes.sort(new Comparator<Node>() {
             @Override
@@ -342,7 +341,7 @@ public abstract class GamesTilePane extends BorderPane {
         return nodes;
     }
 
-    protected static ObservableList<Node> sortByTimePlayed(ObservableList<Node> nodes) {
+    static ObservableList<Node> sortByTimePlayed(ObservableList<Node> nodes) {
         SORT_MODE = SORT_MODE_PLAY_TIME;
 
         nodes.sort(new Comparator<Node>() {
@@ -362,7 +361,7 @@ public abstract class GamesTilePane extends BorderPane {
         return nodes;
     }
 
-    protected static ObservableList<Node> sortByReleaseDate(ObservableList<Node> nodes) {
+    static ObservableList<Node> sortByReleaseDate(ObservableList<Node> nodes) {
         SORT_MODE = SORT_MODE_RELEASE_DATE;
 
         nodes.sort(new Comparator<Node>() {
@@ -393,7 +392,7 @@ public abstract class GamesTilePane extends BorderPane {
         return nodes;
     }
 
-    protected void replaceChildrensAfterSort(ObservableList<Node> nodes, Runnable betweenTransition) {
+    void replaceChildrensAfterSort(ObservableList<Node> nodes, Runnable betweenTransition) {
         if (!inSameOrder(tilePane.getChildren(), nodes)) {
             Timeline fadeOutTimeline = new Timeline(
                     new KeyFrame(Duration.seconds(0),
@@ -463,7 +462,7 @@ public abstract class GamesTilePane extends BorderPane {
         show(true);
     }
 
-    protected void hide(boolean transition) {
+    private void hide(boolean transition) {
         if (checkIfHide() || forcedHidden) {
             hidden = true;
             Runnable hideAction = new Runnable() {
@@ -496,7 +495,7 @@ public abstract class GamesTilePane extends BorderPane {
         }
     }
 
-    protected void show(boolean transition) {
+    private void show(boolean transition) {
         boolean hide = checkIfHide();
         if (!forcedHidden && !hide && (hidden || !isVisible() || !isManaged() || getOpacity() != 1.0)) {
             hidden = false;
@@ -563,7 +562,7 @@ public abstract class GamesTilePane extends BorderPane {
         searching = false;
     }
 
-    protected void setGameButtonVisible(GameButton button, boolean visible) {
+    void setGameButtonVisible(GameButton button, boolean visible) {
         button.setManaged(visible);
         button.setVisible(visible);
         button.setMouseTransparent(!visible);
@@ -571,7 +570,7 @@ public abstract class GamesTilePane extends BorderPane {
         updateTitleGameCount();
     }
 
-    protected void updateTitleGameCount() {
+    private void updateTitleGameCount() {
         if(displayGamesCount) {
             int nbVisible = 0;
             for (GameButton button1 : tilesList) {
@@ -595,7 +594,7 @@ public abstract class GamesTilePane extends BorderPane {
         return searching;
     }
 
-    protected static boolean inSameOrder(ObservableList<Node> nodes1, ObservableList<Node> nodes2) {
+    private static boolean inSameOrder(ObservableList<Node> nodes1, ObservableList<Node> nodes2) {
         if (nodes1.size() != nodes2.size()) {
             return false;
         }

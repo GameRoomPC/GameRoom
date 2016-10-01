@@ -45,7 +45,7 @@ public class FolderGameScanner extends GameScanner {
         }
     }
 
-    protected boolean folderGameIgnored(GameEntry entry) {
+    private boolean folderGameIgnored(GameEntry entry) {
         boolean ignored = false;
         for (File ignoredFile : Main.GENERAL_SETTINGS.getFiles(PredefinedSetting.IGNORED_GAME_FOLDERS)) {
             ignored = ignoredFile.toPath().toAbsolutePath().toString().toLowerCase().contains(entry.getPath().toLowerCase());
@@ -56,7 +56,7 @@ public class FolderGameScanner extends GameScanner {
         return false;
     }
 
-    protected ArrayList<GameEntry> getPotentialEntries() {
+    ArrayList<GameEntry> getPotentialEntries() {
         File gamesFolder = new File(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER));
         ArrayList<GameEntry> entriesFound = new ArrayList<>();
         if (!gamesFolder.exists() || !gamesFolder.isDirectory()) {
@@ -90,7 +90,7 @@ public class FolderGameScanner extends GameScanner {
         }
     }
 
-    private final static boolean fileHasValidExtension(File file) {
+    private static boolean fileHasValidExtension(File file) {
         boolean hasAValidExtension = false;
         for (String validExtension : VALID_EXECUTABLE_EXTENSION) {
             hasAValidExtension = hasAValidExtension || file.getAbsolutePath().endsWith(validExtension.toLowerCase());
@@ -98,7 +98,7 @@ public class FolderGameScanner extends GameScanner {
         return hasAValidExtension;
     }
 
-    protected boolean gameAlreadyInLibrary(GameEntry foundEntry) {
+    private boolean gameAlreadyInLibrary(GameEntry foundEntry) {
         boolean alreadyAddedToLibrary = false;
         for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
             alreadyAddedToLibrary = entry.getPath().toLowerCase().trim().contains(foundEntry.getPath().trim().toLowerCase())

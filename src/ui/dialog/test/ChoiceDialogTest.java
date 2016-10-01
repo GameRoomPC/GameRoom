@@ -28,7 +28,7 @@ public class ChoiceDialogTest extends Application {
     private static Scene scene;
 
 
-    public static void initScene() {
+    private static void initScene() {
         Button launchButton = new Button("Launch");
 
 

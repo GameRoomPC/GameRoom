@@ -78,7 +78,7 @@ public class InternalAppNetworkManager {
         messageListeners.add(messageListener);
     }
 
-    public void sendMessage(MessageTag tag, String payload){
+    private void sendMessage(MessageTag tag, String payload){
         if(!channel.isConnected()){
             connect();
         }

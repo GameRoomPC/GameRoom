@@ -60,7 +60,7 @@ public class VistaIDList implements Serializable {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		for (byte[] b : list)
-			sb.append(new String(b) + "\n");
+			sb.append(new String(b)).append("\n");
 		return sb.toString();
 	}
 }

@@ -25,7 +25,7 @@ public class SettingValue<T> {
 
     private TypeToken<T> typeToken;
 
-    public SettingValue(T settingValue, TypeToken<T> typeToken, String category){
+    private SettingValue(T settingValue, TypeToken<T> typeToken, String category){
         this.settingValue = settingValue;
         this.category = category;
         this.typeToken = typeToken;

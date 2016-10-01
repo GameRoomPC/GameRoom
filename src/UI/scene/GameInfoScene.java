@@ -247,7 +247,7 @@ public class GameInfoScene extends BaseScene {
         row_count++;
         return valueLabel;
     }
-    protected void updateWithEditedEntry(GameEntry editedEntry){
+    void updateWithEditedEntry(GameEntry editedEntry){
         updateProperty("play_time", editedEntry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS));
         updateProperty("game_path", editedEntry.getPath());
         updateProperty("release_date", editedEntry.getReleaseDate()!=null ? GameEntry.DATE_DISPLAY_FORMAT.format(editedEntry.getReleaseDate()) : "");

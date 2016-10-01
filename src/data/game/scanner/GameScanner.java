@@ -13,10 +13,10 @@ import java.util.ArrayList;
  */
 public abstract class GameScanner {
     private volatile boolean scanDone = false;
-    protected ArrayList<GameEntry> foundGames = new ArrayList<>();
-    protected GameWatcher parentLooker;
+    ArrayList<GameEntry> foundGames = new ArrayList<>();
+    GameWatcher parentLooker;
 
-    public GameScanner(GameWatcher parentLooker){
+    GameScanner(GameWatcher parentLooker){
         this.parentLooker = parentLooker;
     }
 
@@ -44,7 +44,7 @@ public abstract class GameScanner {
         return parentLooker.onGameFound(foundEntry);
     }
 
-    protected void addGameEntryFound(GameEntry entryFound) {
+    void addGameEntryFound(GameEntry entryFound) {
         entryFound.setWaitingToBeScrapped(true);
         foundGames.add(entryFound);
 

@@ -118,7 +118,7 @@ public class ImageButton extends Button {
         mouseExitedHandlers.add(meh);
     }
 
-    public void setImage(Image img){
+    void setImage(Image img){
         view.setImage(img);
     }
 }

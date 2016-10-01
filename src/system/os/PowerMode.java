@@ -22,7 +22,7 @@ public class PowerMode {
         this.alias = getAlias(uuid);
     }
 
-    public UUID getUuid() {
+    private UUID getUuid() {
         return uuid;
     }
 

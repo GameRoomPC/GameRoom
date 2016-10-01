@@ -6,7 +6,7 @@ package ui.control;
 public interface ValidEntryCondition{
     StringBuilder message = new StringBuilder();
 
-    public boolean isValid();
-    public void onInvalid();
+    boolean isValid();
+    void onInvalid();
 
 }

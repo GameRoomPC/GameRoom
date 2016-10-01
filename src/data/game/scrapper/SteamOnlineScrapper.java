@@ -151,7 +151,7 @@ public class SteamOnlineScrapper {
         return null;
     }
 
-    protected static JSONArray getGamesOwned(String steam_profile_id) throws ConnectTimeoutException, UnirestException {
+    private static JSONArray getGamesOwned(String steam_profile_id) throws ConnectTimeoutException, UnirestException {
         try {
             HttpResponse<String> response = Unirest.get("http://steamcommunity.com/profiles/" + steam_profile_id + "/games/?tab=all&xml=1")
                     .header("Accept", "application/json")
@@ -172,7 +172,7 @@ public class SteamOnlineScrapper {
         return null;
     }
 
-    protected static JSONObject getInfoForGame(long steam_id) throws ConnectTimeoutException {
+    private static JSONObject getInfoForGame(long steam_id) throws ConnectTimeoutException {
         String json = null;
         try {
             HttpResponse<String> response = Unirest.get("http://store.steampowered.com/api/appdetails?appids=" + steam_id)

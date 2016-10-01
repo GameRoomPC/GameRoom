@@ -34,7 +34,7 @@ public class PathTextField extends StackPane {
     public PathTextField(String initialPath, BaseScene parentScene, int fileChooserCode, String fileChooserTitle){
         super();
         this.initialPath = initialPath;
-        field = new TextField(initialPath.toString());
+        field = new TextField(initialPath);
         if(DEFAULT_FOLDER_IMAGE == null){
             DEFAULT_FOLDER_IMAGE= new Image("res/ui/folderButton.png", 50*SCREEN_WIDTH/1920, 50*SCREEN_HEIGHT/1080, false, true);
         }

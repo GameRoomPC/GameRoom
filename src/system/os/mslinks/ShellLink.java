@@ -67,12 +67,12 @@ public class ShellLink {
 		this(file.toPath());
 	}
 	
-	public ShellLink(Path file) throws IOException, ShellLinkException {
+	private ShellLink(Path file) throws IOException, ShellLinkException {
 		this(Files.newInputStream(file));
 		linkFileSource = file.toAbsolutePath();
 	}
 	
-	public ShellLink(InputStream in) throws IOException, ShellLinkException {
+	private ShellLink(InputStream in) throws IOException, ShellLinkException {
 		this(new ByteReader(in));
 		in.close();
 	}
@@ -142,7 +142,7 @@ public class ShellLink {
 	public ShellLinkHeader getHeader() { return header; }
 	
 	public LinkInfo getLinkInfo() { return info; }
-	public LinkInfo createLinkInfo() {
+	private LinkInfo createLinkInfo() {
 		info = new LinkInfo();
 		header.getLinkFlags().setHasLinkInfo();
 		return info;
@@ -159,7 +159,7 @@ public class ShellLink {
 	}
 	
 	public String getRelativePath() { return relativePath; }
-	public ShellLink setRelativePath(String s) {
+	private ShellLink setRelativePath(String s) {
 		if (s == null) 
 			header.getLinkFlags().clearHasRelativePath();
 		else { 

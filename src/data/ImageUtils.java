@@ -52,7 +52,7 @@ public class ImageUtils {
      ***************************/
     private final static String STEAM_IMAGE_URL_PREFIX = "http://cdn.akamai.steamstatic.com/steam/apps/";
     public final static String STEAM_TYPE_CAPSULE = "capsule";
-    public final static String STEAM_TYPE_HEADER = "header";
+    private final static String STEAM_TYPE_HEADER = "header";
 
     public final static String STEAM_SIZE_SMALL = "_sm_120";
     public final static String STEAM_SIZE_MEDIUM = "_616x353";
@@ -67,7 +67,7 @@ public class ImageUtils {
         return downloadImgToCache(imageURL, imageFileName, dlDoneHandler);
     }
 
-    public static File getIGDBImageCacheFileOutput(int igdb_id, String imageHash, String type, String size) {
+    private static File getIGDBImageCacheFileOutput(int igdb_id, String imageHash, String type, String size) {
         return getOutputImageCacheFile(igdb_id + "_" + type + size + "_" + imageHash + ".jpg");
     }
 

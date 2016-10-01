@@ -5,5 +5,5 @@ package system.application;
  */
 public interface MessageListener {
 
-    public void onMessageReceived(MessageTag tag, String payload);
+    void onMessageReceived(MessageTag tag, String payload);
 }

@@ -43,15 +43,15 @@ import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
 public class RowCoverTilePane extends CoverTilePane {
     public final static String TYPE_LAST_PLAYED = "last_played";
     public final static String TYPE_RECENTLY_ADDED = "recently_added";
-    public final static String TYPE_NAME = "name";
+    final static String TYPE_NAME = "name";
 
     private Comparator<GameEntry> entriesComparator;
-    protected int maxColumn = 5; //TODO implement modularized column number selection
+    int maxColumn = 5; //TODO implement modularized column number selection
     private Separator separator = new Separator();
     private boolean folded = false;
     //private ScrollPane horizontalScrollPane;
     private DualImageButton foldToggleButton;
-    protected HBox buttonsBox = new HBox();
+    HBox buttonsBox = new HBox();
 
     private ArrayList<ChangeListener<Boolean>> onFoldedListeners = new ArrayList<>();
 
@@ -157,13 +157,13 @@ public class RowCoverTilePane extends CoverTilePane {
 
                         switch (type) {
                             case TYPE_LAST_PLAYED:
-                                hide = ((GameButton) tilesList.get(i)).getEntry().getLastPlayedDate() == null;
+                                hide = tilesList.get(i).getEntry().getLastPlayedDate() == null;
                                 break;
                             case TYPE_RECENTLY_ADDED:
-                                hide = ((GameButton) tilesList.get(i)).getEntry().getAddedDate() == null;
+                                hide = tilesList.get(i).getEntry().getAddedDate() == null;
                                 break;
                             case TYPE_NAME:
-                                hide = ((GameButton) tilesList.get(i)).getEntry().getName() == null;
+                                hide = tilesList.get(i).getEntry().getName() == null;
                                 break;
                             default:
                                 break;

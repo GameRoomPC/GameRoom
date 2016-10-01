@@ -23,13 +23,13 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 public class VolumeID implements Serializable {
-	public static final int DRIVE_UNKNOWN = 0;
-	public static final int DRIVE_NO_ROOT_DIR = 1;
-	public static final int DRIVE_REMOVABLE = 2;
+	private static final int DRIVE_UNKNOWN = 0;
+	private static final int DRIVE_NO_ROOT_DIR = 1;
+	private static final int DRIVE_REMOVABLE = 2;
 	public static final int DRIVE_FIXED = 3;
-	public static final int DRIVE_REMOTE = 4;
-	public static final int DRIVE_CDROM = 5;
-	public static final int DRIVE_RAMDISK = 6;
+	private static final int DRIVE_REMOTE = 4;
+	private static final int DRIVE_CDROM = 5;
+	private static final int DRIVE_RAMDISK = 6;
 	
 	
 	private int dt;

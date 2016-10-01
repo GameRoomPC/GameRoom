@@ -5,7 +5,7 @@ import ui.Main;
 /**
  * Created by LM on 26/07/2016.
  */
-public class XboxControllerTest {
+class XboxControllerTest {
     public static void main(String[] args) {
         XboxController c = new XboxController(new ControllerButtonListener() {
             @Override
@@ -46,6 +46,7 @@ public class XboxControllerTest {
 
             }
         });
+        //noinspection InfiniteLoopStatement
         while (true){
             try {
                 Thread.sleep(500);

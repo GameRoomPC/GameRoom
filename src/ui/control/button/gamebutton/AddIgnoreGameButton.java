@@ -198,9 +198,7 @@ public class AddIgnoreGameButton extends GameButton {
         }
         if (!inList) {
             SteamPreEntry[] futureEntries = new SteamPreEntry[ignoredEntries.length + 1];
-            for (int i = 0; i < ignoredEntries.length; i++) {
-                futureEntries[i] = ignoredEntries[i];
-            }
+            System.arraycopy(ignoredEntries, 0, futureEntries, 0, ignoredEntries.length);
             futureEntries[futureEntries.length - 1] = new SteamPreEntry(getEntry().getName(), getEntry().getSteam_id());
             Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS, futureEntries);
         }
@@ -215,9 +213,7 @@ public class AddIgnoreGameButton extends GameButton {
         }
         if (!inList) {
             File[] futureFolders = new File[ignoredFolders.length + 1];
-            for (int i = 0; i < ignoredFolders.length; i++) {
-                futureFolders[i] = ignoredFolders[i];
-            }
+            System.arraycopy(ignoredFolders, 0, futureFolders, 0, ignoredFolders.length);
             futureFolders[futureFolders.length - 1] = new File(getEntry().getPath());
             Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_GAME_FOLDERS, futureFolders);
         }
