@@ -14,15 +14,14 @@
 */
 package system.os.mslinks.extra;
 
+import system.os.mslinks.Serializable;
+import system.os.mslinks.ShellLinkException;
 import system.os.mslinks.io.ByteReader;
 import system.os.mslinks.io.ByteWriter;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
-
-import system.os.mslinks.Serializable;
-import system.os.mslinks.ShellLinkException;
 
 public class ConsoleFEData implements Serializable {
 	public static final int signature = 0xA0000004;

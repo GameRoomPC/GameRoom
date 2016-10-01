@@ -14,9 +14,9 @@
 */
 package system.os.mslinks;
 
-import java.io.IOException;
-
 import system.os.mslinks.io.ByteWriter;
+
+import java.io.IOException;
 
 public interface Serializable {
 	void serialize(ByteWriter bw) throws IOException;

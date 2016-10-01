@@ -1,15 +1,6 @@
 package ui.dialog;
 
-import data.ImageUtils;
-import data.game.scrapper.OnDLDoneHandler;
-import data.game.scrapper.SteamOnlineScrapper;
-import data.game.scrapper.SteamPreEntry;
-import data.http.SimpleImageInfo;
-import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
-import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ButtonBar;
@@ -27,7 +18,6 @@ import ui.pane.SelectListPane;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import static ui.Main.GENERAL_SETTINGS;
 

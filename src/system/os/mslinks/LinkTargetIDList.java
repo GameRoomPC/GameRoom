@@ -14,14 +14,13 @@
 */
 package system.os.mslinks;
 
+import system.os.mslinks.data.ItemID;
 import system.os.mslinks.io.ByteReader;
 import system.os.mslinks.io.ByteWriter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
-
-import system.os.mslinks.data.ItemID;
 
 public class LinkTargetIDList extends LinkedList<ItemID> implements Serializable {
 	

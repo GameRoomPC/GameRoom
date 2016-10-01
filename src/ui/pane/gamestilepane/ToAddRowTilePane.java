@@ -2,34 +2,22 @@ package ui.pane.gamestilepane;
 
 import data.ImageUtils;
 import data.game.entry.GameEntry;
-import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.AddIgnoreGameButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.dialog.ChoiceDialog;
-import ui.dialog.GameRoomAlert;
 import ui.scene.GameEditScene;
-import ui.scene.GameInfoScene;
 import ui.scene.MainScene;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 
-import static ui.Main.MAIN_SCENE;
-import static ui.Main.RESSOURCE_BUNDLE;
-import static ui.Main.SCREEN_WIDTH;
+import static ui.Main.*;
 
 /**
  * Created by LM on 17/08/2016.

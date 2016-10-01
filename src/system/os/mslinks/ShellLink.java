@@ -14,6 +14,11 @@
 */
 package system.os.mslinks;
 
+import system.os.mslinks.data.CNRLink;
+import system.os.mslinks.data.ItemID;
+import system.os.mslinks.data.LinkFlags;
+import system.os.mslinks.data.VolumeID;
+import system.os.mslinks.extra.*;
 import system.os.mslinks.io.ByteReader;
 import system.os.mslinks.io.ByteWriter;
 
@@ -28,17 +33,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-
-import system.os.mslinks.data.CNRLink;
-import system.os.mslinks.data.ItemID;
-import system.os.mslinks.data.LinkFlags;
-import system.os.mslinks.data.VolumeID;
-import system.os.mslinks.extra.ConsoleData;
-import system.os.mslinks.extra.ConsoleFEData;
-import system.os.mslinks.extra.EnvironmentVariable;
-import system.os.mslinks.extra.Stub;
-import system.os.mslinks.extra.Tracker;
-import system.os.mslinks.extra.VistaIDList;
 
 public class ShellLink {
 	private static Map<String, String> env = System.getenv();

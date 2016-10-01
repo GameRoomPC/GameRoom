@@ -1,25 +1,24 @@
 package ui;
 
-import data.game.entry.GameEntry;
 import data.http.URLTools;
 import data.http.key.KeyChecker;
-import system.application.InternalAppNetworkManager;
-import system.application.MessageListener;
-import system.application.MessageTag;
-import system.application.settings.PredefinedSetting;
-import system.application.settings.SettingValue;
-import system.device.XboxController;
-import system.os.Terminal;
-import ui.scene.MainScene;
-import system.application.settings.GeneralSettings;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import system.application.InternalAppNetworkManager;
+import system.application.MessageListener;
+import system.application.MessageTag;
+import system.application.settings.GeneralSettings;
+import system.application.settings.PredefinedSetting;
+import system.application.settings.SettingValue;
+import system.device.XboxController;
+import ui.scene.MainScene;
 
 import java.awt.*;
-import java.io.*;
-import java.net.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;

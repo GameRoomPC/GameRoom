@@ -6,8 +6,11 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.GameEntry;
 import ui.Main;
 
-import java.io.*;
-import java.nio.charset.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.CharacterCodingException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;

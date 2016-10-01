@@ -14,6 +14,9 @@
 */
 package system.os.mslinks;
 
+import system.os.mslinks.data.CNRLink;
+import system.os.mslinks.data.LinkInfoFlags;
+import system.os.mslinks.data.VolumeID;
 import system.os.mslinks.io.ByteReader;
 import system.os.mslinks.io.ByteWriter;
 
@@ -21,8 +24,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
-
-import system.os.mslinks.data.*;
 
 public class LinkInfo implements Serializable {
 	private LinkInfoFlags lif;

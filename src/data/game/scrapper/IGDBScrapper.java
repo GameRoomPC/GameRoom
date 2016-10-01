@@ -1,19 +1,22 @@
 package data.game.scrapper;
 
-import data.game.entry.GameEntry;
-import data.game.entry.GameGenre;
-import data.game.entry.GameTheme;
-import ui.Main;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import data.game.entry.GameEntry;
+import data.game.entry.GameGenre;
+import data.game.entry.GameTheme;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import ui.Main;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;

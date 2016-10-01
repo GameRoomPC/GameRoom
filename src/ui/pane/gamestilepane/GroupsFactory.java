@@ -5,7 +5,6 @@ import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ObservableList;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.scene.MainScene;

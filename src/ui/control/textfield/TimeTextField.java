@@ -1,8 +1,6 @@
 package ui.control.textfield;
 
 import javafx.beans.binding.IntegerBinding;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
-import javafx.beans.property.SimpleLongProperty;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.TextField;
 

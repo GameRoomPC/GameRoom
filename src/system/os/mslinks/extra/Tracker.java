@@ -14,14 +14,13 @@
 */
 package system.os.mslinks.extra;
 
+import system.os.mslinks.Serializable;
+import system.os.mslinks.ShellLinkException;
+import system.os.mslinks.data.GUID;
 import system.os.mslinks.io.ByteReader;
 import system.os.mslinks.io.ByteWriter;
 
 import java.io.IOException;
-
-import system.os.mslinks.Serializable;
-import system.os.mslinks.ShellLinkException;
-import system.os.mslinks.data.GUID;
 
 public class Tracker implements Serializable {
 	

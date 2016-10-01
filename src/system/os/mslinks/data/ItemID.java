@@ -14,15 +14,14 @@
 */
 package system.os.mslinks.data;
 
+import system.os.mslinks.Serializable;
+import system.os.mslinks.ShellLinkException;
+import system.os.mslinks.UnsupportedCLSIDException;
 import system.os.mslinks.io.ByteReader;
 import system.os.mslinks.io.ByteWriter;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
-
-import system.os.mslinks.Serializable;
-import system.os.mslinks.ShellLinkException;
-import system.os.mslinks.UnsupportedCLSIDException;
 
 public class ItemID implements Serializable {
 	

@@ -1,17 +1,16 @@
 package system.os;
 
-import system.application.settings.GeneralSettings;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import system.application.settings.GeneralSettings;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 import static ui.Main.*;

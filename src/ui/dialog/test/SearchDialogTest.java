@@ -1,12 +1,12 @@
 package ui.dialog.test;
 
-import javafx.scene.control.ButtonType;
-import system.application.settings.GeneralSettings;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import system.application.settings.GeneralSettings;
 import system.application.settings.PredefinedSetting;
 import ui.dialog.SearchDialog;
 

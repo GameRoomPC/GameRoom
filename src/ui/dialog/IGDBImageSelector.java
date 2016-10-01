@@ -1,15 +1,19 @@
 package ui.dialog;
 
-import data.game.entry.GameEntry;
 import data.ImageUtils;
+import data.game.entry.GameEntry;
 import data.game.scrapper.OnDLDoneHandler;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import ui.Main;
 import ui.pane.OnItemSelectedHandler;
 import ui.pane.SelectListPane;

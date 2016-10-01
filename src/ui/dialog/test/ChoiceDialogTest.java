@@ -1,24 +1,23 @@
 package ui.dialog.test;
 
+import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.StackPane;
-
-/**
- * Created by LM on 05/07/2016.
- */
-import javafx.application.Application;
 import javafx.stage.Stage;
 import system.application.settings.PredefinedSetting;
 import ui.dialog.ChoiceDialog;
 
 import java.awt.*;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 import static ui.Main.*;
+
+/**
+ * Created by LM on 05/07/2016.
+ */
 
 /**
  * Created by LM on 05/07/2016.

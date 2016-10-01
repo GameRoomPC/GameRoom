@@ -14,13 +14,12 @@
 */
 package system.os.mslinks.data;
 
+import system.os.mslinks.Serializable;
 import system.os.mslinks.io.ByteReader;
 import system.os.mslinks.io.ByteWriter;
 
 import java.io.IOException;
 import java.util.HashMap;
-
-import system.os.mslinks.Serializable;
 
 public class HotKeyFlags implements Serializable {
 	private static HashMap<Byte, String> keys = new HashMap<Byte, String>() {{

@@ -2,7 +2,6 @@ package data.game.scanner;
 
 import data.game.GameWatcher;
 import data.game.entry.GameEntry;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;

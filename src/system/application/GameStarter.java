@@ -11,7 +11,8 @@ import system.os.Terminal;
 import ui.Main;
 
 import java.awt.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;

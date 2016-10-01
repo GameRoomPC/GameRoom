@@ -1,10 +1,10 @@
 package ui.control.button.gamebutton;
 
+import data.game.entry.GameEntry;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import ui.scene.BaseScene;
-import data.game.entry.GameEntry;
 import javafx.scene.layout.Pane;
+import ui.scene.BaseScene;
 
 import java.io.File;
 

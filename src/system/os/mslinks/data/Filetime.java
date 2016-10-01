@@ -14,13 +14,12 @@
 */
 package system.os.mslinks.data;
 
+import system.os.mslinks.Serializable;
 import system.os.mslinks.io.ByteReader;
 import system.os.mslinks.io.ByteWriter;
 
 import java.io.IOException;
 import java.util.GregorianCalendar;
-
-import system.os.mslinks.Serializable;
 
 public class Filetime extends GregorianCalendar implements Serializable {
 	private long residue;

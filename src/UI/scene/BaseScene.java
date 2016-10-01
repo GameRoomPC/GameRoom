@@ -1,9 +1,5 @@
 package ui.scene;
 
-import javafx.scene.image.ImageView;
-import system.application.settings.PredefinedSetting;
-import ui.Main;
-import ui.control.button.ImageButton;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -17,18 +13,18 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import ui.scene.exitaction.ExitAction;
+import system.application.settings.PredefinedSetting;
+import ui.Main;
+import ui.control.button.ImageButton;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.SCREEN_WIDTH;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 
 /**
  * Created by LM on 03/07/2016.

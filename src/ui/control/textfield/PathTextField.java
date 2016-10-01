@@ -1,12 +1,5 @@
 package ui.control.textfield;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.stage.DirectoryChooser;
-import ui.Main;
-import ui.control.button.ImageButton;
-import ui.dialog.GameRoomAlert;
-import ui.scene.BaseScene;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -14,14 +7,13 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
-import javafx.stage.Modality;
-import javafx.stage.StageStyle;
+import ui.control.button.ImageButton;
+import ui.dialog.GameRoomAlert;
+import ui.scene.BaseScene;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import static ui.Main.*;
 

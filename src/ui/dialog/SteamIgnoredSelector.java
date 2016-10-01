@@ -2,8 +2,6 @@ package ui.dialog;
 
 import data.ImageUtils;
 import data.game.scrapper.OnDLDoneHandler;
-import data.game.scrapper.SteamLocalScrapper;
-import data.game.scrapper.SteamOnlineScrapper;
 import data.game.scrapper.SteamPreEntry;
 import data.http.SimpleImageInfo;
 import javafx.application.Platform;

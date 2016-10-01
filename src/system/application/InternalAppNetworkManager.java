@@ -4,7 +4,6 @@ import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
 import org.jgroups.View;
-import org.jgroups.util.UUID;
 import ui.Main;
 
 import java.util.ArrayList;

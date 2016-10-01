@@ -14,11 +14,10 @@
 */
 package system.os.mslinks.data;
 
+import system.os.mslinks.Serializable;
 import system.os.mslinks.io.ByteWriter;
 
 import java.io.IOException;
-
-import system.os.mslinks.Serializable;
 
 public class Size implements Serializable{
 	private int x, y;

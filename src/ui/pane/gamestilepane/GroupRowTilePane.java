@@ -1,10 +1,7 @@
 package ui.pane.gamestilepane;
 
 import data.game.entry.GameEntry;
-import ui.control.button.gamebutton.GameButton;
 import ui.scene.MainScene;
-
-import java.util.ArrayList;
 
 /**
  * Created by LM on 18/08/2016.

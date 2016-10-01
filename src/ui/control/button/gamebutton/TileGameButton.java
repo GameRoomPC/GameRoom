@@ -1,16 +1,11 @@
 package ui.control.button.gamebutton;
 
-import javafx.geometry.Pos;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
-import ui.scene.BaseScene;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.scene.layout.TilePane;
 import data.game.entry.GameEntry;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.TilePane;
+import ui.scene.BaseScene;
 
-import static ui.Main.*;
+import static ui.Main.SCREEN_WIDTH;
 
 /**
  * Created by LM on 02/07/2016.

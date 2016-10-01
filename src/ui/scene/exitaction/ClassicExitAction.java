@@ -3,8 +3,6 @@ package ui.scene.exitaction;
 import javafx.stage.Stage;
 import ui.scene.BaseScene;
 
-import static ui.Main.MAIN_SCENE;
-
 /**
  * Created by LM on 17/07/2016.
  */

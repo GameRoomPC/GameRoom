@@ -1,16 +1,14 @@
 package data.game.entry;
 
 import data.FileUtils;
-import system.application.GameStarter;
 import javafx.scene.image.Image;
+import system.application.GameStarter;
 import ui.Main;
 
 import java.io.*;
-import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;

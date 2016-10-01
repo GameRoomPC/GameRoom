@@ -3,7 +3,7 @@ package data.game.entry;
 import data.FileUtils;
 import ui.Main;
 
-import java.io.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.UUID;
 

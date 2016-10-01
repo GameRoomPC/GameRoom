@@ -1,9 +1,6 @@
 package ui.dialog;
 
-import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
-import ui.Main;
 
 /**
  * Created by LM on 15/09/2016.

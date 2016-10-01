@@ -14,16 +14,16 @@
 */
 package system.os.mslinks.data;
 
+import system.os.mslinks.Serializable;
+import system.os.mslinks.ShellLinkException;
+import system.os.mslinks.io.ByteReader;
+import system.os.mslinks.io.ByteWriter;
+
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
-
-import system.os.mslinks.Serializable;
-import system.os.mslinks.ShellLinkException;
-import system.os.mslinks.io.ByteReader;
-import system.os.mslinks.io.ByteWriter;
 
 public class CNRLink implements Serializable {
 	

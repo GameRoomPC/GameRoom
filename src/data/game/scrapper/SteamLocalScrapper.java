@@ -5,7 +5,8 @@ import data.game.scanner.FolderGameScanner;
 import system.os.Terminal;
 import ui.Main;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 

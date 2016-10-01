@@ -1,19 +1,6 @@
 package ui.control.button.gamebutton;
 
 import data.ImageUtils;
-import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.scene.Node;
-import javafx.scene.control.Tooltip;
-import javafx.scene.effect.*;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import system.application.settings.PredefinedSetting;
-import ui.Main;
-import ui.control.button.ImageButton;
-import ui.scene.BaseScene;
-import ui.scene.GameInfoScene;
-import ui.scene.MainScene;
 import data.game.entry.GameEntry;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -21,29 +8,42 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tooltip;
+import javafx.scene.effect.BlurType;
+import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+import system.application.settings.PredefinedSetting;
+import ui.Main;
+import ui.control.button.ImageButton;
+import ui.scene.BaseScene;
+import ui.scene.GameInfoScene;
+import ui.scene.MainScene;
 
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 
+import static javafx.scene.input.MouseEvent.*;
 import static ui.Main.*;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static ui.scene.BaseScene.BACKGROUND_IMAGE_LOAD_RATIO;
 
 /**

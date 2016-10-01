@@ -14,14 +14,13 @@
 */
 package system.os.mslinks.data;
 
+import system.os.mslinks.Serializable;
 import system.os.mslinks.io.ByteReader;
 import system.os.mslinks.io.ByteWriter;
 import system.os.mslinks.io.Bytes;
 
 import java.io.IOException;
 import java.util.Random;
-
-import system.os.mslinks.Serializable;
 
 public class GUID implements Serializable {
 	private static Random r = new Random();

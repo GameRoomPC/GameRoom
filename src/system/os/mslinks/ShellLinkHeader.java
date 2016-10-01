@@ -14,16 +14,11 @@
 */
 package system.os.mslinks;
 
+import system.os.mslinks.data.*;
 import system.os.mslinks.io.ByteReader;
 import system.os.mslinks.io.ByteWriter;
 
 import java.io.IOException;
-
-import system.os.mslinks.data.FileAttributesFlags;
-import system.os.mslinks.data.Filetime;
-import system.os.mslinks.data.GUID;
-import system.os.mslinks.data.HotKeyFlags;
-import system.os.mslinks.data.LinkFlags;
 
 public class ShellLinkHeader implements Serializable {
 	private static int headerSize = 0x0000004C;

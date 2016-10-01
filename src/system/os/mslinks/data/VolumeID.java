@@ -14,13 +14,13 @@
 */
 package system.os.mslinks.data;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-
 import system.os.mslinks.Serializable;
 import system.os.mslinks.ShellLinkException;
 import system.os.mslinks.io.ByteReader;
 import system.os.mslinks.io.ByteWriter;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
 
 public class VolumeID implements Serializable {
 	public static final int DRIVE_UNKNOWN = 0;

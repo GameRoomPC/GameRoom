@@ -14,13 +14,12 @@
 */
 package system.os.mslinks.extra;
 
+import system.os.mslinks.Serializable;
+import system.os.mslinks.ShellLinkException;
 import system.os.mslinks.io.ByteReader;
 import system.os.mslinks.io.ByteWriter;
 
 import java.io.IOException;
-
-import system.os.mslinks.Serializable;
-import system.os.mslinks.ShellLinkException;
 
 public class EnvironmentVariable implements Serializable {
 

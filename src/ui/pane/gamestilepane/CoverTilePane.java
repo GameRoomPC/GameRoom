@@ -9,7 +9,6 @@ import javafx.scene.layout.TilePane;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.button.gamebutton.TileGameButton;
-import ui.scene.BaseScene;
 import ui.scene.MainScene;
 
 import static ui.Main.SCREEN_HEIGHT;

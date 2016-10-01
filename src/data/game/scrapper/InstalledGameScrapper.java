@@ -2,7 +2,6 @@ package data.game.scrapper;
 
 import data.game.entry.GameEntry;
 import system.os.Terminal;
-import ui.Main;
 
 import java.io.File;
 import java.io.IOException;

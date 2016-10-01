@@ -1,11 +1,9 @@
 package data;
 
-import org.apache.http.client.utils.URIUtils;
 import ui.Main;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.regex.Pattern;
