@@ -1,5 +1,6 @@
 package system.application;
 
+import data.FileUtils;
 import data.game.entry.GameEntry;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 
+import static ui.Main.FILES_MAP;
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.MAIN_SCENE;
 
@@ -42,8 +44,8 @@ public class GameStarter {
         if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isAlreadyStartedInGameRoom() && !entry.isNotInstalled()) {
             GENERAL_SETTINGS.getPowerMode(PredefinedSetting.GAMING_POWER_MODE).activate();
         }
-        String logFolder = "Games" + File.separator + entry.getUuid() + File.separator;
-        File preLog = new File(logFolder + "pre_" + entry.getProcessName() + ".log");
+        String logFolder = FILES_MAP.get("Games") + File.separator + entry.getUuid() + File.separator;
+        File preLog = FileUtils.initOrCreateFile(logFolder + "pre_" + entry.getProcessName() + ".log");
 
         entry.setLastPlayedDate(new Date());
 

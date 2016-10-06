@@ -8,6 +8,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
+import system.os.Terminal;
 import ui.Main;
 
 import java.io.*;
@@ -282,20 +283,32 @@ class Monitor {
     }
 
     private boolean isProcessRunning() throws IOException {
+        return isProcessRunning(gameStarter.getGameEntry().getProcessName());
+    }
+    
+    public static boolean isProcessRunning(String processName){
+        Terminal terminal = new Terminal();
+
+        String[] output = null;
+        try {
+            output = terminal.execute("tasklist","/FI","\"IMAGENAME eq "+processName+"\"");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
         boolean found = false;
-        Process p = Runtime.getRuntime().exec(timeWatcherCmd);
-        BufferedReader input =
-                new BufferedReader
-                        (new InputStreamReader(p.getInputStream()));
-        String line;
-        line = input.readLine();
-        if (line != null) {
-            if (line.equals(gameStarter.getGameEntry().getProcessName())) {
-                found = true;
+        if(output!=null){
+            for(String outputLine : output){
+                found = outputLine.contains(processName);
+                if(found){
+                    return found;
+                }
             }
         }
-        input.close();
         return found;
+    }
+    public static void main(String[] args){
+        System.out.println(isProcessRunning("GitHub.exe"));
     }
     public static class StandbyInterval{
         private Date startDate;
