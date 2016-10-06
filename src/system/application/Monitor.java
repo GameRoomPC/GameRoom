@@ -23,7 +23,7 @@ import java.util.concurrent.FutureTask;
 /**
  * Created by LM on 24/07/2016.
  */
-class Monitor {
+public class Monitor {
     private static String TIME_TAG = "$$time$$";
 
     private static int MONITOR_REFRESH = 1000;
@@ -285,7 +285,7 @@ class Monitor {
     private boolean isProcessRunning() throws IOException {
         return isProcessRunning(gameStarter.getGameEntry().getProcessName());
     }
-    
+
     public static boolean isProcessRunning(String processName){
         Terminal terminal = new Terminal();
 

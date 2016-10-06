@@ -2,6 +2,8 @@ import com.sun.jna.Native;
 import com.sun.jna.NativeLong;
 import com.sun.jna.WString;
 import data.FileUtils;
+import data.game.entry.AllGameEntries;
+import data.game.entry.GameEntry;
 import data.game.scrapper.IGDBScrapper;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -16,6 +18,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
+import system.application.Monitor;
 import system.application.settings.PredefinedSetting;
 import system.device.ControllerButtonListener;
 import system.device.XboxController;
@@ -31,6 +34,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.UUID;
 
 import static ui.Main.*;
 
@@ -77,6 +82,27 @@ public class Launcher extends Application {
         }
 
         Main.DEV_MODE = getArg(ARGS_FLAG_DEV,args,false) != null;
+        initFiles();
+        AllGameEntries.loadGames();
+
+        String gameToStartUUID = getArg(ARGS_START_GAME,args, true);
+        if(gameToStartUUID!=null){
+            boolean gameRoomAlreadyStarted = Monitor.isProcessRunning("GameRoom.exe");
+            if(gameRoomAlreadyStarted){
+                //TODO implement network init and sendung the game to start (with a repeat functionnality if no ack after 2 sec)
+
+            }else{
+                //can start the game here, then let GameRoom do as usual
+                ArrayList<UUID> uuids = AllGameEntries.readUUIDS(FILES_MAP.get("games"));
+                int i = 0;
+                for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
+                    if(entry.getUuid().equals(gameToStartUUID)){
+                        //found the game to start!
+                        entry.startGame();
+                    }
+                }
+            }
+        }
 
         String igdbKey = getArg(ARGS_FLAG_IGDB_KEY,args,true);
         if(igdbKey!=null){
@@ -95,7 +121,6 @@ public class Launcher extends Application {
                     break;
             }
         }
-        initFiles();
         Main.main(args);
         launch(args);
     }

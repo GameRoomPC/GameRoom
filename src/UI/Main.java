@@ -38,6 +38,7 @@ public class Main {
     public final static String ARGS_FLAG_DEV = "-dev";
     public final static String ARGS_FLAG_IGDB_KEY = "-igdb_key";
     public final static String ARGS_FLAG_SHOW = "-show";
+    public final static String ARGS_START_GAME = "-start-game";
 
     public static boolean DEV_MODE = false;
     public static boolean SUPPORTER_MODE = false;

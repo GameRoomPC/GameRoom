@@ -343,12 +343,11 @@ public class MainScene extends BaseScene {
                 recentlyAddedTilePane.setAutomaticSort(false);
                 lastPlayedTilePane.setAutomaticSort(false);
                 toAddTilePane.setAutomaticSort(false);
-                ArrayList<UUID> uuids = AllGameEntries.readUUIDS(FILES_MAP.get("games"));
+
                 int i = 0;
-                for (UUID uuid : uuids) {
+                for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
                     int finalI = i;
 
-                    final GameEntry entry = new GameEntry(uuid);
                     Main.runAndWait(new Runnable() {
                         @Override
                         public void run() {
@@ -356,7 +355,7 @@ public class MainScene extends BaseScene {
                             addGame(entry);
                         }
                     });
-                    updateProgress(finalI, uuids.size() - 1);
+                    updateProgress(finalI, AllGameEntries.ENTRIES_LIST.size() - 1);
                     i++;
                 }
                 return null;
