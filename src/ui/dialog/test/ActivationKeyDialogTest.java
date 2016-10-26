@@ -13,6 +13,7 @@ import javafx.stage.StageStyle;
 import org.json.JSONObject;
 import ui.Main;
 import ui.dialog.ActivationKeyDialog;
+import ui.theme.ThemeUtils;
 
 import java.awt.*;
 import java.io.IOException;
@@ -56,7 +57,7 @@ public class ActivationKeyDialogTest extends Application {
                                 switch (response.getString(KeyChecker.FIELD_RESULT)){
                                     case KeyChecker.RESULT_SUCCESS:
                                         Alert successDialog = new Alert(Alert.AlertType.INFORMATION,message);
-                                        successDialog.getDialogPane().getStylesheets().add("res/flatterfx.css");
+                                        ThemeUtils.applyCurrentTheme(successDialog);
                                         successDialog.getDialogPane().getStyleClass().add("custom-choice-dialog");
                                         successDialog.initStyle(StageStyle.UNDECORATED);
                                         successDialog.setHeaderText(null);
@@ -85,7 +86,7 @@ public class ActivationKeyDialogTest extends Application {
                                         break;*/
                                     case KeyChecker.RESULT_ERROR:
                                         Alert errorDialog = new Alert(Alert.AlertType.ERROR,message);
-                                        errorDialog.getDialogPane().getStylesheets().add("res/flatterfx.css");
+                                        ThemeUtils.applyCurrentTheme(errorDialog);
                                         errorDialog.getDialogPane().getStyleClass().add("custom-choice-dialog");
                                         errorDialog.initStyle(StageStyle.UNDECORATED);
                                         errorDialog.setHeaderText(null);

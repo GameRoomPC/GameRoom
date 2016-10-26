@@ -35,6 +35,7 @@ import ui.dialog.ActivationKeyDialog;
 import ui.dialog.GameFoldersIgnoredSelector;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.SteamIgnoredSelector;
+import ui.theme.ThemeUtils;
 
 import java.awt.*;
 import java.io.File;
@@ -62,7 +63,7 @@ public class SettingsScene extends BaseScene {
         super(root, parentStage);
         this.previousScene = previousScene;
 
-        getStylesheets().add("res/flatterfx.css");
+        ThemeUtils.applyCurrentTheme(this);
 
         initTop();
         initCenter();

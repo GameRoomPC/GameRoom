@@ -159,6 +159,9 @@ public class Launcher extends Application {
         Main.FILES_MAP.put("log",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"log"));
         Main.FILES_MAP.put("config.properties",FileUtils.initOrCreateFile(gameRoomFolder+File.separator+"config.properties"));
         Main.FILES_MAP.put("GameRoom.log",FileUtils.initOrCreateFile(Main.FILES_MAP.get("log").getAbsolutePath()+File.separator+"GameRoom.log"));
+        Main.FILES_MAP.put("themes",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"themes"));
+        Main.FILES_MAP.put("theme_css",FileUtils.initOrCreateFolder(FILES_MAP.get("themes").getPath()+File.separator+"theme.css"));
+        Main.FILES_MAP.put("default_css",new File("res/flatterfx.css"));
     }
 
     @Override

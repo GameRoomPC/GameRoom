@@ -22,6 +22,7 @@ import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
+import ui.theme.ThemeUtils;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.SCREEN_WIDTH;
@@ -50,7 +51,7 @@ public abstract class BaseScene extends Scene {
         super(stackPane, Main.GENERAL_SETTINGS.getWindowWidth(), Main.GENERAL_SETTINGS.getWindowHeight());
         this.rootStackPane = stackPane;
         setParentStage(parentStage);
-        getStylesheets().add("res/flatterfx.css");
+        ThemeUtils.applyCurrentTheme(this);
         if(backgroundMaskImage == null || backgroundMaskImage.getWidth()!=Main.GENERAL_SETTINGS.getWindowWidth() || backgroundMaskImage.getHeight() != Main.GENERAL_SETTINGS.getWindowHeight()){
             backgroundMaskImage = new Image("res/ui/backgroundMask.png"
                     , Main.GENERAL_SETTINGS.getWindowWidth()

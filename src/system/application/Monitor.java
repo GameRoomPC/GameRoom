@@ -10,6 +10,7 @@ import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 import system.os.Terminal;
 import ui.Main;
+import ui.theme.ThemeUtils;
 
 import java.io.*;
 import java.text.DateFormat;
@@ -103,7 +104,7 @@ public class Monitor {
                         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                         alert.setHeaderText(null);
                         alert.initStyle(StageStyle.UNDECORATED);
-                        alert.getDialogPane().getStylesheets().add("res/flatterfx.css");
+                        ThemeUtils.applyCurrentTheme(alert);
                         alert.initModality(Modality.WINDOW_MODAL);
                         alert.setContentText(gameStarter.getGameEntry().getName() + " "
                                 + Main.RESSOURCE_BUNDLE.getString("monitor_wait_dialog_1") + " "

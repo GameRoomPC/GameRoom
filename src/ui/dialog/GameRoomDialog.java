@@ -6,6 +6,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
+import ui.theme.ThemeUtils;
 
 import static ui.Main.MAIN_SCENE;
 
@@ -25,8 +26,7 @@ abstract class GameRoomDialog<T> extends Dialog<T> {
         if(MAIN_SCENE!=null && MAIN_SCENE.getParentStage()!=null)
             initOwner(MAIN_SCENE.getParentStage());
         dialogPane.setContent(rootStackPane);
-        dialogPane.getStylesheets().add("res/flatterfx.css");
-        dialogPane.getStyleClass().add("custom-choice-dialog");
+        ThemeUtils.applyCurrentTheme(dialogPane);
         initStyle(StageStyle.UNDECORATED);
         initModality(Modality.WINDOW_MODAL);
         setDialogPane(dialogPane);

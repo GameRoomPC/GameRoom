@@ -5,6 +5,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
+import ui.theme.ThemeUtils;
 
 import static ui.Main.MAIN_SCENE;
 
@@ -22,7 +23,7 @@ public class GameRoomAlert extends Alert {
 
         setHeaderText(null);
         initStyle(StageStyle.UNDECORATED);
-        getDialogPane().getStylesheets().add("res/flatterfx.css");
+        ThemeUtils.applyCurrentTheme(this);
         initOwner(MAIN_SCENE.getParentStage());
         initModality(Modality.WINDOW_MODAL);
     }
