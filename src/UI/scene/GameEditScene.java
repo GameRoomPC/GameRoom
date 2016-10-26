@@ -1114,10 +1114,12 @@ public class GameEditScene extends BaseScene {
                     if (!localCoverFile.getParentFile().exists()) {
                         localCoverFile.getParentFile().mkdirs();
                     }
-                    if (!localCoverFile.exists()) {
+                    /*if (!localCoverFile.exists()) {
                         localCoverFile.createNewFile();
-                    }
-                    Files.copy(imageFile.toPath().toAbsolutePath(), localCoverFile.toPath().toAbsolutePath(), StandardCopyOption.REPLACE_EXISTING);
+                    }*/
+                    Files.copy(imageFile.toPath().toAbsolutePath()
+                            ,localCoverFile.toPath().toAbsolutePath()
+                            , StandardCopyOption.REPLACE_EXISTING);
                     int imageIndex = 0;
                     if (imageType.equals(ImageUtils.IGDB_TYPE_SCREENSHOT)) {
                         imageIndex = 1;

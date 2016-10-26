@@ -373,7 +373,8 @@ public class GameEntry {
      */
     public File getImagePath(int index) {
         if (index < imagesPaths.length) {
-            return imagesPaths[index];
+            File relativeFile = FileUtils.relativizePath(imagesPaths[index],Main.FILES_MAP.get("working_dir"));
+            return relativeFile;
         }
         return null;
     }
