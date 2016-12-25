@@ -8,6 +8,7 @@ import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 import ui.theme.ThemeUtils;
 
+import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.MAIN_SCENE;
 
 /**
@@ -27,6 +28,7 @@ abstract class GameRoomDialog<T> extends Dialog<T> {
             initOwner(MAIN_SCENE.getParentStage());
         dialogPane.setContent(rootStackPane);
         ThemeUtils.applyCurrentTheme(dialogPane);
+        dialogPane.setStyle("-fx-font-size: "+Double.toString(GENERAL_SETTINGS.getUIScale().getFontSize())+"px;");
         initStyle(StageStyle.UNDECORATED);
         initModality(Modality.WINDOW_MODAL);
         setDialogPane(dialogPane);

@@ -33,7 +33,7 @@ public class YoutubePlayerAndButton {
         WEB_VIEW.setMouseTransparent(true);
         WEB_VIEW.setFocusTraversable(false);
 
-        Image muteImage = new Image("res/ui/muteIcon.png"
+        /*Image muteImage = new Image("res/ui/muteIcon.png"
                 , Main.GENERAL_SETTINGS.getWindowWidth() / 18
                 , Main.GENERAL_SETTINGS.getWindowHeight() / 18
                 , true
@@ -42,8 +42,9 @@ public class YoutubePlayerAndButton {
                 , Main.GENERAL_SETTINGS.getWindowWidth() / 18
                 , Main.GENERAL_SETTINGS.getWindowHeight() / 18
                 , true
-                , true);
-        soundMuteButton = new DualImageButton(muteImage, soundImage, "mute", "sound");
+                , true);*/
+        double imgSize = Main.GENERAL_SETTINGS.getWindowWidth() / 35;
+        soundMuteButton = new DualImageButton("mute-button", "sound-button",imgSize,imgSize);
         soundMuteButton.setMouseTransparent(true);
         soundMuteButton.setOnDualAction(new OnActionHandler() {
             @Override

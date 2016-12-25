@@ -47,13 +47,14 @@ public class AddIgnoreGameButton extends GameButton {
         disableNode(playTimeLabel, true);
         disableNode(playButton, true);
 
-        if (ADD_IMAGE == null) {
+        /*if (ADD_IMAGE == null) {
             ADD_IMAGE = new Image("res/ui/validIcon.png", Main.SCREEN_WIDTH / 10, Main.SCREEN_WIDTH / 10, true, true);
         }
         if (IGNORE_IMAGE == null) {
             IGNORE_IMAGE = new Image("res/ui/invalidIcon.png", Main.SCREEN_WIDTH / 10, Main.SCREEN_WIDTH / 10, true, true);
-        }
-        addButton = new ImageButton(ADD_IMAGE);
+        }*/
+        //addButton = new ImageButton(ADD_IMAGE);
+        addButton = new ImageButton("toaddtile-add-button", Main.SCREEN_WIDTH / 10, Main.SCREEN_WIDTH / 10);
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -61,7 +62,8 @@ public class AddIgnoreGameButton extends GameButton {
                 mainScene.fadeTransitionTo(addScene, mainScene.getParentStage());
             }
         });
-        ignoreButton = new ImageButton(IGNORE_IMAGE);
+        //ignoreButton = new ImageButton(IGNORE_IMAGE);
+        ignoreButton = new ImageButton("toaddtile-ignore-button", Main.SCREEN_WIDTH / 10, Main.SCREEN_WIDTH / 10);
         ignoreButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {

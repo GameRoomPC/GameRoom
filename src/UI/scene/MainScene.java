@@ -22,6 +22,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
@@ -453,11 +454,9 @@ public class MainScene extends BaseScene {
         sizeSlider.setPrefHeight(Main.SCREEN_WIDTH / 160);
         sizeSlider.setMaxHeight(Main.SCREEN_WIDTH / 160);
 
-        /*sizeSlider.setScaleX(0.7);
-        sizeSlider.setScaleY(0.7);*/
-
-        Image settingsImage = new Image("res/ui/settingsButton.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
-        ImageButton settingsButton = new ImageButton(settingsImage);
+        //Image settingsImage = new Image("res/ui/settingsButton.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
+        //ImageButton settingsButton = new ImageButton(settingsImage);
+        ImageButton settingsButton = new ImageButton("main-settings-button",SCREEN_WIDTH / 35.0, SCREEN_WIDTH / 35.0);
         settingsButton.setFocusTraversable(false);
         settingsButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
@@ -468,10 +467,11 @@ public class MainScene extends BaseScene {
                 }
             }
         });
-        /*settingsButton.setScaleX(0.7);
-        settingsButton.setScaleY(0.7);*/
-        Image sortImage = new Image("res/ui/sortIcon.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
-        ImageButton sortButton = new ImageButton(sortImage);
+
+        //Image sortImage = new Image("res/ui/sortIcon.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
+        //ImageButton sortButton = new ImageButton(sortImage);
+
+        ImageButton sortButton = new ImageButton("main-sort-button", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35);
         sortButton.setFocusTraversable(false);
         final ContextMenu sortMenu = new ContextMenu();
         MenuItem sortByNameItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_name"));
@@ -559,8 +559,9 @@ public class MainScene extends BaseScene {
         });
 
 
-        Image groupImage = new Image("res/ui/groupbyIcon.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
-        ImageButton groupButton = new ImageButton(groupImage);
+        //Image groupImage = new Image("res/ui/groupbyIcon.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
+        //ImageButton groupButton = new ImageButton(groupImage);
+        ImageButton groupButton = new ImageButton("main-group-button", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35);
         groupButton.setFocusTraversable(false);
         final ContextMenu groupMenu = new ContextMenu();
         MenuItem groupByAll = new MenuItem(Main.RESSOURCE_BUNDLE.getString("group_by_all"));
@@ -647,8 +648,9 @@ public class MainScene extends BaseScene {
         });
 
 
-        Image addImage = new Image("res/ui/addButton.png", SCREEN_WIDTH / 45, SCREEN_WIDTH / 45, true, true);
-        ImageButton addButton = new ImageButton(addImage);
+        //Image addImage = new Image("res/ui/addButton.png", SCREEN_WIDTH / 45, SCREEN_WIDTH / 45, true, true);
+        //ImageButton addButton = new ImageButton(addImage);
+        ImageButton addButton = new ImageButton("main-add-button", SCREEN_WIDTH / 45, SCREEN_WIDTH / 45);
         addButton.setFocusTraversable(false);
 
         addButton.setOnAction(event -> {
@@ -711,8 +713,10 @@ public class MainScene extends BaseScene {
         hbox.setAlignment(Pos.CENTER_LEFT);
 
         searchField = new TextField();
-        Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
-        ImageButton searchButton = new ImageButton(searchImage);
+
+        double imgSize = SCREEN_WIDTH / 28;
+        //Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
+        ImageButton searchButton = new ImageButton("search-button", imgSize,imgSize);
         searchButton.setFocusTraversable(false);
 
         HBox searchBox = new HBox();
@@ -735,8 +739,10 @@ public class MainScene extends BaseScene {
         //HBox.setMargin(sizeSlider, new Insets(15, 12, 15, 12));
         StackPane topPane = new StackPane();
         //topPane.setFocusTraversable(false);
-        Image logoImage = new Image("res/ui/title-medium.png", 500 * SCREEN_WIDTH / 1920, 94 * SCREEN_HEIGHT / 1080, true, true);
-        ImageButton homeButton = new ImageButton(logoImage);
+        double width = 500 * SCREEN_WIDTH / 1920;
+        double height = 94 * SCREEN_HEIGHT / 1080;
+        //Image logoImage = new Image("res/ui/title-medium.png", , , true, true);
+        ImageButton homeButton = new ImageButton("home-button",width,height);
         homeButton.setFocusTraversable(false);
         homeButton.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
             @Override

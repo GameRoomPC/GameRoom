@@ -35,7 +35,7 @@ import ui.dialog.ActivationKeyDialog;
 import ui.dialog.GameFoldersIgnoredSelector;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.SteamIgnoredSelector;
-import ui.theme.ThemeUtils;
+import ui.theme.UIScale;
 
 import java.awt.*;
 import java.io.File;
@@ -51,7 +51,6 @@ import static ui.Main.*;
  */
 public class SettingsScene extends BaseScene {
     private final static String GAMEROOM_LNK_NAME = "GameRoom.lnk";
-    public final static String ADVANCE_MODE_LABEL_STYLE = "    -fx-text-fill: derive(-flatter-red, -20.0%);";
     private BorderPane wrappingPane;
     private HashMap<String, FlowPane> flowPaneHashMap = new HashMap<>();
     private HashMap<String, Tab> tabHashMap = new HashMap<>();
@@ -62,8 +61,6 @@ public class SettingsScene extends BaseScene {
     public SettingsScene(StackPane root, Stage parentStage, BaseScene previousScene) {
         super(root, parentStage);
         this.previousScene = previousScene;
-
-        ThemeUtils.applyCurrentTheme(this);
 
         initTop();
         initCenter();
@@ -118,15 +115,7 @@ public class SettingsScene extends BaseScene {
         }
 
 
-        addPropertyLine(PredefinedSetting.LOCALE, false, new ChangeListener() {
-            @Override
-            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
-                if(!oldValue.equals(newValue)){
-                    GameRoomAlert restartDialog = new GameRoomAlert(Alert.AlertType.WARNING, Main.RESSOURCE_BUNDLE.getString("GameRoom_needs_restart"));
-                    restartDialog.showAndWait();
-                }
-            }
-        });
+        addPropertyLine(PredefinedSetting.LOCALE, false);
         addPropertyLine(PredefinedSetting.ON_GAME_LAUNCH_ACTION);
         addPropertyLine(PredefinedSetting.NO_NOTIFICATIONS);
         addPropertyLine(PredefinedSetting.START_WITH_WINDOWS, false, new ChangeListener() {
@@ -195,6 +184,8 @@ public class SettingsScene extends BaseScene {
                 }
             }
         });
+        addPropertyLine(PredefinedSetting.UI_SCALE, false);
+
         addPropertyLine(PredefinedSetting.ENABLE_GAMING_POWER_MODE, false, new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -368,7 +359,8 @@ public class SettingsScene extends BaseScene {
         if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)) {
             Label cmdBeforeLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_before_label") + " :");
             cmdBeforeLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_before_tooltip")));
-            cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            //cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            cmdBeforeLabel.setId("advanced-setting-label");
 
             CMDTextField cmdBeforeField = new CMDTextField(GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_BEFORE_START]);
             cmdBeforeField.setWrapText(true);
@@ -385,7 +377,8 @@ public class SettingsScene extends BaseScene {
 
             Label cmdAfterLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_after_label") + " :");
             cmdAfterLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_after_tooltip")));
-            cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            //cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            cmdAfterLabel.setId("advanced-setting-label");
 
             CMDTextField cmdAfterField = new CMDTextField(GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_AFTER_END]);
             cmdAfterField.setWrapText(true);
@@ -414,7 +407,8 @@ public class SettingsScene extends BaseScene {
         /***********************OPEN LOG FOLDER **************************************/
         if ((GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE))) {
             Label logLabel = new Label(Main.RESSOURCE_BUNDLE.getString("open_logs_folder") + ": ");
-            logLabel.setStyle(ADVANCE_MODE_LABEL_STYLE);
+            //logLabel.setStyle(ADVANCE_MODE_LABEL_STYLE);
+            logLabel.setId("advanced-setting-label");
             Button logButton = new Button(Main.RESSOURCE_BUNDLE.getString("open"));
 
             logButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -457,7 +451,8 @@ public class SettingsScene extends BaseScene {
             Label label = new Label(setting.getLabel() + " :");
             label.setTooltip(new Tooltip(setting.getTooltip()));
             if ((advancedSetting && GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE))) {
-                label.setStyle(ADVANCE_MODE_LABEL_STYLE);
+                //label.setStyle(ADVANCE_MODE_LABEL_STYLE);
+                label.setId("advanced-setting-label");
             }
 
             Node node2 = null;
@@ -561,6 +556,8 @@ public class SettingsScene extends BaseScene {
                         Main.GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", localeComboBox.getValue());
                         Main.GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", localeComboBox.getValue());
                         Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.LOCALE, localeComboBox.getValue());
+
+                        displayRestartDialog();
                     }
                 });
                 node2 = localeComboBox;
@@ -608,6 +605,33 @@ public class SettingsScene extends BaseScene {
                     }
                 });
                 node2 = gamesFolderField;
+            } else if (setting.isClass(UIScale.class)) {
+                /**************** ON LAUNCH ACTION **************/
+                ComboBox<UIScale> uiScaleComboBoxComboBox = new ComboBox<>();
+                uiScaleComboBoxComboBox.getItems().addAll(UIScale.values());
+                uiScaleComboBoxComboBox.setConverter(new StringConverter<UIScale>() {
+                    @Override
+                    public String toString(UIScale object) {
+                        return object.getDisplayName();
+                    }
+
+                    @Override
+                    public UIScale fromString(String string) {
+                        return UIScale.fromString(string);
+                    }
+                });
+                uiScaleComboBoxComboBox.setValue(GENERAL_SETTINGS.getUIScale());
+                uiScaleComboBoxComboBox.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.UI_SCALE, uiScaleComboBoxComboBox.getValue());
+                        displayRestartDialog();
+                        if (changeListener != null) {
+                            changeListener.changed(null, null, uiScaleComboBoxComboBox.getValue());
+                        }
+                    }
+                });
+                node2 = uiScaleComboBoxComboBox;
             }
             if (node2 != null) {
                 node2.setId(setting.getKey());
@@ -726,6 +750,18 @@ public class SettingsScene extends BaseScene {
             sl.saveTo(getUserStartupFolder() + GAMEROOM_LNK_NAME);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+    }
+
+    public static void displayRestartDialog(){
+        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
+        alert.setContentText(RESSOURCE_BUNDLE.getString("GameRoom_will_restart"));
+        alert.getButtonTypes().add(ButtonType.CANCEL);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == ButtonType.OK) {
+            //TODO restart
         }
 
     }

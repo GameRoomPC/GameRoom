@@ -148,20 +148,29 @@ public abstract class GameButton extends BorderPane {
         double width = 18*Main.SCREEN_WIDTH/1920;
         double height =  18*Main.SCREEN_HEIGHT/1080;
 
-        Image titleLogoImage = null;
+        String titleLogoId = null;
         if(entry.isSteamGame()){
-            titleLogoImage = new Image("res/ui/launcherIcons/steamChar.png",width,height,true,true);
+            titleLogoId = "steam-icon";
+            //titleLogoImage = new Image("res/ui/launcherIcons/steamChar.png",width,height,true,true);
         }else if (entry.isGoGGame()){
-            titleLogoImage = new Image("res/ui/launcherIcons/gogChar.png",width,height,true,true);
+            titleLogoId = "gog-icon";
+            //titleLogoImage = new Image("res/ui/launcherIcons/gogChar.png",width,height,true,true);
         }else if (entry.isUplayGame()){
-            titleLogoImage = new Image("res/ui/launcherIcons/uplayChar.png",width,height,true,true);
+            titleLogoId = "uplay-icon";
+            //titleLogoImage = new Image("res/ui/launcherIcons/uplayChar.png",width,height,true,true);
         }else if (entry.isOriginGame()){
-            titleLogoImage = new Image("res/ui/launcherIcons/originChar.png",width,height,true,true);
+            titleLogoId = "origin-icon";
+            //titleLogoImage = new Image("res/ui/launcherIcons/originChar.png",width,height,true,true);
         }else if (entry.isBattlenetGame()){
-            titleLogoImage = new Image("res/ui/launcherIcons/battle.netChar.png",width,height,true,true);
+            titleLogoId = "battlenet-icon";
+            //titleLogoImage = new Image("res/ui/launcherIcons/battle.netChar.png",width,height,true,true);
         }
-        if(!ImageUtils.imagesEquals(titleLogoImage,titleLogoView.getImage())) {
-            titleLogoView.setImage(titleLogoImage);
+        if(titleLogoId != null) {
+            titleLogoView.setSmooth(true);
+            titleLogoView.setPreserveRatio(true);
+            titleLogoView.setFitWidth(width);
+            titleLogoView.setFitHeight(height);
+            titleLogoView.setId(titleLogoId);
         }
     }
 
@@ -253,12 +262,12 @@ public abstract class GameButton extends BorderPane {
     private void initCoverPane() {
         coverPane = new StackPane();
 
-        if (DEFAULT_PLAY_IMAGE == null) {
+        /*if (DEFAULT_PLAY_IMAGE == null) {
             DEFAULT_PLAY_IMAGE = new Image("res/ui/playButton.png", SCREEN_WIDTH/10, SCREEN_WIDTH/10, true, true, true);
         }
         if (DEFAULT_INFO_IMAGE == null) {
             DEFAULT_INFO_IMAGE = new Image("res/ui/infoButton.png", SCREEN_WIDTH/20, SCREEN_WIDTH/20, true, true, true);
-        }
+        }*/
         DropShadow ds = new DropShadow();
         ds.setOffsetY(2.0f);
         ds.setBlurType(BlurType.GAUSSIAN);
@@ -267,8 +276,10 @@ public abstract class GameButton extends BorderPane {
         ds.setRadius(10);
         ds.setColor(Color.color(0.2f, 0.2f, 0.2f));
 
-        playButton = new ImageButton(DEFAULT_PLAY_IMAGE);
-        infoButton = new ImageButton(DEFAULT_INFO_IMAGE);
+        //playButton = new ImageButton(DEFAULT_PLAY_IMAGE);
+        playButton = new ImageButton("tile-play-button", SCREEN_WIDTH/10, SCREEN_WIDTH/10);
+        //infoButton = new ImageButton(DEFAULT_INFO_IMAGE);
+        infoButton = new ImageButton("tile-info-button", SCREEN_WIDTH/20, SCREEN_WIDTH/20);
 
         playTimeLabel = new Label(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_ROUNDED_HMS));
         playTimeLabel.setEffect(ds);
@@ -297,20 +308,22 @@ public abstract class GameButton extends BorderPane {
                 , 10 * Main.SCREEN_WIDTH / 1920
                 , 2 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920));
-        ratingLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
+        /*ratingLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
                 "    -fx-font-size: 38.0px;\n" +
                 "    -fx-stroke: black;\n" +
                 "    -fx-stroke-width: 1;" +
-                "    -fx-font-weight: 200;");
+                "    -fx-font-weight: 200;");*/
+        ratingLabel.setId("game-cover-rating-label");
         StackPane.setMargin(releaseDateLabel, new Insets(10 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920
                 , 2 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920));
-        releaseDateLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
+        releaseDateLabel.setId("game-cover-year-label");
+        /*releaseDateLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
                 "    -fx-font-size: 28.0px;\n" +
                 "    -fx-stroke: black;\n" +
                 "    -fx-stroke-width: 1;" +
-                "    -fx-font-weight: 200;");
+                "    -fx-font-weight: 200;");*/
 
         initCoverView();
 
@@ -636,12 +649,14 @@ public abstract class GameButton extends BorderPane {
             coverColorAdjust.setInput(blur);
             coverColorAdjust.setContrast(-0.3);*/
 
-            Image addImage = new Image("res/ui/toDownloadIcon.png");
-            notInstalledImage.setImage(addImage);
+            //Image addImage = new Image("res/ui/toDownloadIcon.png");
+            notInstalledImage.setId("tile-todownload-overlay");
+            notInstalledImage.setVisible(true);
 
             //coverView.setEffect(coverColorAdjust);
         }else{
             notInstalledImage.setImage(null);
+            notInstalledImage.setVisible(false);
         }
     }
 }

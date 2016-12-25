@@ -45,7 +45,7 @@ public class ImageUtils {
     public final static String IGDB_SIZE_BIG = "_big";
     public final static String IGDB_SIZE_SMALL = "_small";
     public final static String IGDB_SIZE_MED = "_med";
-    private final static String IGDB_IMAGE_URL_PREFIX = "https://res.cloudinary.com/igdb/image/upload/t_";
+    private final static String IGDB_IMAGE_URL_PREFIX = "https://images.igdb.com/igdb/image/upload/t_";
 
     /*******************
      * STEAM
@@ -83,6 +83,8 @@ public class ImageUtils {
     private static Task downloadImgToCache(String url, File fileOutput, OnDLDoneHandler dlDoneHandler) {
         fileOutput.deleteOnExit();
         Task<String> imageDownloadTask = null;
+
+        //TODO if image exists, try to load it and if an error occur (errorProperty), re-download it
         if (!fileOutput.exists()) {
             imageDownloadTask = new Task<String>() {
                 @Override

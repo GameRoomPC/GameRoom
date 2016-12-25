@@ -494,7 +494,9 @@ public class GameEditScene extends BaseScene {
         screenShotButtonsBox.setSpacing(20 * Main.SCREEN_WIDTH / 1920);
         screenShotButtonsBox.setAlignment(Pos.CENTER_LEFT);
 
-        ImageButton screenshotFileButton = new ImageButton(new Image("res/ui/folderButton.png", GENERAL_SETTINGS.getWindowWidth() / 24, GENERAL_SETTINGS.getWindowWidth() / 24, false, true));
+        double imgSize = GENERAL_SETTINGS.getWindowWidth() / 24;
+        //ImageButton screenshotFileButton = new ImageButton(new Image("res/ui/folderButton.png", , GENERAL_SETTINGS.getWindowWidth() / 24, false, true));
+        ImageButton screenshotFileButton = new ImageButton("folder-button", imgSize,imgSize);
         screenshotFileButton.setOnAction(event -> {
             chosenImageFiles[1] = imageChooser.showOpenDialog(getParentStage());
             screenshotDlDoneHandler.run(chosenImageFiles[1]);
@@ -587,7 +589,8 @@ public class GameEditScene extends BaseScene {
         if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)){
             Label youtubeSoundtrackLabel = new Label(RESSOURCE_BUNDLE.getString("youtube_soundtrack_label") + " :");
             youtubeSoundtrackLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("youtube_soundtrack_tooltip")));
-            youtubeSoundtrackLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            //youtubeSoundtrackLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            youtubeSoundtrackLabel.setId("advanced-setting-label");
             contentPane.add(youtubeSoundtrackLabel, 0, row_count);
             TextField youtubeSoundtrackField = new TextField(entry.getYoutubeSoundtrackHash().equals("") ? "" : YoutubeSoundtrackScrapper.toYoutubeUrl(entry.getYoutubeSoundtrackHash()));
             youtubeSoundtrackField.setId("youtube_soundtrack");
@@ -612,7 +615,8 @@ public class GameEditScene extends BaseScene {
         if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)) {
             Label argsLabel = new Label(RESSOURCE_BUNDLE.getString("args_label") + " :");
             argsLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("args_tooltip")));
-            argsLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            //argsLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            argsLabel.setId("advanced-setting-label");
             contentPane.add(argsLabel, 0, row_count);
             TextField argsField = new TextField(entry.getArgs());
             argsField.setId("args");
@@ -627,7 +631,8 @@ public class GameEditScene extends BaseScene {
 
             Label cmdBeforeLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_before_label") + " :");
             cmdBeforeLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_before_tooltip")));
-            cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            //cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            cmdBeforeLabel.setId("advanced-setting-label");
             contentPane.add(cmdBeforeLabel, 0, row_count);
             CMDTextField cmdBeforeField = new CMDTextField(entry.getCmd(GameEntry.CMD_BEFORE_START));
             cmdBeforeField.setWrapText(true);
@@ -643,7 +648,8 @@ public class GameEditScene extends BaseScene {
 
             Label cmdAfterLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_after_label") + " :");
             cmdAfterLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_after_tooltip")));
-            cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            //cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            cmdAfterLabel.setId("advanced-setting-label");
             contentPane.add(cmdAfterLabel, 0, row_count);
             CMDTextField cmdAfterField = new CMDTextField(entry.getCmd(GameEntry.CMD_AFTER_END));
             cmdAfterField.setWrapText(true);
@@ -787,8 +793,9 @@ public class GameEditScene extends BaseScene {
             imageThread.start();
         }
 
-
-        ImageButton changeImageButton = new ImageButton(new Image("res/ui/folderButton.png", GENERAL_SETTINGS.getWindowWidth() / 12, GENERAL_SETTINGS.getWindowWidth() / 12, false, true));
+        double imgSize = GENERAL_SETTINGS.getWindowWidth() / 15;
+        //ImageButton changeImageButton = new ImageButton(new Image("res/ui/folderButton.png", GENERAL_SETTINGS.getWindowWidth() / 12, GENERAL_SETTINGS.getWindowWidth() / 12, false, true));
+        ImageButton changeImageButton = new ImageButton("folder-button", imgSize,imgSize);
         changeImageButton.setOpacity(0);
         changeImageButton.setFocusTraversable(false);
         changeImageButton.setOnAction(new EventHandler<ActionEvent>() {

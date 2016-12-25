@@ -155,12 +155,12 @@ public abstract class SelectListPane<T> extends ScrollPane {
                 @Override
                 public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                     if(newValue){
-                        setStyle("-fx-background-color: derive(-flatter-red, -20.0%);");
+                        setId("selected-item");
                     }else{
-                        setStyle("");
+                        getStylesheets().clear();
                     }
                     if(!multiSelection && oldValue && !newValue){
-                        setStyle("");
+                        getStylesheets().clear();
                         parentList.removeSelectedValue(getValue());
                     }
                     if(newValue && !selected){

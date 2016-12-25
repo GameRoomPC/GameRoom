@@ -161,12 +161,14 @@ public class GameInfoScene extends BaseScene {
         propertiesPane.getColumnConstraints().add(cc2);
 
         propertiesPane.setAlignment(Pos.TOP_LEFT);
-        addProperty("play_time", entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS)).setStyle("-fx-font-size: 34.0px;");
+        addProperty("play_time", entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS)).setId("basic-info-label");
 
         /***************************PATH******************************************/
         addProperty("game_path", entry.getPath());
-        Image folderImage = new Image("res/ui/folderButton.png", 50 * SCREEN_WIDTH / 1920, 50 * SCREEN_HEIGHT / 1080, false, true);
-        ImageButton folderButton = new ImageButton(folderImage);
+
+        double imgSize = 50 * SCREEN_WIDTH / 1920;
+        //Image folderImage = new Image("res/ui/folderButton.png", 50 * SCREEN_WIDTH / 1920, 50 * SCREEN_HEIGHT / 1080, false, true);
+        ImageButton folderButton = new ImageButton("folder-button", imgSize,imgSize);
         folderButton.setOnAction(event -> {
             try {
                 Desktop.getDesktop().open(new File(entry.getPath()).getParentFile());
@@ -187,7 +189,7 @@ public class GameInfoScene extends BaseScene {
         /****************************END SEPARATORS************************************/
         addProperty("release_date", entry.getReleaseDate() != null ? GameEntry.DATE_DISPLAY_FORMAT.format(entry.getReleaseDate()) : "");
         if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)){
-            addProperty("added_date", entry.getAddedDate() != null ? GameEntry.DATE_STORE_FORMAT.format(entry.getAddedDate()) : "").setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
+            addProperty("added_date", entry.getAddedDate() != null ? GameEntry.DATE_STORE_FORMAT.format(entry.getAddedDate()) : "").setId("advanced-setting-label");
         }
         addProperty("developer", entry.getDeveloper());
         addProperty("publisher", entry.getPublisher());

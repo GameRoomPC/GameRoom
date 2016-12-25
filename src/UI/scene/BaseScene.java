@@ -52,6 +52,7 @@ public abstract class BaseScene extends Scene {
         this.rootStackPane = stackPane;
         setParentStage(parentStage);
         ThemeUtils.applyCurrentTheme(this);
+        getRoot().setStyle("-fx-font-size: "+Double.toString(GENERAL_SETTINGS.getUIScale().getFontSize())+"px;");
         if(backgroundMaskImage == null || backgroundMaskImage.getWidth()!=Main.GENERAL_SETTINGS.getWindowWidth() || backgroundMaskImage.getHeight() != Main.GENERAL_SETTINGS.getWindowHeight()){
             backgroundMaskImage = new Image("res/ui/backgroundMask.png"
                     , Main.GENERAL_SETTINGS.getWindowWidth()
@@ -165,8 +166,8 @@ public abstract class BaseScene extends Scene {
     }
 
     private ImageButton createBackButton(EventHandler<ActionEvent> eventHandler){
-        Image leftArrowImage = new Image("res/ui/arrowLeft.png", SCREEN_WIDTH /45, SCREEN_WIDTH /45,true,true);
-        ImageButton backButton = new ImageButton(leftArrowImage);
+        //Image leftArrowImage = new Image("res/ui/arrowLeft.png", SCREEN_WIDTH /45, SCREEN_WIDTH /45,true,true);
+        ImageButton backButton = new ImageButton("arrow-left-button", SCREEN_WIDTH /45, SCREEN_WIDTH /45);
         backButton.setOnAction(event -> eventHandler.handle(event));
         backButton.setId("backButton");
         addEventFilter(KeyEvent.KEY_PRESSED, event -> {

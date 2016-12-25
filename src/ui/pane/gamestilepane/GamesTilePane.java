@@ -82,11 +82,12 @@ public abstract class GamesTilePane extends BorderPane {
         //centerPane.setPrefViewportHeight(tilePane.getPrefHeight());
         setCenter(getTilePane());
         setTop(titleLabel);
-        titleLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
+        /*titleLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
                 "    -fx-font-size: 28.0px;\n" +
                 "    -fx-stroke: black;\n" +
                 "    -fx-stroke-width: 1;" +
-                "    -fx-font-weight: 200;");
+                "    -fx-font-weight: 200;");*/
+        titleLabel.setId("games-tilepane-title-label");
         BorderPane.setAlignment(titleLabel, Pos.CENTER_LEFT);
         titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920

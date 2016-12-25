@@ -29,7 +29,9 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
         maxColumn = Integer.MAX_VALUE;
         automaticSort = false;
 
-        ImageButton addAllButton = new ImageButton(new Image("res/ui/doubleValidIcon.png", SCREEN_WIDTH / 65, SCREEN_WIDTH / 65, true, true));
+        //ImageButton addAllButton = new ImageButton(new Image("res/ui/doubleValidIcon.png", SCREEN_WIDTH / 65, SCREEN_WIDTH / 65, true, true));
+        double imgSize =  SCREEN_WIDTH / 65;
+        ImageButton addAllButton = new ImageButton("tile-addAll-button", imgSize, imgSize);
         addAllButton.setOnAction(event -> {
             parentScene.getRootStackPane().setMouseTransparent(true);
             ChoiceDialog choiceDialog = new ChoiceDialog(

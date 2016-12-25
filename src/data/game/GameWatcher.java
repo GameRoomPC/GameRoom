@@ -101,6 +101,7 @@ public class GameWatcher {
                 }
             }
         });
+        th.setPriority(Thread.MIN_PRIORITY);
         th.setDaemon(true);
         th.start();
     }

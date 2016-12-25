@@ -199,10 +199,10 @@ public class RowCoverTilePane extends CoverTilePane {
         separator.setPadding(titleLabel.getPadding());
         separator.maxWidthProperty().bind(titleLabel.widthProperty());
 
-        Image arrowUpImage = new Image("res/ui/arrowUp.png", SCREEN_WIDTH / 70, SCREEN_WIDTH / 70, true, true);
-        Image arrowDownImage = new Image("res/ui/arrowDown.png", SCREEN_WIDTH / 70, SCREEN_WIDTH / 70, true, true);
+        //Image arrowUpImage = new Image("res/ui/arrowUp.png", SCREEN_WIDTH / 70, SCREEN_WIDTH / 70, true, true);
+        //Image arrowDownImage = new Image("res/ui/arrowDown.png", SCREEN_WIDTH / 70, SCREEN_WIDTH / 70, true, true);
 
-        foldToggleButton = new DualImageButton(arrowUpImage, arrowDownImage, "show", "hide");
+        foldToggleButton = new DualImageButton("arrow-right-button", "arrow-down-button",SCREEN_WIDTH / 70,SCREEN_WIDTH / 70);
         foldToggleButton.setFocusTraversable(false);
         foldToggleButton.setOnDualAction(new OnActionHandler() {
             @Override

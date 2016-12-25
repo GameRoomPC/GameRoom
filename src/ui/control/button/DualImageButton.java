@@ -1,27 +1,20 @@
 package ui.control.button;
 
 import javafx.event.ActionEvent;
-import javafx.scene.image.Image;
 
 /**
  * Created by LM on 02/08/2016.
  */
 public class DualImageButton extends ImageButton {
-    public static String PAUSE_STATE = "PAUSE";
-    public static String PLAY_STATE = "PLAY";
-
-    private Image image1,image2;
-    private String state1,state2;
+    private String state1Id, state2Id;
     private String currentState;
 
     private OnActionHandler[] actions = new OnActionHandler[2];
-    public DualImageButton(Image image1, Image image2, String state1, String state2) {
-        super(image1);
-        this.state1 = state1;
-        this.state2 = state2;
-        this.image1=image1;
-        this.image2=image2;
-        this.currentState = state1;
+    public DualImageButton(String state1Id, String state2Id, double width, double height) {
+        super(state1Id,width,height);
+        this.state1Id = state1Id;
+        this.state2Id = state2Id;
+        this.currentState = state1Id;
 
         actions[0] = new OnActionHandler() {
             @Override
@@ -40,18 +33,18 @@ public class DualImageButton extends ImageButton {
     }
     public void forceState(String state){
         if(!currentState.equals(state)){
-            if(state1.equals(state)){
+            if(state1Id.equals(state)){
                 toggleState();
             }
-            if(state2.equals(state)){
+            if(state2Id.equals(state)){
                 toggleState();
             }
         }
     }
     private void toggleState(){
-        Image currentImage = inFirstState() ? image2 : image1;
-        setImage(currentImage);
-        currentState = inFirstState() ? state2 : state1;
+        String currentId = inFirstState() ? state2Id : state1Id;
+        setImageViewId(currentId);
+        currentState = inFirstState() ? state2Id : state1Id;
     }
 
     /**
@@ -61,6 +54,6 @@ public class DualImageButton extends ImageButton {
         actions[1] = oah;
     }
     public boolean inFirstState(){
-        return currentState.equals(state1);
+        return currentState.equals(state1Id);
     }
 }

@@ -4,6 +4,7 @@ import data.game.scrapper.SteamPreEntry;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
+import ui.theme.UIScale;
 
 import java.io.*;
 import java.util.HashMap;
@@ -129,6 +130,11 @@ public class GeneralSettings {
     public SteamPreEntry[] getSteamAppsIgnored(){
         SettingValue setting = settingsMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getKey());
         return (SteamPreEntry[]) setting.getSettingValue();
+    }
+
+    public UIScale getUIScale(){
+        SettingValue<UIScale> settingValue = settingsMap.get(PredefinedSetting.UI_SCALE.getKey());
+        return settingValue.getSettingValue();
     }
 
     public void setSettingValue(PredefinedSetting key, Object value){

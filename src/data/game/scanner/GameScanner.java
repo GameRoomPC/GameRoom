@@ -32,6 +32,7 @@ public abstract class GameScanner {
         };
         Thread scanThread = new Thread(scanningTask);
         scanThread.setDaemon(true);
+        scanThread.setPriority(Thread.MIN_PRIORITY);
         scanThread.start();
     }
     protected abstract void scanForGames();

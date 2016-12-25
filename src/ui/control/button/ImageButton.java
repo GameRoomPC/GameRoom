@@ -9,10 +9,13 @@ import javafx.scene.effect.Bloom;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
+
+import static ui.Main.GENERAL_SETTINGS;
 
 /**
  * Created by LM on 03/07/2016.
@@ -29,7 +32,7 @@ public class ImageButton extends Button {
     private ArrayList<MouseEnteredHandler> mouseEnteredHandlers = new ArrayList<>();
     private ArrayList<MouseExitedHandler> mouseExitedHandlers = new ArrayList<>();
 
-    public ImageButton(Image image) {
+    /*public ImageButton(Image image) {
         super();
         if(image!=null){
             view = new ImageView(image);
@@ -38,6 +41,23 @@ public class ImageButton extends Button {
         }
         view.setPreserveRatio(true);
         view.setVisible(true);
+        setGraphic(view);
+        setStyle("-fx-background-color: transparent;");
+        addEffectsToButton(view);
+    }*/
+    public ImageButton(String cssId, double width, double height) {
+        super();
+
+        view = new ImageView();
+        view.setSmooth(true);
+        double scale = GENERAL_SETTINGS.getUIScale().getScale();
+        view.setFitWidth(width*scale);
+        view.setFitHeight(height*scale);
+
+        view.setId(cssId);
+        view.setPreserveRatio(true);
+        view.setVisible(true);
+
         setGraphic(view);
         setStyle("-fx-background-color: transparent;");
         addEffectsToButton(view);
@@ -120,6 +140,10 @@ public class ImageButton extends Button {
 
     void setImage(Image img){
         view.setImage(img);
+    }
+
+    protected void setImageViewId(String id){
+        view.setId(id);
     }
 }
 

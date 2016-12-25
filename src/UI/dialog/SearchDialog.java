@@ -90,8 +90,10 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                     searchField.requestFocus();
             }
         });
-        Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
-        ImageButton searchButton = new ImageButton(searchImage);
+        //Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
+        //ImageButton searchButton = new ImageButton(searchImage);
+        double imgSize = SCREEN_WIDTH / 28;
+        ImageButton searchButton = new ImageButton("search-button",imgSize,imgSize);
 
         mainPane.getStyleClass().add("container");
 
@@ -379,10 +381,11 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
 
             yearLabel.setWrapText(true);
 
-            yearLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
+            /*yearLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
                     "    -fx-font-size: 18.0px;\n" +
                     "    -fx-font-weight: 600;" +
-                    "    -fx-font-style: italic;");
+                    "    -fx-font-style: italic;");*/
+            yearLabel.setId("search-result-year-label");
             VBox box = new VBox();
             box.prefWidthProperty().bind(prefRowWidth);
             box.getChildren().addAll(nameLabel, yearLabel);

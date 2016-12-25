@@ -139,9 +139,9 @@ public class GameFoldersIgnoredSelector extends GameRoomDialog<ButtonType> {
             @Override
             protected void addContent() {
                 if(file.isDirectory()){
-                    if(DEFAULT_FOLDER_IMAGE == null){
+                    /*if(DEFAULT_FOLDER_IMAGE == null){
                         DEFAULT_FOLDER_IMAGE = new Image("res/ui/folderButton128.png", IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
-                    }
+                    }*/
                     coverPane.getChildren().add(new ImageView(DEFAULT_FOLDER_IMAGE));
                     //TODO implement search of ico file or first .exe file icone if not null
                 }else{

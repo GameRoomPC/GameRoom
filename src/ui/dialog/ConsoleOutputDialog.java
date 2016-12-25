@@ -29,12 +29,13 @@ public class ConsoleOutputDialog extends GameRoomDialog {
                 , 10 * Main.SCREEN_WIDTH / 1920
                 , 10 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920));
-        textArea.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
+        /*textArea.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
                 "    -fx-background-color: derive(-dark, 20%);\n"+
                 "    -fx-font-size: 16.0px;\n" +
                 "    -fx-font-size: 16.0px;\n" +
                 "    -fx-text-fill: -fx-text-base-color;\n"+
-                "    -fx-font-weight: 600;");
+                "    -fx-font-weight: 600;");*/
+        textArea.setId("console-text-area");
         mainPane.setTop(new javafx.scene.control.Label("Console"));
         ScrollPane pane = new ScrollPane();
         pane.setFitToWidth(true);

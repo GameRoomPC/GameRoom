@@ -7,7 +7,7 @@
 
     /*default font */
     -fx-font-family: 'Helvetica Neue';
-    -fx-font-size: 19.0px;
+    -fx-font-size: 29.0px;
     -fx-font-weight: 600;
     -fx-disabled-opacity: 0.6;
 
@@ -455,22 +455,22 @@
 
 }
 .alert.information.dialog-pane {
-   -fx-graphic: url("ui/dialogIcons/infoIcon.png");
+   -fx-graphic: url("icons/dialog/infoIcon.png");
     -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
     -fx-border-width: 2px;
 }
 .alert.error.dialog-pane {
-    -fx-graphic: url("ui/dialogIcons/errorIcon.png");
+    -fx-graphic: url("icons/dialog/errorIcon.png");
     -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
     -fx-border-width: 2px;
 }
 .alert.confirmation.dialog-pane {
-    -fx-graphic: url("ui/dialogIcons/confirmationIcon.png");
+    -fx-graphic: url("icons/dialog/confirmationIcon.png");
     -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
     -fx-border-width: 2px;
 }
 .alert.warning.dialog-pane {
-    -fx-graphic: url("ui/dialogIcons/warningIcon.png");
+    -fx-graphic: url("icons/dialog/warningIcon.png");
     -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
     -fx-border-width: 2px;
 }
@@ -484,7 +484,7 @@
     -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
     -fx-border-width: 2px;
     -fx-font-family: 'Helvetica Neue';
-    -fx-font-size: 22.0px;
+    -fx-font-size: 1.16em;
     -fx-font-weight: 600;
     -fx-disabled-opacity: 0.6;
 }
@@ -549,12 +549,15 @@
  *                                                                             *
  ******************************************************************************/
  /* For the text displayed above command-link buttons (but below the header) */
+ .custom-choice-dialog.dialog-pane.header-panel {
+    -fx-font-size: 1.37em;
+ }
 .custom-choice-dialog.dialog-pane,
 .search-dialog.dialog-pane{
      -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
      -fx-border-width: 2px;
      -fx-font-family: 'Helvetica Neue';
-     -fx-font-size: 22.0px;
+     -fx-font-size: 1.16em;
      -fx-font-weight: 600;
      -fx-disabled-opacity: 0.6;
  }
@@ -570,6 +573,20 @@
        -fx-background-color: derive(-dark, 20%);
        -fx-border-width: 2px;
 
+}
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button,
+.search-result-row.description-label{
+       -fx-font-family: 'Helvetica Neue';
+       -fx-font-size: 0.84em;
+       -fx-font-weight: 600;
+}
+
+
+.custom-choice-dialog.dialog-pane > .container > .vbox > .choice-button,
+.search-result-row.title-label{
+       -fx-font-family: 'Helvetica Neue';
+       -fx-font-size: 1.26em;
+       -fx-font-weight: 600;
 }
 
 
@@ -616,7 +633,7 @@
  }
 .tab .tab-label{
     -fx-alignment: CENTER;
-    -fx-font-size: 26px;
+    -fx-font-size: 1.37em;
 }
 .tab-pane .tab
 {
@@ -648,4 +665,143 @@
 .tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
+}
+
+#games-tilepane-title-label{
+    -fx-font-size: 1.47em;
+}
+
+#console-text-area{
+	-fx-background-color: derive(-dark, 20%);
+	-fx-font-size: 0.84em;
+	-fx-text-fill: -fx-text-base-color;
+}
+
+#game-cover-rating-label{
+	-fx-font-size: 2em;
+}
+
+#game-cover-year-label{
+	-fx-font-size: 1.47em;
+}
+
+#basic-info-label{
+	-fx-font-size: 1.79em;
+}
+
+#advanced-setting-label{
+	-fx-text-fill: derive(-flatter-red, -20.0%);
+}
+
+#selected-item{
+	-fx-background-color: derive(-flatter-red, -20.0%);
+}
+
+#search-result-year-label{
+	-fx-font-size: 18.0px;
+	-fx-font-style: italic;
+}
+
+/************** MAIN SCENE BUTTONS ******************************/
+#main-settings-button{
+	-fx-image: url("icons/main/settings.png");
+}
+
+#main-sort-button{
+	-fx-image: url("icons/main/sort.png");
+}
+
+#main-group-button{
+	-fx-image: url("icons/main/group.png");
+}
+
+#main-add-button{
+	-fx-image: url("icons/main/add.png");
+}
+
+/************TILES RELATED BUTTONS*******************/
+
+#toaddtile-add-button{
+	-fx-image: url("icons/tile/add.png");
+}
+
+#toaddtile-ignore-button{
+	-fx-image: url("icons/tile/ignore.png");
+}
+
+#tile-play-button{
+	-fx-image: url("icons/tile/play.png");
+}
+
+#tile-info-button{
+	-fx-image: url("icons/tile/info.png");
+}
+
+#tile-addAll-button{
+	-fx-image: url("icons/tile/addAll.png");
+}
+
+#tile-todownload-overlay{
+	-fx-image: url("icons/tile/toDownload.png");
+}
+
+/***************ARROWS****************/
+
+#arrow-left-button{
+	-fx-image: url("icons/arrow/left.png");
+}
+
+#arrow-right-button{
+	-fx-image: url("icons/arrow/right.png");
+}
+
+#arrow-up-button{
+	-fx-image: url("icons/arrow/up.png");
+}
+
+#arrow-down-button{
+	-fx-image: url("icons/arrow/down.png");
+}
+
+/***************LAUNCHER****************/
+#steam-icon{
+	-fx-image: url("icons/launcher/steam.png");
+}
+
+#battlenet-icon{
+	-fx-image: url("icons/launcher/battle.net.png");
+}
+
+#gog-icon{
+	-fx-image: url("icons/launcher/gog.png");
+}
+
+#origin-icon{
+	-fx-image: url("icons/launcher/origin.png");
+}
+
+#uplay-icon{
+	-fx-image: url("icons/launcher/uplay.png");
+}
+
+/**************OTHERS****************/
+
+#folder-button{
+	-fx-image: url("icons/folder.png");
+}
+
+#search-button{
+	-fx-image: url("icons/search.png");
+}
+
+#home-button{
+	-fx-image: url("icons/home.png");
+}
+
+#sound-button{
+	-fx-image: url("icons/sound.png");
+}
+
+#mute-button{
+	-fx-image: url("icons/mute.png");
 }

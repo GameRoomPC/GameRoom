@@ -45,7 +45,8 @@ public class ChoiceDialog extends GameRoomDialog<ButtonType> {
     }
     public void setHeader(String text){
         Label header = new Label(text);
-        header.setStyle("-fx-font-size: 26.0px;");
+        //header.setStyle("-fx-font-size: 26.0px;");
+        header.getStyleClass().add("header-panel");
         mainPane.setTop(header);
         BorderPane.setMargin(header, new Insets(20* Main.SCREEN_WIDTH /1920, 20* Main.SCREEN_HEIGHT /1080,40* Main.SCREEN_WIDTH /1920, 20* Main.SCREEN_HEIGHT /1080));
     }
@@ -58,14 +59,17 @@ public class ChoiceDialog extends GameRoomDialog<ButtonType> {
         public ChoiceDialogButton(String title, String description){
             super();
             titleLabel = new Label(title);
-            titleLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
+            /*titleLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
                     "    -fx-font-size: 24.0px;\n" +
-                    "    -fx-font-weight: 600;");
+                    "    -fx-font-weight: 600;");*/
+            titleLabel.getStyleClass().add("title-label");
+            //TODO fix not theming to corresponding class
             descriptionLabel = new Label(description);
-            descriptionLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
+            /*descriptionLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
                     "    -fx-font-size: 16.0px;\n" +
-                    "    -fx-font-weight: 600;");
+                    "    -fx-font-weight: 600;");*/
             descriptionLabel.setWrapText(true);
+            descriptionLabel.getStyleClass().add("description-label");
             BorderPane.setAlignment(descriptionLabel, Pos.CENTER_LEFT);
             getStyleClass().addAll("search-result-row");
             setTop(titleLabel);
