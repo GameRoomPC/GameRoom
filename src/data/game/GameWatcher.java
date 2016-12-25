@@ -86,7 +86,7 @@ public class GameWatcher {
             public void run() {
                 initToAddEntries();
                 while (Main.KEEP_THREADS_RUNNING) {
-                    validateKey();
+                    //validateKey();
                     scanNewGamesRoutine();
                     tryScrapToAddEntries();
                     scanNewOnlineGamesRoutine();

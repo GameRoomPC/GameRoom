@@ -1,14 +1,19 @@
 package ui.theme;
 
 import data.FileUtils;
+import data.http.key.KeyChecker;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import system.application.settings.PredefinedSetting;
 import ui.Main;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static ui.Main.GENERAL_SETTINGS;
+import static ui.Main.SUPPORTER_MODE;
 
 /**
  * Created by LM on 26/10/2016.
@@ -19,6 +24,10 @@ public class ThemeUtils {
 
     private static String getThemeCSS() {
         File themeCSS = Main.FILES_MAP.get("theme_css");
+        if(!SUPPORTER_MODE){
+            FileUtils.deleteFolder(Main.FILES_MAP.get("current_theme"));
+            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.THEME,Theme.DEFAULT_THEME);
+        }
         if (themeCSS == null || !themeCSS.exists()) {
             return DEFAULT_THEME_CSS;
         }

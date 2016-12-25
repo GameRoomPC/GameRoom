@@ -104,6 +104,7 @@ public class Main {
         startUpdater();
         //}
     }
+
     public static String getArg(String flag,String[] args, boolean hasOption){
         boolean argsHere = false;
         int index = 0;
@@ -148,9 +149,11 @@ public class Main {
 
     public static void restart(Stage stage, String reason){
         LOGGER.info("Restarting GameRoom because : "+reason);
-        Terminal terminal = new Terminal();
         try {
-            terminal.execute("GameRoom.exe");
+            Process process = new ProcessBuilder()
+                    .command("GameRoom.exe")
+                    .redirectErrorStream(true)
+                    .start();
         } catch (IOException e) {
             e.printStackTrace();
         }

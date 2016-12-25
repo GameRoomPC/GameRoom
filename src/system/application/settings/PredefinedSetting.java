@@ -44,7 +44,7 @@ public enum PredefinedSetting {
     , DISPLAY_WELCOME_MESSAGE("displayWelcomeMessage", new SettingValue(true,Boolean.class,CATEGORY_NONE))
     , SCROLLBAR_VVALUE("scrollbarVValue", new SettingValue(0.0,Double.class,CATEGORY_NONE))
     , UI_SCALE("uiscale", new SettingValue(UIScale.NORMAL,UIScale.class,CATEGORY_UI))
-    , THEME("theme", new SettingValue(null,Theme.class,CATEGORY_UI))
+    , THEME("theme", new SettingValue(Theme.DEFAULT_THEME,Theme.class,CATEGORY_UI))
     ;
 
 
