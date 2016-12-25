@@ -29,6 +29,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
@@ -76,6 +77,7 @@ public class MainScene extends BaseScene {
     private VBox tilesPaneWrapper = new VBox();
     private ScrollPane scrollPane;
     private BorderPane wrappingPane;
+    private StackPane topPane;
 
     private Slider sizeSlider = new Slider();
 
@@ -737,7 +739,7 @@ public class MainScene extends BaseScene {
         //hbox.getChildren().add(searchBox);
 
         //HBox.setMargin(sizeSlider, new Insets(15, 12, 15, 12));
-        StackPane topPane = new StackPane();
+        topPane = new StackPane();
         //topPane.setFocusTraversable(false);
         double width = 500 * SCREEN_WIDTH / 1920;
         double height = 94 * SCREEN_HEIGHT / 1080;
@@ -758,6 +760,15 @@ public class MainScene extends BaseScene {
                 , 15 * Main.SCREEN_WIDTH / 1920));*/
         topPane.getChildren().add(searchBox);
         topPane.getChildren().add(hbox);
+        getParentStage().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, new EventHandler<javafx.scene.input.KeyEvent>() {
+            @Override
+            public void handle(javafx.scene.input.KeyEvent event) {
+                if(event.getCode().equals(KeyCode.F10)){
+                    topPane.setVisible(!topPane.isVisible());
+                    topPane.setManaged(!topPane.isManaged());
+                }
+            }
+        });
         StackPane.setAlignment(hbox, Pos.CENTER_LEFT);
 
 
