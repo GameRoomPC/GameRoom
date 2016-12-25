@@ -19,6 +19,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
+import net.lingala.zip4j.exception.ZipException;
 import org.json.JSONObject;
 import system.application.MessageListener;
 import system.application.MessageTag;
@@ -35,6 +36,8 @@ import ui.dialog.ActivationKeyDialog;
 import ui.dialog.GameFoldersIgnoredSelector;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.SteamIgnoredSelector;
+import ui.theme.Theme;
+import ui.theme.ThemeUtils;
 import ui.theme.UIScale;
 
 import java.awt.*;
@@ -156,8 +159,8 @@ public class SettingsScene extends BaseScene {
         addPropertyLine(PredefinedSetting.DISABLE_GAME_MAIN_THEME, true, new ChangeListener() {
             @Override
             public void changed(ObservableValue observable, Object oldValue, Object newValue) {
-                if(newValue instanceof Boolean){
-                    if(!(Boolean)newValue){
+                if (newValue instanceof Boolean) {
+                    if (!(Boolean) newValue) {
                         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
                         alert.setContentText(Main.RESSOURCE_BUNDLE.getString("warning_youtube_player"));
                         alert.showAndWait();
@@ -185,6 +188,7 @@ public class SettingsScene extends BaseScene {
             }
         });
         addPropertyLine(PredefinedSetting.UI_SCALE, false);
+        addPropertyLine(PredefinedSetting.THEME, false);
 
         addPropertyLine(PredefinedSetting.ENABLE_GAMING_POWER_MODE, false, new ChangeListener<Boolean>() {
             @Override
@@ -274,9 +278,7 @@ public class SettingsScene extends BaseScene {
                             } else {
                                 Main.LOGGER.error("Error while trying to deactivate key : " + response.toString(4));
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (UnirestException e) {
+                        } catch (IOException | UnirestException e) {
                             e.printStackTrace();
                         }
                     } else {
@@ -287,9 +289,7 @@ public class SettingsScene extends BaseScene {
                             if (letter.getText().contains(Main.RESSOURCE_BUNDLE.getString("supporter_key_buy_one"))) {
                                 try {
                                     Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/key"));
-                                } catch (IOException e1) {
-                                    e1.printStackTrace();
-                                } catch (URISyntaxException e1) {
+                                } catch (IOException | URISyntaxException e1) {
                                     e1.printStackTrace();
                                 }
                             } else if (letter.getText().equals(Main.RESSOURCE_BUNDLE.getString("activate"))) {
@@ -549,7 +549,7 @@ public class SettingsScene extends BaseScene {
                     @Override
                     public void handle(ActionEvent event) {
                         if (changeListener != null) {
-                            changeListener.changed(null,Main.GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE),localeComboBox.getValue());
+                            changeListener.changed(null, Main.GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE), localeComboBox.getValue());
                         }
                         Main.RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", localeComboBox.getValue());
                         Main.SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", localeComboBox.getValue());
@@ -607,9 +607,9 @@ public class SettingsScene extends BaseScene {
                 node2 = gamesFolderField;
             } else if (setting.isClass(UIScale.class)) {
                 /**************** ON LAUNCH ACTION **************/
-                ComboBox<UIScale> uiScaleComboBoxComboBox = new ComboBox<>();
-                uiScaleComboBoxComboBox.getItems().addAll(UIScale.values());
-                uiScaleComboBoxComboBox.setConverter(new StringConverter<UIScale>() {
+                ComboBox<UIScale> uiScaleComboBox = new ComboBox<>();
+                uiScaleComboBox.getItems().addAll(UIScale.values());
+                uiScaleComboBox.setConverter(new StringConverter<UIScale>() {
                     @Override
                     public String toString(UIScale object) {
                         return object.getDisplayName();
@@ -620,18 +620,54 @@ public class SettingsScene extends BaseScene {
                         return UIScale.fromString(string);
                     }
                 });
-                uiScaleComboBoxComboBox.setValue(GENERAL_SETTINGS.getUIScale());
-                uiScaleComboBoxComboBox.setOnAction(new EventHandler<ActionEvent>() {
+                uiScaleComboBox.setValue(GENERAL_SETTINGS.getUIScale());
+                uiScaleComboBox.setOnAction(new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(ActionEvent event) {
-                        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.UI_SCALE, uiScaleComboBoxComboBox.getValue());
+                        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.UI_SCALE, uiScaleComboBox.getValue());
                         displayRestartDialog();
+                        Main.restart(getParentStage(),"Applying new UI stage");
                         if (changeListener != null) {
-                            changeListener.changed(null, null, uiScaleComboBoxComboBox.getValue());
+                            changeListener.changed(null, null, uiScaleComboBox.getValue());
                         }
                     }
                 });
-                node2 = uiScaleComboBoxComboBox;
+                node2 = uiScaleComboBox;
+            } else if (setting.isClass(Theme.class)) {
+                /**************** ON LAUNCH ACTION **************/
+                ComboBox<Theme> themeComboBox = new ComboBox<>();
+                themeComboBox.getItems().addAll(ThemeUtils.getInstalledThemes());
+                themeComboBox.setConverter(new StringConverter<Theme>() {
+                    @Override
+                    public String toString(Theme object) {
+                        return object.getName();
+                    }
+
+                    @Override
+                    public Theme fromString(String string) {
+                        return ThemeUtils.getThemeFromName(string);
+                    }
+                });
+                themeComboBox.setValue(GENERAL_SETTINGS.getTheme());
+                themeComboBox.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        Theme chosenTheme = themeComboBox.getValue();
+                        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.THEME, chosenTheme);
+                        try {
+                            if (changeListener != null) {
+                                changeListener.changed(null, null, themeComboBox.getValue());
+                            }
+                            chosenTheme.applyTheme();
+                            displayRestartDialog();
+                            Main.restart(getParentStage(),"ApplyingTheme");
+                        } catch (IOException | ZipException e) {
+                            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, Main.RESSOURCE_BUNDLE.getString("error_applying_theme"));
+                            alert.showAndWait();
+                        }
+                    }
+                });
+                node2 = themeComboBox;
             }
             if (node2 != null) {
                 node2.setId(setting.getKey());
@@ -754,16 +790,12 @@ public class SettingsScene extends BaseScene {
 
     }
 
-    public static void displayRestartDialog(){
+    public static void displayRestartDialog() {
         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
         alert.setContentText(RESSOURCE_BUNDLE.getString("GameRoom_will_restart"));
-        alert.getButtonTypes().add(ButtonType.CANCEL);
 
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK) {
-            //TODO restart
-        }
-
+        //TODO restart
     }
 
     @Override

@@ -160,7 +160,8 @@ public class Launcher extends Application {
         Main.FILES_MAP.put("config.properties",FileUtils.initOrCreateFile(gameRoomFolder+File.separator+"config.properties"));
         Main.FILES_MAP.put("GameRoom.log",FileUtils.initOrCreateFile(Main.FILES_MAP.get("log").getAbsolutePath()+File.separator+"GameRoom.log"));
         Main.FILES_MAP.put("themes",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"themes"));
-        Main.FILES_MAP.put("theme_css",new File(FILES_MAP.get("themes").getPath()+File.separator+"current"+File.separator+"theme.css"));
+        Main.FILES_MAP.put("current_theme",FileUtils.initOrCreateFolder(Main.FILES_MAP.get("themes").getAbsolutePath()+File.separator+"current"));
+        Main.FILES_MAP.put("theme_css",new File(Main.FILES_MAP.get("current_theme").getAbsolutePath()+File.separator+"theme.css"));
     }
 
     @Override

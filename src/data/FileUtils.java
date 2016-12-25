@@ -97,6 +97,15 @@ public class FileUtils {
         }
     }
 
+    public static void deleteFolder(File folder){
+        if (folder.exists() && folder.isDirectory()) {
+            for (File sub : folder.listFiles()) {
+                deleteFolder(sub);
+            }
+        }
+        folder.delete();
+    }
+
     public static File relativizePath(File targetFile, File baseFile) {
         String pathSeparator = File.separator;
         //  We need the -1 argument to split to make sure we get a trailing

@@ -556,7 +556,7 @@ public class GameEditScene extends BaseScene {
 
             @Override
             public boolean isValid() {
-                if (!entry.getImagePath(1).exists()) {
+                if (!entry.getImagePath(1).isValid()) {
                     message.replace(0,message.length(),Main.RESSOURCE_BUNDLE.getString("background_picture_still_downloading"));
                     return false;
                 }
@@ -1121,7 +1121,7 @@ public class GameEditScene extends BaseScene {
                     if (!localCoverFile.getParentFile().exists()) {
                         localCoverFile.getParentFile().mkdirs();
                     }
-                    /*if (!localCoverFile.exists()) {
+                    /*if (!localCoverFile.isValid()) {
                         localCoverFile.createNewFile();
                     }*/
                     Files.copy(imageFile.toPath().toAbsolutePath()

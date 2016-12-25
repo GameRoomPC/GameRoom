@@ -4,6 +4,7 @@ import data.game.scrapper.SteamPreEntry;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
+import ui.theme.Theme;
 import ui.theme.UIScale;
 
 import java.io.*;
@@ -134,6 +135,11 @@ public class GeneralSettings {
 
     public UIScale getUIScale(){
         SettingValue<UIScale> settingValue = settingsMap.get(PredefinedSetting.UI_SCALE.getKey());
+        return settingValue.getSettingValue();
+    }
+
+    public Theme getTheme(){
+        SettingValue<Theme> settingValue = settingsMap.get(PredefinedSetting.THEME.getKey());
         return settingValue.getSettingValue();
     }
 

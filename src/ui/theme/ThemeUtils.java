@@ -1,5 +1,6 @@
 package ui.theme;
 
+import data.FileUtils;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -14,6 +15,7 @@ import java.util.List;
  */
 public class ThemeUtils {
     private final static String DEFAULT_THEME_CSS = "res/theme.css";
+    private final static List<Theme> INSTALLED_THEMES = new ArrayList<>();
 
     private static String getThemeCSS() {
         File themeCSS = Main.FILES_MAP.get("theme_css");
@@ -35,8 +37,28 @@ public class ThemeUtils {
         applyCurrentTheme(alert.getDialogPane());
     }
 
-    public List<Theme> getInstalledThemes(){
-        //TODO scan for valid themes and return them
-        return new ArrayList<>();
+    public static List<Theme> getInstalledThemes(){
+        INSTALLED_THEMES.clear();
+        INSTALLED_THEMES.add(Theme.DEFAULT_THEME);
+        File themeFolder = Main.FILES_MAP.get("themes");
+        for(File file : themeFolder.listFiles()){
+            Theme tempTheme = new Theme(file.getName());
+            if(tempTheme.isValid()){
+                INSTALLED_THEMES.add(tempTheme);
+            }
+        }
+        return INSTALLED_THEMES;
+    }
+
+    public static Theme getThemeFromName(String name){
+        if(name == null || name.isEmpty() || name.equals("GameRoom")){
+            return Theme.DEFAULT_THEME;
+        }
+        for(Theme theme : INSTALLED_THEMES){
+            if(theme.getName().equals(name)){
+                return theme;
+            }
+        }
+        return Theme.DEFAULT_THEME;
     }
 }

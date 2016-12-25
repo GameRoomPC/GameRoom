@@ -4,6 +4,7 @@ import data.game.scrapper.SteamPreEntry;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
+import ui.theme.Theme;
 import ui.theme.UIScale;
 
 import java.io.File;
@@ -43,6 +44,7 @@ public enum PredefinedSetting {
     , DISPLAY_WELCOME_MESSAGE("displayWelcomeMessage", new SettingValue(true,Boolean.class,CATEGORY_NONE))
     , SCROLLBAR_VVALUE("scrollbarVValue", new SettingValue(0.0,Double.class,CATEGORY_NONE))
     , UI_SCALE("uiscale", new SettingValue(UIScale.NORMAL,UIScale.class,CATEGORY_UI))
+    , THEME("theme", new SettingValue(null,Theme.class,CATEGORY_UI))
     ;
 
 

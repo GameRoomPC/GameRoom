@@ -13,6 +13,7 @@ import system.application.settings.GeneralSettings;
 import system.application.settings.PredefinedSetting;
 import system.application.settings.SettingValue;
 import system.device.XboxController;
+import system.os.Terminal;
 import ui.scene.MainScene;
 
 import java.awt.*;
@@ -73,7 +74,10 @@ public class Main {
 
     public static volatile boolean KEEP_THREADS_RUNNING = true;
 
+    private static String[] calling_args;
+
     public static void main(String[] args) {
+        calling_args = args;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
         Main.TRUE_SCREEN_WIDTH = (int) screenSize.getWidth();
@@ -142,6 +146,17 @@ public class Main {
         });
     }
 
+    public static void restart(Stage stage, String reason){
+        LOGGER.info("Restarting GameRoom because : "+reason);
+        Terminal terminal = new Terminal();
+        try {
+            terminal.execute("GameRoom.exe");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        forceStop(stage,reason);
+    }
+
     public static void open(Stage stage) {
         Platform.runLater(new Runnable() {
             @Override
@@ -178,7 +193,7 @@ public class Main {
             for(File f : currentFolder.listFiles()){
                 if(f.isDirectory() && f.getName().startsWith("jre")){
                     File javaExe = new File(f.getAbsolutePath()+"\\bin\\java.exe");
-                    if(javaExe.exists()){
+                    if(javaExe.isValid()){
                         java = javaExe.getAbsolutePath();
                         LOGGER.info("Detected bundled "+f.getName()+", using it to start updater");
                     }

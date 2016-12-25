@@ -84,7 +84,7 @@ public class ImageUtils {
         fileOutput.deleteOnExit();
         Task<String> imageDownloadTask = null;
 
-        //TODO if image exists, try to load it and if an error occur (errorProperty), re-download it
+        //TODO if image isValid, try to load it and if an error occur (errorProperty), re-download it
         if (!fileOutput.exists()) {
             imageDownloadTask = new Task<String>() {
                 @Override

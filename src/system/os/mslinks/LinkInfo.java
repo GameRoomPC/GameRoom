@@ -192,7 +192,7 @@ public class LinkInfo implements Serializable {
 	
 	public String getLocalBasePath() { return localBasePath; }
 	/**
-	 * Set LocalBasePath and creates new VolumeID (if it not exists)
+	 * Set LocalBasePath and creates new VolumeID (if it not isValid)
 	 * If s is null takes no effect 
 	 */
 	public LinkInfo setLocalBasePath(String s) {
@@ -217,7 +217,7 @@ public class LinkInfo implements Serializable {
 	
 	public String getCommonPathSuffix() { return commonPathSuffix; }
 	/**
-	 * Set CommonPathSuffix and creates new CommonNetworkRelativeLink (if it not exists)
+	 * Set CommonPathSuffix and creates new CommonNetworkRelativeLink (if it not isValid)
 	 * If s is null takes no effect 
 	 */
 	public LinkInfo setCommonPathSuffix(String s) {
