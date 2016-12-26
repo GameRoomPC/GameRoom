@@ -31,7 +31,6 @@ import static ui.Main.SCREEN_WIDTH;
  * Created by LM on 03/07/2016.
  */
 public abstract class BaseScene extends Scene {
-    private static Image backgroundMaskImage;
     public final static double FADE_IN_OUT_TIME = 0.1;
     public final static double BACKGROUND_IMAGE_MAX_OPACITY = 0.65;
     final static double BACKGROUND_IMAGE_BLUR = 7;
@@ -53,15 +52,12 @@ public abstract class BaseScene extends Scene {
         setParentStage(parentStage);
         ThemeUtils.applyCurrentTheme(this);
         getRoot().setStyle("-fx-font-size: "+Double.toString(GENERAL_SETTINGS.getUIScale().getFontSize())+"px;");
-        if(backgroundMaskImage == null || backgroundMaskImage.getWidth()!=Main.GENERAL_SETTINGS.getWindowWidth() || backgroundMaskImage.getHeight() != Main.GENERAL_SETTINGS.getWindowHeight()){
-            backgroundMaskImage = new Image("res/ui/backgroundMask.png"
-                    , Main.GENERAL_SETTINGS.getWindowWidth()
-                    , Main.GENERAL_SETTINGS.getWindowHeight()
-                    ,false
-                    ,true);
-        }
+
         backgroundView = new ImageView();
-        maskView = new ImageView(backgroundMaskImage);
+        maskView = new ImageView();
+        maskView.setId("background-mask");
+        maskView.setFitWidth(Main.GENERAL_SETTINGS.getWindowWidth());
+        maskView.setFitHeight(Main.GENERAL_SETTINGS.getWindowHeight());
 
 
         widthProperty().addListener(new ChangeListener<Number>() {

@@ -63,6 +63,11 @@
  * Button & ToggleButton                                                       *
  *                                                                             *
  ******************************************************************************/
+.image-button{
+	-fx-padding: 5 15 5 15;
+
+    -fx-background-radius: 0;
+}
 
 .toggle-button, .button{
     -fx-background-color: -flatter-red;
@@ -804,4 +809,8 @@
 
 #mute-button{
 	-fx-image: url("icons/mute.png");
+}
+
+#background-mask{
+	-fx-image: url("icons/backgroundMask.png");
 }

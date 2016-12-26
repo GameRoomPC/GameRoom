@@ -60,6 +60,8 @@ public class ImageButton extends Button {
 
         setGraphic(view);
         setStyle("-fx-background-color: transparent;");
+        getStyleClass().remove("button");
+        getStyleClass().add("image-button");
         addEffectsToButton(view);
     }
     private void addEffectsToButton(ImageView buttonView) {

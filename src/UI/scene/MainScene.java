@@ -333,7 +333,9 @@ public class MainScene extends BaseScene {
 
         tilesPaneWrapper.getChildren().addAll(toAddTilePane, topTilesPaneGridPane, tilePane);
         scrollPane.setContent(tilesPaneWrapper);
+        scrollPane.setStyle("-fx-background-color: transparent;");
         wrappingPane.setCenter(scrollPane);
+        wrappingPane.setStyle("-fx-background-color: transparent;");
 
     }
     private void loadGames(){
