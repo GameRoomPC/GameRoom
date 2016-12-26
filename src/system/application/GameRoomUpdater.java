@@ -31,7 +31,7 @@ import static ui.Main.RESSOURCE_BUNDLE;
 public class GameRoomUpdater {
     private final static String HTTPS_HOST = "gameroom.me";
     private final static String HTTP_HOST = "s639232867.onlinehome.fr";
-    private final static String URL_VERSION_XML_SUFFIX = "/software/test_version.xml";
+    private final static String URL_VERSION_XML_SUFFIX = "/software/version.xml";
     private final static String URL_CHANGELOG_MD_SUFFIX = "/software/changelog.md";
 
     private String currentVersion;
@@ -45,7 +45,7 @@ public class GameRoomUpdater {
     private ChangeListener<? super EventHandler<WorkerStateEvent>> cancelledListener;
 
     public GameRoomUpdater(ChangeListener<Number> changeListener) throws MalformedURLException {
-        this.currentVersion = "0.0.0.8";
+        this.currentVersion = Main.getVersion();
         String domain = getDomain();
         this.updateUrl = new URL(domain + URL_VERSION_XML_SUFFIX);
         this.changelogUrl = new URL(domain + URL_CHANGELOG_MD_SUFFIX);

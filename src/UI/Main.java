@@ -164,35 +164,6 @@ public class Main {
     }
 
     public static void startUpdater() {
-        /*
-    }
-        try {
-            String currentDir = Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
-            File currentDirFile = new File(currentDir);
-
-            if(!currentDirFile.isDirectory()){
-                currentDir = currentDirFile.getParent()+File.separator;
-            }else{
-                currentDir = currentDir.substring(1); //Remove first '/' symbol
-            }
-            File currentUpdater = new File(currentDir+UPDATER_JAR_NAME);
-            File tempUpdater = new File(currentDir+TEMP_UPDATER_JAR_NAME);
-            if(tempUpdater.exists()){
-                currentUpdater.delete();
-                tempUpdater.renameTo(currentUpdater);
-            }
-            LOGGER.info("Starting updater");
-            //Main.LOGGER.debug(dir);
-            //builder.directory(new File(dir).to);
-
-            builder.redirectError(ProcessBuilder.Redirect.PIPE);
-            Process process = builder.start();
-
-            GameRoomUpdater updater = new GameRoomUpdater("0.0.0.8",urlPrefix + URL_VERSION_XML_SUFFIX,urlPrefix + URL_CHANGELOG_MD_SUFFIX);
-            updater.start();
-        } catch (URISyntaxException | MalformedURLException e) {
-            e.printStackTrace();
-        }*/
     }
 
     private static void initNetworkManager() {
