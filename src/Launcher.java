@@ -54,7 +54,6 @@ public class Launcher extends Application {
 
         System.setErr(new PrintStream(System.err){
             public void print(final String string) {
-                //System.err.print(string);
                 LOGGER.error(string);
                 if(DEV_MODE || GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
                     Platform.runLater(() -> {

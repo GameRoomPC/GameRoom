@@ -13,6 +13,9 @@
 
     -flatter-red: rgb(237.0, 68.0, 37.0);
     -flatter-blue: rgb(0.0, 184.0, 222.0);
+
+    -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
+    -fx-border-width: 2px;
 }
 
 .mnemonic-underline {
@@ -441,6 +444,10 @@
 /*   DIALOGPANE
 /***************************************/
 
+.dialog {
+    -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
+    -fx-border-width: 2px;
+}
 .dialog > .dialog-pane {
     -fx-background-color: -dark;
     -fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);

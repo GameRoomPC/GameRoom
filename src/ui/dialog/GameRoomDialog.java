@@ -19,18 +19,26 @@ abstract class GameRoomDialog<T> extends Dialog<T> {
     BorderPane mainPane;
 
     GameRoomDialog(){
+        this(Modality.WINDOW_MODAL);
+    }
+
+    GameRoomDialog(Modality modality){
         super();
         DialogPane dialogPane = new DialogPane();
         mainPane = new BorderPane();
         rootStackPane = new StackPane();
         rootStackPane.getChildren().add(mainPane);
-        if(MAIN_SCENE!=null && MAIN_SCENE.getParentStage()!=null)
-            initOwner(MAIN_SCENE.getParentStage());
+        if(!modality.equals(Modality.NONE)) {
+            if (MAIN_SCENE != null && MAIN_SCENE.getParentStage() != null){
+                initOwner(MAIN_SCENE.getParentStage());
+            }
+        }
         dialogPane.setContent(rootStackPane);
+        dialogPane.getStyleClass().add("dialog-pane");
+        setDialogPane(dialogPane);
         ThemeUtils.applyCurrentTheme(dialogPane);
         dialogPane.setStyle("-fx-font-size: "+Double.toString(GENERAL_SETTINGS.getUIScale().getFontSize())+"px;");
         initStyle(StageStyle.UNDECORATED);
-        initModality(Modality.WINDOW_MODAL);
-        setDialogPane(dialogPane);
+        initModality(modality);
     }
 }
