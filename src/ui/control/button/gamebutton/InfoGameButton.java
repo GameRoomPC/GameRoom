@@ -56,9 +56,8 @@ public class InfoGameButton extends GameButton {
     @Override
     protected void onNewTileHeight(double height) {}
 
-    public void setImage(String imagePath) {
-        Image img = new Image("file:" + File.separator + File.separator + File.separator + imagePath, getCoverWidth(), getCoverHeight(), false, true);
-        coverView.setImage(img);
+    public void setImage(Image imageFile) {
+        coverView.setImage(imageFile);
     }
 
     public Image getImage() {

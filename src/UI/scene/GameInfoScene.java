@@ -276,7 +276,10 @@ public class GameInfoScene extends BaseScene {
             updateProperty("theme",null);
         }
         updateProperty("description", editedEntry.getDescription());
-        Image backgroundImage = new Image("file:" + File.separator + File.separator + File.separator + editedEntry.getImagePath(1).getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true);
+        Image backgroundImage = editedEntry.getImage(1,
+                Main.GENERAL_SETTINGS.getWindowWidth(),
+                Main.GENERAL_SETTINGS.getWindowHeight()
+                , false, true);
         //no need to fade transition here as it is the "right" image and no actual change
         double widthScale = 1;
         double heightScale = 1;
@@ -293,7 +296,11 @@ public class GameInfoScene extends BaseScene {
 
         backgroundView.setEffect(blur);
         backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
-        coverButton.setImage(editedEntry.getImagePath(0).getAbsolutePath());
+        coverButton.setImage(editedEntry.getImage(0
+                ,coverButton.getWidth()
+                ,coverButton.getHeight()
+                ,false
+                ,true));
     }
     private void updateProperty(String title, String value) {
         for (Node node : propertiesPane.getChildren()) {
