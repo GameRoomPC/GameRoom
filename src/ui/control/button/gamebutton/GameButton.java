@@ -282,6 +282,7 @@ public abstract class GameButton extends BorderPane {
         infoButton = new ImageButton("tile-info-button", SCREEN_WIDTH/20, SCREEN_WIDTH/20);
 
         playTimeLabel = new Label(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_ROUNDED_HMS));
+        playTimeLabel.setId("tile-playtime-label");
         playTimeLabel.setEffect(ds);
         playTimeLabel.setOpacity(0);
         playTimeLabel.setFocusTraversable(false);
