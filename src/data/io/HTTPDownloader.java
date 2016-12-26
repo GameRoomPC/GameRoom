@@ -4,6 +4,9 @@ package data.io;
  * Created by LM on 13/07/2016.
  */
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,11 +34,14 @@ public class HTTPDownloader {
 
         URL url = new URL(fileURL);
 
-        HttpURLConnection httpConn = fileURL.startsWith(HTTPS) ? (HttpsURLConnection) url.openConnection() : (HttpURLConnection) url.openConnection();
+        boolean isHttps = fileURL.startsWith(HTTPS);
+        HttpURLConnection httpConn = isHttps ? (HttpsURLConnection) url.openConnection() : (HttpURLConnection) url.openConnection();
+        httpConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
         int responseCode = httpConn.getResponseCode();
 
         // always check HTTP response code first
         if (responseCode == HttpURLConnection.HTTP_OK) {
+
             String disposition = httpConn.getHeaderField("Content-Disposition");
             String contentType = httpConn.getContentType();
             int contentLength = httpConn.getContentLength();
@@ -63,15 +69,15 @@ public class HTTPDownloader {
 
             //System.out.println("File downloaded");
         } else {
-            //System.out.println("No file to download. Server replied HTTP code: " + responseCode);
+            System.out.println("No file to download. Server replied HTTP code: " + responseCode);
         }
         httpConn.disconnect();
     }
     public static void main(String[] args){
-        String imageURL = "https://res.cloudinary.com/igdb/image/upload/t_cover_big_2x/vdzfsbissgp55fvfxccp.jpg";
-        File output = new File("cache");
+        String imageURL = "https://images.igdb.com/igdb/image/upload/t_cover_big_2x/vdzfsbissgp55fvfxccp.jpg";
+        File output = new File("cache/");
         try {
-            output.createNewFile();
+            output.mkdir();
             downloadFile(imageURL,output.getAbsolutePath(),"1020_cover_big_2x.jpg");
         } catch (IOException e) {
             e.printStackTrace();
