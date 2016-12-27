@@ -127,13 +127,13 @@ public class YoutubePlayerAndButton {
             }
             public void muteAndDisable() {
                 Platform.runLater(() -> {
-                    mutesoundButton.forceState("mute");
+                    mutesoundButton.forceState("mute-button");
                     mutesoundButton.setMouseTransparent(true);
                 });
             }
             public void unmuteAndEnable() {
                 Platform.runLater(() -> {
-                    mutesoundButton.forceState("sound");
+                    mutesoundButton.forceState("sound-button");
                     mutesoundButton.setMouseTransparent(false);
                 });
             }
