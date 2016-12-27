@@ -304,34 +304,35 @@ public class SettingsScene extends BaseScene {
                 }
             }
         });*/
+        GameRoomUpdater updater = GameRoomUpdater.getInstance();
+        updater.setChangeListener((observable, oldValue, newValue) -> {
+            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("loading") + " "+(int)(newValue.doubleValue()*100)+"%");
+            checkUpdatesButton.setMouseTransparent(true);
+        });
+        updater.setFailedPropertyListener((observable, oldValue, newValue) -> {
+            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("error"));
+            checkUpdatesButton.setMouseTransparent(false);
+        });
+        updater.setSucceedPropertyListener((observable, oldValue, newValue) -> {
+            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("Downloaded"));
+            checkUpdatesButton.setMouseTransparent(false);
+        });
+        updater.setNoUpdateListener((observable, oldValue, newValue) -> {
+            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("up_to_date!"));
+            checkUpdatesButton.setMouseTransparent(false);
+        });
+        updater.setCancelledListener((observable, oldValue, newValue) -> {
+            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("check_now"));
+            checkUpdatesButton.setMouseTransparent(false);
+        });
+        updater.setOnUpdatePressedListener(null);
+
         checkUpdatesButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("loading") + "...");
-                try {
-                    GameRoomUpdater updater = new GameRoomUpdater((observable, oldValue, newValue) -> {
-                        checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("loading") + " "+(int)(newValue.doubleValue()*100)+"%");
-                        checkUpdatesButton.setMouseTransparent(true);
-                    });
-                    updater.setFailedPropertyListener((observable, oldValue, newValue) -> {
-                        checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("error"));
-                        checkUpdatesButton.setMouseTransparent(false);
-                    });
-                    updater.setSucceedPropertyListener((observable, oldValue, newValue) -> {
-                        checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("Downloaded"));
-                        checkUpdatesButton.setMouseTransparent(false);
-                    });
-                    updater.setNoUpdateListener((observable, oldValue, newValue) -> {
-                        checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("up_to_date!"));
-                        checkUpdatesButton.setMouseTransparent(false);
-                    });
-                    updater.setCancelledListener((observable, oldValue, newValue) -> {
-                        checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("check_now"));
-                        checkUpdatesButton.setMouseTransparent(false);
-                    });
+                if(!updater.isStarted()) {
+                    checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("loading") + "...");
                     updater.start();
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
                 }
             }
         });

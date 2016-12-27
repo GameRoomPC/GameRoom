@@ -3,6 +3,7 @@ package ui;
 import data.http.URLTools;
 import data.http.key.KeyChecker;
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,6 +16,7 @@ import system.application.settings.PredefinedSetting;
 import system.application.settings.SettingValue;
 import system.device.XboxController;
 import system.os.Terminal;
+import ui.dialog.GameRoomAlert;
 import ui.scene.MainScene;
 
 import java.awt.*;
@@ -164,8 +166,12 @@ public class Main {
     }
 
     public static void startUpdater() {
-        //TODO launch updater
-        //TODO implement a downloaddialog to follow the update
+        GameRoomUpdater updater = GameRoomUpdater.getInstance();
+        updater.setOnUpdatePressedListener((observable, oldValue, newValue) -> {
+            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION,Main.RESSOURCE_BUNDLE.getString("update_downloaded_in_background"));
+            alert.showAndWait();
+        });
+        GameRoomUpdater.getInstance().start();
     }
 
     private static void initNetworkManager() {
