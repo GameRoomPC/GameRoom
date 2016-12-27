@@ -164,6 +164,8 @@ public class Main {
     }
 
     public static void startUpdater() {
+        //TODO launch updater
+        //TODO implement a downloaddialog to follow the update
     }
 
     private static void initNetworkManager() {
