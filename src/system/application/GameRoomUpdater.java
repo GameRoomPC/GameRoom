@@ -31,7 +31,7 @@ import static ui.Main.RESSOURCE_BUNDLE;
  * Created by LM on 26/12/2016.
  */
 public class GameRoomUpdater {
-    private final static String HTTPS_HOST = "gameroom.me";
+    public final static String HTTPS_HOST = "gameroom.me";
     private final static String HTTP_HOST = "s639232867.onlinehome.fr";
     private final static String URL_VERSION_XML_SUFFIX = "/software/version.xml";
     private final static String URL_CHANGELOG_MD_SUFFIX = "/software/changelog.md";

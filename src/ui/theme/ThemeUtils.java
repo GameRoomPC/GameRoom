@@ -6,6 +6,7 @@ import data.http.key.KeyChecker;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import system.application.GameRoomUpdater;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 
@@ -28,8 +29,9 @@ public class ThemeUtils {
     private static String getThemeCSS() {
         File themeCSS = Main.FILES_MAP.get("theme_css");
         Theme currentTheme = Main.GENERAL_SETTINGS.getTheme();
+        String supporterKey = GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY);
 
-        if(!SUPPORTER_MODE){
+        if((KeyChecker.testInet(GameRoomUpdater.HTTPS_HOST) && !SUPPORTER_MODE) || supporterKey==null || supporterKey.isEmpty()){
             //FileUtils.deleteFolder(Main.FILES_MAP.get("current_theme"));
             //Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.THEME,Theme.DEFAULT_THEME);
             return DEFAULT_THEME_CSS;

@@ -543,6 +543,7 @@ public class SettingsScene extends BaseScene {
                         Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.LOCALE, localeComboBox.getValue());
 
                         displayRestartDialog();
+                        Main.restart(getParentStage(),"Applying language");
                     }
                 });
                 node2 = localeComboBox;
@@ -611,7 +612,7 @@ public class SettingsScene extends BaseScene {
                     public void handle(ActionEvent event) {
                         Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.UI_SCALE, uiScaleComboBox.getValue());
                         displayRestartDialog();
-                        Main.restart(getParentStage(), "Applying new UI stage");
+                        Main.restart(getParentStage(), "Applying new UI scale");
                         if (changeListener != null) {
                             changeListener.changed(null, null, uiScaleComboBox.getValue());
                         }

@@ -170,7 +170,9 @@ public class Launcher extends Application {
         initTrayIcon();
         initXboxController(primaryStage);
         setFullScreen(primaryStage,GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN),true);
-        startUpdater();
+        if(!DEV_MODE){
+            startUpdater();
+        }
     }
     private void openStage(Stage primaryStage, boolean appStart){
         if (START_MINIMIZED && appStart) {
