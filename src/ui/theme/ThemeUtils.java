@@ -1,6 +1,7 @@
 package ui.theme;
 
 import data.FileUtils;
+import data.http.URLTools;
 import data.http.key.KeyChecker;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ui.Main.GENERAL_SETTINGS;
+import static ui.Main.LOGGER;
 import static ui.Main.SUPPORTER_MODE;
 
 /**
@@ -21,14 +23,18 @@ import static ui.Main.SUPPORTER_MODE;
 public class ThemeUtils {
     private final static String DEFAULT_THEME_CSS = "res/theme.css";
     private final static List<Theme> INSTALLED_THEMES = new ArrayList<>();
+    private final static String SERVER_URL = "https://gameroom.me";
 
     private static String getThemeCSS() {
         File themeCSS = Main.FILES_MAP.get("theme_css");
+        Theme currentTheme = Main.GENERAL_SETTINGS.getTheme();
+
         if(!SUPPORTER_MODE){
-            FileUtils.deleteFolder(Main.FILES_MAP.get("current_theme"));
-            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.THEME,Theme.DEFAULT_THEME);
+            //FileUtils.deleteFolder(Main.FILES_MAP.get("current_theme"));
+            //Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.THEME,Theme.DEFAULT_THEME);
+            return DEFAULT_THEME_CSS;
         }
-        if (themeCSS == null || !themeCSS.exists()) {
+        if(themeCSS == null || !themeCSS.exists() || currentTheme.equals(Theme.DEFAULT_THEME)){
             return DEFAULT_THEME_CSS;
         }
         return "file:///"+themeCSS.getPath().replace("\\","/");

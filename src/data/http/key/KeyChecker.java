@@ -18,7 +18,7 @@ import static ui.Main.LOGGER;
  * Created by LM on 05/08/2016.
  */
 public class KeyChecker {
-    private final static String API_URL = "https://gameroom.me";
+    public final static String API_URL = "https://gameroom.me";
     private final static String VALIDATION_KEY = "57a0dc1fa9b0d0.08408190";
     private final static boolean DEBUGGING = false;
 
@@ -180,7 +180,7 @@ public class KeyChecker {
         return macAddressBuilder.toString();
     }
 
-    private static boolean testInet(String site) {
+    public static boolean testInet(String site) {
         Socket sock = new Socket();
         InetSocketAddress addr = new InetSocketAddress(site, 80);
         try {

@@ -107,6 +107,7 @@ public class GameRoomUpdater {
     }
 
     private void cancel() {
+        started = false;
         if (cancelledListener != null) {
             cancelledListener.changed(null, null, null);
         }

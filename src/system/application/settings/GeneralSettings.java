@@ -148,4 +148,12 @@ public class GeneralSettings {
         settingsMap.put(key.getKey(),settingValue);
         saveSettings();
     }
+
+    public void onSupporterModeActivated(){
+
+    }
+
+    public void onSupporterModeDeactivated(){
+        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.THEME,Theme.DEFAULT_THEME);
+    }
 }

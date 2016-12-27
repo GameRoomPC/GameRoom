@@ -273,6 +273,8 @@ public class SettingsScene extends BaseScene {
                             String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
                             actDeactButton.setText(buttonText);
                             supporterKeyLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
+
+                            Main.GENERAL_SETTINGS.onSupporterModeDeactivated();
                         } else {
                             Main.LOGGER.error("Error while trying to deactivate key : " + response.toString(4));
                         }
@@ -836,6 +838,8 @@ public class SettingsScene extends BaseScene {
                             if (supporterModeLabel != null) {
                                 supporterModeLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
                             }
+                            Main.GENERAL_SETTINGS.onSupporterModeActivated();
+
                             break;
                         case KeyChecker.RESULT_ERROR:
                             GameRoomAlert errorDialog = new GameRoomAlert(Alert.AlertType.ERROR, message);
