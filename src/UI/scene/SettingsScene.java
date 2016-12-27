@@ -3,7 +3,6 @@ package ui.scene;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.GameEntry;
 import data.http.key.KeyChecker;
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -21,8 +20,7 @@ import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import net.lingala.zip4j.exception.ZipException;
 import org.json.JSONObject;
-import system.application.MessageListener;
-import system.application.MessageTag;
+import system.application.GameRoomUpdater;
 import system.application.OnLaunchAction;
 import system.application.settings.PredefinedSetting;
 import system.application.settings.SettingValue;
@@ -43,6 +41,7 @@ import ui.theme.UIScale;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -293,7 +292,7 @@ public class SettingsScene extends BaseScene {
         Label versionLabel = new Label(Main.RESSOURCE_BUNDLE.getString("version") + ": " + Main.getVersion());
         Button checkUpdatesButton = new Button(Main.RESSOURCE_BUNDLE.getString("check_now"));
 
-        NETWORK_MANAGER.addMessageListener(new MessageListener() {
+        /*NETWORK_MANAGER.addMessageListener(new MessageListener() {
             @Override
             public void onMessageReceived(MessageTag tag, String payload) {
                 if (tag.equals(MessageTag.ERROR)) {
@@ -304,12 +303,37 @@ public class SettingsScene extends BaseScene {
                     Platform.runLater(() -> checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("new_version") + ": " + payload));
                 }
             }
+        });*/
+        GameRoomUpdater updater = GameRoomUpdater.getInstance();
+        updater.setChangeListener((observable, oldValue, newValue) -> {
+            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("loading") + " "+(int)(newValue.doubleValue()*100)+"%");
+            checkUpdatesButton.setMouseTransparent(true);
         });
+        updater.setFailedPropertyListener((observable, oldValue, newValue) -> {
+            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("error"));
+            checkUpdatesButton.setMouseTransparent(false);
+        });
+        updater.setSucceedPropertyListener((observable, oldValue, newValue) -> {
+            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("Downloaded"));
+            checkUpdatesButton.setMouseTransparent(false);
+        });
+        updater.setNoUpdateListener((observable, oldValue, newValue) -> {
+            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("up_to_date!"));
+            checkUpdatesButton.setMouseTransparent(false);
+        });
+        updater.setCancelledListener((observable, oldValue, newValue) -> {
+            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("check_now"));
+            checkUpdatesButton.setMouseTransparent(false);
+        });
+        updater.setOnUpdatePressedListener(null);
+
         checkUpdatesButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("loading") + "...");
-                Main.startUpdater();
+                if(!updater.isStarted()) {
+                    checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("loading") + "...");
+                    updater.start();
+                }
             }
         });
         flowPaneHashMap.get(SettingValue.CATEGORY_GENERAL).getChildren().add(createLine(versionLabel, checkUpdatesButton));

@@ -3,9 +3,11 @@ package ui;
 import data.http.URLTools;
 import data.http.key.KeyChecker;
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import system.application.GameRoomUpdater;
 import system.application.InternalAppNetworkManager;
 import system.application.MessageListener;
 import system.application.MessageTag;
@@ -14,11 +16,13 @@ import system.application.settings.PredefinedSetting;
 import system.application.settings.SettingValue;
 import system.device.XboxController;
 import system.os.Terminal;
+import ui.dialog.GameRoomAlert;
 import ui.scene.MainScene;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.ResourceBundle;
@@ -29,12 +33,6 @@ import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
 public class Main {
     private final static String TEMP_UPDATER_JAR_NAME=  "Updater.jar.temp";
     private final static String UPDATER_JAR_NAME=  "Updater.jar";
-
-    private final static String HTTPS_HOST = "gameroom.me";
-    private final static String HTTP_HOST = "s639232867.onlinehome.fr";
-    private final static String URL_VERSION_XML_SUFFIX = "/software/version.xml";
-    private final static String URL_CHANGELOG_MD_SUFFIX = "/software/changelog.md";
-
 
     public final static String ARGS_FLAG_DEV = "-dev";
     public final static String ARGS_FLAG_IGDB_KEY = "-igdb_key";
@@ -50,8 +48,6 @@ public class Main {
     public static double SCREEN_HEIGHT;
 
     public static MainScene MAIN_SCENE;
-
-    public final static String DEFAULT_IMAGES_PATH = "res/defaultImages/";
 
     public static ResourceBundle RESSOURCE_BUNDLE;
     public static ResourceBundle SETTINGS_BUNDLE;
@@ -101,7 +97,7 @@ public class Main {
         GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         initNetworkManager();
         //if(!DEV_MODE){
-        startUpdater();
+        //startUpdater();
         //}
     }
 
@@ -170,58 +166,12 @@ public class Main {
     }
 
     public static void startUpdater() {
-        try {
-            String currentDir = Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
-            File currentDirFile = new File(currentDir);
-
-            if(!currentDirFile.isDirectory()){
-                currentDir = currentDirFile.getParent()+File.separator;
-            }else{
-                currentDir = currentDir.substring(1); //Remove first '/' symbol
-            }
-            File currentUpdater = new File(currentDir+UPDATER_JAR_NAME);
-            File tempUpdater = new File(currentDir+TEMP_UPDATER_JAR_NAME);
-            if(tempUpdater.exists()){
-                currentUpdater.delete();
-                tempUpdater.renameTo(currentUpdater);
-            }
-            LOGGER.info("Starting updater");
-
-            boolean httpsOnline = URLTools.pingHttps(HTTPS_HOST,2000);
-            String urlPrefix = httpsOnline? URLTools.HTTPS_PREFIX + HTTPS_HOST : URLTools.HTTP_PREFIX +HTTP_HOST;
-            Main.LOGGER.info("Using URL "+urlPrefix+" for updater.");
-
-            String java = "java";
-            /*File currentFolder = new File(currentDir);
-            for(File f : currentFolder.listFiles()){
-                if(f.isDirectory() && f.getName().startsWith("jre")){
-                    File javaExe = new File(f.getAbsolutePath()+"\\bin\\java.exe");
-                    if(javaExe.isValid()){
-                        java = javaExe.getAbsolutePath();
-                        LOGGER.info("Detected bundled "+f.getName()+", using it to start updater");
-                    }
-                }
-            }*/
-
-            ProcessBuilder builder = new ProcessBuilder(java
-                    ,"-jar"
-                    ,currentUpdater.getAbsolutePath()
-                    , getVersion()
-                    , urlPrefix + URL_VERSION_XML_SUFFIX
-                    , urlPrefix + URL_CHANGELOG_MD_SUFFIX
-                    , GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE).toLanguageTag()
-            ).inheritIO();
-
-            //Main.LOGGER.debug(dir);
-            //builder.directory(new File(dir).to);
-
-            builder.redirectError(ProcessBuilder.Redirect.PIPE);
-            Process process = builder.start();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        GameRoomUpdater updater = GameRoomUpdater.getInstance();
+        updater.setOnUpdatePressedListener((observable, oldValue, newValue) -> {
+            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION,Main.RESSOURCE_BUNDLE.getString("update_downloaded_in_background"));
+            alert.showAndWait();
+        });
+        GameRoomUpdater.getInstance().start();
     }
 
     private static void initNetworkManager() {

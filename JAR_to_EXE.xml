@@ -46,12 +46,10 @@
                 </tokenfilter>
             </filterchain>
         </loadfile>
-        <input message="Include updater?" addproperty="include.updater" validargs="Yes,No" />
 
         <exec executable="D:/Google Drive/Projects/GameRoom/production/build_for_release.bat"
               dir="D:/Google Drive/Projects/GameRoom/production/">
             <arg value="${implementation.version}"/>
-            <arg value="${include.updater}"/>
         </exec>
         <echo>Done!</echo>
     </target>

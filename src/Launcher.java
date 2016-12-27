@@ -54,7 +54,6 @@ public class Launcher extends Application {
 
         System.setErr(new PrintStream(System.err){
             public void print(final String string) {
-                //System.err.print(string);
                 LOGGER.error(string);
                 if(DEV_MODE || GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
                     Platform.runLater(() -> {
@@ -171,6 +170,7 @@ public class Launcher extends Application {
         initTrayIcon();
         initXboxController(primaryStage);
         setFullScreen(primaryStage,GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN),true);
+        startUpdater();
     }
     private void openStage(Stage primaryStage, boolean appStart){
         if (START_MINIMIZED && appStart) {
@@ -214,6 +214,11 @@ public class Launcher extends Application {
             public void handle(javafx.scene.input.KeyEvent event) {
                 if(event.getCode()==KeyCode.F11){
                     setFullScreen(primaryStage,!GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN),false);
+                }
+                if (event.getCode() == KeyCode.F10){
+                    if(Main.MAIN_SCENE != null){
+                        Main.MAIN_SCENE.toggleTopBar();
+                    }
                 }
             }
         });

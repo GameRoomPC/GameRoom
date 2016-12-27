@@ -22,7 +22,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
@@ -55,7 +54,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Optional;
 
 import static ui.Main.*;
 import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
@@ -86,7 +88,7 @@ public class MainScene extends BaseScene {
     private RowCoverTilePane recentlyAddedTilePane;
     private ToAddRowTilePane toAddTilePane;
 
-    private GameWatcher gameWatcher=null;
+    private GameWatcher gameWatcher = null;
 
     private ArrayList<GroupRowTilePane> groupRowList = new ArrayList<>();
 
@@ -120,7 +122,8 @@ public class MainScene extends BaseScene {
         loadPreviousUIValues();
         configureAutomaticCaching();
     }
-    private void configureAutomaticCaching(){
+
+    private void configureAutomaticCaching() {
         //to empty ram usage
         getParentStage().focusedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -132,7 +135,7 @@ public class MainScene extends BaseScene {
                 toAddTilePane.setCacheGameButtons(newValue);
                 lastPlayedTilePane.setCacheGameButtons(newValue);
 
-                for(GroupRowTilePane g : groupRowList){
+                for (GroupRowTilePane g : groupRowList) {
                     g.setCacheGameButtons(newValue);
                 }
                 /*if(false && getParentStage().getScene() instanceof MainScene){
@@ -157,43 +160,44 @@ public class MainScene extends BaseScene {
 
     private void loadPreviousUIValues() {
         Main.runAndWait(() -> {
-            if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)){
+            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)) {
                 lastPlayedTilePane.fold();
-            }else{
+            } else {
                 lastPlayedTilePane.unfold();
             }
-            if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED)){
+            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED)) {
                 recentlyAddedTilePane.fold();
-            }else{
+            } else {
                 recentlyAddedTilePane.unfold();
             }
-            if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_TOADD_ROW)){
+            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_TOADD_ROW)) {
                 toAddTilePane.fold();
-            }else{
+            } else {
                 toAddTilePane.unfold();
             }
             double scrollBarVValue = GENERAL_SETTINGS.getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
             scrollPane.setVvalue(scrollBarVValue);
 
             double sizeSliderValue = Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.TILE_ZOOM);
-            if(sizeSliderValue <= MIN_TILE_ZOOM){
+            if (sizeSliderValue <= MIN_TILE_ZOOM) {
                 sizeSliderValue = MIN_TILE_ZOOM + 0.00001; //extreme values of the slider are buggy
-            }else if(sizeSliderValue >=MAX_TILE_ZOOM){
-                sizeSliderValue = MAX_TILE_ZOOM+0.00001; //extreme values of the slider are buggy
+            } else if (sizeSliderValue >= MAX_TILE_ZOOM) {
+                sizeSliderValue = MAX_TILE_ZOOM + 0.00001; //extreme values of the slider are buggy
             }
             sizeSlider.setValue(sizeSliderValue);
         });
     }
-    public void saveScrollBarVValue(){
-            double scrollBarVValue = scrollPane.getVvalue();
-            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SCROLLBAR_VVALUE,scrollBarVValue);
+
+    public void saveScrollBarVValue() {
+        double scrollBarVValue = scrollPane.getVvalue();
+        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SCROLLBAR_VVALUE, scrollBarVValue);
     }
 
     private void displayWelcomeMessage() {
-        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)){
+        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
             Platform.runLater(() -> {
                 GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISPLAY_WELCOME_MESSAGE, false);
-                GameRoomAlert welcomeAlert = new GameRoomAlert(Alert.AlertType.INFORMATION,RESSOURCE_BUNDLE.getString("Welcome_message"));
+                GameRoomAlert welcomeAlert = new GameRoomAlert(Alert.AlertType.INFORMATION, RESSOURCE_BUNDLE.getString("Welcome_message"));
                 welcomeAlert.setOnHidden(event -> {
                     GameRoomCustomAlert alert = new GameRoomCustomAlert();
                     Label text = new Label(RESSOURCE_BUNDLE.getString("welcome_input_folder"));
@@ -202,7 +206,7 @@ public class MainScene extends BaseScene {
                             , 20 * Main.SCREEN_WIDTH / 1920
                             , 20 * Main.SCREEN_HEIGHT / 1080
                             , 20 * Main.SCREEN_WIDTH / 1920));
-                    PathTextField field = new PathTextField(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER),this,PathTextField.FILE_CHOOSER_FOLDER,"");
+                    PathTextField field = new PathTextField(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER), this, PathTextField.FILE_CHOOSER_FOLDER, "");
                     alert.setBottom(field);
                     alert.setCenter(text);
                     alert.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
@@ -212,10 +216,10 @@ public class MainScene extends BaseScene {
                             , 20 * Main.SCREEN_WIDTH / 1920));
 
                     alert.getDialogPane().getButtonTypes().addAll(new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE)
-                            ,new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"),ButtonBar.ButtonData.CANCEL_CLOSE));
+                            , new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
                     Optional<ButtonType> result = alert.showAndWait();
-                    if (result!=null && result.isPresent() && result.get().getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.GAMES_FOLDER,field.getTextField().getText());
+                    if (result != null && result.isPresent() && result.get().getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.GAMES_FOLDER, field.getTextField().getText());
                     } else {
                         // ... user chose CANCEL or closed the dialog
                     }
@@ -270,7 +274,7 @@ public class MainScene extends BaseScene {
         toAddTilePane = new ToAddRowTilePane(this) {
             @Override
             protected void batchAddEntries(ArrayList<GameEntry> entries) {
-                batchAddGameEntries(entries,0).run();
+                batchAddGameEntries(entries, 0).run();
             }
         };
         toAddTilePane.setId("toAddTilePane");
@@ -338,7 +342,8 @@ public class MainScene extends BaseScene {
         wrappingPane.setStyle("-fx-background-color: transparent;");
 
     }
-    private void loadGames(){
+
+    private void loadGames() {
         backgroundView.setVisible(false);
         maskView.setVisible(false);
         Task<Void> task = new Task<Void>() {
@@ -394,10 +399,10 @@ public class MainScene extends BaseScene {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 Platform.runLater(() -> {
-                    if(newValue.doubleValue() == 1.0){
+                    if (newValue.doubleValue() == 1.0) {
                         statusLabel.setText("");
-                    }else{
-                        statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + " " + Math.round(newValue.doubleValue()*100) + "%...");
+                    } else {
+                        statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + " " + Math.round(newValue.doubleValue() * 100) + "%...");
                     }
                 });
             }
@@ -408,10 +413,11 @@ public class MainScene extends BaseScene {
         th.setDaemon(true);
         th.start();
     }
-    public void centerGameButtonInScrollPane(Node n,GamesTilePane pane){
+
+    public void centerGameButtonInScrollPane(Node n, GamesTilePane pane) {
         //TODO fix here, input the right calculation to center gameButton
         double h = scrollPane.getContent().getBoundsInLocal().getHeight();
-        double y = pane.getBoundsInParent().getMinY() +(n.getBoundsInParent().getMaxY() +
+        double y = pane.getBoundsInParent().getMinY() + (n.getBoundsInParent().getMaxY() +
                 n.getBoundsInParent().getMinY()) / 2.0;
 
         double v = scrollPane.getViewportBounds().getHeight();
@@ -460,7 +466,7 @@ public class MainScene extends BaseScene {
 
         //Image settingsImage = new Image("res/ui/settingsButton.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
         //ImageButton settingsButton = new ImageButton(settingsImage);
-        ImageButton settingsButton = new ImageButton("main-settings-button",SCREEN_WIDTH / 35.0, SCREEN_WIDTH / 35.0);
+        ImageButton settingsButton = new ImageButton("main-settings-button", SCREEN_WIDTH / 35.0, SCREEN_WIDTH / 35.0);
         settingsButton.setFocusTraversable(false);
         settingsButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
@@ -658,56 +664,56 @@ public class MainScene extends BaseScene {
         addButton.setFocusTraversable(false);
 
         addButton.setOnAction(event -> {
-                getRootStackPane().setMouseTransparent(true);
-                ChoiceDialog choiceDialog = new ChoiceDialog(
-                        new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_exe"), RESSOURCE_BUNDLE.getString("add_exe_long")),
-                        new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_folder"), RESSOURCE_BUNDLE.getString("add_symlink_long"))
-                );
-                choiceDialog.setTitle(RESSOURCE_BUNDLE.getString("add_a_game"));
-                choiceDialog.setHeader(RESSOURCE_BUNDLE.getString("choose_action"));
+            getRootStackPane().setMouseTransparent(true);
+            ChoiceDialog choiceDialog = new ChoiceDialog(
+                    new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_exe"), RESSOURCE_BUNDLE.getString("add_exe_long")),
+                    new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_folder"), RESSOURCE_BUNDLE.getString("add_symlink_long"))
+            );
+            choiceDialog.setTitle(RESSOURCE_BUNDLE.getString("add_a_game"));
+            choiceDialog.setHeader(RESSOURCE_BUNDLE.getString("choose_action"));
 
-                Optional<ButtonType> result = choiceDialog.showAndWait();
-                result.ifPresent(letter -> {
-                    if (letter.getText().equals(RESSOURCE_BUNDLE.getString("Add_exe"))) {
-                        FileChooser fileChooser = new FileChooser();
-                        fileChooser.setTitle(RESSOURCE_BUNDLE.getString("select_program"));
-                        fileChooser.setInitialDirectory(
-                                new File(System.getProperty("user.home"))
-                        );
-                        //TODO fix internet shorcuts problem (bug submitted)
-                        fileChooser.getExtensionFilters().addAll(
-                                new FileChooser.ExtensionFilter("EXE", "*.exe"),
-                                new FileChooser.ExtensionFilter("JAR", "*.jar")
-                        );
-                        try {
-                            File selectedFile = fileChooser.showOpenDialog(getParentStage());
-                            if (selectedFile != null) {
-                                fadeTransitionTo(new GameEditScene(MainScene.this, selectedFile), getParentStage());
-                            }
-                        } catch (NullPointerException ne) {
-                            ne.printStackTrace();
-                            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
-                            alert.setContentText(RESSOURCE_BUNDLE.getString("warning_internet_shortcut"));
-                            alert.showAndWait();
+            Optional<ButtonType> result = choiceDialog.showAndWait();
+            result.ifPresent(letter -> {
+                if (letter.getText().equals(RESSOURCE_BUNDLE.getString("Add_exe"))) {
+                    FileChooser fileChooser = new FileChooser();
+                    fileChooser.setTitle(RESSOURCE_BUNDLE.getString("select_program"));
+                    fileChooser.setInitialDirectory(
+                            new File(System.getProperty("user.home"))
+                    );
+                    //TODO fix internet shorcuts problem (bug submitted)
+                    fileChooser.getExtensionFilters().addAll(
+                            new FileChooser.ExtensionFilter("EXE", "*.exe"),
+                            new FileChooser.ExtensionFilter("JAR", "*.jar")
+                    );
+                    try {
+                        File selectedFile = fileChooser.showOpenDialog(getParentStage());
+                        if (selectedFile != null) {
+                            fadeTransitionTo(new GameEditScene(MainScene.this, selectedFile), getParentStage());
                         }
-                    } else if (letter.getText().equals(RESSOURCE_BUNDLE.getString("Add_folder"))) {
-                        DirectoryChooser directoryChooser = new DirectoryChooser();
-                        directoryChooser.setTitle(RESSOURCE_BUNDLE.getString("Select_folder_ink"));
-                        directoryChooser.setInitialDirectory(
-                                new File(System.getProperty("user.home"))
-                        );
-                        File selectedFolder = directoryChooser.showDialog(getParentStage());
-                        if (selectedFolder != null) {
-                            ArrayList<File> files = new ArrayList<File>();
-                            files.addAll(Arrays.asList(selectedFolder.listFiles()));
-                            if (files.size() != 0) {
-                                batchAddFolderEntries(files, 0).run();
-                                //startMultiAddScenes(files);
-                            }
+                    } catch (NullPointerException ne) {
+                        ne.printStackTrace();
+                        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
+                        alert.setContentText(RESSOURCE_BUNDLE.getString("warning_internet_shortcut"));
+                        alert.showAndWait();
+                    }
+                } else if (letter.getText().equals(RESSOURCE_BUNDLE.getString("Add_folder"))) {
+                    DirectoryChooser directoryChooser = new DirectoryChooser();
+                    directoryChooser.setTitle(RESSOURCE_BUNDLE.getString("Select_folder_ink"));
+                    directoryChooser.setInitialDirectory(
+                            new File(System.getProperty("user.home"))
+                    );
+                    File selectedFolder = directoryChooser.showDialog(getParentStage());
+                    if (selectedFolder != null) {
+                        ArrayList<File> files = new ArrayList<File>();
+                        files.addAll(Arrays.asList(selectedFolder.listFiles()));
+                        if (files.size() != 0) {
+                            batchAddFolderEntries(files, 0).run();
+                            //startMultiAddScenes(files);
                         }
                     }
-                });
-                getRootStackPane().setMouseTransparent(false);
+                }
+            });
+            getRootStackPane().setMouseTransparent(false);
         });
 
         HBox hbox = new HBox();
@@ -720,7 +726,7 @@ public class MainScene extends BaseScene {
 
         double imgSize = SCREEN_WIDTH / 28;
         //Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
-        ImageButton searchButton = new ImageButton("search-button", imgSize,imgSize);
+        ImageButton searchButton = new ImageButton("search-button", imgSize, imgSize);
         searchButton.setFocusTraversable(false);
 
         HBox searchBox = new HBox();
@@ -746,7 +752,7 @@ public class MainScene extends BaseScene {
         double width = 500 * SCREEN_WIDTH / 1920;
         double height = 94 * SCREEN_HEIGHT / 1080;
         //Image logoImage = new Image("res/ui/title-medium.png", , , true, true);
-        ImageButton homeButton = new ImageButton("home-button",width,height);
+        ImageButton homeButton = new ImageButton("home-button", width, height);
         homeButton.setFocusTraversable(false);
         homeButton.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
             @Override
@@ -762,15 +768,7 @@ public class MainScene extends BaseScene {
                 , 15 * Main.SCREEN_WIDTH / 1920));*/
         topPane.getChildren().add(searchBox);
         topPane.getChildren().add(hbox);
-        getParentStage().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, new EventHandler<javafx.scene.input.KeyEvent>() {
-            @Override
-            public void handle(javafx.scene.input.KeyEvent event) {
-                if(event.getCode().equals(KeyCode.F10)){
-                    topPane.setVisible(!topPane.isVisible());
-                    topPane.setManaged(!topPane.isManaged());
-                }
-            }
-        });
+
         StackPane.setAlignment(hbox, Pos.CENTER_LEFT);
 
 
@@ -778,6 +776,13 @@ public class MainScene extends BaseScene {
         searchBox.setPickOnBounds(false);
         homeButton.setPickOnBounds(false);
         wrappingPane.setTop(topPane);
+    }
+
+    public void toggleTopBar(){
+        if(topPane!=null) {
+            topPane.setVisible(!topPane.isVisible());
+            topPane.setManaged(!topPane.isManaged());
+        }
     }
 
     private void refreshTrayMenu() {
@@ -862,7 +867,7 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.removeGame(entry);
         recentlyAddedTilePane.removeGame(entry);
         toAddTilePane.removeGame(entry);
-        if(gameWatcher!=null) {
+        if (gameWatcher != null) {
             gameWatcher.removeGame(entry);
         }
         for (GroupRowTilePane tilePane : groupRowList) {
@@ -890,7 +895,7 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.addGame(entry);
         recentlyAddedTilePane.addGame(entry);
         toAddTilePane.removeGame(entry);
-        if(gameWatcher!=null) {
+        if (gameWatcher != null) {
             gameWatcher.removeGame(entry);
         }
         for (GroupRowTilePane tilePane : groupRowList) {
@@ -903,7 +908,7 @@ public class MainScene extends BaseScene {
     private ExitAction batchAddGameEntries(ArrayList<GameEntry> entries, int entriesCount) {
         if (entriesCount < entries.size()) {
             GameEntry currentEntry = entries.get(entriesCount);
-            GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentEntry,GameEditScene.MODE_ADD,null);
+            GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentEntry, GameEditScene.MODE_ADD, null);
             gameEditScene.disableBackButton();
             return new MultiAddExitAction(new Runnable() {
                 @Override
@@ -919,10 +924,11 @@ public class MainScene extends BaseScene {
             return new ClassicExitAction(this, getParentStage(), MAIN_SCENE);
         }
     }
+
     private ExitAction batchAddFolderEntries(ArrayList<File> files, int fileCount) {
         if (fileCount < files.size()) {
             File currentFile = files.get(fileCount);
-            if(FolderGameScanner.isPotentiallyAGame(currentFile)){
+            if (FolderGameScanner.isPotentiallyAGame(currentFile)) {
                 GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentFile);
                 gameEditScene.disableBackButton();
                 return new MultiAddExitAction(new Runnable() {
@@ -936,7 +942,7 @@ public class MainScene extends BaseScene {
                     }
                 }, gameEditScene);
             }
-            return batchAddFolderEntries(files,fileCount+1);
+            return batchAddFolderEntries(files, fileCount + 1);
         } else {
             return new ClassicExitAction(this, getParentStage(), MAIN_SCENE);
         }
@@ -1056,16 +1062,17 @@ public class MainScene extends BaseScene {
             }
         });
     }
-    public void triggerKeyPressedOnMainPane(KeyEvent keyPressed){
+
+    public void triggerKeyPressedOnMainPane(KeyEvent keyPressed) {
         tilePane.getOnKeyPressed().handle(keyPressed);
     }
 
     public void setImageBackground(Image img) {
         if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
-            if(!backgroundView.isVisible()){
+            if (!backgroundView.isVisible()) {
                 backgroundView.setVisible(true);
             }
-            if(!maskView.isVisible()){
+            if (!maskView.isVisible()) {
                 maskView.setVisible(true);
             }
             if (!changeBackgroundNextTime) {
@@ -1101,10 +1108,10 @@ public class MainScene extends BaseScene {
                 changeBackgroundNextTime = false;
             }
         } else {
-            if(backgroundView.isVisible()){
+            if (backgroundView.isVisible()) {
                 backgroundView.setVisible(false);
             }
-            if(maskView.isVisible()){
+            if (maskView.isVisible()) {
                 maskView.setVisible(false);
             }
         }

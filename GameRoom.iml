@@ -34,5 +34,8 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="org.pegdown:pegdown:1.6.0" level="project" />
+    <orderEntry type="library" name="de.dimaki:refuel:0.1.1" level="project" />
+    <orderEntry type="library" name="org.slf4j:slf4j-nop:1.7.22" level="project" />
   </component>
 </module>
