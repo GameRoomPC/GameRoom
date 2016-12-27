@@ -224,13 +224,13 @@ public class RowCoverTilePane extends CoverTilePane {
     }
 
     public void fold() {
-        foldToggleButton.forceState("show");
+        foldToggleButton.forceState("arrow-right-button");
         foldToggleButton.fireEvent(new ActionEvent());
         folded = true;
     }
 
     public void unfold() {
-        foldToggleButton.forceState("hide");
+        foldToggleButton.forceState("arrow-down-button");
         foldToggleButton.fireEvent(new ActionEvent());
         folded = false;
     }
