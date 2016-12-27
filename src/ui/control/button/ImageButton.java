@@ -145,7 +145,15 @@ public class ImageButton extends Button {
     }
 
     protected void setImageViewId(String id){
+        double width = view.getFitWidth();
+        double height = view.getFitHeight();
+        view = new ImageView();
+        view.setPreserveRatio(true);
+        view.setFitWidth(width);
+        view.setFitHeight(height);
         view.setId(id);
+        addEffectsToButton(view);
+        setGraphic(view);
     }
 }
 
