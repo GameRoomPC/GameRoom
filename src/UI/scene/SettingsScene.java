@@ -222,9 +222,7 @@ public class SettingsScene extends BaseScene {
                 }
             }
         });
-
         flowPaneHashMap.get(PredefinedSetting.IGNORED_GAME_FOLDERS.getCategory()).getChildren().add(createLine(gameFoldersIgnoredLabel, manageGameFoldersIgnoredButton));
-
 
         /***********************STEAM GAMES IGNORED****************************/
         Label steamIgnoredGamesLabel = new Label(Main.SETTINGS_BUNDLE.getString("manage_ignored_steam_games_label") + ": ");
@@ -288,7 +286,17 @@ public class SettingsScene extends BaseScene {
         });
 
         flowPaneHashMap.get(PredefinedSetting.SUPPORTER_KEY.getCategory()).getChildren().add(createLine(supporterKeyLabel, actDeactButton));
-        
+
+        /********** KEYS ******************/
+        Label keysLabel = new Label(Main.RESSOURCE_BUNDLE.getString("keys_label"));
+        Button keysButton = new Button(Main.RESSOURCE_BUNDLE.getString("see"));
+        keysButton.setOnAction(event -> {
+            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION,Main.RESSOURCE_BUNDLE.getString("key_content"));
+            alert.showAndWait();
+        });
+
+        flowPaneHashMap.get(SettingValue.CATEGORY_GENERAL).getChildren().add(createLine(keysLabel, keysButton));
+
 
         /***********************VERSION CHECK****************************/
         Label versionLabel = new Label(Main.RESSOURCE_BUNDLE.getString("version") + ": " + Main.getVersion());
