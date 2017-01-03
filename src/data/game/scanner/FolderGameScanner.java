@@ -12,6 +12,7 @@ import java.util.List;
 
 import static data.game.GameWatcher.cleanNameForCompareason;
 import static ui.Main.GENERAL_SETTINGS;
+import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 19/08/2016.
@@ -124,20 +125,31 @@ public class FolderGameScanner extends GameScanner {
                     || cleanNameForCompareason(foundEntry.getName()).equals(cleanNameForCompareason(entry.getName())); //cannot use UUID as they are different at this pre-add-time
             if (alreadyAddedToLibrary) {
                 //TODO replace launchers with an enum and an id ?
-                if(entry.getSteam_id() != foundEntry.getSteam_id()){
+                boolean needRefresh = false;
+                if(!entry.isSteamGame() && foundEntry.isSteamGame()){
                     entry.setSteam_id(foundEntry.getSteam_id());
+                    needRefresh = true;
                 }
-                if(entry.getBattlenet_id() != foundEntry.getBattlenet_id()){
+                if(!entry.isBattlenetGame() && foundEntry.isBattlenetGame()){
                     entry.setBattlenet_id(foundEntry.getBattlenet_id());
+                    needRefresh = true;
                 }
-                if(entry.getGog_id() != foundEntry.getGog_id()){
+                if(!entry.isGoGGame() && foundEntry.isGoGGame()){
                     entry.setGog_id(foundEntry.getGog_id());
+                    needRefresh = true;
                 }
-                if(entry.getOrigin_id() != foundEntry.getOrigin_id()){
+                if(!entry.isOriginGame() && foundEntry.isOriginGame()){
                     entry.setOrigin_id(foundEntry.getOrigin_id());
+                    needRefresh = true;
                 }
-                if(entry.getUplay_id() != foundEntry.getUplay_id()){
+                if(!entry.isUplayGame() && foundEntry.isUplayGame()){
                     entry.setUplay_id(foundEntry.getUplay_id());
+                    needRefresh = true;
+                }
+                if(needRefresh){
+                    if(MAIN_SCENE!=null){
+                        MAIN_SCENE.updateGame(entry);
+                    }
                 }
                 break;
             }

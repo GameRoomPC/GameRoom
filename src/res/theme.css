@@ -22,6 +22,11 @@
     -fx-stroke: transparent;
 }
 
+.header > .title-label{
+    -fx-font-size: 2.5em;
+    -fx-text-fill: -fx-text-base-color;
+}
+
 .text {
     -fx-font-smoothing-type: lcd;
 }
