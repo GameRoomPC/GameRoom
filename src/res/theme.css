@@ -750,6 +750,10 @@
 	-fx-image: url("icons/tile/play.png");
 }
 
+#tile-loading-button{
+	-fx-image: url("icons/tile/loading.png");
+}
+
 #tile-info-button{
 	-fx-image: url("icons/tile/info.png");
 }

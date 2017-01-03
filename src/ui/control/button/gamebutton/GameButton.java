@@ -126,7 +126,7 @@ public abstract class GameButton extends BorderPane {
 
         titleLabel.setText(entry.getName());
         titleLabel.setTooltip(new Tooltip(entry.getName()));
-        //setLauncherLogo();
+        setLauncherLogo();
 
         double width = getCoverWidth();
         double height = getCoverHeight();
