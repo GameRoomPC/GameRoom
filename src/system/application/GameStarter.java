@@ -38,7 +38,7 @@ public class GameStarter {
         this.entry = entry;
     }
 
-    public void start() {
+    public void start() throws IOException{
         Main.LOGGER.info("Starting game : " + entry.getName());
         originalPowerMode = PowerMode.getActivePowerMode();
         if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isAlreadyStartedInGameRoom() && !entry.isNotInstalled()) {
@@ -58,9 +58,7 @@ public class GameStarter {
             try {
                 String steamUri = entry.isNotInstalled() ? "steam://install/" + entry.getSteam_id() : entry.getPath();
                 Desktop.getDesktop().browse(new URI(steamUri));
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (URISyntaxException e) {
+            } catch (IOException | URISyntaxException e) {
                 e.printStackTrace();
             }
         } else {
@@ -74,12 +72,7 @@ public class GameStarter {
             gameProcessBuilder.redirectOutput(gameLog);
             gameProcessBuilder.redirectError(gameLog);
             gameProcessBuilder.directory(new File(new File(entry.getPath()).getParent()));
-            try {
-                Process gameProcess = gameProcessBuilder.start();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            Process gameProcess = gameProcessBuilder.start();
         }
 
         Task<Long> monitor = new Task() {
@@ -116,7 +109,11 @@ public class GameStarter {
                     String[] commandsAfter = commandsAfterString.split("\n");
                     if (cmdAfter != null) {
                         File postLog = new File(logFolder + "post_" + entry.getProcessName() + ".log");
-                        terminal.execute(commandsAfter, postLog, new File(new File(entry.getPath()).getParent()));
+                        try {
+                            terminal.execute(commandsAfter, postLog, new File(new File(entry.getPath()).getParent()));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                     entry.setAlreadyStartedInGameRoom(false);
                     MAIN_SCENE.updateGame(entry);

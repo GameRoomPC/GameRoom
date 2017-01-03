@@ -1,9 +1,11 @@
 package data.game.entry;
 
 import data.FileUtils;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import system.application.GameStarter;
 import ui.Main;
+import ui.dialog.GameRoomAlert;
 
 import java.io.*;
 import java.text.DateFormat;
@@ -761,7 +763,12 @@ public class GameEntry {
     }
 
     public void startGame() {
-        new GameStarter(this).start();
+        try {
+            new GameStarter(this).start();
+        }catch (IOException ioe){
+            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR ,ioe.getMessage());
+            alert.showAndWait();
+        }
     }
 
     @Override

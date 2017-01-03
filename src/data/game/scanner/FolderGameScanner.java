@@ -94,10 +94,10 @@ public class FolderGameScanner extends GameScanner {
         }
     }
 
-    private static boolean fileHasValidExtension(File file) {
+    public static boolean fileHasValidExtension(File file) {
         boolean hasAValidExtension = false;
         for (String validExtension : VALID_EXECUTABLE_EXTENSION) {
-            hasAValidExtension = hasAValidExtension || file.getAbsolutePath().endsWith(validExtension.toLowerCase());
+            hasAValidExtension = hasAValidExtension || file.getAbsolutePath().toLowerCase().endsWith(validExtension.toLowerCase());
         }
         return hasAValidExtension;
     }

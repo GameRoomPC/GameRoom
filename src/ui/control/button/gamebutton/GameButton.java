@@ -15,10 +15,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.DropShadow;
@@ -35,12 +32,16 @@ import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
+import ui.dialog.AppSelectorDialog;
+import ui.dialog.SteamIgnoredSelector;
 import ui.scene.BaseScene;
 import ui.scene.GameInfoScene;
 import ui.scene.MainScene;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Optional;
 
 import static javafx.scene.input.MouseEvent.*;
 import static ui.Main.*;
@@ -358,7 +359,23 @@ public abstract class GameButton extends BorderPane {
         setCoverThread.start();
 
         playButton.setOnMouseClicked(mc -> {
-            entry.startGame();
+            if(!entry.isSteamGame()) {
+                File gamePath = new File(entry.getPath());
+                if (gamePath.isDirectory()) {
+                    AppSelectorDialog selector = new AppSelectorDialog(gamePath);
+                    Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+                    ignoredOptionnal.ifPresent(pairs -> {
+                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                            entry.setPath(selector.getSelectedFile().getAbsolutePath());
+                            entry.startGame();
+                        }
+                    });
+                } else {
+                    entry.startGame();
+                }
+            }else{
+                entry.startGame();
+            }
         });
         infoButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override

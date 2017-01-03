@@ -10,6 +10,7 @@ import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 import system.os.Terminal;
 import ui.Main;
+import ui.dialog.GameRoomAlert;
 import ui.theme.ThemeUtils;
 
 import java.io.*;
@@ -101,12 +102,7 @@ public class Monitor {
                 final FutureTask<Long> query = new FutureTask(new Callable() {
                     @Override
                     public Long call() throws Exception {
-                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                        alert.setHeaderText(null);
-                        alert.initStyle(StageStyle.UNDECORATED);
-                        ThemeUtils.applyCurrentTheme(alert);
-                        alert.initModality(Modality.WINDOW_MODAL);
-                        alert.setContentText(gameStarter.getGameEntry().getName() + " "
+                        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION,gameStarter.getGameEntry().getName() + " "
                                 + Main.RESSOURCE_BUNDLE.getString("monitor_wait_dialog_1") + " "
                                 + GameEntry.getPlayTimeFormatted(Math.round(result/1000.0),GameEntry.TIME_FORMAT_ROUNDED_HMS)
                                 + Main.RESSOURCE_BUNDLE.getString("monitor_wait_dialog_2"));
