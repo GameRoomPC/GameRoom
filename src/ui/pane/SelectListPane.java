@@ -157,9 +157,11 @@ public abstract class SelectListPane<T> extends ScrollPane {
                     if(newValue){
                         setId("selected-item");
                     }else{
+                        setId("unselected-item");
                         getStylesheets().clear();
                     }
                     if(!multiSelection && oldValue && !newValue){
+                        setId("unselected-item");
                         getStylesheets().clear();
                         parentList.removeSelectedValue(getValue());
                     }

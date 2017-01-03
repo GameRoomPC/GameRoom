@@ -341,6 +341,10 @@ public class GameWatcher {
         return already;
     }
 
+    public ArrayList<GameEntry> getEntriesToAdd() {
+        return entriesToAdd;
+    }
+
     public GameButton onGameFound(GameEntry foundEntry) {
         synchronized (entriesToAdd) {
             if (!alreadyWaitingToBeAdded(foundEntry)) {

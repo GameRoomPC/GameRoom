@@ -8,6 +8,7 @@ import ui.Main;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import static data.game.GameWatcher.cleanNameForCompareason;
 import static ui.Main.GENERAL_SETTINGS;
@@ -16,7 +17,7 @@ import static ui.Main.GENERAL_SETTINGS;
  * Created by LM on 19/08/2016.
  */
 public class FolderGameScanner extends GameScanner {
-    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library","SteamLibrary","SteamVR"};
+    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library","SteamLibrary","SteamVR","!Downloads"};
     private final static String[] VALID_EXECUTABLE_EXTENSION = new String[]{".exe", ".lnk", ".jar"};
 
 
@@ -38,6 +39,8 @@ public class FolderGameScanner extends GameScanner {
                     && !folderGameIgnored
                     && !alreadyWaitingToBeAdded) {
                 addGameEntryFound(potentialEntry);
+            }else if(gameAlreadyInLibrary || alreadyWaitingToBeAdded){
+                compareAndSetLauncherId(potentialEntry);
             }
         }
         if (foundGames.size() > 0) {
@@ -109,5 +112,35 @@ public class FolderGameScanner extends GameScanner {
             }
         }
         return alreadyAddedToLibrary;
+    }
+
+    private void compareAndSetLauncherId(GameEntry foundEntry){
+        List<GameEntry> toAddAndLibEntries = AllGameEntries.ENTRIES_LIST;
+        toAddAndLibEntries.addAll(parentLooker.getEntriesToAdd());
+
+        for (GameEntry entry : toAddAndLibEntries) {
+            boolean alreadyAddedToLibrary = entry.getPath().toLowerCase().trim().contains(foundEntry.getPath().trim().toLowerCase())
+                    || foundEntry.getPath().trim().toLowerCase().contains(entry.getPath().trim().toLowerCase())
+                    || cleanNameForCompareason(foundEntry.getName()).equals(cleanNameForCompareason(entry.getName())); //cannot use UUID as they are different at this pre-add-time
+            if (alreadyAddedToLibrary) {
+                //TODO replace launchers with an enum and an id ?
+                if(entry.getSteam_id() != foundEntry.getSteam_id()){
+                    entry.setSteam_id(foundEntry.getSteam_id());
+                }
+                if(entry.getBattlenet_id() != foundEntry.getBattlenet_id()){
+                    entry.setBattlenet_id(foundEntry.getBattlenet_id());
+                }
+                if(entry.getGog_id() != foundEntry.getGog_id()){
+                    entry.setGog_id(foundEntry.getGog_id());
+                }
+                if(entry.getOrigin_id() != foundEntry.getOrigin_id()){
+                    entry.setOrigin_id(foundEntry.getOrigin_id());
+                }
+                if(entry.getUplay_id() != foundEntry.getUplay_id()){
+                    entry.setUplay_id(foundEntry.getUplay_id());
+                }
+                break;
+            }
+        }
     }
 }
