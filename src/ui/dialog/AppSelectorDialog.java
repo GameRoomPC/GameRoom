@@ -130,7 +130,6 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
         }
 
         private static Image getIcon(File file) {
-
             ShellFolder sf = null;
             try {
                 sf = ShellFolder.getShellFolder(file);

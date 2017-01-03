@@ -46,6 +46,7 @@ import ui.control.button.gamebutton.GameButton;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
 import ui.control.textfield.PlayTimeField;
+import ui.dialog.AppSelectorDialog;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.IGDBImageSelector;
 import ui.dialog.SearchDialog;
@@ -318,10 +319,27 @@ public class GameEditScene extends BaseScene {
                 }
                 File file = new File(entry.getPath());
                 Pattern pattern = Pattern.compile("^steam:\\/\\/rungameid\\/\\d*$");
-
-                if (!pattern.matcher(entry.getPath().trim()).matches() && (!file.exists() || file.isDirectory())) {
+                boolean isSteamGame = pattern.matcher(entry.getPath().trim()).matches();
+                if (!isSteamGame && !file.exists()) {
                     message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_path_not_file"));
                     return false;
+                }else if(!isSteamGame && file.isDirectory()){
+                    AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()));
+                    Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+
+                    final boolean[] result = {true};
+
+                    ignoredOptionnal.ifPresent(pairs -> {
+                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                            entry.setPath(selector.getSelectedFile().getAbsolutePath());
+                        }else{
+                            result[0] =  false;
+                        }
+                    });
+                    if(!result[0]){
+                        message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_path_not_file"));
+                        return result[0];
+                    }
                 }
                 return true;
             }
