@@ -768,6 +768,7 @@ public class MainScene extends BaseScene {
                 , 15 * Main.SCREEN_WIDTH / 1920));*/
         topPane.getChildren().add(searchBox);
         topPane.getChildren().add(hbox);
+        topPane.getStyleClass().add("header");
 
         StackPane.setAlignment(hbox, Pos.CENTER_LEFT);
 

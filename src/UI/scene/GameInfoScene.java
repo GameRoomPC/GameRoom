@@ -130,7 +130,7 @@ public class GameInfoScene extends BaseScene {
             try {
                 ytButton = new YoutubePlayerAndButton(entry);
                 topStackPane.getChildren().add(ytButton.getSoundMuteButton());
-                StackPane.setAlignment(ytButton.getSoundMuteButton(), Pos.TOP_RIGHT);
+                StackPane.setAlignment(ytButton.getSoundMuteButton(), Pos.CENTER_RIGHT);
                 setOnSceneFadedOutAction(new Runnable() {
                     @Override
                     public void run() {
