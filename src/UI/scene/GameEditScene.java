@@ -170,8 +170,9 @@ public class GameEditScene extends BaseScene {
             public void handle(ActionEvent event) {
                 boolean allConditionsMet = true;
                 for (ValidEntryCondition condition : validEntriesConditions) {
-                    allConditionsMet = allConditionsMet && condition.isValid();
-                    if (!condition.isValid()) {
+                    boolean conditionValid = condition.isValid();
+                    allConditionsMet = allConditionsMet && conditionValid;
+                    if (!conditionValid) {
                         condition.onInvalid();
                         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, condition.message.toString());
                         alert.showAndWait();
@@ -325,11 +326,11 @@ public class GameEditScene extends BaseScene {
                     return false;
                 }else if(!isSteamGame && file.isDirectory()){
                     AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()));
-                    Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+                    Optional<ButtonType> appOptionnal = selector.showAndWait();
 
                     final boolean[] result = {true};
 
-                    ignoredOptionnal.ifPresent(pairs -> {
+                    appOptionnal.ifPresent(pairs -> {
                         if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
                             entry.setPath(selector.getSelectedFile().getAbsolutePath());
                         }else{

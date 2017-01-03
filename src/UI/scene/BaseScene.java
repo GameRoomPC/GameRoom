@@ -164,7 +164,9 @@ public abstract class BaseScene extends Scene {
     private ImageButton createBackButton(EventHandler<ActionEvent> eventHandler){
         //Image leftArrowImage = new Image("res/ui/arrowLeft.png", SCREEN_WIDTH /45, SCREEN_WIDTH /45,true,true);
         ImageButton backButton = new ImageButton("arrow-left-button", SCREEN_WIDTH /45, SCREEN_WIDTH /45);
-        backButton.setOnAction(event -> eventHandler.handle(event));
+        if(eventHandler!=null){
+            backButton.setOnAction(event -> eventHandler.handle(event));
+        }
         backButton.setId("backButton");
         addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             switch (event.getCode()){
