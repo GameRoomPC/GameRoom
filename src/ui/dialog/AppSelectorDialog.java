@@ -1,12 +1,8 @@
 package ui.dialog;
 
-import data.ImageUtils;
 import data.game.scanner.FolderGameScanner;
-import data.game.scrapper.OnDLDoneHandler;
-import data.game.scrapper.SteamPreEntry;
-import data.http.SimpleImageInfo;
-import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ButtonBar;
@@ -18,15 +14,16 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import sun.awt.shell.ShellFolder;
 import ui.Main;
 import ui.pane.SelectListPane;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static ui.Main.GENERAL_SETTINGS;
 
 /**
  * Created by LM on 03/01/2017.
@@ -35,9 +32,9 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
     private File folder;
     private File selectedFile;
 
-    public AppSelectorDialog(File folder){
-        if(folder == null || !folder.isDirectory()){
-            throw new IllegalArgumentException("Given folder is either null or not a dir : \""+folder.getAbsolutePath()+"\"");
+    public AppSelectorDialog(File folder) {
+        if (folder == null || !folder.isDirectory()) {
+            throw new IllegalArgumentException("Given folder is either null or not a dir : \"" + folder.getAbsolutePath() + "\"");
         }
         this.folder = folder;
 
@@ -58,7 +55,7 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
         mainPane.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
         mainPane.setPrefHeight(Main.SCREEN_HEIGHT * 2 / 3 * Main.SCREEN_HEIGHT / 1080);
 
-        ApplicationList list = new ApplicationList<>(Main.SCREEN_HEIGHT / 3.0,mainPane.prefWidthProperty());
+        ApplicationList list = new ApplicationList<>(Main.SCREEN_HEIGHT / 3.0, mainPane.prefWidthProperty());
         list.addItems(getValidAppFiles(folder));
         mainPane.setCenter(list);
 
@@ -72,12 +69,12 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
 
     }
 
-    public List<File> getValidAppFiles(File folder){
+    public List<File> getValidAppFiles(File folder) {
         List<File> potentialApps = new ArrayList<>();
-        for(File children : folder.listFiles()){
-            if(children.isDirectory()){
+        for (File children : folder.listFiles()) {
+            if (children.isDirectory()) {
                 potentialApps.addAll(getValidAppFiles(children));
-            }else if(FolderGameScanner.fileHasValidExtension(children)){
+            } else if (FolderGameScanner.fileHasValidExtension(children)) {
                 potentialApps.add(children);
             }
         }
@@ -99,7 +96,7 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
 
         @Override
         protected ListItem createListItem(Object value) {
-            AppSelectorDialog.ApplicationItem item = new AppSelectorDialog.ApplicationItem(value,this);
+            AppSelectorDialog.ApplicationItem item = new AppSelectorDialog.ApplicationItem(value, this);
             item.prefWidthProperty().bind(prefRowWidth);
             return item;
         }
@@ -107,31 +104,47 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
 
     private static class ApplicationItem extends SelectListPane.ListItem {
         private File file;
-        private final static int IMAGE_WIDTH = 100;
-        private final static int IMAGE_HEIGHT = IMAGE_WIDTH *45 /120;
         private StackPane coverPane = new StackPane();
         private ImageView coverView = new ImageView();
 
         public ApplicationItem(Object value, SelectListPane parentList) {
-            super(value,parentList);
-
+            super(value, parentList);
             file = ((File) value);
-
             addContent();
         }
 
         @Override
         protected void addContent() {
-            //TODO get the image of the file and set the coverpane
-            //coverPane.getChildren().add(new ImageView(new Image("res/defaultImages/barTile120.jpg", IMAGE_WIDTH, IMAGE_WIDTH *45 /120, false, true)));
-            //coverPane.getChildren().add(coverView);
+            Image icon = getIcon(file);
+            coverView.setFitHeight(icon.getHeight());
+            coverView.setFitWidth(icon.getWidth());
+            coverView.setImage(icon);
+            coverPane.getChildren().add(coverView);
 
-            GridPane.setMargin(coverPane, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
+            //GridPane.setMargin(coverPane, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
             add(coverPane, columnCount++, 0);
             Label titleLabel = new Label(file.getName());
 
             GridPane.setMargin(titleLabel, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
             add(titleLabel, columnCount++, 0);
+        }
+
+        private static Image getIcon(File file) {
+
+            ShellFolder sf = null;
+            try {
+                sf = ShellFolder.getShellFolder(file);
+            } catch (FileNotFoundException e) {
+                return null;
+            }
+            java.awt.Image img = sf.getIcon(true);
+
+            BufferedImage buff = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D graphics = buff.createGraphics();
+            graphics.drawImage(img, 0, 0, null);
+            graphics.dispose();
+
+            return SwingFXUtils.toFXImage(buff, null);
         }
 
     }
