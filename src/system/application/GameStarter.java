@@ -47,8 +47,6 @@ public class GameStarter {
         String logFolder = FILES_MAP.get("Games") + File.separator + entry.getUuid() + File.separator;
         File preLog = FileUtils.initOrCreateFile(logFolder + "pre_" + entry.getProcessName() + ".log");
 
-        entry.setLastPlayedDate(new Date());
-
         Terminal terminal = new Terminal();
         String cmdBefore = entry.getCmd(GameEntry.CMD_BEFORE_START);
         String commandsBeforeString = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_BEFORE_START] + (cmdBefore != null ? "\n" + cmdBefore : "");
@@ -72,6 +70,13 @@ public class GameStarter {
             gameProcessBuilder.redirectOutput(gameLog);
             gameProcessBuilder.redirectError(gameLog);
             gameProcessBuilder.directory(new File(new File(entry.getPath()).getParent()));
+
+            entry.setLastPlayedDate(new Date());
+
+            if(entry.getOnGameLaunched() != null){
+                entry.getOnGameLaunched().run();
+            }
+
             Process gameProcess = gameProcessBuilder.start();
         }
 
@@ -104,6 +109,9 @@ public class GameStarter {
                 if (!newValue.equals(new Long(-1))) {
                     Main.LOGGER.debug("Adding " + Math.round(newValue / 1000.0) + "s to game " + entry.getName());
 
+                    if(entry.getOnGameStopped()!=null){
+                        entry.getOnGameStopped().run();
+                    }
                     String cmdAfter = entry.getCmd(GameEntry.CMD_AFTER_END);
                     String commandsAfterString = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_AFTER_END] + (cmdAfter != null ? "\n" + cmdAfter : "");
                     String[] commandsAfter = commandsAfterString.split("\n");

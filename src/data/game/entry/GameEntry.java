@@ -80,6 +80,9 @@ public class GameEntry {
     private boolean toAdd = false;
     private boolean beingScrapped;
 
+    private transient Runnable onGameLaunched;
+    private transient Runnable onGameStopped;
+
     public GameEntry(String name) {
         uuid = UUID.randomUUID();
         this.name = name;
@@ -820,5 +823,21 @@ public class GameEntry {
 
     public void setBeingScrapped(boolean beingScrapped) {
         this.beingScrapped = beingScrapped;
+    }
+
+    public Runnable getOnGameLaunched() {
+        return onGameLaunched;
+    }
+
+    public void setOnGameLaunched(Runnable onGameLaunched) {
+        this.onGameLaunched = onGameLaunched;
+    }
+
+    public Runnable getOnGameStopped() {
+        return onGameStopped;
+    }
+
+    public void setOnGameStopped(Runnable onGameStopped) {
+        this.onGameStopped = onGameStopped;
     }
 }

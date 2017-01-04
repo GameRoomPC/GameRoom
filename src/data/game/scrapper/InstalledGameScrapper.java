@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static ui.Main.LOGGER;
+
 /**
  * Created by LM on 29/08/2016.
  */
@@ -27,6 +29,8 @@ public class InstalledGameScrapper {
                     String[] subOutPut = terminal.execute("reg", "query", '"' + regFolder + "\\" + subFolder + '"');
                     String installDir = null;
                     String name = null;
+
+                    boolean notAGame = false; //this is to detect GOG non games
                     for (String s2 : subOutPut) {
                         if (s2.contains(installDirPrefix)) {
                             int index2 = s2.indexOf(installDirPrefix) + installDirPrefix.length();
@@ -34,9 +38,11 @@ public class InstalledGameScrapper {
                         } else if (namePrefix != null && s2.contains(namePrefix)) {
                             int index2 = s2.indexOf(namePrefix) + namePrefix.length();
                             name = s2.substring(index2).replace("®", "").replace("™", "");
+                        } else if(s2.contains("DEPENDSON    REG_SZ    ")){
+                            notAGame = !s2.equals("    DEPENDSON    REG_SZ    ");
                         }
                     }
-                    if (installDir != null) {
+                    if (installDir != null && !notAGame) {
                         File file = new File(installDir);
                         if (file.exists()) {
                             if (name == null) {
