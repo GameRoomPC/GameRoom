@@ -14,6 +14,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import sun.awt.shell.ShellFolder;
 import ui.Main;
 import ui.dialog.GameRoomDialog;
@@ -53,10 +54,11 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
                 , 30 * Main.SCREEN_WIDTH / 1920));
         BorderPane.setAlignment(titleLabel, Pos.CENTER);
 
-        mainPane.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
-        mainPane.setPrefHeight(Main.SCREEN_HEIGHT * 2 / 3 * Main.SCREEN_HEIGHT / 1080);
+        ApplicationList list = new ApplicationList<>();
 
-        ApplicationList list = new ApplicationList<>(Main.SCREEN_HEIGHT / 3.0, mainPane.prefWidthProperty());
+        mainPane.setPrefWidth(1.0 / 3.5 * Main.SCREEN_WIDTH);
+        mainPane.setPrefHeight(1.0 / 3 * Main.SCREEN_HEIGHT);
+
         list.addItems(getValidAppFiles(folder));
         mainPane.setCenter(list);
 
@@ -86,19 +88,40 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
         return selectedFile;
     }
 
-    private static class ApplicationList<File> extends SelectListPane {
-        private ReadOnlyDoubleProperty prefRowWidth;
+    public static Image getIcon(File file) {
+        ShellFolder sf = null;
+        try {
+            sf = ShellFolder.getShellFolder(file);
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+        if(sf == null){
+            return null;
+        }
+        java.awt.Image img = sf.getIcon(true);
 
-        public ApplicationList(double prefHeight, ReadOnlyDoubleProperty prefRowWidth) {
-            super(prefHeight, false);
-            this.prefRowWidth = prefRowWidth;
+        if(img == null){
+            return null;
+        }
+
+        BufferedImage buff = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = buff.createGraphics();
+        graphics.drawImage(img, 0, 0, null);
+        graphics.dispose();
+
+        return SwingFXUtils.toFXImage(buff, null);
+    }
+
+    private static class ApplicationList<File> extends SelectListPane {
+
+        public ApplicationList() {
+            super(false);
 
         }
 
         @Override
         protected ListItem createListItem(Object value) {
             AppSelectorDialog.ApplicationItem item = new AppSelectorDialog.ApplicationItem(value, this);
-            item.prefWidthProperty().bind(prefRowWidth);
             return item;
         }
     }
@@ -124,29 +147,18 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
 
             //GridPane.setMargin(coverPane, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
             add(coverPane, columnCount++, 0);
+            VBox vbox = new VBox(5 * Main.SCREEN_HEIGHT / 1080);
+
             Label titleLabel = new Label(file.getName());
+            titleLabel.setTooltip(new Tooltip(file.getAbsolutePath()));
 
-            GridPane.setMargin(titleLabel, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
-            add(titleLabel, columnCount++, 0);
+            Label idLabel = new Label(file.getParent());
+            idLabel.setStyle("-fx-font-size: 0.7em;");
+
+            vbox.getChildren().addAll(titleLabel,idLabel);
+            GridPane.setMargin(vbox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
+            add(vbox, columnCount++, 0);
         }
-
-        private static Image getIcon(File file) {
-            ShellFolder sf = null;
-            try {
-                sf = ShellFolder.getShellFolder(file);
-            } catch (FileNotFoundException e) {
-                return null;
-            }
-            java.awt.Image img = sf.getIcon(true);
-
-            BufferedImage buff = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-            Graphics2D graphics = buff.createGraphics();
-            graphics.drawImage(img, 0, 0, null);
-            graphics.dispose();
-
-            return SwingFXUtils.toFXImage(buff, null);
-        }
-
     }
 }
 

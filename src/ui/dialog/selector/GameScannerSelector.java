@@ -49,12 +49,11 @@ public class GameScannerSelector extends GameRoomDialog<ButtonType> {
                 , 30 * Main.SCREEN_WIDTH / 1920));
         BorderPane.setAlignment(titleLabel, Pos.CENTER);
 
-        mainPane.setPrefWidth(Main.SCREEN_WIDTH * 1 / 4 * Main.SCREEN_WIDTH / 1920);
-        mainPane.setPrefHeight(Main.SCREEN_HEIGHT * 1 / 2 * Main.SCREEN_HEIGHT / 1080);
-
-        GameScannerSelector.ScannerList list = new GameScannerSelector.ScannerList<>(Main.SCREEN_HEIGHT / 3.0, mainPane.prefWidthProperty());
+        GameScannerSelector.ScannerList list = new GameScannerSelector.ScannerList<>();
         list.addItems(ScannerProfile.values());
 
+        mainPane.setPrefWidth(1.0 / 3.5 * Main.SCREEN_WIDTH);
+        mainPane.setPrefHeight(2.0 / 3 * Main.SCREEN_HEIGHT);
         mainPane.setCenter(list);
 
         getDialogPane().getButtonTypes().addAll(
@@ -76,18 +75,14 @@ public class GameScannerSelector extends GameRoomDialog<ButtonType> {
     }
 
     private static class ScannerList<File> extends SelectListPane {
-        private ReadOnlyDoubleProperty prefRowWidth;
 
-        public ScannerList(double prefHeight, ReadOnlyDoubleProperty prefRowWidth) {
-            super(prefHeight, true);
-            this.prefRowWidth = prefRowWidth;
-
+        public ScannerList() {
+            super(true);
         }
 
         @Override
         protected ListItem createListItem(Object value) {
             GameScannerSelector.ScannerItem item = new GameScannerSelector.ScannerItem(value, this);
-            item.prefWidthProperty().bind(prefRowWidth);
             if(((ScannerProfile)value).isEnabled()) {
                 item.setSelected(true);
             }

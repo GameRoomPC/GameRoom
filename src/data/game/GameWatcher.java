@@ -206,14 +206,18 @@ public class GameWatcher {
             for (GameEntry entry : entriesToAdd) {
                 if (entry.isWaitingToBeScrapped() && !entry.isBeingScrapped()) {
                     try {
+                        entry.setSavedLocaly(true);
                         entry.setBeingScrapped(true);
+                        entry.setSavedLocaly(false);
                         JSONArray search_results = IGDBScrapper.searchGame(entry.getName());
                         searchIGDBIDs.add(search_results.getJSONObject(0).getInt("id"));
                         toScrapEntries.add(entry);
 
                     } catch (Exception e) {
                         Main.LOGGER.error(entry.getName() + " not found on igdb first guess");
+                        entry.setSavedLocaly(true);
                         entry.setWaitingToBeScrapped(false);
+                        entry.setSavedLocaly(false);
                     }
                 }
             }

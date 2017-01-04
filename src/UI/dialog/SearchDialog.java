@@ -102,7 +102,10 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         topBox.setSpacing(15 * Main.SCREEN_WIDTH / 1920);
         topBox.getChildren().addAll(searchField, searchButton);
 
-        searchListPane = new SearchList(Main.SCREEN_HEIGHT / 2.5, topBox.widthProperty());
+        mainPane.setPrefWidth(1.0 / 3.5 * Main.SCREEN_WIDTH);
+        mainPane.setPrefHeight(2.0 / 3 * Main.SCREEN_HEIGHT);
+
+        searchListPane = new SearchList(topBox.widthProperty());
 
         searchButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -280,8 +283,8 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         private JSONArray gamesDataArray;
         private ReadOnlyDoubleProperty prefRowWidth;
 
-        public SearchList(double prefHeight, ReadOnlyDoubleProperty prefRowWidth) {
-            super(prefHeight);
+        public SearchList(ReadOnlyDoubleProperty prefRowWidth) {
+            super();
             this.prefRowWidth = prefRowWidth;
         }
 

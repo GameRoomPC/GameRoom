@@ -22,18 +22,8 @@ public abstract class GameScanner {
 
     public void startScanning(){
         scanDone = false;
-        Task scanningTask = new Task() {
-            @Override
-            protected Object call() throws Exception {
-                scanForGames();
-                scanDone = true;
-                return null;
-            }
-        };
-        Thread scanThread = new Thread(scanningTask);
-        scanThread.setDaemon(true);
-        scanThread.setPriority(Thread.MIN_PRIORITY);
-        scanThread.start();
+        scanForGames();
+        scanDone = true;
     }
     protected abstract void scanForGames();
 

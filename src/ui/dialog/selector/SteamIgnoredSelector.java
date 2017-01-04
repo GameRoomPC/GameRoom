@@ -58,10 +58,9 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
                 , 30 * Main.SCREEN_WIDTH / 1920));
         BorderPane.setAlignment(titleLabel, Pos.CENTER);
 
-        mainPane.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
-        mainPane.setPrefHeight(Main.SCREEN_HEIGHT * 2 / 3 * Main.SCREEN_HEIGHT / 1080);
-
-        SteamAppsList list = new SteamAppsList(Main.SCREEN_HEIGHT / 3.0, mainPane.prefWidthProperty());
+        mainPane.setPrefWidth(1.0 / 3.5 * Main.SCREEN_WIDTH);
+        mainPane.setPrefHeight(2.0 / 3 * Main.SCREEN_HEIGHT);
+        SteamAppsList list = new SteamAppsList();
 
         if(ownedSteamEntries!=null){
             list.addItems(ownedSteamEntries);
@@ -119,18 +118,15 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
     }
 
     private static class SteamAppsList<SteamPreEntry> extends SelectListPane {
-        private ReadOnlyDoubleProperty prefRowWidth;
 
-        public SteamAppsList(double prefHeight, ReadOnlyDoubleProperty prefRowWidth) {
-            super(prefHeight, true);
-            this.prefRowWidth = prefRowWidth;
+        public SteamAppsList() {
+            super(true);
 
         }
 
         @Override
         protected ListItem createListItem(Object value) {
             SteamAppItem item = new SteamAppItem(value,this);
-            item.prefWidthProperty().bind(prefRowWidth);
             data.game.scrapper.SteamPreEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
             for (data.game.scrapper.SteamPreEntry steamPreEntry : ignoredSteamApps) {
                 if (((data.game.scrapper.SteamPreEntry) item.getValue()).getId() == steamPreEntry.getId()) {

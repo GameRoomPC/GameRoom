@@ -9,9 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.*;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.dialog.GameRoomDialog;
@@ -21,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static ui.Main.GENERAL_SETTINGS;
+import static ui.Main.main;
 
 /**
  * Created by LM on 19/08/2016.
@@ -48,15 +47,16 @@ public class GameFoldersIgnoredSelector extends GameRoomDialog<ButtonType> {
                     , 30 * Main.SCREEN_WIDTH / 1920));
             BorderPane.setAlignment(titleLabel, Pos.CENTER);
 
-            mainPane.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
-            mainPane.setPrefHeight(Main.SCREEN_HEIGHT * 2 / 3 * Main.SCREEN_HEIGHT / 1080);
+            mainPane.setPrefWidth(1.0 / 3.5 * Main.SCREEN_WIDTH);
+            mainPane.setPrefHeight(2.0 / 3 * Main.SCREEN_HEIGHT);
 
-            GameFoldersList list = new GameFoldersList(Main.SCREEN_HEIGHT / 3.0, mainPane.prefWidthProperty());
+            GameFoldersList list = new GameFoldersList();
 
             loadIgnoredFolders(list);
             statusLabel.setText(null);
 
             mainPane.setCenter(list);
+            list.setPrefWidth(mainPane.getPrefWidth());
 
             getDialogPane().getButtonTypes().addAll(
                     new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE)
@@ -99,18 +99,15 @@ public class GameFoldersIgnoredSelector extends GameRoomDialog<ButtonType> {
         }
 
         private static class GameFoldersList<File> extends SelectListPane {
-            private ReadOnlyDoubleProperty prefRowWidth;
 
-            public GameFoldersList(double prefHeight, ReadOnlyDoubleProperty prefRowWidth) {
-                super(prefHeight, true);
-                this.prefRowWidth = prefRowWidth;
+            public GameFoldersList() {
+                super( true);
 
             }
 
             @Override
             protected ListItem createListItem(Object value) {
                 GameFolderItem item = new GameFolderItem(value,this);
-                item.prefWidthProperty().bind(prefRowWidth);
 
                 java.io.File[] filesIgnored = GENERAL_SETTINGS.getFiles(PredefinedSetting.IGNORED_GAME_FOLDERS);
                 for (java.io.File ignoredFile : filesIgnored) {
@@ -124,7 +121,6 @@ public class GameFoldersIgnoredSelector extends GameRoomDialog<ButtonType> {
         }
 
         private static class GameFolderItem extends SelectListPane.ListItem {
-            private static Image DEFAULT_FOLDER_IMAGE ;
             private File file;
             private final static int IMAGE_WIDTH = 45;
             private final static int IMAGE_HEIGHT = 45;
@@ -132,30 +128,37 @@ public class GameFoldersIgnoredSelector extends GameRoomDialog<ButtonType> {
 
             public GameFolderItem(Object value, SelectListPane parentList) {
                 super(value,parentList);
-
                 file = ((File) value);
                 addContent();
             }
 
             @Override
             protected void addContent() {
+                ImageView iconView = new ImageView();
+                double scale = GENERAL_SETTINGS.getUIScale().getScale();
+                iconView.setFitHeight(32*scale);
+                iconView.setFitWidth(32*scale);
                 if(file.isDirectory()){
-                    /*if(DEFAULT_FOLDER_IMAGE == null){
-                        DEFAULT_FOLDER_IMAGE = new Image("res/ui/folderButton128.png", IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
-                    }*/
-                    coverPane.getChildren().add(new ImageView(DEFAULT_FOLDER_IMAGE));
-                    //TODO implement search of ico file or first .exe file icone if not null
+                    iconView.setId("folder-button");
                 }else{
-                    //TODO implement search of ico file in .exe file icone if not null
+                    iconView.setImage(AppSelectorDialog.getIcon(file));
                 }
+                coverPane.getChildren().add(iconView);
+
                 GridPane.setMargin(coverPane, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
                 add(coverPane, columnCount++, 0);
+
+                VBox vbox = new VBox(5 * Main.SCREEN_HEIGHT / 1080);
                 Label titleLabel = new Label(file.getName());
                 titleLabel.setTooltip(new Tooltip(file.getAbsolutePath()));
 
-                GridPane.setMargin(titleLabel, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
-                add(titleLabel, columnCount++, 0);
-                //add(idLabel, columnCount++, 0);
+                Label idLabel = new Label(file.getParent());
+                idLabel.setStyle("-fx-font-size: 0.7em;");
+
+                vbox.getChildren().addAll(titleLabel,idLabel);
+                GridPane.setMargin(vbox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
+                add(vbox, columnCount++, 0);
+
             }
 
         }

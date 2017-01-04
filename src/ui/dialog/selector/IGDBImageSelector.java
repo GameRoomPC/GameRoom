@@ -46,11 +46,11 @@ public class IGDBImageSelector extends GameRoomDialog<ButtonType> {
                 , 30 * Main.SCREEN_WIDTH / 1920));
         BorderPane.setAlignment(titleLabel, Pos.CENTER);
 
-        mainPane.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
-        mainPane.setPrefHeight(Main.SCREEN_HEIGHT * 2 / 3 * Main.SCREEN_HEIGHT / 1080);
+        mainPane.setPrefWidth(1.0 / 3 * Main.SCREEN_WIDTH);
+        mainPane.setPrefHeight(2.0 / 3 * Main.SCREEN_HEIGHT);
 
         if(igdbScreenshots != null && igdbScreenshots.length>0) {
-            imageList = new ImageList(Main.SCREEN_HEIGHT/3.0,igdb_id,mainPane.prefWidthProperty(),onImageSelected);
+            imageList = new ImageList(igdb_id,mainPane.prefWidthProperty(),onImageSelected);
             imageList.addItems(igdbScreenshots);
             mainPane.setCenter(imageList);
             setOnHiding(event -> {
@@ -72,8 +72,8 @@ public class IGDBImageSelector extends GameRoomDialog<ButtonType> {
         private ReadOnlyDoubleProperty prefRowWidth;
         private int igdb_id;
         private OnItemSelectedHandler onImageSelected;
-        public ImageList(double prefHeight,int igdb_id, ReadOnlyDoubleProperty prefRowWidth, OnItemSelectedHandler onImageSelected) {
-            super(prefHeight);
+        public ImageList(int igdb_id, ReadOnlyDoubleProperty prefRowWidth, OnItemSelectedHandler onImageSelected) {
+            super();
             this.prefRowWidth = prefRowWidth;
             this.igdb_id = igdb_id;
             this.onImageSelected = onImageSelected;
