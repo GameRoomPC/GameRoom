@@ -245,8 +245,13 @@ public abstract class GamesTilePane extends BorderPane {
         int index = indexOfTile(newEntry);
         if (index != -1) {
             if (isValidToAdd(newEntry)) {
-                tilesList.get(index).reloadWith(newEntry);
-                tilesList.set(index, tilesList.get(index));//to fire updated/replaced event
+                Main.runAndWait(new Runnable() {
+                    @Override
+                    public void run() {
+                        tilesList.get(index).reloadWith(newEntry);
+                        tilesList.set(index, tilesList.get(index));//to fire updated/replaced event
+                    }
+                });
             } else {
                 removeGame(newEntry);
             }

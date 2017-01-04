@@ -71,9 +71,7 @@ public class AddIgnoreGameButton extends GameButton {
         });
         scrapingButton = new ImageButton("tile-loading-button", SCREEN_WIDTH / 10, SCREEN_WIDTH / 10);
         scrapingButton.setFocusTraversable(false);
-        boolean scraping = entry.isWaitingToBeScrapped() || entry.isBeingScrapped();
-        scrapingButton.setVisible(scraping);
-        scrapingButton.setMouseTransparent(!scraping);
+        initScrapingGraphics(entry);
         rotateScrapingButton();
 
         addButton.setOpacity(0);
@@ -155,6 +153,10 @@ public class AddIgnoreGameButton extends GameButton {
     public void reloadWith(GameEntry entry) {
         super.reloadWith(entry);
 
+        initScrapingGraphics(entry);
+    }
+
+    private void initScrapingGraphics(GameEntry entry){
         boolean scraping = entry.isWaitingToBeScrapped() || entry.isBeingScrapped();
 
         addButton.setVisible(!scraping);
@@ -162,9 +164,6 @@ public class AddIgnoreGameButton extends GameButton {
 
         scrapingButton.setVisible(scraping);
         scrapingButton.setMouseTransparent(!scraping);
-
-        //TODO load an animation icon instead of disabling
-
     }
 
     @Override
