@@ -1004,6 +1004,9 @@ public class MainScene extends BaseScene {
         toAddTilePane.setAutomaticSort(false);
 
         gameWatcher = GameWatcher.getInstance();
+        gameWatcher.setOnSearchStarted(() -> toAddTilePane.enableSearchingIcon(true));
+        gameWatcher.setOnSeachDone(() -> toAddTilePane.enableSearchingIcon(false));
+        toAddTilePane.getIconButton().setOnAction(event -> gameWatcher.start());
         gameWatcher.setOnGameFoundHandler(new OnGameFoundHandler() {
             @Override
             public GameButton gameToAddFound(GameEntry entry) {
@@ -1020,7 +1023,7 @@ public class MainScene extends BaseScene {
                 });
             }
         });
-        gameWatcher.startService();
+        gameWatcher.start();
     }
 
 

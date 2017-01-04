@@ -24,12 +24,13 @@ import java.util.UUID;
 
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
 import static ui.Main.FILES_MAP;
+import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 17/08/2016.
  */
 public class GameWatcher {
-    private final static int SCAN_DELAY_MINUTES = 8;
+    private final static int SCAN_DELAY_MINUTES = 5;
     private static GameWatcher WATCHER;
 
     private OnGameFoundHandler onGameFoundHandler;
@@ -39,6 +40,11 @@ public class GameWatcher {
     private ArrayList<GameScanner> localGameScanners = new ArrayList<>();
     private ArrayList<GameScanner> onlineGameScanners = new ArrayList<>();
     private int originalGameFoundNumber = entriesToAdd.size();
+
+    private Runnable onSearchStarted;
+    private Runnable onSeachDone;
+
+    private Thread serviceThread;
 
     public static GameWatcher getInstance(){
         if(WATCHER == null){
@@ -91,12 +97,16 @@ public class GameWatcher {
         onlineGameScanners.add(new SteamOnlineGameScanner(this));
     }
 
-    public void startService() {
-        Thread th = new Thread(new Runnable() {
+    private void startService() {
+        serviceThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 initToAddEntries();
                 while (Main.KEEP_THREADS_RUNNING) {
+                    if(onSearchStarted!=null){
+                        onSearchStarted.run();
+                    }
+                    LOGGER.info("GameWatcher started");
                     //validateKey();
                     scanNewGamesRoutine();
                     tryScrapToAddEntries();
@@ -104,18 +114,31 @@ public class GameWatcher {
                     tryScrapToAddEntries();
                     scanSteamGamesTime();
 
+                    LOGGER.info("GameWatcher ended");
+                    if(onSeachDone!=null){
+                        onSeachDone.run();
+                    }
                     try {
-                        Thread.sleep(SCAN_DELAY_MINUTES * 60 * 100);
+                        Thread.sleep(SCAN_DELAY_MINUTES * 60 * 1000);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        LOGGER.info("Forced start of GameWatcher");
                     }
                 }
             }
         });
-        th.setPriority(Thread.MIN_PRIORITY);
-        th.setDaemon(true);
-        th.start();
+        serviceThread.setPriority(Thread.MIN_PRIORITY);
+        serviceThread.setDaemon(true);
+        serviceThread.start();
     }
+
+    public void start(){
+        if(serviceThread == null){
+            startService();
+        }else{
+            serviceThread.interrupt();
+        }
+    }
+
     private void initToAddEntries(){
         ArrayList<UUID> uuids = AllGameEntries.readUUIDS(FILES_MAP.get("to_add"));
 
@@ -395,5 +418,13 @@ public class GameWatcher {
             }
         }
         entriesToAdd.removeAll(toRemoveEntries);
+    }
+
+    public void setOnSearchStarted(Runnable onSearchStarted) {
+        this.onSearchStarted = onSearchStarted;
+    }
+
+    public void setOnSeachDone(Runnable onSeachDone) {
+        this.onSeachDone = onSeachDone;
     }
 }

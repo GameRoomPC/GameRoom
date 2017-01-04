@@ -16,7 +16,6 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Separator;
-import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
@@ -51,7 +50,6 @@ public class RowCoverTilePane extends CoverTilePane {
     private boolean folded = false;
     //private ScrollPane horizontalScrollPane;
     private DualImageButton foldToggleButton;
-    HBox buttonsBox = new HBox();
 
     private ArrayList<ChangeListener<Boolean>> onFoldedListeners = new ArrayList<>();
 
@@ -216,9 +214,10 @@ public class RowCoverTilePane extends CoverTilePane {
                 }
             }
         });
-        buttonsBox.setAlignment(Pos.CENTER_LEFT);
-        buttonsBox.getChildren().addAll(iconView,titleLabel, foldToggleButton);
-        setTop(buttonsBox);
+        topBox.setAlignment(Pos.CENTER_LEFT);
+        topBox.getChildren().clear();
+        topBox.getChildren().addAll(iconButton,titleLabel, foldToggleButton);
+        setTop(topBox);
 
         setBottom(separator);
     }

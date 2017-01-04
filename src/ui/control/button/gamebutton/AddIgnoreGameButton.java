@@ -238,7 +238,7 @@ public class AddIgnoreGameButton extends GameButton {
         }
     }
 
-    public void rotateScrapingButton(){
+    private void rotateScrapingButton(){
         Timeline fadeInTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(scrapingButton.rotateProperty(), scrapingButton.rotateProperty().getValue(), Interpolator.LINEAR)),

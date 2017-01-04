@@ -3,7 +3,6 @@ package ui.pane.gamestilepane;
 import data.game.entry.GameEntry;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
-import data.game.scanner.GameScanner;
 import data.game.scanner.ScannerProfile;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -310,9 +309,8 @@ public class GroupsFactory {
                 }
             };
             tilePane.setTitle(launcher.toString());
-            tilePane.getIconView().setId(launcher.getIconCSSID());
-            tilePane.getIconView().setFitHeight(Main.SCREEN_HEIGHT/42);
-            tilePane.getIconView().setFitWidth(Main.SCREEN_HEIGHT/42);
+            tilePane.getIconButton().setImageId(launcher.getIconCSSID());
+            tilePane.getIconButton().setManaged(true);
 
             for (GameButton button : originalTilePane.getGameButtons()) {
                 tilePane.addGame(button.getEntry());

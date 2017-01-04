@@ -17,13 +17,13 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import ui.Main;
+import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.scene.MainScene;
 
@@ -51,7 +51,7 @@ public abstract class GamesTilePane extends BorderPane {
 
     TilePane tilePane;
     Label titleLabel;
-    javafx.scene.image.ImageView iconView;
+    ImageButton iconButton;
     ObservableList<GameButton> tilesList = FXCollections.observableArrayList();
 
     MainScene parentScene;
@@ -66,6 +66,8 @@ public abstract class GamesTilePane extends BorderPane {
     private char repeatedCharCounter = 0;
 
     private boolean displayGamesCount = true;
+    HBox topBox;
+
 
 
 
@@ -81,31 +83,26 @@ public abstract class GamesTilePane extends BorderPane {
         super();
         this.tilePane = new TilePane();
         this.titleLabel = new Label();
-        this.iconView = new ImageView();
+        this.iconButton = new ImageButton("",Main.SCREEN_HEIGHT/42,Main.SCREEN_HEIGHT/42);
         this.parentScene = parentScene;
         //centerPane.setPrefViewportHeight(tilePane.getPrefHeight());
         setCenter(getTilePane());
-        HBox box = new HBox();
-        box.setAlignment(Pos.CENTER_LEFT);
-        box.getChildren().addAll(iconView,titleLabel);
-        setTop(box);
-        /*titleLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
-                "    -fx-font-size: 28.0px;\n" +
-                "    -fx-stroke: black;\n" +
-                "    -fx-stroke-width: 1;" +
-                "    -fx-font-weight: 200;");*/
-        titleLabel.setId("games-tilepane-title-label");
-        BorderPane.setAlignment(titleLabel, Pos.CENTER_LEFT);
-        Insets padding = new Insets(0 * Main.SCREEN_HEIGHT / 1080
+        topBox = new HBox(10 * Main.SCREEN_WIDTH / 1920);
+        topBox.setAlignment(Pos.CENTER_LEFT);
+        topBox.setFocusTraversable(false);
+        topBox.getChildren().addAll(iconButton,titleLabel);
+        topBox.setPadding(new Insets(15 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920
-                , 0 * Main.SCREEN_HEIGHT / 1080
-                , 10 * Main.SCREEN_WIDTH / 1920);
-
-        titleLabel.setPadding(padding);
-        HBox.setMargin(iconView, new Insets(0 * Main.SCREEN_HEIGHT / 1080
-                , 0 * Main.SCREEN_WIDTH / 1920
-                , 0 * Main.SCREEN_HEIGHT / 1080
+                , 5 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920));
+
+        iconButton.setFocusTraversable(false);
+        iconButton.setManaged(false);
+        setTop(topBox);
+
+        titleLabel.setId("games-tilepane-title-label");
+        //BorderPane.setAlignment(titleLabel, Pos.CENTER_LEFT);
+
         managedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -632,9 +629,10 @@ public abstract class GamesTilePane extends BorderPane {
         return titleLabel;
     }
 
-    public ImageView getIconView(){
-        return iconView;
+    public ImageButton getIconButton(){
+        return iconButton;
     }
+
 
     public void setCacheGameButtons(boolean cache) {
         for (GameButton b : getGameButtons()) {

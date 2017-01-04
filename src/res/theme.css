@@ -752,6 +752,7 @@
 
 #tile-loading-button{
 	-fx-image: url("icons/tile/loading.png");
+	-fx-smooth: true;
 }
 
 #tile-info-button{

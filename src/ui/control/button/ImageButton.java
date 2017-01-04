@@ -149,11 +149,16 @@ public class ImageButton extends Button {
         double height = view.getFitHeight();
         view = new ImageView();
         view.setPreserveRatio(true);
+        view.setSmooth(true);
         view.setFitWidth(width);
         view.setFitHeight(height);
         view.setId(id);
         addEffectsToButton(view);
         setGraphic(view);
+    }
+
+    public void setImageId(String id){
+        view.setId(id);
     }
 }
 
