@@ -100,7 +100,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
     }
 
     private void initSearchingIcon(){
-        getIconButton().setImageId("tile-loading-button");
+        getIconButton().setImageView("tile-loading-button",Main.SCREEN_WIDTH/60,Main.SCREEN_WIDTH/60);
         getIconButton().setVisible(true);
         getIconButton().setManaged(true);
         rotateAnim = new Timeline(

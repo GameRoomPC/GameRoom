@@ -309,7 +309,7 @@ public class GroupsFactory {
                 }
             };
             tilePane.setTitle(launcher.toString());
-            tilePane.getIconButton().setImageId(launcher.getIconCSSID());
+            tilePane.getIconButton().setImageViewId(launcher.getIconCSSID());
             tilePane.getIconButton().setManaged(true);
 
             for (GameButton button : originalTilePane.getGameButtons()) {

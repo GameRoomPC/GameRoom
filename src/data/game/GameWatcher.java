@@ -46,6 +46,8 @@ public class GameWatcher {
 
     private Thread serviceThread;
 
+    private volatile boolean awaitingStart = false;
+
     public static GameWatcher getInstance(){
         if(WATCHER == null){
             WATCHER = new GameWatcher();
@@ -118,11 +120,18 @@ public class GameWatcher {
                     if(onSeachDone!=null){
                         onSeachDone.run();
                     }
-                    try {
-                        Thread.sleep(SCAN_DELAY_MINUTES * 60 * 1000);
-                    } catch (InterruptedException e) {
-                        LOGGER.info("Forced start of GameWatcher");
+                    if(!awaitingStart){
+                        try {
+                            Thread.sleep(SCAN_DELAY_MINUTES * 60 * 1000);
+                            awaitingStart = false;
+                        } catch (InterruptedException e) {
+                            awaitingStart = false;
+                            LOGGER.info("Forced start of GameWatcher");
+                        }
+                    }else{
+                        awaitingStart = false;
                     }
+
                 }
             }
         });
@@ -135,6 +144,7 @@ public class GameWatcher {
         if(serviceThread == null){
             startService();
         }else{
+            awaitingStart = true;
             serviceThread.interrupt();
         }
     }

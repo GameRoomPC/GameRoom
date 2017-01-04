@@ -1,6 +1,7 @@
 package ui.scene;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
+import data.game.GameWatcher;
 import data.game.entry.GameEntry;
 import data.http.key.KeyChecker;
 import javafx.beans.value.ChangeListener;
@@ -214,6 +215,7 @@ public class SettingsScene extends BaseScene {
                 ignoredOptionnal.ifPresent(pairs -> {
                     if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
                         GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
+                        GameWatcher.getInstance().start();
                     }
                 });
             }
