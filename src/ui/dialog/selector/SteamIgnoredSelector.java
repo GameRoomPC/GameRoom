@@ -1,4 +1,4 @@
-package ui.dialog;
+package ui.dialog.selector;
 
 import data.ImageUtils;
 import data.game.scrapper.OnDLDoneHandler;
@@ -21,6 +21,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import ui.Main;
+import ui.dialog.GameRoomDialog;
 import ui.pane.SelectListPane;
 
 import java.io.File;

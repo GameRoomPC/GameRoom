@@ -1,4 +1,4 @@
-package ui.dialog;
+package ui.dialog.selector;
 
 import data.game.scanner.FolderGameScanner;
 import javafx.beans.property.ReadOnlyDoubleProperty;
@@ -16,6 +16,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import sun.awt.shell.ShellFolder;
 import ui.Main;
+import ui.dialog.GameRoomDialog;
 import ui.pane.SelectListPane;
 
 import java.awt.*;

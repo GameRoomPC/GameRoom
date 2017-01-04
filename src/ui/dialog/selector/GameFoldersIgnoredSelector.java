@@ -1,4 +1,4 @@
-package ui.dialog;
+package ui.dialog.selector;
 
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.geometry.Insets;
@@ -14,6 +14,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
+import ui.dialog.GameRoomDialog;
 import ui.pane.SelectListPane;
 
 import java.io.File;

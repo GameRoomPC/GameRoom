@@ -7,7 +7,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import ui.dialog.SteamIgnoredSelector;
+import ui.dialog.selector.SteamIgnoredSelector;
 
 import java.awt.*;
 import java.io.IOException;
