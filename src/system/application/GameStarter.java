@@ -56,7 +56,7 @@ public class GameStarter {
         if (entry.isSteamGame() || entry.getPath().startsWith(STEAM_PREFIX)) {
             terminal.execute(commandsBefore, preLog);
             try {
-                String steamUri = entry.isNotInstalled() ? "steam://install/" + entry.getSteam_id() : entry.getPath();
+                String steamUri = entry.getPath();
                 Desktop.getDesktop().browse(new URI(steamUri));
             } catch (IOException | URISyntaxException e) {
                 e.printStackTrace();
