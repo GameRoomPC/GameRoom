@@ -3,6 +3,7 @@ package ui.control.specific;
 import data.game.entry.GameEntry;
 import data.http.YoutubeSoundtrackScrapper;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.layout.StackPane;
@@ -27,54 +28,55 @@ public class YoutubePlayerAndButton {
         super();
 
         double imgSize = Main.GENERAL_SETTINGS.getWindowWidth() / 35;
-        soundMuteButton = new DualImageButton("mute-button", "sound-button", imgSize, imgSize);
+
+        //TODO inverse state (see link for code), and check that buttons enable itself when music starts https://github.com/n0xew/GameRoom/blob/c3cce2ce90225dc8c963269d47e7778c98a9e1f0/src/ui/control/specific/YoutubePlayerAndButton.java
+        soundMuteButton = new DualImageButton("sound-button","mute-button", imgSize, imgSize);
         //soundMuteButton.setMouseTransparent(true);
         soundMuteButton.setOnDualAction(new OnActionHandler() {
             @Override
             public void handle(ActionEvent me) {
                 if (soundMuteButton.inFirstState()) {
-                    WEB_VIEW.getEngine().executeScript("player.pauseVideo()");
-                } else {
                     WEB_VIEW.getEngine().executeScript("player.playVideo()");
+                } else {
+                    WEB_VIEW.getEngine().executeScript("player.pauseVideo()");
                 }
             }
         });
-        if(WEB_VIEW == null){
+        if (WEB_VIEW == null) {
             WEB_VIEW = new WebView();
-            WEB_VIEW.getEngine().load("about:blank");
-            WEB_VIEW.setPrefWidth(200);
-            WEB_VIEW.setPrefHeight(180);
-            WEB_VIEW.setOpacity(100);
-            WEB_VIEW.setVisible(true);
-            //WEB_VIEW.setMouseTransparent(true);
-            WEB_VIEW.setFocusTraversable(false);
-
-            WEB_VIEW.getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) ->
-            {
-                JSObject window = (JSObject) WEB_VIEW.getEngine().executeScript("window");
-                JavaBridge bridge = new JavaBridge();
-                window.setMember("java", bridge);
-                WEB_VIEW.getEngine().executeScript("console.log = function(message)\n" +
-                        "{\n" +
-                        "    java.log(message);\n" +
-                        "};");
-            });
         }
-        Platform.runLater(() -> {
-            try {
-                String hash = getHash(entry);
-                YoutubePlayerHTML html = new YoutubePlayerHTML(hash);
 
-                ButtonToggler toggler = new ButtonToggler(soundMuteButton);
+        WEB_VIEW.setPrefWidth(200);
+        WEB_VIEW.setPrefHeight(180);
+        WEB_VIEW.setMouseTransparent(true);
+        WEB_VIEW.setFocusTraversable(false);
 
-                WEB_VIEW.getEngine().loadContent(html.getHTMLCode());
-                JSObject win = (JSObject) WEB_VIEW.getEngine().executeScript("window");
-                win.setMember("buttonToggler",toggler);
+        Task playVideoTask = new Task() {
+            @Override
+            protected Object call() throws Exception {
+                try {
+                    String hash = getHash(entry);
+                    YoutubePlayerHTML html = new YoutubePlayerHTML(hash);
 
-            } catch (Exception e) {
-                LOGGER.error(e.toString());
+                    Platform.runLater(() -> {
+                        WEB_VIEW.getEngine().loadContent(html.getHTMLCode());
+                        JSObject win
+                                = (JSObject) WEB_VIEW.getEngine().executeScript("window");
+                        win.setMember("buttonToggler", new ButtonToggler(soundMuteButton));
+                        //soundMuteButton.toggleState();
+                    });
+                } catch (Exception e) {
+                    Main.LOGGER.error(e.toString());
+                }
+                //JSObject jsobj = (JSObject) webView.getEngine().executeScript("window");
+                //jsobj.setMember("button", soundMuteButton);
+                return null;
             }
-        });
+        };
+        Thread th = new Thread(playVideoTask);
+        th.setDaemon(true);
+        th.start();
+
 
         //getChildren().add(WEB_VIEW);
         StackPane.setAlignment(WEB_VIEW, Pos.TOP_RIGHT);
@@ -145,17 +147,12 @@ public class YoutubePlayerAndButton {
         }
 
         public void muteAndDisable() {
-            Main.runAndWait(() -> {
-                mutesoundButton.forceState("mute-button");
-                mutesoundButton.setMouseTransparent(true);
-            });
+            pause();
+            mutesoundButton.setMouseTransparent(true);
         }
 
         public void unmuteAndEnable() {
-            Main.runAndWait(() -> {
-                mutesoundButton.forceState("sound-button");
-                mutesoundButton.setMouseTransparent(false);
-            });
+            play();
         }
     }
 
@@ -198,6 +195,7 @@ public class YoutubePlayerAndButton {
                     "\n" +
                     "      // 4. The API will call this function when the video player is ready.\n" +
                     "      function onPlayerReady(event) {\n" +
+                    "        waitForElement();\n" +
                     "        event.target.playVideo();\n" +
                     "        buttonToggler.unmuteAndEnable();\n" +
                     "      }\n" +
@@ -214,17 +212,18 @@ public class YoutubePlayerAndButton {
                     "      function stopVideo() {\n" +
                     "        player.stopVideo();\n" +
                     "      }\n" +
+                    "      function waitForElement(){\n" +
+                    "           if(typeof buttonToggler !== \"undefined\"){\n" +
+                    "               //variable exists, do what you want\n" +
+                    "           }\n" +
+                    "           else{\n" +
+                    "               setTimeout(waitForElement, 250);\n" +
+                    "           }\n" +
+                    "       }" +
                     "    </script>\n" +
                     "  </body>\n" +
                     "</html>";
 
-        }
-    }
-    private class JavaBridge
-    {
-        public void log(String text)
-        {
-            LOGGER.debug("WebView.js : "+text);
         }
     }
 }

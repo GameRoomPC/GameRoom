@@ -33,8 +33,8 @@ public class YoutubeSoundtrackScrapper {
 
     private final static String VIDEO_SEARCH_SEPARATOR =  "<button class=\"yt-uix-button yt-uix-button-size-small yt-uix-button-default yt-uix-button-empty yt-uix-button-has-icon no-icon-markup addto-button video-actions spf-nolink hide-until-delayloaded addto-watch-later-button-sign-in yt-uix-tooltip\" type=\"button\" onclick=\";return false;\"";
     private final static String VIDEO_URL_PREFIX = "<h3 class=\"yt-lockup-title \"><a href=\"/watch?v=";
-    private final static String VIDEO_TITLE_PREFIX = "\" title=\"";
-    private final static String VIDEO_AUTHOR_SUFFIX = "</a></div><div class=\"yt-lockup-meta\"><ul class=\"yt-lockup-meta-info\"><li>";
+    private final static String VIDEO_TITLE_PREFIX = "\"  title=\"";
+    private final static String VIDEO_AUTHOR_SUFFIX = "</a></div><div class=\"yt-lockup-meta \"><ul class=\"yt-lockup-meta-info\"><li>";
     private final static String VIDEO_AUTHOR_VALIDATED_SUFFIX = "</a>&nbsp;<span class=\"yt-uix-tooltip yt-channel-title-icon-verified yt-sprite\"";
 
     public static String getThemeYoutubeHash(GameEntry entry) throws IOException, UnirestException {
