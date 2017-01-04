@@ -109,54 +109,42 @@ public class InstalledGameScrapper {
     }
 
     public static ArrayList<GameEntry> getBattleNetGames() {
-        String regFolder = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Blizzard Entertainment";
+        String regFolder = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
+        String keywordSeach = "Battle.net\\Agent\\Blizzard Uninstaller.exe";
         String[] excludedNames = new String[]{"Battle.net"};
-        String gameSubFolderSufix = "Capabilities";
-        String linePrefix = "ApplicationIcon    REG_SZ    \"";
-        String lineSuffix = "\",";
-
-        String nameLinePrefix = "ApplicationName    REG_SZ    ";
 
         ArrayList<GameEntry> entries = new ArrayList<>();
         Terminal terminal = new Terminal(false);
-        String[] output = new String[0];
 
         try {
-            output = terminal.execute("reg", "query", '"' + regFolder + '"');
-            for (String s : output) {
-                boolean excluded = false;
-                for (String excludedName : excludedNames) {
-                    excluded = s.toLowerCase().contains(excludedName.toLowerCase());
-                    if (excluded) {
-                        break;
-                    }
-                }
-                if (s.contains(regFolder) && !excluded) {
-                    int index = s.indexOf(regFolder) + regFolder.length() + 1;
-                    String subFolder = s.substring(index);
-                    Terminal terminal2 = new Terminal(false);
-                    String[] subOutPut = terminal2.execute("reg", "query", '"' + regFolder + "\\" + subFolder + "\\" + gameSubFolderSufix + '"');
-                    String installDir = null;
-                    String name = "";
-                    for (String s2 : subOutPut) {
-                        if (s2.contains(linePrefix)) {
-                            int index2 = s2.indexOf(linePrefix) + linePrefix.length();
-                            int indexEnd = s2.indexOf(lineSuffix);
-                            installDir = s2.substring(index2, indexEnd);
-                        } else if (s2.contains(nameLinePrefix)) {
-                            int index2 = s2.indexOf(nameLinePrefix) + nameLinePrefix.length();
-                            name = s2.substring(index2);
+            String[] output = terminal.execute("reg", "query", '"' + regFolder + '"',"/s","/f",'"'+keywordSeach+'"');
+            for (String line : output) {
+                if (line.startsWith(regFolder)) {
+                    String name = line.substring(regFolder.length()+1); //+1 for the \
+
+                    boolean excluded = false;
+                    for (String excludedName : excludedNames) {
+                        excluded = name.equals(excludedName);
+                        if (excluded) {
+                            break;
                         }
                     }
-                    if (installDir != null) {
-                        File file = new File(installDir);
-                        if (file.exists()) {
-                            String path = file.isDirectory() ? file.getAbsolutePath() : new File(file.getAbsolutePath()).getParent();
-                            GameEntry potentialEntry = new GameEntry(name);
-                            potentialEntry.setPath(path);
-                            potentialEntry.setBattlenet_id(0);
-                            potentialEntry.setNotInstalled(false);
-                            entries.add(potentialEntry);
+                    if(!excluded){
+                        String[] gameRegOutput = terminal.execute("reg","query",'"' + regFolder + '\\' + name + '"',"/v","DisplayIcon");
+                        String pathPrefix = "DisplayIcon    REG_SZ";
+                        String path = null;
+                        for(String s : gameRegOutput){
+                            if(s.contains(pathPrefix)){
+                                path = s.substring(s.indexOf(pathPrefix)+pathPrefix.length()).trim();
+                                break;
+                            }
+                        }
+                        if(path!=null){
+                            GameEntry entry = new GameEntry(name);
+                            entry.setPath(path);
+                            entry.setBattlenet_id(0);
+                            entry.setNotInstalled(false);
+                            entries.add(entry);
                         }
                     }
                 }
