@@ -40,13 +40,13 @@ public class Theme {
     /**** META *****/
     private String name = "";
     private String author = "";
-    private Date creationDate;
-    private String version = "";
-    private String description;
+    private transient Date creationDate;
+    private transient String version = "";
+    private transient String description;
 
     /**** FILE SYSTEM ***/
-    private String fileName;
-    private File file;
+    private transient String fileName;
+    private transient File file;
 
     private boolean isDefaultTheme = false;
 
