@@ -125,6 +125,7 @@ public class FolderGameScanner extends GameScanner {
                     || cleanNameForCompareason(foundEntry.getName()).equals(cleanNameForCompareason(entry.getName())); //cannot use UUID as they are different at this pre-add-time
             if (alreadyAddedToLibrary) {
                 //TODO replace launchers with an enum and an id ?
+                entry.setSavedLocaly(true);
                 boolean needRefresh = false;
                 if(!entry.isSteamGame() && foundEntry.isSteamGame()){
                     entry.setSteam_id(foundEntry.getSteam_id());
@@ -146,6 +147,7 @@ public class FolderGameScanner extends GameScanner {
                     entry.setUplay_id(foundEntry.getUplay_id());
                     needRefresh = true;
                 }
+                entry.setSavedLocaly(false);
                 if(needRefresh){
                     if(MAIN_SCENE!=null){
                         MAIN_SCENE.updateGame(entry);
