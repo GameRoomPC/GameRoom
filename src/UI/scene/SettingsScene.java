@@ -33,6 +33,7 @@ import ui.control.textfield.PathTextField;
 import ui.dialog.ActivationKeyDialog;
 import ui.dialog.selector.GameFoldersIgnoredSelector;
 import ui.dialog.GameRoomAlert;
+import ui.dialog.selector.GameScannerSelector;
 import ui.dialog.selector.SteamIgnoredSelector;
 import ui.theme.Theme;
 import ui.theme.ThemeUtils;
@@ -199,6 +200,27 @@ public class SettingsScene extends BaseScene {
         });
         addPropertyLine(PredefinedSetting.GAMING_POWER_MODE);
         addPropertyLine(PredefinedSetting.GAMES_FOLDER);
+
+        /***********************GAME SCANNERS GAMES IGNORED****************************/
+        Label scannersLabel = new Label(Main.SETTINGS_BUNDLE.getString("enabledGameScanners_label") + " : ");
+        scannersLabel.setTooltip(new Tooltip(Main.SETTINGS_BUNDLE.getString("enabledGameScanners_tooltip")));
+        Button manageScannersButton = new Button(Main.RESSOURCE_BUNDLE.getString("manage"));
+
+        manageScannersButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                GameScannerSelector selector = new GameScannerSelector();
+                Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+                ignoredOptionnal.ifPresent(pairs -> {
+                    if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
+                    }
+                });
+            }
+        });
+
+        flowPaneHashMap.get(PredefinedSetting.ENABLED_GAME_SCANNERS.getCategory()).getChildren().add(createLine(scannersLabel, manageScannersButton));
+
 
         /***********************GAME FOLDER IGNORED****************************/
         Label gameFoldersIgnoredLabel = new Label(Main.SETTINGS_BUNDLE.getString("manage_ignored_game_folders_label") + " : ");

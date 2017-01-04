@@ -46,6 +46,7 @@ import ui.control.textfield.PathTextField;
 import ui.dialog.ChoiceDialog;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.GameRoomCustomAlert;
+import ui.dialog.selector.GameScannerSelector;
 import ui.pane.gamestilepane.*;
 import ui.scene.exitaction.ClassicExitAction;
 import ui.scene.exitaction.ExitAction;
@@ -197,37 +198,45 @@ public class MainScene extends BaseScene {
     private void displayWelcomeMessage() {
         if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
             Platform.runLater(() -> {
-                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISPLAY_WELCOME_MESSAGE, false);
                 GameRoomAlert welcomeAlert = new GameRoomAlert(Alert.AlertType.INFORMATION, RESSOURCE_BUNDLE.getString("Welcome_message"));
-                welcomeAlert.setOnHidden(event -> {
-                    GameRoomCustomAlert alert = new GameRoomCustomAlert();
-                    Label text = new Label(RESSOURCE_BUNDLE.getString("welcome_input_folder"));
-                    text.setWrapText(true);
-                    text.setPadding(new Insets(20 * Main.SCREEN_HEIGHT / 1080
-                            , 20 * Main.SCREEN_WIDTH / 1920
-                            , 20 * Main.SCREEN_HEIGHT / 1080
-                            , 20 * Main.SCREEN_WIDTH / 1920));
-                    PathTextField field = new PathTextField(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER), this, PathTextField.FILE_CHOOSER_FOLDER, "");
-                    alert.setBottom(field);
-                    alert.setCenter(text);
-                    alert.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
-                    field.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
-                            , 20 * Main.SCREEN_WIDTH / 1920
-                            , 20 * Main.SCREEN_HEIGHT / 1080
-                            , 20 * Main.SCREEN_WIDTH / 1920));
+                welcomeAlert.showAndWait();
 
-                    alert.getDialogPane().getButtonTypes().addAll(new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE)
-                            , new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
-                    Optional<ButtonType> result = alert.showAndWait();
-                    if (result != null && result.isPresent() && result.get().getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.GAMES_FOLDER, field.getTextField().getText());
-                    } else {
-                        // ... user chose CANCEL or closed the dialog
+                GameRoomAlert configureScannersAlert = new GameRoomAlert(Alert.AlertType.INFORMATION, RESSOURCE_BUNDLE.getString("configure_scanner_messages"));
+                configureScannersAlert.showAndWait();
+
+                GameScannerSelector selector = new GameScannerSelector();
+                Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+                ignoredOptionnal.ifPresent(pairs -> {
+                    if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
                     }
                 });
-                welcomeAlert.show();
+                GameRoomCustomAlert alert = new GameRoomCustomAlert();
+                Label text = new Label(RESSOURCE_BUNDLE.getString("welcome_input_folder"));
+                text.setWrapText(true);
+                text.setPadding(new Insets(20 * Main.SCREEN_HEIGHT / 1080
+                        , 20 * Main.SCREEN_WIDTH / 1920
+                        , 20 * Main.SCREEN_HEIGHT / 1080
+                        , 20 * Main.SCREEN_WIDTH / 1920));
+                PathTextField field = new PathTextField(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER), this, PathTextField.FILE_CHOOSER_FOLDER, "");
+                alert.setBottom(field);
+                alert.setCenter(text);
+                alert.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
+                field.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
+                        , 20 * Main.SCREEN_WIDTH / 1920
+                        , 20 * Main.SCREEN_HEIGHT / 1080
+                        , 20 * Main.SCREEN_WIDTH / 1920));
 
-
+                alert.getDialogPane().getButtonTypes().addAll(new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE)
+                        , new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result != null && result.isPresent() && result.get().getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.GAMES_FOLDER, field.getTextField().getText());
+                } else {
+                    // ... user chose CANCEL or closed the dialog
+                }
+                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISPLAY_WELCOME_MESSAGE, false);
+                startGameLookerService();
             });
         }
     }
@@ -971,6 +980,9 @@ public class MainScene extends BaseScene {
     }
 
     private void startGameLookerService() {
+        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)){
+            return;
+        }
         //toAddTilePane.disableFoldButton(true);
         toAddTilePane.setAutomaticSort(false);
 

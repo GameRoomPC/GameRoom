@@ -145,20 +145,24 @@ public class GeneralSettings {
     }
 
     public boolean isGameScannerEnabled(ScannerProfile profile){
-        ScannerProfile[] disabledValues = (ScannerProfile[]) settingsMap.get(PredefinedSetting.DISABLED_GAME_SCANNERS.getKey()).getSettingValue();
+        ScannerProfile[] enabledValues = (ScannerProfile[]) settingsMap.get(PredefinedSetting.ENABLED_GAME_SCANNERS.getKey()).getSettingValue();
 
-        boolean enabled = true;
-        for(ScannerProfile disabledProfile : disabledValues){
-            enabled = !disabledProfile.equals(profile);
-            if(!enabled){
+        boolean enabled = false;
+        for(ScannerProfile disabledProfile : enabledValues){
+            enabled = enabled || disabledProfile.equals(profile);
+            if(enabled){
                 break;
             }
         }
         return enabled;
     }
 
-    public void setGameScannerEnabled(boolean enabled, ScannerProfile profile){
-        ScannerProfile[] disabledProfiles = (ScannerProfile[]) settingsMap.get(PredefinedSetting.DISABLED_GAME_SCANNERS.getKey()).getSettingValue();
+    public void setGameScannersEnabled(ScannerProfile[] profiles){
+        setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, profiles);
+    }
+
+    /*public void setGameScannerEnabled(boolean enabled, ScannerProfile profile){
+        ScannerProfile[] disabledProfiles = (ScannerProfile[]) settingsMap.get(PredefinedSetting.ENABLED_GAME_SCANNERS.getKey()).getSettingValue();
         if(enabled == isGameScannerEnabled(profile)){
             return;
         }
@@ -177,9 +181,9 @@ public class GeneralSettings {
                 futureDisabledProfiles[i] = disabledProfiles[i+offset];
             }
         }
-        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISABLED_GAME_SCANNERS, futureDisabledProfiles);
+        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, futureDisabledProfiles);
 
-    }
+    }*/
 
     public void setSettingValue(PredefinedSetting key, Object value){
         SettingValue settingValue = new SettingValue(value,value.getClass(),key.getDefaultValue().getCategory());
