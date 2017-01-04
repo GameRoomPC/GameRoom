@@ -6,6 +6,7 @@ import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scanner.FolderGameScanner;
 import data.game.scanner.OnGameFoundHandler;
+import data.game.scanner.ScannerProfile;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -973,7 +974,8 @@ public class MainScene extends BaseScene {
         //toAddTilePane.disableFoldButton(true);
         toAddTilePane.setAutomaticSort(false);
 
-        gameWatcher = new GameWatcher(new OnGameFoundHandler() {
+        gameWatcher = GameWatcher.getInstance();
+        gameWatcher.setOnGameFoundHandler(new OnGameFoundHandler() {
             @Override
             public GameButton gameToAddFound(GameEntry entry) {
                 toAddTilePane.addGame(entry);

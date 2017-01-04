@@ -13,12 +13,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import static ui.Main.GENERAL_SETTINGS;
+import static ui.Main.LOGGER;
 import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 19/08/2016.
  */
 public class SteamOnlineGameScanner extends GameScanner {
+    private ScannerProfile profile = ScannerProfile.STEAM_ONLINE;
     private ArrayList<SteamPreEntry> ownedSteamApps = new ArrayList<>();
     private ArrayList<SteamPreEntry> installedSteamApps = new ArrayList<>();
 
@@ -28,6 +30,10 @@ public class SteamOnlineGameScanner extends GameScanner {
 
     @Override
     public void scanForGames() {
+        if(!profile.isEnabled()){
+            LOGGER.info(profile.toString()+" is disabled.");
+            return;
+        }
         ArrayList<SteamPreEntry> steamEntriesToAdd = new ArrayList<SteamPreEntry>();
         try {
             initGameLists();

@@ -1,6 +1,7 @@
 package data.game.scrapper;
 
 import data.game.entry.GameEntry;
+import data.game.scanner.ScannerProfile;
 import system.os.Terminal;
 
 import java.io.File;
@@ -11,12 +12,8 @@ import java.util.ArrayList;
  * Created by LM on 29/08/2016.
  */
 public class InstalledGameScrapper {
-    private final static int SCRAPPING_GOG = 0;
-    private final static int SCRAPPING_UPLAY = 1;
-    private final static int SCRAPPING_ORIGIN = 2;
-    private final static int SCRAPPING_BATTLE_NET = 3;
 
-    private static ArrayList<GameEntry> getInstalledGames(String regFolder, String installDirPrefix, String namePrefix, int scrappingCode) {
+    private static ArrayList<GameEntry> getInstalledGames(String regFolder, String installDirPrefix, String namePrefix, ScannerProfile scannerProfile) {
         ArrayList<GameEntry> entries = new ArrayList<>();
         Terminal terminal = new Terminal(false);
         String[] output = new String[0];
@@ -58,17 +55,17 @@ public class InstalledGameScrapper {
                             } catch (NumberFormatException nfe) {
                                 //no id to scrap!
                             }
-                            switch (scrappingCode) {
-                                case SCRAPPING_GOG:
+                            switch (scannerProfile) {
+                                case GOG:
                                     potentialEntry.setGog_id(id);
                                     break;
-                                case SCRAPPING_UPLAY:
+                                case UPLAY:
                                     potentialEntry.setUplay_id(id);
                                     break;
-                                case SCRAPPING_BATTLE_NET:
+                                case BATTLE_NET:
                                     potentialEntry.setBattlenet_id(id);
                                     break;
-                                case SCRAPPING_ORIGIN:
+                                case ORIGIN:
                                     potentialEntry.setOrigin_id(id);
                                     break;
                                 default:
@@ -86,11 +83,11 @@ public class InstalledGameScrapper {
     }
 
     public static ArrayList<GameEntry> getUplayGames() {
-        return getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Ubisoft\\Launcher\\Installs", "InstallDir    REG_SZ    ", null, SCRAPPING_UPLAY);
+        return getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Ubisoft\\Launcher\\Installs", "InstallDir    REG_SZ    ", null, ScannerProfile.UPLAY);
     }
 
     public static ArrayList<GameEntry> getGOGGames() {
-        return getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\GOG.com\\Games", "EXE    REG_SZ    ", "GAMENAME    REG_SZ    ", SCRAPPING_GOG);
+        return getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\GOG.com\\Games", "EXE    REG_SZ    ", "GAMENAME    REG_SZ    ", ScannerProfile.GOG);
     }
 
     /**
@@ -103,8 +100,8 @@ public class InstalledGameScrapper {
 
     public static ArrayList<GameEntry> getOriginGames() {
         ArrayList<GameEntry> entries = new ArrayList<>();
-        entries.addAll(getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\EA Games", "Install Dir    REG_SZ    ", "DisplayName    REG_SZ    ", SCRAPPING_ORIGIN));
-        entries.addAll(getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Electronic Arts", "Install Dir    REG_SZ    ", "DisplayName    REG_SZ    ", SCRAPPING_ORIGIN));
+        entries.addAll(getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\EA Games", "Install Dir    REG_SZ    ", "DisplayName    REG_SZ    ", ScannerProfile.ORIGIN));
+        entries.addAll(getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Electronic Arts", "Install Dir    REG_SZ    ", "DisplayName    REG_SZ    ", ScannerProfile.ORIGIN));
         return entries;
     }
 

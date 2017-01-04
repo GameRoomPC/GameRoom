@@ -30,6 +30,8 @@ import static ui.Main.FILES_MAP;
  */
 public class GameWatcher {
     private final static int SCAN_DELAY_MINUTES = 8;
+    private static GameWatcher WATCHER;
+
     private OnGameFoundHandler onGameFoundHandler;
 
     private final ArrayList<GameEntry> entriesToAdd = new ArrayList<>();
@@ -38,34 +40,43 @@ public class GameWatcher {
     private ArrayList<GameScanner> onlineGameScanners = new ArrayList<>();
     private int originalGameFoundNumber = entriesToAdd.size();
 
+    public static GameWatcher getInstance(){
+        if(WATCHER == null){
+            WATCHER = new GameWatcher();
+        }
+        return WATCHER;
+    }
 
-    public GameWatcher(OnGameFoundHandler onGameFoundHandler) {
+    public void setOnGameFoundHandler(OnGameFoundHandler onGameFoundHandler) {
         this.onGameFoundHandler = onGameFoundHandler;
-        localGameScanners.add(new OtherLaunchersScanner(this) {
+    }
+
+    private GameWatcher() {
+        localGameScanners.add(new OtherLaunchersScanner(this,ScannerProfile.GOG) {
             @Override
             public ArrayList<GameEntry> getEntriesInstalled() {
                 return InstalledGameScrapper.getGOGGames();
             }
         });
-        localGameScanners.add(new OtherLaunchersScanner(this) {
+        localGameScanners.add(new OtherLaunchersScanner(this,ScannerProfile.ORIGIN) {
             @Override
             public ArrayList<GameEntry> getEntriesInstalled() {
                 return InstalledGameScrapper.getOriginGames();
             }
         });
-        localGameScanners.add(new OtherLaunchersScanner(this) {
+        localGameScanners.add(new OtherLaunchersScanner(this,ScannerProfile.UPLAY) {
             @Override
             public ArrayList<GameEntry> getEntriesInstalled() {
                 return InstalledGameScrapper.getUplayGames();
             }
         });
-        localGameScanners.add(new OtherLaunchersScanner(this) {
+        localGameScanners.add(new OtherLaunchersScanner(this,ScannerProfile.BATTLE_NET) {
             @Override
             public ArrayList<GameEntry> getEntriesInstalled() {
                 return InstalledGameScrapper.getBattleNetGames();
             }
         });
-        localGameScanners.add(new OtherLaunchersScanner(this) {
+        localGameScanners.add(new OtherLaunchersScanner(this,ScannerProfile.STEAM) {
             @Override
             public ArrayList<GameEntry> getEntriesInstalled() {
                 try {

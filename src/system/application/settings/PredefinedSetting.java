@@ -1,5 +1,6 @@
 package system.application.settings;
 
+import data.game.scanner.ScannerProfile;
 import data.game.scrapper.SteamPreEntry;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
@@ -45,6 +46,7 @@ public enum PredefinedSetting {
     , SCROLLBAR_VVALUE("scrollbarVValue", new SettingValue(0.0,Double.class,CATEGORY_NONE))
     , UI_SCALE("uiscale", new SettingValue(UIScale.NORMAL,UIScale.class,CATEGORY_UI))
     , THEME("theme", new SettingValue(Theme.DEFAULT_THEME,Theme.class,CATEGORY_UI))
+    , DISABLED_GAME_SCANNERS("disabledGameScanners",new SettingValue(new ScannerProfile[]{},ScannerProfile[].class,CATEGORY_GENERAL))
     ;
 
 

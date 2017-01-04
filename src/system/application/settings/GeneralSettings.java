@@ -1,5 +1,6 @@
 package system.application.settings;
 
+import data.game.scanner.ScannerProfile;
 import data.game.scrapper.SteamPreEntry;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
@@ -141,6 +142,43 @@ public class GeneralSettings {
     public Theme getTheme(){
         SettingValue<Theme> settingValue = settingsMap.get(PredefinedSetting.THEME.getKey());
         return settingValue.getSettingValue();
+    }
+
+    public boolean isGameScannerEnabled(ScannerProfile profile){
+        ScannerProfile[] disabledValues = (ScannerProfile[]) settingsMap.get(PredefinedSetting.DISABLED_GAME_SCANNERS.getKey()).getSettingValue();
+
+        boolean enabled = true;
+        for(ScannerProfile disabledProfile : disabledValues){
+            enabled = !disabledProfile.equals(profile);
+            if(!enabled){
+                break;
+            }
+        }
+        return enabled;
+    }
+
+    public void setGameScannerEnabled(boolean enabled, ScannerProfile profile){
+        ScannerProfile[] disabledProfiles = (ScannerProfile[]) settingsMap.get(PredefinedSetting.DISABLED_GAME_SCANNERS.getKey()).getSettingValue();
+        if(enabled == isGameScannerEnabled(profile)){
+            return;
+        }
+        ScannerProfile[] futureDisabledProfiles = new ScannerProfile[0];
+        if(!enabled){
+            futureDisabledProfiles = new ScannerProfile[disabledProfiles.length + 1];
+            System.arraycopy(disabledProfiles, 0, futureDisabledProfiles, 0, disabledProfiles.length);
+            futureDisabledProfiles[futureDisabledProfiles.length - 1] = profile;
+        }else{
+            futureDisabledProfiles = new ScannerProfile[disabledProfiles.length - 1];
+            int offset = 0;
+            for (int i = 0; i < futureDisabledProfiles.length; i++) {
+                if(disabledProfiles[i].equals(profile)){
+                    offset++;
+                }
+                futureDisabledProfiles[i] = disabledProfiles[i+offset];
+            }
+        }
+        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISABLED_GAME_SCANNERS, futureDisabledProfiles);
+
     }
 
     public void setSettingValue(PredefinedSetting key, Object value){
