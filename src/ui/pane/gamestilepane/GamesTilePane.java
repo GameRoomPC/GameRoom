@@ -17,8 +17,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import ui.Main;
@@ -49,6 +51,7 @@ public abstract class GamesTilePane extends BorderPane {
 
     TilePane tilePane;
     Label titleLabel;
+    javafx.scene.image.ImageView iconView;
     ObservableList<GameButton> tilesList = FXCollections.observableArrayList();
 
     MainScene parentScene;
@@ -78,10 +81,14 @@ public abstract class GamesTilePane extends BorderPane {
         super();
         this.tilePane = new TilePane();
         this.titleLabel = new Label();
+        this.iconView = new ImageView();
         this.parentScene = parentScene;
         //centerPane.setPrefViewportHeight(tilePane.getPrefHeight());
         setCenter(getTilePane());
-        setTop(titleLabel);
+        HBox box = new HBox();
+        box.setAlignment(Pos.CENTER_LEFT);
+        box.getChildren().addAll(iconView,titleLabel);
+        setTop(box);
         /*titleLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
                 "    -fx-font-size: 28.0px;\n" +
                 "    -fx-stroke: black;\n" +
@@ -89,8 +96,14 @@ public abstract class GamesTilePane extends BorderPane {
                 "    -fx-font-weight: 200;");*/
         titleLabel.setId("games-tilepane-title-label");
         BorderPane.setAlignment(titleLabel, Pos.CENTER_LEFT);
-        titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
+        Insets padding = new Insets(0 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920
+                , 0 * Main.SCREEN_HEIGHT / 1080
+                , 10 * Main.SCREEN_WIDTH / 1920);
+
+        titleLabel.setPadding(padding);
+        HBox.setMargin(iconView, new Insets(0 * Main.SCREEN_HEIGHT / 1080
+                , 0 * Main.SCREEN_WIDTH / 1920
                 , 0 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920));
         managedProperty().addListener(new ChangeListener<Boolean>() {
@@ -617,6 +630,10 @@ public abstract class GamesTilePane extends BorderPane {
 
     public Label getTitle() {
         return titleLabel;
+    }
+
+    public ImageView getIconView(){
+        return iconView;
     }
 
     public void setCacheGameButtons(boolean cache) {

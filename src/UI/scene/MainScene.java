@@ -647,7 +647,24 @@ public class MainScene extends BaseScene {
             scrollPane.setVvalue(scrollPane.getVmin());
         });
 
-        groupMenu.getItems().addAll(groupByAll, groupByGenre, groupByTheme, groupBySerie);
+        MenuItem groupByLauncher = new MenuItem(Main.RESSOURCE_BUNDLE.getString("group_by_launcher"));
+        groupByLauncher.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.setForcedHidden(true);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
+            toAddTilePane.setForcedHidden(true);
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+            groupRowList = GroupsFactory.createGroupsByLaunchers(lastPlayedTilePane, this);
+            tilesPaneWrapper.getChildren().addAll(groupRowList);
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+
+        groupMenu.getItems().addAll(groupByAll, groupByGenre, groupByTheme, groupBySerie, groupByLauncher);
 
         groupButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override

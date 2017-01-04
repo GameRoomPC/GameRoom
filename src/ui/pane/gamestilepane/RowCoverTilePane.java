@@ -217,7 +217,7 @@ public class RowCoverTilePane extends CoverTilePane {
             }
         });
         buttonsBox.setAlignment(Pos.CENTER_LEFT);
-        buttonsBox.getChildren().addAll(titleLabel, foldToggleButton);
+        buttonsBox.getChildren().addAll(iconView,titleLabel, foldToggleButton);
         setTop(buttonsBox);
 
         setBottom(separator);

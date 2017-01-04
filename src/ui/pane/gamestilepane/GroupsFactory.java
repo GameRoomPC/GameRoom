@@ -3,6 +3,8 @@ package ui.pane.gamestilepane;
 import data.game.entry.GameEntry;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
+import data.game.scanner.GameScanner;
+import data.game.scanner.ScannerProfile;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import ui.Main;
@@ -261,5 +263,107 @@ public class GroupsFactory {
             allTilePanes.add(othersTilePane);
         }
         return allTilePanes;
+    }
+
+    public static ArrayList<GroupRowTilePane> createGroupsByLaunchers(GamesTilePane originalTilePane, MainScene mainScene) {
+        ArrayList<GroupRowTilePane> allTilePanes = new ArrayList<>();
+        GroupRowTilePane othersTilePane = new GroupRowTilePane(mainScene) {
+            @Override
+            public boolean fillsRequirement(GameEntry entry) {
+                boolean alreadyIn = false;
+                for (int i = 0; i < getGameButtons().size() && !alreadyIn; i++) {
+                    alreadyIn = indexOfTile(entry) != -1;
+                    if (alreadyIn) {
+                        return false;
+                    }
+                }
+                boolean notFromLaunchers = true;
+                for(ScannerProfile launcher : ScannerProfile.values()){
+                    notFromLaunchers = !isEntryFromLauncher(entry,launcher);
+                    if(!notFromLaunchers){
+                        break;
+                    }
+                }
+                return notFromLaunchers;
+            }
+        };
+        othersTilePane.setTitle(Main.RESSOURCE_BUNDLE.getString("others"));
+        originalTilePane.getTilePane().prefTileWidthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                othersTilePane.setPrefTileWidth(newValue.doubleValue());
+            }
+        });
+        originalTilePane.getTilePane().prefTileHeightProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                othersTilePane.setPrefTileHeight(newValue.doubleValue());
+            }
+        });
+        othersTilePane.setPrefTileHeight(originalTilePane.getTilePane().getPrefTileHeight());
+        othersTilePane.setPrefTileWidth(originalTilePane.getTilePane().getPrefTileWidth());
+        for (ScannerProfile launcher : ScannerProfile.values()) {
+            GroupRowTilePane tilePane = new GroupRowTilePane(mainScene) {
+                @Override
+                public boolean fillsRequirement(GameEntry entry) {
+                    return isEntryFromLauncher(entry,launcher);
+                }
+            };
+            tilePane.setTitle(launcher.toString());
+            tilePane.getIconView().setId(launcher.getIconCSSID());
+            tilePane.getIconView().setFitHeight(Main.SCREEN_HEIGHT/42);
+            tilePane.getIconView().setFitWidth(Main.SCREEN_HEIGHT/42);
+
+            for (GameButton button : originalTilePane.getGameButtons()) {
+                tilePane.addGame(button.getEntry());
+                othersTilePane.addGame(button.getEntry());
+            }
+            if (tilePane.getGameButtons().size() > 0) {
+                originalTilePane.getTilePane().prefTileWidthProperty().addListener(new ChangeListener<Number>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                        tilePane.setPrefTileWidth(newValue.doubleValue());
+                    }
+                });
+                originalTilePane.getTilePane().prefTileHeightProperty().addListener(new ChangeListener<Number>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                        tilePane.setPrefTileHeight(newValue.doubleValue());
+                    }
+                });
+                tilePane.setPrefTileHeight(originalTilePane.getTilePane().getPrefTileHeight());
+                tilePane.setPrefTileWidth(originalTilePane.getTilePane().getPrefTileWidth());
+                allTilePanes.add(tilePane);
+            }
+        }
+        allTilePanes.sort(new Comparator<RowCoverTilePane>() {
+            @Override
+            public int compare(RowCoverTilePane o1, RowCoverTilePane o2) {
+                return o1.getTitle().getText().compareTo(o2.getTitle().getText());
+            }
+        });
+        if (othersTilePane.getGameButtons().size() > 0) {
+            allTilePanes.add(othersTilePane);
+        }
+        return allTilePanes;
+    }
+
+    private static boolean isEntryFromLauncher(GameEntry entry, ScannerProfile profile){
+        switch (profile){
+            case STEAM:
+                return entry.isSteamGame() && !entry.isNotInstalled();
+            case STEAM_ONLINE:
+                return entry.isSteamGame() && entry.isNotInstalled();
+            case BATTLE_NET:
+                return entry.isBattlenetGame();
+            case GOG:
+                return entry.isGoGGame();
+            case ORIGIN:
+                return entry.isOriginGame();
+            case UPLAY:
+                return entry.isUplayGame();
+            default:
+                return false;
+        }
     }
 }
