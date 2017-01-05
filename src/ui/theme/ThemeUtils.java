@@ -6,11 +6,12 @@ import data.http.key.KeyChecker;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import net.lingala.zip4j.exception.ZipException;
 import system.application.GameRoomUpdater;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +26,7 @@ public class ThemeUtils {
     private final static String DEFAULT_THEME_CSS = "res/theme.css";
     private final static List<Theme> INSTALLED_THEMES = new ArrayList<>();
     private final static String SERVER_URL = "https://gameroom.me";
+    private static boolean hasCheckedForThemeUpdates = false;
 
     private static String getThemeCSS() {
         File themeCSS = Main.FILES_MAP.get("theme_css");
@@ -43,6 +45,17 @@ public class ThemeUtils {
     }
 
     public static void applyCurrentTheme(Parent parent) {
+        if(!hasCheckedForThemeUpdates){
+            Theme updatedTheme = checkForUpdatesOfCurrentTheme();
+            if(updatedTheme!=null){
+                try {
+                    updatedTheme.applyTheme();
+                } catch (IOException | ZipException e) {
+                    e.printStackTrace();
+                }
+            }
+            hasCheckedForThemeUpdates = true;
+        }
         parent.getStylesheets().add(getThemeCSS());
     }
 
@@ -77,5 +90,38 @@ public class ThemeUtils {
             }
         }
         return Theme.DEFAULT_THEME;
+    }
+
+    private static Theme readCurrentTheme() throws IOException {
+        File currentThemeFolder = Main.FILES_MAP.get("current_theme");
+        if(currentThemeFolder==null || !currentThemeFolder.exists()){
+            throw new FileNotFoundException();
+        }
+
+        File propertiesFile = new File(currentThemeFolder.getPath()+File.separator+"info.properties");
+        if(propertiesFile==null || !propertiesFile.exists()){
+            throw new FileNotFoundException();
+        }
+
+        InputStream stream = new FileInputStream(propertiesFile);
+        return Theme.readConfig(stream);
+    }
+
+    private static Theme checkForUpdatesOfCurrentTheme(){
+        try {
+            Theme currentTheme = readCurrentTheme();
+            for(Theme theme : getInstalledThemes()){
+                if(theme.getName().equals(currentTheme.getName()) && theme.getAuthor().equals(currentTheme.getAuthor())){
+                    int compareason = theme.compareVersion(currentTheme);
+                    if(compareason == 1){
+                        LOGGER.info("Theme \""+theme.getName()+"\" has a new version to apply : "+theme.getVersion());
+                        return theme;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            return null;
+        }
+        return null;
     }
 }
