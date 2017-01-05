@@ -15,6 +15,7 @@ import ui.scene.GameEditScene;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -41,8 +42,8 @@ public class GameWatcher {
     private ArrayList<GameScanner> onlineGameScanners = new ArrayList<>();
     private int originalGameFoundNumber = entriesToAdd.size();
 
-    private Runnable onSearchStarted;
-    private Runnable onSeachDone;
+    private ArrayList<Runnable> onSearchStartedListeners = new ArrayList<>();
+    private ArrayList<Runnable> onSearchDoneListeners = new ArrayList<>();
 
     private Thread serviceThread;
 
@@ -105,8 +106,10 @@ public class GameWatcher {
             public void run() {
                 initToAddEntries();
                 while (Main.KEEP_THREADS_RUNNING) {
-                    if(onSearchStarted!=null){
-                        onSearchStarted.run();
+                    for(Runnable onSearchStarted : onSearchStartedListeners) {
+                        if (onSearchStarted != null) {
+                            onSearchStarted.run();
+                        }
                     }
                     LOGGER.info("GameWatcher started");
                     //validateKey();
@@ -117,8 +120,10 @@ public class GameWatcher {
                     scanSteamGamesTime();
 
                     LOGGER.info("GameWatcher ended");
-                    if(onSeachDone!=null){
-                        onSeachDone.run();
+                    for(Runnable onSeachDone : onSearchDoneListeners) {
+                        if (onSeachDone != null) {
+                            onSeachDone.run();
+                        }
                     }
                     if(!awaitingStart){
                         try {
@@ -447,11 +452,15 @@ public class GameWatcher {
         entriesToAdd.removeAll(toRemoveEntries);
     }
 
-    public void setOnSearchStarted(Runnable onSearchStarted) {
-        this.onSearchStarted = onSearchStarted;
+    public void addOnSearchStartedListener(Runnable onSearchStarted){
+        if(onSearchStarted!=null) {
+            onSearchStartedListeners.add(onSearchStarted);
+        }
     }
 
-    public void setOnSeachDone(Runnable onSeachDone) {
-        this.onSeachDone = onSeachDone;
+    public void addOnSearchDoneListener(Runnable onSearchDone){
+        if(onSearchDone!=null) {
+            onSearchDoneListeners.add(onSearchDone);
+        }
     }
 }

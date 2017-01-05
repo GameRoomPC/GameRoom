@@ -42,6 +42,7 @@ import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
+import ui.control.specific.GeneralToast;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ChoiceDialog;
 import ui.dialog.GameRoomAlert;
@@ -469,8 +470,8 @@ public class MainScene extends BaseScene {
                 Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
             }
         });
-        sizeSlider.setPrefWidth(Main.SCREEN_WIDTH / 8);
-        sizeSlider.setMaxWidth(Main.SCREEN_WIDTH / 8);
+        sizeSlider.setPrefWidth(Main.SCREEN_WIDTH / 12);
+        sizeSlider.setMaxWidth(Main.SCREEN_WIDTH / 12);
         sizeSlider.setPrefHeight(Main.SCREEN_WIDTH / 160);
         sizeSlider.setMaxHeight(Main.SCREEN_WIDTH / 160);
 
@@ -743,10 +744,23 @@ public class MainScene extends BaseScene {
             getRootStackPane().setMouseTransparent(false);
         });
 
+        ImageButton scanButton = new ImageButton("tile-loading-button", SCREEN_WIDTH / 35.0, SCREEN_WIDTH / 35.0);
+        scanButton.setFocusTraversable(false);
+        scanButton.setOnMousePressed(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.isPrimaryButtonDown()) {
+                    GameWatcher.getInstance().start();
+                }
+            }
+        });
+        GameWatcher.getInstance().addOnSearchStartedListener(() -> scanButton.setDisable(true));
+        GameWatcher.getInstance().addOnSearchDoneListener(() -> scanButton.setDisable(false));
+
         HBox hbox = new HBox();
         hbox.setPadding(new Insets(15, 12, 15, 10));
         hbox.setSpacing(0);
-        hbox.getChildren().addAll(addButton, sortButton, groupButton, settingsButton, sizeSlider);
+        hbox.getChildren().addAll(addButton,scanButton, sortButton, groupButton, settingsButton, sizeSlider);
         hbox.setAlignment(Pos.CENTER_LEFT);
 
         searchField = new TextField();
@@ -1004,8 +1018,14 @@ public class MainScene extends BaseScene {
         toAddTilePane.setAutomaticSort(false);
 
         gameWatcher = GameWatcher.getInstance();
-        gameWatcher.setOnSearchStarted(() -> toAddTilePane.enableSearchingIcon(true));
-        gameWatcher.setOnSeachDone(() -> toAddTilePane.enableSearchingIcon(false));
+        gameWatcher.addOnSearchStartedListener(() -> {
+            toAddTilePane.enableSearchingIcon(true);
+            GeneralToast.displayToast("Search started",MainScene.this);
+        });
+        gameWatcher.addOnSearchDoneListener(() -> {
+            toAddTilePane.enableSearchingIcon(false);
+            GeneralToast.displayToast("Search done",MainScene.this);
+        });
         toAddTilePane.getIconButton().setOnAction(event -> gameWatcher.start());
         gameWatcher.setOnGameFoundHandler(new OnGameFoundHandler() {
             @Override
