@@ -25,10 +25,6 @@ public class GeneralToast extends Tooltip {
     private int duration;
     private boolean interruptible = false;
 
-    private GeneralToast(String text, Window window) {
-        this(text, DURATION_LONG,window);
-    }
-
     private GeneralToast(String text, int duration, Window window) {
         super(text);
         this.duration = duration;

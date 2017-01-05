@@ -21,6 +21,7 @@ import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.InfoGameButton;
+import ui.control.specific.GeneralToast;
 import ui.control.specific.YoutubePlayerAndButton;
 import ui.dialog.GameRoomAlert;
 
@@ -89,6 +90,7 @@ public class GameInfoScene extends BaseScene {
                 if (result.get() == ButtonType.OK) {
                     entry.deleteFiles();
                     MAIN_SCENE.removeGame(entry);
+                    GeneralToast.displayToast(entry.getName()+Main.getString("removed_from_your_lib"),getWindow());
                     fadeTransitionTo(previousScene, getParentStage());
                 }
             }

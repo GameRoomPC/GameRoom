@@ -10,6 +10,7 @@ import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.AddIgnoreGameButton;
 import ui.control.button.gamebutton.GameButton;
+import ui.control.specific.GeneralToast;
 import ui.dialog.ChoiceDialog;
 import ui.scene.GameEditScene;
 import ui.scene.MainScene;
@@ -69,6 +70,11 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
                         entry.setAddedDate(new Date());
                         MAIN_SCENE.addGame(entry);
                     }
+                    if(MAIN_SCENE!=null){
+                        String end = entries.size() > 1 ? Main.getString("new_games") : Main.getString("new_game");
+                        GeneralToast.displayToast(Main.getString("gameroom_has_found")+" "+entries.size()+" "+end,MAIN_SCENE.getWindow(),GeneralToast.DURATION_LONG);
+                    }
+
                 } else if (letter.getText().equals(RESSOURCE_BUNDLE.getString("add_all_edit"))) {
                     ArrayList<GameEntry> entries = new ArrayList<GameEntry>();
                     for (GameButton b : tilesList) {

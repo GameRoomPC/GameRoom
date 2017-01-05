@@ -84,6 +84,9 @@ public class YoutubeSoundtrackScrapper {
         pointsForKeyword.put("main menu", 30);
         pointsForKeyword.put("music",5);
         pointsForKeyword.put("remix",-50);
+        pointsForKeyword.put("mix",-50);
+        pointsForKeyword.put("dj",-30);
+        pointsForKeyword.put("mod",-30);
         pointsForKeyword.put("edit",-30);
         pointsForKeyword.put("cover", -20);
         pointsForKeyword.put("Note Block",-30);
