@@ -11,6 +11,7 @@ import ui.theme.ThemeUtils;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static ui.Main.GENERAL_SETTINGS;
+import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 05/01/2017.
@@ -71,7 +72,7 @@ public class GeneralToast extends Tooltip {
                     while ((toast1 = TOAST_QUEUE.poll()) != null && ENABLED) { // does not block on empty list but returns null instead
                         toast1.showTimed(window);
                         try {
-                            Thread.sleep(100);
+                            Thread.sleep(50);
                         } catch (InterruptedException ignored) {
 
                         }

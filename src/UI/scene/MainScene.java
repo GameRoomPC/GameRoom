@@ -1000,11 +1000,11 @@ public class MainScene extends BaseScene {
         gameWatcher = GameWatcher.getInstance();
         gameWatcher.addOnSearchStartedListener(() -> {
             toAddTilePane.enableSearchingIcon(true);
-            GeneralToast.displayToast(Main.getString("search_started"),getParentStage(),GeneralToast.DURATION_LONG);
+            GeneralToast.displayToast(Main.getString("search_started"),getParentStage(),GeneralToast.DURATION_SHORT);
         });
         gameWatcher.addOnSearchDoneListener(() -> {
             toAddTilePane.enableSearchingIcon(false);
-            GeneralToast.displayToast(Main.getString("search_done"),getParentStage(),GeneralToast.DURATION_LONG);
+            GeneralToast.displayToast(Main.getString("search_done"),getParentStage(),GeneralToast.DURATION_SHORT);
         });
         toAddTilePane.getIconButton().setOnAction(event -> gameWatcher.start());
         gameWatcher.setOnGameFoundHandler(new OnGameFoundHandler() {
