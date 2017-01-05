@@ -100,12 +100,12 @@ public class SteamOnlineScrapper {
         if (gameInfoJson != null) {
             GameEntry entry = new GameEntry(gameInfoJson.getString("name"));
             entry.setDescription(Jsoup.parse(gameInfoJson.getString("about_the_game")).text());
+            JSONObject releaseDateJSOB = null;
             try {
-                entry.setReleaseDate(STEAM_DATE_FORMAT.parse(gameInfoJson.getJSONObject("release_date").getString("date")));
-            } catch (ParseException e) {
-                Main.LOGGER.error("Invalid release date format");
-            } catch (NumberFormatException e) {
-                Main.LOGGER.error("Invalid release date format");
+                releaseDateJSOB = gameInfoJson.getJSONObject("release_date");
+                entry.setReleaseDate(STEAM_DATE_FORMAT.parse(releaseDateJSOB.getString("date")));
+            } catch (ParseException | NumberFormatException e) {
+                Main.LOGGER.error("Invalid release date format for game : "+entry.getName()+", received json : "+releaseDateJSOB);
             }
             entry.setSteam_id(steamId);
             if (installedSteamApps != null) {
@@ -124,15 +124,18 @@ public class SteamOnlineScrapper {
     }
 
     public static GameEntry getEntryForSteamId(int steamId, ArrayList<SteamPreEntry> installedSteamApps) throws ConnectTimeoutException,UnirestException {
+        try {
+            Thread.sleep(150);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         JSONObject gameInfoJson = getInfoForGame(steamId);
         if (gameInfoJson != null) {
             GameEntry entry = new GameEntry(gameInfoJson.getString("name"));
             entry.setDescription(Jsoup.parse(gameInfoJson.getString("about_the_game")).text());
             try {
                 entry.setReleaseDate(STEAM_DATE_FORMAT.parse(gameInfoJson.getJSONObject("release_date").getString("date")));
-            } catch (ParseException e) {
-                Main.LOGGER.error("Invalid release date format");
-            } catch (NumberFormatException e) {
+            } catch (ParseException | NumberFormatException e) {
                 Main.LOGGER.error("Invalid release date format");
             }
             entry.setSteam_id(steamId);

@@ -1,5 +1,6 @@
 package system.application.settings;
 
+import data.game.scanner.ScannerProfile;
 import data.game.scrapper.SteamPreEntry;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
@@ -25,7 +26,9 @@ public enum PredefinedSetting {
     ,GAMING_POWER_MODE("gamingPowerMode", new SettingValue(PowerMode.getActivePowerMode(),PowerMode.class,CATEGORY_ON_GAME_START))
     ,ENABLE_GAMING_POWER_MODE("enableGamingPowerMode", new SettingValue(false,Boolean.class,CATEGORY_ON_GAME_START))
     , NO_NOTIFICATIONS("noNotifications", new SettingValue(false,Boolean.class, CATEGORY_UI))
+    , NO_TOASTS("noToasts", new SettingValue(false,Boolean.class, CATEGORY_UI))
     ,START_MINIMIZED("startMinimized", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
+    ,WINDOW_MAXIMIZED("windowMaximized", new SettingValue(true,Boolean.class,CATEGORY_NONE))
     ,START_WITH_WINDOWS("startWithWindows", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     ,NO_MORE_ICON_TRAY_WARNING("noMoreIconTrayWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,ENABLE_XBOX_CONTROLLER_SUPPORT("enableXboxControllerSupport", new SettingValue(false,Boolean.class,CATEGORY_UI))
@@ -45,6 +48,7 @@ public enum PredefinedSetting {
     , SCROLLBAR_VVALUE("scrollbarVValue", new SettingValue(0.0,Double.class,CATEGORY_NONE))
     , UI_SCALE("uiscale", new SettingValue(UIScale.NORMAL,UIScale.class,CATEGORY_UI))
     , THEME("theme", new SettingValue(Theme.DEFAULT_THEME,Theme.class,CATEGORY_UI))
+    , ENABLED_GAME_SCANNERS("enabledGameScanners",new SettingValue(ScannerProfile.values(),ScannerProfile[].class,CATEGORY_GENERAL))
     ;
 
 

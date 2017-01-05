@@ -56,8 +56,8 @@ public class ConsoleOutputDialog extends GameRoomDialog {
 
         mainPane.setCenter(pane);
 
-        ButtonType openLog = new ButtonType(Main.RESSOURCE_BUNDLE.getString("open_log"), ButtonBar.ButtonData.LEFT);
-        getDialogPane().getButtonTypes().addAll(new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE));
+        ButtonType openLog = new ButtonType(Main.getString("open_log"), ButtonBar.ButtonData.LEFT);
+        getDialogPane().getButtonTypes().addAll(new ButtonType(Main.getString("ok"), ButtonBar.ButtonData.OK_DONE));
         getDialogPane().getButtonTypes().addAll(openLog);
         setOnHiding(event -> {
             textArea.setText("");
@@ -72,7 +72,7 @@ public class ConsoleOutputDialog extends GameRoomDialog {
             showing = true;
             Optional<ButtonType> result = showAndWait();
             result.ifPresent(buttonType -> {
-                if(buttonType.getText().equals(Main.RESSOURCE_BUNDLE.getString("open_log"))){
+                if(buttonType.getText().equals(Main.getString("open_log"))){
                     try {
                         Desktop.getDesktop().open(new File("log"+File.separator+"GameRoom.log"));
                     } catch (IOException e) {

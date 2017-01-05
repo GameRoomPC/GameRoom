@@ -2,8 +2,10 @@ package ui.pane;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
@@ -28,15 +30,17 @@ public abstract class SelectListPane<T> extends ScrollPane {
     private boolean multiSelection = false;
 
 
-    public SelectListPane(double prefHeight){
-        this(prefHeight,false);
+    public SelectListPane(){
+        this(false);
     }
-    public SelectListPane(double prefHeight,boolean multiSelection){
+    public SelectListPane(boolean multiSelection){
         super();
+        setFitToWidth(true);
         this.multiSelection = multiSelection;
         resultsPane.setFillWidth(true);
         resultsPane.setSpacing(10 * Main.SCREEN_HEIGHT / 1080);
-        resultsPane.setPrefHeight(prefHeight);
+        resultsPane.setPadding(new Insets(5 * Main.SCREEN_HEIGHT / 1080));
+        //resultsPane.setPrefHeight(prefHeight);
         resultsPane.getStyleClass().add("vbox");
 
         setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -76,6 +80,13 @@ public abstract class SelectListPane<T> extends ScrollPane {
         }
         resultsPane.getChildren().add(item);
         items.add(item);
+
+        item.widthProperty().addListener((observable, oldValue, newValue) -> {
+            double prefWitdh = getPrefWidth();
+            if(prefWitdh < newValue.doubleValue()){
+                setPrefWidth(newValue.doubleValue());
+            }
+        });
     }
     public void addSeparator(String text){
         Label textLabel = new Label(text);
@@ -157,9 +168,11 @@ public abstract class SelectListPane<T> extends ScrollPane {
                     if(newValue){
                         setId("selected-item");
                     }else{
+                        setId("unselected-item");
                         getStylesheets().clear();
                     }
                     if(!multiSelection && oldValue && !newValue){
+                        setId("unselected-item");
                         getStylesheets().clear();
                         parentList.removeSelectedValue(getValue());
                     }

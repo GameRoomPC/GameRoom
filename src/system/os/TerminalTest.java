@@ -59,7 +59,7 @@ public class TerminalTest extends Application {
         SCREEN_WIDTH = (int) screenSize.getWidth();
         SCREEN_HEIGHT = (int) screenSize.getHeight();
         GENERAL_SETTINGS = new GeneralSettings();
-        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
+        Main.setRessourceBundle(ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE)));
 
         launch(args);
     }

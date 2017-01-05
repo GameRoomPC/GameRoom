@@ -125,7 +125,7 @@ public class FileDownloader extends Task<Path> {
     // Mark this download as having an error.
     public void errorDownload() {
         status = ERROR;
-        updateMessage(Main.RESSOURCE_BUNDLE.getString("error"));
+        updateMessage(Main.getString("error"));
         failed();
     }
 

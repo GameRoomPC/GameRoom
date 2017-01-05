@@ -1,6 +1,7 @@
 package ui.scene;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
+import data.game.GameWatcher;
 import data.game.entry.GameEntry;
 import data.http.key.KeyChecker;
 import javafx.beans.value.ChangeListener;
@@ -31,9 +32,10 @@ import ui.control.ValidEntryCondition;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ActivationKeyDialog;
-import ui.dialog.GameFoldersIgnoredSelector;
+import ui.dialog.selector.GameFoldersIgnoredSelector;
 import ui.dialog.GameRoomAlert;
-import ui.dialog.SteamIgnoredSelector;
+import ui.dialog.selector.GameScannerSelector;
+import ui.dialog.selector.SteamIgnoredSelector;
 import ui.theme.Theme;
 import ui.theme.ThemeUtils;
 import ui.theme.UIScale;
@@ -41,7 +43,6 @@ import ui.theme.UIScale;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -106,9 +107,9 @@ public class SettingsScene extends BaseScene {
             flowPane.setPadding(new Insets(20 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920, 20 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920));
 
 
-            Tab tab = new Tab(Main.RESSOURCE_BUNDLE.getString(category));
+            Tab tab = new Tab(Main.getString(category));
             tab.setClosable(false);
-            tab.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString(category)));
+            tab.setTooltip(new Tooltip(Main.getString(category)));
             tab.setContent(scrollPane);
             tabHashMap.put(category, tab);
 
@@ -120,6 +121,7 @@ public class SettingsScene extends BaseScene {
         addPropertyLine(PredefinedSetting.LOCALE, false);
         addPropertyLine(PredefinedSetting.ON_GAME_LAUNCH_ACTION);
         addPropertyLine(PredefinedSetting.NO_NOTIFICATIONS);
+        addPropertyLine(PredefinedSetting.NO_TOASTS,true);
         addPropertyLine(PredefinedSetting.START_WITH_WINDOWS, false, new ChangeListener() {
             @Override
             public void changed(ObservableValue observable, Object oldValue, Object newValue) {
@@ -161,7 +163,7 @@ public class SettingsScene extends BaseScene {
                 if (newValue instanceof Boolean) {
                     if (!(Boolean) newValue) {
                         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
-                        alert.setContentText(Main.RESSOURCE_BUNDLE.getString("warning_youtube_player"));
+                        alert.setContentText(Main.getString("warning_youtube_player"));
                         alert.showAndWait();
                     }
                 }
@@ -201,10 +203,32 @@ public class SettingsScene extends BaseScene {
         addPropertyLine(PredefinedSetting.GAMING_POWER_MODE);
         addPropertyLine(PredefinedSetting.GAMES_FOLDER);
 
+        /***********************GAME SCANNERS GAMES IGNORED****************************/
+        Label scannersLabel = new Label(Main.SETTINGS_BUNDLE.getString("enabledGameScanners_label") + " : ");
+        scannersLabel.setTooltip(new Tooltip(Main.SETTINGS_BUNDLE.getString("enabledGameScanners_tooltip")));
+        Button manageScannersButton = new Button(Main.getString("manage"));
+
+        manageScannersButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                GameScannerSelector selector = new GameScannerSelector();
+                Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+                ignoredOptionnal.ifPresent(pairs -> {
+                    if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
+                        GameWatcher.getInstance().start();
+                    }
+                });
+            }
+        });
+
+        flowPaneHashMap.get(PredefinedSetting.ENABLED_GAME_SCANNERS.getCategory()).getChildren().add(createLine(scannersLabel, manageScannersButton));
+
+
         /***********************GAME FOLDER IGNORED****************************/
-        Label gameFoldersIgnoredLabel = new Label(Main.SETTINGS_BUNDLE.getString("manage_ignored_game_folders_label") + ": ");
+        Label gameFoldersIgnoredLabel = new Label(Main.SETTINGS_BUNDLE.getString("manage_ignored_game_folders_label") + " : ");
         gameFoldersIgnoredLabel.setTooltip(new Tooltip(Main.SETTINGS_BUNDLE.getString("manage_ignored_game_folders_tooltip")));
-        Button manageGameFoldersIgnoredButton = new Button(Main.RESSOURCE_BUNDLE.getString("manage"));
+        Button manageGameFoldersIgnoredButton = new Button(Main.getString("manage"));
 
         manageGameFoldersIgnoredButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -225,9 +249,9 @@ public class SettingsScene extends BaseScene {
         flowPaneHashMap.get(PredefinedSetting.IGNORED_GAME_FOLDERS.getCategory()).getChildren().add(createLine(gameFoldersIgnoredLabel, manageGameFoldersIgnoredButton));
 
         /***********************STEAM GAMES IGNORED****************************/
-        Label steamIgnoredGamesLabel = new Label(Main.SETTINGS_BUNDLE.getString("manage_ignored_steam_games_label") + ": ");
+        Label steamIgnoredGamesLabel = new Label(Main.SETTINGS_BUNDLE.getString("manage_ignored_steam_games_label") + " : ");
         steamIgnoredGamesLabel.setTooltip(new Tooltip(Main.SETTINGS_BUNDLE.getString("manage_ignored_steam_games_tooltip")));
-        Button manageSteamGamesIgnoredButton = new Button(Main.RESSOURCE_BUNDLE.getString("manage"));
+        Button manageSteamGamesIgnoredButton = new Button(Main.getString("manage"));
 
         manageSteamGamesIgnoredButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -251,10 +275,10 @@ public class SettingsScene extends BaseScene {
         /***********************SUPPORTER KEY****************************/
         //TODO see if possible to have 2 IGDB keys, for supporters
 
-        String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
-        String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
+        String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
+        String buttonText = Main.SUPPORTER_MODE ? Main.getString("deactivate") : Main.getString("activate");
 
-        Label supporterKeyLabel = new Label(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
+        Label supporterKeyLabel = new Label(PredefinedSetting.SUPPORTER_KEY.getLabel() + " : " + keyStatus);
         supporterKeyLabel.setTooltip(new Tooltip(PredefinedSetting.SUPPORTER_KEY.getTooltip()));
         Button actDeactButton = new Button(buttonText);
 
@@ -267,10 +291,10 @@ public class SettingsScene extends BaseScene {
                         if (response.getString(KeyChecker.FIELD_RESULT).equals(KeyChecker.RESULT_SUCCESS)) {
                             GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SUPPORTER_KEY, "");
                             SUPPORTER_MODE = false;
-                            String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
-                            String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
+                            String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
+                            String buttonText = Main.SUPPORTER_MODE ? Main.getString("deactivate") : Main.getString("activate");
                             actDeactButton.setText(buttonText);
-                            supporterKeyLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
+                            supporterKeyLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + " : " + keyStatus);
 
                             Main.GENERAL_SETTINGS.onSupporterModeDeactivated();
                         } else {
@@ -288,10 +312,10 @@ public class SettingsScene extends BaseScene {
         flowPaneHashMap.get(PredefinedSetting.SUPPORTER_KEY.getCategory()).getChildren().add(createLine(supporterKeyLabel, actDeactButton));
 
         /********** KEYS ******************/
-        Label keysLabel = new Label(Main.RESSOURCE_BUNDLE.getString("keys_label"));
-        Button keysButton = new Button(Main.RESSOURCE_BUNDLE.getString("see"));
+        Label keysLabel = new Label(Main.getString("keys_label"));
+        Button keysButton = new Button(Main.getString("see"));
         keysButton.setOnAction(event -> {
-            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION,Main.RESSOURCE_BUNDLE.getString("key_content"));
+            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION, Main.getString("key_content"));
             alert.showAndWait();
         });
 
@@ -299,8 +323,8 @@ public class SettingsScene extends BaseScene {
 
 
         /***********************VERSION CHECK****************************/
-        Label versionLabel = new Label(Main.RESSOURCE_BUNDLE.getString("version") + ": " + Main.getVersion());
-        Button checkUpdatesButton = new Button(Main.RESSOURCE_BUNDLE.getString("check_now"));
+        Label versionLabel = new Label(Main.getString("version") + " : " + Main.getVersion());
+        Button checkUpdatesButton = new Button(Main.getString("check_now"));
 
         /*NETWORK_MANAGER.addMessageListener(new MessageListener() {
             @Override
@@ -310,29 +334,29 @@ public class SettingsScene extends BaseScene {
                 } else if (tag.equals(MessageTag.NO_UPDATE)) {
                     Platform.runLater(() -> checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("up_to_date!")));
                 } else if (tag.equals(MessageTag.NEW_UPDATE)) {
-                    Platform.runLater(() -> checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("new_version") + ": " + payload));
+                    Platform.runLater(() -> checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("new_version") + " : " + payload));
                 }
             }
         });*/
         GameRoomUpdater updater = GameRoomUpdater.getInstance();
         updater.setChangeListener((observable, oldValue, newValue) -> {
-            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("loading") + " "+(int)(newValue.doubleValue()*100)+"%");
+            checkUpdatesButton.setText(Main.getString("loading") + " " + (int) (newValue.doubleValue() * 100) + "%");
             checkUpdatesButton.setMouseTransparent(true);
         });
         updater.setFailedPropertyListener((observable, oldValue, newValue) -> {
-            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("error"));
+            checkUpdatesButton.setText(Main.getString("error"));
             checkUpdatesButton.setMouseTransparent(false);
         });
         updater.setSucceedPropertyListener((observable, oldValue, newValue) -> {
-            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("Downloaded"));
+            checkUpdatesButton.setText(Main.getString("Downloaded"));
             checkUpdatesButton.setMouseTransparent(false);
         });
         updater.setNoUpdateListener((observable, oldValue, newValue) -> {
-            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("up_to_date!"));
+            checkUpdatesButton.setText(Main.getString("up_to_date!"));
             checkUpdatesButton.setMouseTransparent(false);
         });
         updater.setCancelledListener((observable, oldValue, newValue) -> {
-            checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("check_now"));
+            checkUpdatesButton.setText(Main.getString("check_now"));
             checkUpdatesButton.setMouseTransparent(false);
         });
         updater.setOnUpdatePressedListener(null);
@@ -340,8 +364,8 @@ public class SettingsScene extends BaseScene {
         checkUpdatesButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if(!updater.isStarted()) {
-                    checkUpdatesButton.setText(Main.RESSOURCE_BUNDLE.getString("loading") + "...");
+                if (!updater.isStarted()) {
+                    checkUpdatesButton.setText(Main.getString("loading") + "...");
                     updater.start();
                 }
             }
@@ -350,8 +374,8 @@ public class SettingsScene extends BaseScene {
 
         /***********************CMD****************************/
         if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)) {
-            Label cmdBeforeLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_before_label") + " :");
-            cmdBeforeLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_before_tooltip")));
+            Label cmdBeforeLabel = new Label(Main.getString("cmd_before_label") + " :");
+            cmdBeforeLabel.setTooltip(new Tooltip(Main.getString("cmd_before_tooltip")));
             //cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
             cmdBeforeLabel.setId("advanced-setting-label");
 
@@ -368,8 +392,8 @@ public class SettingsScene extends BaseScene {
             });
             flowPaneHashMap.get(SettingValue.CATEGORY_ON_GAME_START).getChildren().add(createLine(cmdBeforeLabel, cmdBeforeField));
 
-            Label cmdAfterLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_after_label") + " :");
-            cmdAfterLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_after_tooltip")));
+            Label cmdAfterLabel = new Label(Main.getString("cmd_after_label") + " :");
+            cmdAfterLabel.setTooltip(new Tooltip(Main.getString("cmd_after_tooltip")));
             //cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
             cmdAfterLabel.setId("advanced-setting-label");
 
@@ -399,10 +423,10 @@ public class SettingsScene extends BaseScene {
 
         /***********************OPEN LOG FOLDER **************************************/
         if ((GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE))) {
-            Label logLabel = new Label(Main.RESSOURCE_BUNDLE.getString("open_logs_folder") + ": ");
+            Label logLabel = new Label(Main.getString("open_logs_folder") + " : ");
             //logLabel.setStyle(ADVANCE_MODE_LABEL_STYLE);
             logLabel.setId("advanced-setting-label");
-            Button logButton = new Button(Main.RESSOURCE_BUNDLE.getString("open"));
+            Button logButton = new Button(Main.getString("open"));
 
             logButton.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
@@ -513,7 +537,7 @@ public class SettingsScene extends BaseScene {
                         Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ON_GAME_LAUNCH_ACTION, onLaunchActionComboBox.getValue());
                         if (onLaunchActionComboBox.getValue().equals(OnLaunchAction.CLOSE)) {
                             GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
-                            alert.setContentText(RESSOURCE_BUNDLE.getString("onLaunch_close_dialog_warning"));
+                            alert.setContentText(Main.getString("onLaunch_close_dialog_warning"));
                             alert.showAndWait();
                         }
                         if (changeListener != null) {
@@ -544,21 +568,21 @@ public class SettingsScene extends BaseScene {
                         if (changeListener != null) {
                             changeListener.changed(null, Main.GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE), localeComboBox.getValue());
                         }
-                        Main.RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", localeComboBox.getValue());
+                        Main.setRessourceBundle(ResourceBundle.getBundle("strings", localeComboBox.getValue()));
                         Main.SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", localeComboBox.getValue());
                         Main.GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", localeComboBox.getValue());
                         Main.GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", localeComboBox.getValue());
                         Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.LOCALE, localeComboBox.getValue());
 
                         displayRestartDialog();
-                        Main.restart(getParentStage(),"Applying language");
+                        Main.restart(getParentStage(), "Applying language");
                     }
                 });
                 node2 = localeComboBox;
             } else if (setting.isClass(String.class)) {
                 /**************** PATH **************/
                 String p = GENERAL_SETTINGS.getString(setting);
-                PathTextField gamesFolderField = new PathTextField(p, this, PathTextField.FILE_CHOOSER_FOLDER, RESSOURCE_BUNDLE.getString("select_a_folder"));
+                PathTextField gamesFolderField = new PathTextField(p, this, PathTextField.FILE_CHOOSER_FOLDER, Main.getString("select_a_folder"));
                 gamesFolderField.setId(setting.getKey());
                 gamesFolderField.getTextField().textProperty().addListener(new ChangeListener<String>() {
                     @Override
@@ -581,11 +605,11 @@ public class SettingsScene extends BaseScene {
                             }
                             File gamesFolder = new File(dir);
                             if (!gamesFolder.exists()) {
-                                message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_gamesFolder_exist"));
+                                message.replace(0, message.length(), Main.getString("invalid_gamesFolder_exist"));
                                 return false;
                             }
                             if (!gamesFolder.isDirectory()) {
-                                message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_gamesFolder_is_no_folder"));
+                                message.replace(0, message.length(), Main.getString("invalid_gamesFolder_is_no_folder"));
                                 return false;
                             }
                             return true;
@@ -658,7 +682,7 @@ public class SettingsScene extends BaseScene {
                                 displayRestartDialog();
                                 Main.restart(getParentStage(), "ApplyingTheme");
                             } catch (IOException | ZipException e) {
-                                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, Main.RESSOURCE_BUNDLE.getString("error_applying_theme"));
+                                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, Main.getString("error_applying_theme"));
                                 alert.showAndWait();
                             }
                         }
@@ -729,7 +753,7 @@ public class SettingsScene extends BaseScene {
             if (allConditionsMet) {
                 fadeTransitionTo(previousScene, getParentStage(), true);
             }
-        }, RESSOURCE_BUNDLE.getString("Settings")));
+        }, Main.getString("Settings")));
     }
 
     private Node getNode(String id) {
@@ -790,7 +814,7 @@ public class SettingsScene extends BaseScene {
 
     public static void displayRestartDialog() {
         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
-        alert.setContentText(RESSOURCE_BUNDLE.getString("GameRoom_will_restart"));
+        alert.setContentText(Main.getString("GameRoom_will_restart"));
 
         Optional<ButtonType> result = alert.showAndWait();
         //TODO restart
@@ -821,16 +845,16 @@ public class SettingsScene extends BaseScene {
 
         Optional<ButtonType> result = dialog.showAndWait();
         result.ifPresent(letter -> {
-            if (letter.getText().contains(Main.RESSOURCE_BUNDLE.getString("supporter_key_buy_one"))) {
+            if (letter.getText().contains(Main.getString("supporter_key_buy_one"))) {
                 try {
                     Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/key"));
                 } catch (IOException | URISyntaxException e1) {
                     e1.printStackTrace();
                 }
-            } else if (letter.getText().equals(Main.RESSOURCE_BUNDLE.getString("activate"))) {
+            } else if (letter.getText().equals(Main.getString("activate"))) {
                 try {
                     JSONObject response = KeyChecker.activateKey(dialog.getSupporterKey());
-                    String message = Main.RESSOURCE_BUNDLE.getString(response.getString(KeyChecker.FIELD_MESSAGE).replace(' ', '_'));
+                    String message = Main.getString(response.getString(KeyChecker.FIELD_MESSAGE).replace(' ', '_'));
 
                     switch (response.getString(KeyChecker.FIELD_RESULT)) {
                         case KeyChecker.RESULT_SUCCESS:
@@ -839,13 +863,13 @@ public class SettingsScene extends BaseScene {
 
                             GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SUPPORTER_KEY, dialog.getSupporterKey());
                             SUPPORTER_MODE = KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY));
-                            String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.RESSOURCE_BUNDLE.getString("none");
-                            String buttonText = Main.SUPPORTER_MODE ? Main.RESSOURCE_BUNDLE.getString("deactivate") : Main.RESSOURCE_BUNDLE.getString("activate");
+                            String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
+                            String buttonText = Main.SUPPORTER_MODE ? Main.getString("deactivate") : Main.getString("activate");
                             if (actDeactButton != null) {
                                 actDeactButton.setText(buttonText);
                             }
                             if (supporterModeLabel != null) {
-                                supporterModeLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + ": " + keyStatus);
+                                supporterModeLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + " : " + keyStatus);
                             }
                             Main.GENERAL_SETTINGS.onSupporterModeActivated();
 

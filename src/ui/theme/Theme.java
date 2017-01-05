@@ -14,10 +14,9 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.Properties;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
 /**
@@ -25,6 +24,8 @@ import java.util.zip.ZipEntry;
  */
 public class Theme {
     public final static Theme DEFAULT_THEME = new Theme();
+
+    private final static Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.?");
     private final static String FILE_NAME_INFO = "info.properties";
     private final static String FILE_NAME_THEME = "theme.css";
     private final static String FILE_NAME_PREVIEW = "preview.jpg";
@@ -40,13 +41,13 @@ public class Theme {
     /**** META *****/
     private String name = "";
     private String author = "";
-    private Date creationDate;
-    private String version = "";
-    private String description;
+    private transient Date creationDate;
+    private transient String version = "";
+    private transient String description;
 
     /**** FILE SYSTEM ***/
-    private String fileName;
-    private File file;
+    private transient String fileName;
+    private transient File file;
 
     private boolean isDefaultTheme = false;
 
@@ -65,13 +66,13 @@ public class Theme {
         loadFromZip();
     }
 
-    private Theme(){
+    private Theme() {
         this.isDefaultTheme = true;
         this.name = "GameRoom";
     }
 
-    public boolean isValid() {
-        if(isDefaultTheme){
+    boolean isValid() {
+        if (isDefaultTheme) {
             return true;
         }
         if (file.exists()) {
@@ -90,8 +91,8 @@ public class Theme {
         return false;
     }
 
-    public void loadFromZip() {
-        if(isDefaultTheme){
+    private void loadFromZip() {
+        if (isDefaultTheme) {
             return;
         }
         try {
@@ -102,17 +103,11 @@ public class Theme {
                 ZipEntry infoEntry = zipFile.getEntry(FILE_NAME_INFO);
                 InputStream stream = zipFile.getInputStream(infoEntry);
 
-                Properties properties = new Properties();
-                properties.load(stream);
-                this.author = properties.getProperty(PROPERTY_AUTHOR).replace("\"","");
-                this.name = properties.getProperty(PROPERTY_NAME).replace("\"","");
-                this.description = properties.getProperty(PROPERTY_DESCRIPTION).replace("\"","");
-                this.version = properties.getProperty(PROPERTY_VERSION).replace("\"","");
-                try {
-                    this.creationDate = PROPERTY_DATE_FORMAT.parse(properties.getProperty(PROPERTY_DATE).replace("\"",""));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+                Theme configTheme = readConfig(stream);
+                this.author = configTheme.author;
+                this.name = configTheme.name;
+                this.description = configTheme.description;
+                this.version = configTheme.version;
                 stream.close();
             }
         } catch (IOException e) {
@@ -121,16 +116,35 @@ public class Theme {
 
     }
 
+    protected static Theme readConfig(InputStream stream) throws IOException {
+        Theme theme = new Theme();
+        theme.isDefaultTheme = false;
+        Properties properties = new Properties();
+        properties.load(stream);
+        theme.author = properties.getProperty(PROPERTY_AUTHOR).replace("\"", "");
+        theme.name = properties.getProperty(PROPERTY_NAME).replace("\"", "");
+        theme.description = properties.getProperty(PROPERTY_DESCRIPTION).replace("\"", "");
+        theme.version = properties.getProperty(PROPERTY_VERSION).replace("\"", "");
+
+        try {
+            theme.creationDate = PROPERTY_DATE_FORMAT.parse(properties.getProperty(PROPERTY_DATE).replace("\"", ""));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return theme;
+    }
+
     private Image getPreviewImage() throws IOException {
-        if(isDefaultTheme){
+        if (isDefaultTheme) {
             return null;
         }
-        if(isValid()){
+        if (isValid()) {
             java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(file);
             ZipEntry previewEntry = zipFile.getEntry(FILE_NAME_PREVIEW);
             if (previewEntry != null) {
                 InputStream previewStream = zipFile.getInputStream(previewEntry);
-                Image image= new Image(previewStream);
+                Image image = new Image(previewStream);
                 previewStream.close();
                 return image;
             }
@@ -143,7 +157,7 @@ public class Theme {
             throw new IllegalStateException("Can not apply theme, theme's file does not exist");
         }
         FileUtils.deleteFolder(Main.FILES_MAP.get("current_theme"));
-        if(!isDefaultTheme) {
+        if (!isDefaultTheme) {
             extractAll(file, Main.FILES_MAP.get("current_theme"));
         }
     }
@@ -156,4 +170,72 @@ public class Theme {
     public String getName() {
         return name;
     }
+
+    /**
+     * Compare versions of themes
+     *
+     * @param other
+     * @return 0 if error or equals, 1 if this>other, -1 if other>this
+     */
+    public int compareVersion(Theme other) {
+        int[] thisVersion = getVersionFromString(version);
+        int[] otherVersion = getVersionFromString(other.version);
+
+        if (otherVersion == null || thisVersion == null) {
+            return 0;
+        }
+
+        int minLength = thisVersion.length < otherVersion.length ? thisVersion.length : otherVersion.length;
+
+        int result = 0;
+        for (int i = 0; i < minLength && result == 0; i++) {
+            if (thisVersion[i] > otherVersion[i]) {
+                result = 1;
+            } else if (thisVersion[i] < otherVersion[i]) {
+                result = -1;
+            } else {
+                result = 0;
+            }
+        }
+        if (result == 0 && thisVersion.length > minLength) {
+            result = 1;
+        } else if (result == 0 && otherVersion.length > minLength) {
+            result = -1;
+        }
+        return result;
+    }
+
+    private static int[] getVersionFromString(String version) {
+        Matcher matcher = VERSION_PATTERN.matcher(version);
+        int[] intVersion = null;
+        ArrayList<Integer> integers = new ArrayList<>();
+
+        while (matcher.find()) {
+            try {
+                int number = Integer.parseInt(matcher.group(1));
+                integers.add(number);
+            } catch (NumberFormatException ne) {
+                return null;
+            }
+
+        }
+        if(!integers.isEmpty()){
+            intVersion = new int[integers.size()];
+
+            int i = 0;
+            for(Integer integer : integers){
+                intVersion[i++] = integer;
+            }
+        }
+        return intVersion;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public String getVersion() {
+        return version;
+    }
 }
+

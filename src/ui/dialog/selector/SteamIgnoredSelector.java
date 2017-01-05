@@ -1,11 +1,10 @@
-package ui.dialog;
+package ui.dialog.selector;
 
 import data.ImageUtils;
 import data.game.scrapper.OnDLDoneHandler;
 import data.game.scrapper.SteamPreEntry;
 import data.http.SimpleImageInfo;
 import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
@@ -21,6 +20,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import ui.Main;
+import ui.dialog.GameRoomDialog;
 import ui.pane.SelectListPane;
 
 import java.io.File;
@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.RESSOURCE_BUNDLE;
 
 /**
  * Created by LM on 09/08/2016.
@@ -41,11 +40,11 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
     private Label statusLabel;
 
     private SteamIgnoredSelector(ArrayList<SteamPreEntry> ownedSteamEntries) throws IOException {
-        statusLabel = new Label(Main.RESSOURCE_BUNDLE.getString("loading")+"...");
+        statusLabel = new Label(Main.getString("loading")+"...");
         rootStackPane.getChildren().add(statusLabel);
-        Label titleLabel = new Label(Main.RESSOURCE_BUNDLE.getString("select_steam_games_ignore"));
+        Label titleLabel = new Label(Main.getString("select_steam_games_ignore"));
         titleLabel.setWrapText(true);
-        titleLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("select_steam_games_ignore")));
+        titleLabel.setTooltip(new Tooltip(Main.getString("select_steam_games_ignore")));
         titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
                 , 20 * Main.SCREEN_WIDTH / 1920
                 , 20 * Main.SCREEN_HEIGHT / 1080
@@ -57,10 +56,9 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
                 , 30 * Main.SCREEN_WIDTH / 1920));
         BorderPane.setAlignment(titleLabel, Pos.CENTER);
 
-        mainPane.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
-        mainPane.setPrefHeight(Main.SCREEN_HEIGHT * 2 / 3 * Main.SCREEN_HEIGHT / 1080);
-
-        SteamAppsList list = new SteamAppsList(Main.SCREEN_HEIGHT / 3.0, mainPane.prefWidthProperty());
+        mainPane.setPrefWidth(1.0 / 3.5 * Main.SCREEN_WIDTH);
+        mainPane.setPrefHeight(2.0 / 3 * Main.SCREEN_HEIGHT);
+        SteamAppsList list = new SteamAppsList();
 
         if(ownedSteamEntries!=null){
             list.addItems(ownedSteamEntries);
@@ -87,7 +85,7 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
                 @Override
                 public void handle(WorkerStateEvent event) {
                     Platform.runLater(() -> {
-                        statusLabel.setText(RESSOURCE_BUNDLE.getString("no_internet")+" ?");
+                        statusLabel.setText(Main.getString("no_internet")+" ?");
                     });
                 }
             });
@@ -98,8 +96,8 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
         mainPane.setCenter(list);
 
         getDialogPane().getButtonTypes().addAll(
-                new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE)
-                , new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
+                new ButtonType(Main.getString("ok"), ButtonBar.ButtonData.OK_DONE)
+                , new ButtonType(Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
 
         setOnHiding(event -> {
             SteamPreEntry[] temp_entries = new SteamPreEntry[list.getSelectedValues().size()];
@@ -118,18 +116,15 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
     }
 
     private static class SteamAppsList<SteamPreEntry> extends SelectListPane {
-        private ReadOnlyDoubleProperty prefRowWidth;
 
-        public SteamAppsList(double prefHeight, ReadOnlyDoubleProperty prefRowWidth) {
-            super(prefHeight, true);
-            this.prefRowWidth = prefRowWidth;
+        public SteamAppsList() {
+            super(true);
 
         }
 
         @Override
         protected ListItem createListItem(Object value) {
             SteamAppItem item = new SteamAppItem(value,this);
-            item.prefWidthProperty().bind(prefRowWidth);
             data.game.scrapper.SteamPreEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
             for (data.game.scrapper.SteamPreEntry steamPreEntry : ignoredSteamApps) {
                 if (((data.game.scrapper.SteamPreEntry) item.getValue()).getId() == steamPreEntry.getId()) {

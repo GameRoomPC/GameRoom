@@ -19,9 +19,11 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import ui.Main;
+import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.scene.MainScene;
 
@@ -49,6 +51,7 @@ public abstract class GamesTilePane extends BorderPane {
 
     TilePane tilePane;
     Label titleLabel;
+    ImageButton iconButton;
     ObservableList<GameButton> tilesList = FXCollections.observableArrayList();
 
     MainScene parentScene;
@@ -63,6 +66,8 @@ public abstract class GamesTilePane extends BorderPane {
     private char repeatedCharCounter = 0;
 
     private boolean displayGamesCount = true;
+    HBox topBox;
+
 
 
 
@@ -78,21 +83,26 @@ public abstract class GamesTilePane extends BorderPane {
         super();
         this.tilePane = new TilePane();
         this.titleLabel = new Label();
+        this.iconButton = new ImageButton("",Main.SCREEN_HEIGHT/42,Main.SCREEN_HEIGHT/42);
         this.parentScene = parentScene;
         //centerPane.setPrefViewportHeight(tilePane.getPrefHeight());
         setCenter(getTilePane());
-        setTop(titleLabel);
-        /*titleLabel.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
-                "    -fx-font-size: 28.0px;\n" +
-                "    -fx-stroke: black;\n" +
-                "    -fx-stroke-width: 1;" +
-                "    -fx-font-weight: 200;");*/
-        titleLabel.setId("games-tilepane-title-label");
-        BorderPane.setAlignment(titleLabel, Pos.CENTER_LEFT);
-        titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
+        topBox = new HBox(10 * Main.SCREEN_WIDTH / 1920);
+        topBox.setAlignment(Pos.CENTER_LEFT);
+        topBox.setFocusTraversable(false);
+        topBox.getChildren().addAll(iconButton,titleLabel);
+        topBox.setPadding(new Insets(15 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920
-                , 0 * Main.SCREEN_HEIGHT / 1080
+                , 5 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920));
+
+        iconButton.setFocusTraversable(false);
+        iconButton.setManaged(false);
+        setTop(topBox);
+
+        titleLabel.setId("games-tilepane-title-label");
+        //BorderPane.setAlignment(titleLabel, Pos.CENTER_LEFT);
+
         managedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -245,8 +255,13 @@ public abstract class GamesTilePane extends BorderPane {
         int index = indexOfTile(newEntry);
         if (index != -1) {
             if (isValidToAdd(newEntry)) {
-                tilesList.get(index).reloadWith(newEntry);
-                tilesList.set(index, tilesList.get(index));//to fire updated/replaced event
+                Main.runAndWait(new Runnable() {
+                    @Override
+                    public void run() {
+                        tilesList.get(index).reloadWith(newEntry);
+                        tilesList.set(index, tilesList.get(index));//to fire updated/replaced event
+                    }
+                });
             } else {
                 removeGame(newEntry);
             }
@@ -613,6 +628,11 @@ public abstract class GamesTilePane extends BorderPane {
     public Label getTitle() {
         return titleLabel;
     }
+
+    public ImageButton getIconButton(){
+        return iconButton;
+    }
+
 
     public void setCacheGameButtons(boolean cache) {
         for (GameButton b : getGameButtons()) {

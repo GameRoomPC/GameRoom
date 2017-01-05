@@ -10,6 +10,7 @@ import system.application.settings.PredefinedSetting;
 import system.os.PowerMode;
 import system.os.Terminal;
 import ui.Main;
+import ui.control.specific.GeneralToast;
 
 import java.awt.*;
 import java.io.File;
@@ -20,9 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 
-import static ui.Main.FILES_MAP;
-import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.MAIN_SCENE;
+import static ui.Main.*;
 
 
 /**
@@ -38,7 +37,7 @@ public class GameStarter {
         this.entry = entry;
     }
 
-    public void start() {
+    public void start() throws IOException{
         Main.LOGGER.info("Starting game : " + entry.getName());
         originalPowerMode = PowerMode.getActivePowerMode();
         if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isAlreadyStartedInGameRoom() && !entry.isNotInstalled()) {
@@ -47,8 +46,6 @@ public class GameStarter {
         String logFolder = FILES_MAP.get("Games") + File.separator + entry.getUuid() + File.separator;
         File preLog = FileUtils.initOrCreateFile(logFolder + "pre_" + entry.getProcessName() + ".log");
 
-        entry.setLastPlayedDate(new Date());
-
         Terminal terminal = new Terminal();
         String cmdBefore = entry.getCmd(GameEntry.CMD_BEFORE_START);
         String commandsBeforeString = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_BEFORE_START] + (cmdBefore != null ? "\n" + cmdBefore : "");
@@ -56,11 +53,9 @@ public class GameStarter {
         if (entry.isSteamGame() || entry.getPath().startsWith(STEAM_PREFIX)) {
             terminal.execute(commandsBefore, preLog);
             try {
-                String steamUri = entry.isNotInstalled() ? "steam://install/" + entry.getSteam_id() : entry.getPath();
+                String steamUri = entry.getPath();
                 Desktop.getDesktop().browse(new URI(steamUri));
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (URISyntaxException e) {
+            } catch (IOException | URISyntaxException e) {
                 e.printStackTrace();
             }
         } else {
@@ -74,12 +69,18 @@ public class GameStarter {
             gameProcessBuilder.redirectOutput(gameLog);
             gameProcessBuilder.redirectError(gameLog);
             gameProcessBuilder.directory(new File(new File(entry.getPath()).getParent()));
-            try {
-                Process gameProcess = gameProcessBuilder.start();
-            } catch (IOException e) {
-                e.printStackTrace();
+
+            entry.setLastPlayedDate(new Date());
+
+            if(entry.getOnGameLaunched() != null){
+                entry.getOnGameLaunched().run();
             }
 
+            if(MAIN_SCENE!=null) {
+                GeneralToast.displayToast(entry.getName() + Main.getString("launched"), MAIN_SCENE.getParentStage());
+            }
+
+            Process gameProcess = gameProcessBuilder.start();
         }
 
         Task<Long> monitor = new Task() {
@@ -111,21 +112,33 @@ public class GameStarter {
                 if (!newValue.equals(new Long(-1))) {
                     Main.LOGGER.debug("Adding " + Math.round(newValue / 1000.0) + "s to game " + entry.getName());
 
+                    if(entry.getOnGameStopped()!=null){
+                        entry.getOnGameStopped().run();
+                    }
+                    if(MAIN_SCENE!=null) {
+                        GeneralToast.displayToast(entry.getName() + Main.getString("stopped"), MAIN_SCENE.getParentStage());
+                    }
+
                     String cmdAfter = entry.getCmd(GameEntry.CMD_AFTER_END);
                     String commandsAfterString = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_AFTER_END] + (cmdAfter != null ? "\n" + cmdAfter : "");
                     String[] commandsAfter = commandsAfterString.split("\n");
                     if (cmdAfter != null) {
                         File postLog = new File(logFolder + "post_" + entry.getProcessName() + ".log");
-                        terminal.execute(commandsAfter, postLog, new File(new File(entry.getPath()).getParent()));
+                        try {
+                            terminal.execute(commandsAfter, postLog, new File(new File(entry.getPath()).getParent()));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                     entry.setAlreadyStartedInGameRoom(false);
                     MAIN_SCENE.updateGame(entry);
+                    String notificationText = GameEntry.getPlayTimeFormatted(Math.round(newValue / 1000.0), GameEntry.TIME_FORMAT_HMS_CASUAL) + " "
+                            + Main.getString("tray_icon_time_recorded") + " "
+                            + entry.getName();
                     if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS) && newValue != 0) {
-                        Main.TRAY_ICON.displayMessage("GameRoom"
-                                , GameEntry.getPlayTimeFormatted(Math.round(newValue / 1000.0), GameEntry.TIME_FORMAT_HMS_CASUAL) + " "
-                                        + Main.RESSOURCE_BUNDLE.getString("tray_icon_time_recorded") + " "
-                                        + entry.getName(), TrayIcon.MessageType.INFO);
+                        Main.TRAY_ICON.displayMessage("GameRoom",notificationText , TrayIcon.MessageType.INFO);
                     }
+                    GeneralToast.displayToast(notificationText, MAIN_SCENE.getParentStage());
 
                 } else {
                     //No need to add playtime as if we are here, it means that some thread is already monitoring play time

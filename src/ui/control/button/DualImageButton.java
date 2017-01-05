@@ -32,11 +32,17 @@ public class DualImageButton extends ImageButton {
         });
 
     }
-
-    public void forceState(String state) {
+    public void forceState(String state, boolean applyAction) {
         if (!currentState.equals(state)) {
             toggleState();
         }
+        if(applyAction){
+            actions[1].handle(null);
+        }
+    }
+
+    public void forceState(String state) {
+        forceState(state,false);
     }
 
     private void toggleState() {

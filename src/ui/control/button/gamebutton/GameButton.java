@@ -15,10 +15,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.DropShadow;
@@ -35,12 +32,15 @@ import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
+import ui.dialog.selector.AppSelectorDialog;
 import ui.scene.BaseScene;
 import ui.scene.GameInfoScene;
 import ui.scene.MainScene;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Optional;
 
 import static javafx.scene.input.MouseEvent.*;
 import static ui.Main.*;
@@ -125,7 +125,7 @@ public abstract class GameButton extends BorderPane {
 
         titleLabel.setText(entry.getName());
         titleLabel.setTooltip(new Tooltip(entry.getName()));
-        //setLauncherLogo();
+        setLauncherLogo();
 
         double width = getCoverWidth();
         double height = getCoverHeight();
@@ -151,19 +151,14 @@ public abstract class GameButton extends BorderPane {
         String titleLogoId = null;
         if(entry.isSteamGame()){
             titleLogoId = "steam-icon";
-            //titleLogoImage = new Image("res/ui/launcherIcons/steamChar.png",width,height,true,true);
-        }else if (entry.isGoGGame()){
-            titleLogoId = "gog-icon";
-            //titleLogoImage = new Image("res/ui/launcherIcons/gogChar.png",width,height,true,true);
         }else if (entry.isUplayGame()){
             titleLogoId = "uplay-icon";
-            //titleLogoImage = new Image("res/ui/launcherIcons/uplayChar.png",width,height,true,true);
         }else if (entry.isOriginGame()){
             titleLogoId = "origin-icon";
-            //titleLogoImage = new Image("res/ui/launcherIcons/originChar.png",width,height,true,true);
         }else if (entry.isBattlenetGame()){
             titleLogoId = "battlenet-icon";
-            //titleLogoImage = new Image("res/ui/launcherIcons/battle.netChar.png",width,height,true,true);
+        }else if (entry.isGoGGame()){
+            titleLogoId = "gog-icon";
         }
         if(titleLogoId != null) {
             titleLogoView.setSmooth(true);
@@ -219,18 +214,18 @@ public abstract class GameButton extends BorderPane {
 
     private void initContextMenu() {
         contextMenu = new ContextMenu();
-        MenuItem cmItem1 = new MenuItem(RESSOURCE_BUNDLE.getString("Play"));
+        MenuItem cmItem1 = new MenuItem(Main.getString("Play"));
         cmItem1.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
                 playButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
             }
         });
         contextMenu.getItems().add(cmItem1);
-        MenuItem cmItem2 = new MenuItem(RESSOURCE_BUNDLE.getString("edit"));
+        MenuItem cmItem2 = new MenuItem(Main.getString("edit"));
         cmItem2.setOnAction(eh -> {
         });
         contextMenu.getItems().add(cmItem2);
-        MenuItem cmItem3 = new MenuItem(RESSOURCE_BUNDLE.getString("About"));
+        MenuItem cmItem3 = new MenuItem(Main.getString("About"));
         cmItem3.setOnAction(nh -> {
             infoButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
         });
@@ -358,7 +353,23 @@ public abstract class GameButton extends BorderPane {
         setCoverThread.start();
 
         playButton.setOnMouseClicked(mc -> {
-            entry.startGame();
+            if(!entry.isSteamGame()) {
+                File gamePath = new File(entry.getPath());
+                if (gamePath.isDirectory()) {
+                    AppSelectorDialog selector = new AppSelectorDialog(gamePath);
+                    Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+                    ignoredOptionnal.ifPresent(pairs -> {
+                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                            entry.setPath(selector.getSelectedFile().getAbsolutePath());
+                            entry.startGame();
+                        }
+                    });
+                } else {
+                    entry.startGame();
+                }
+            }else{
+                entry.startGame();
+            }
         });
         infoButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override

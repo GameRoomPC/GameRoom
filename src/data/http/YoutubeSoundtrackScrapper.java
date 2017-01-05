@@ -5,6 +5,8 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.GameEntry;
 import ui.Main;
+import ui.control.specific.GeneralToast;
+import ui.scene.BaseScene;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static ui.Main.DEV_MODE;
+import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 07/08/2016.
@@ -33,11 +36,15 @@ public class YoutubeSoundtrackScrapper {
 
     private final static String VIDEO_SEARCH_SEPARATOR =  "<button class=\"yt-uix-button yt-uix-button-size-small yt-uix-button-default yt-uix-button-empty yt-uix-button-has-icon no-icon-markup addto-button video-actions spf-nolink hide-until-delayloaded addto-watch-later-button-sign-in yt-uix-tooltip\" type=\"button\" onclick=\";return false;\"";
     private final static String VIDEO_URL_PREFIX = "<h3 class=\"yt-lockup-title \"><a href=\"/watch?v=";
-    private final static String VIDEO_TITLE_PREFIX = "\" title=\"";
-    private final static String VIDEO_AUTHOR_SUFFIX = "</a></div><div class=\"yt-lockup-meta\"><ul class=\"yt-lockup-meta-info\"><li>";
+    private final static String VIDEO_TITLE_PREFIX = "\"  title=\"";
+    private final static String VIDEO_AUTHOR_SUFFIX = "</a></div><div class=\"yt-lockup-meta \"><ul class=\"yt-lockup-meta-info\"><li>";
     private final static String VIDEO_AUTHOR_VALIDATED_SUFFIX = "</a>&nbsp;<span class=\"yt-uix-tooltip yt-channel-title-icon-verified yt-sprite\"";
 
     public static String getThemeYoutubeHash(GameEntry entry) throws IOException, UnirestException {
+        return getThemeYoutubeHash(entry,null);
+    }
+
+    public static String getThemeYoutubeHash(GameEntry entry, BaseScene scene) throws IOException, UnirestException {
         ArrayList<VideoMetadata> videoMetadatas = new ArrayList<>();
         for(String keywords : SOUNDTRACK_KEY_WORDS){
             ArrayList<VideoMetadata> searchResults = getVideosTitlesAndLinksFor(entry.getName(),keywords);
@@ -58,6 +65,9 @@ public class YoutubeSoundtrackScrapper {
         }
         rankSoundtrackResults(videoMetadatas, entry.getName());
         Main.LOGGER.info("Using soundtrack : "+videoMetadatas.get(0));
+        if(scene!=null) {
+            GeneralToast.displayToast(Main.getString("best_theme")+" \""+videoMetadatas.get(0).getTitle()+"\"", scene.getParentStage());
+        }
         return videoMetadatas.get(0).hash;
 
     }
@@ -74,6 +84,9 @@ public class YoutubeSoundtrackScrapper {
         pointsForKeyword.put("main menu", 30);
         pointsForKeyword.put("music",5);
         pointsForKeyword.put("remix",-50);
+        pointsForKeyword.put("mix",-50);
+        pointsForKeyword.put("dj",-30);
+        pointsForKeyword.put("mod",-30);
         pointsForKeyword.put("edit",-30);
         pointsForKeyword.put("cover", -20);
         pointsForKeyword.put("Note Block",-30);

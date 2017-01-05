@@ -22,6 +22,11 @@
     -fx-stroke: transparent;
 }
 
+.header > .title-label{
+    -fx-font-size: 2.5em;
+    -fx-text-fill: -fx-text-base-color;
+}
+
 .text {
     -fx-font-smoothing-type: lcd;
 }
@@ -743,6 +748,11 @@
 
 #tile-play-button{
 	-fx-image: url("icons/tile/play.png");
+}
+
+#tile-loading-button{
+	-fx-image: url("icons/tile/loading.png");
+	-fx-smooth: true;
 }
 
 #tile-info-button{

@@ -8,15 +8,17 @@ import ui.Main;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import static data.game.GameWatcher.cleanNameForCompareason;
 import static ui.Main.GENERAL_SETTINGS;
+import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 19/08/2016.
  */
 public class FolderGameScanner extends GameScanner {
-    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library","SteamLibrary","SteamVR"};
+    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library","SteamLibrary","SteamVR","!Downloads"};
     private final static String[] VALID_EXECUTABLE_EXTENSION = new String[]{".exe", ".lnk", ".jar"};
 
 
@@ -38,6 +40,8 @@ public class FolderGameScanner extends GameScanner {
                     && !folderGameIgnored
                     && !alreadyWaitingToBeAdded) {
                 addGameEntryFound(potentialEntry);
+            }else if(gameAlreadyInLibrary || alreadyWaitingToBeAdded){
+                compareAndSetLauncherId(potentialEntry);
             }
         }
         if (foundGames.size() > 0) {
@@ -69,11 +73,21 @@ public class FolderGameScanner extends GameScanner {
                 potentialEntry.setNotInstalled(false);
                 entriesFound.add(potentialEntry);
             }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         return entriesFound;
     }
 
     public static boolean isPotentiallyAGame(File file) {
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         for (String excludedName : EXCLUDED_FILE_NAMES) {
             if (file.getName().equals(excludedName)) {
                 return false;
@@ -90,10 +104,10 @@ public class FolderGameScanner extends GameScanner {
         }
     }
 
-    private static boolean fileHasValidExtension(File file) {
+    public static boolean fileHasValidExtension(File file) {
         boolean hasAValidExtension = false;
         for (String validExtension : VALID_EXECUTABLE_EXTENSION) {
-            hasAValidExtension = hasAValidExtension || file.getAbsolutePath().endsWith(validExtension.toLowerCase());
+            hasAValidExtension = hasAValidExtension || file.getAbsolutePath().toLowerCase().endsWith(validExtension.toLowerCase());
         }
         return hasAValidExtension;
     }
@@ -109,5 +123,48 @@ public class FolderGameScanner extends GameScanner {
             }
         }
         return alreadyAddedToLibrary;
+    }
+
+    private void compareAndSetLauncherId(GameEntry foundEntry){
+        List<GameEntry> toAddAndLibEntries = AllGameEntries.ENTRIES_LIST;
+        toAddAndLibEntries.addAll(parentLooker.getEntriesToAdd());
+
+        for (GameEntry entry : toAddAndLibEntries) {
+            boolean alreadyAddedToLibrary = entry.getPath().toLowerCase().trim().contains(foundEntry.getPath().trim().toLowerCase())
+                    || foundEntry.getPath().trim().toLowerCase().contains(entry.getPath().trim().toLowerCase())
+                    || cleanNameForCompareason(foundEntry.getName()).equals(cleanNameForCompareason(entry.getName())); //cannot use UUID as they are different at this pre-add-time
+            if (alreadyAddedToLibrary) {
+                //TODO replace launchers with an enum and an id ?
+                entry.setSavedLocaly(true);
+                boolean needRefresh = false;
+                if(!entry.isSteamGame() && foundEntry.isSteamGame()){
+                    entry.setSteam_id(foundEntry.getSteam_id());
+                    needRefresh = true;
+                }
+                if(!entry.isBattlenetGame() && foundEntry.isBattlenetGame()){
+                    entry.setBattlenet_id(foundEntry.getBattlenet_id());
+                    needRefresh = true;
+                }
+                if(!entry.isGoGGame() && foundEntry.isGoGGame()){
+                    entry.setGog_id(foundEntry.getGog_id());
+                    needRefresh = true;
+                }
+                if(!entry.isOriginGame() && foundEntry.isOriginGame()){
+                    entry.setOrigin_id(foundEntry.getOrigin_id());
+                    needRefresh = true;
+                }
+                if(!entry.isUplayGame() && foundEntry.isUplayGame()){
+                    entry.setUplay_id(foundEntry.getUplay_id());
+                    needRefresh = true;
+                }
+                entry.setSavedLocaly(false);
+                if(needRefresh){
+                    if(MAIN_SCENE!=null){
+                        MAIN_SCENE.updateGame(entry);
+                    }
+                }
+                break;
+            }
+        }
     }
 }

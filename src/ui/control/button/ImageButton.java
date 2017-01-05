@@ -140,17 +140,19 @@ public class ImageButton extends Button {
         mouseExitedHandlers.add(meh);
     }
 
-    void setImage(Image img){
-        view.setImage(img);
-    }
-
-    protected void setImageViewId(String id){
+    public void setImageViewId(String id){
         double width = view.getFitWidth();
         double height = view.getFitHeight();
+        setImageView(id,width,height);
+    }
+
+    public void setImageView(String id, double width, double height){
         view = new ImageView();
         view.setPreserveRatio(true);
-        view.setFitWidth(width);
-        view.setFitHeight(height);
+        view.setSmooth(true);
+        double scale = GENERAL_SETTINGS.getUIScale().getScale();
+        view.setFitWidth(width*scale);
+        view.setFitHeight(height*scale);
         view.setId(id);
         addEffectsToButton(view);
         setGraphic(view);

@@ -14,15 +14,15 @@ import static ui.Main.MAIN_SCENE;
 /**
  * Created by LM on 06/08/2016.
  */
-abstract class GameRoomDialog<T> extends Dialog<T> {
-    StackPane rootStackPane;
-    BorderPane mainPane;
+public abstract class GameRoomDialog<T> extends Dialog<T> {
+    protected StackPane rootStackPane;
+    protected BorderPane mainPane;
 
-    GameRoomDialog(){
+    protected GameRoomDialog(){
         this(Modality.WINDOW_MODAL);
     }
 
-    GameRoomDialog(Modality modality){
+    protected GameRoomDialog(Modality modality){
         super();
         DialogPane dialogPane = new DialogPane();
         mainPane = new BorderPane();

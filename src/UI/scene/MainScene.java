@@ -28,7 +28,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
@@ -41,10 +40,12 @@ import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
+import ui.control.specific.GeneralToast;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ChoiceDialog;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.GameRoomCustomAlert;
+import ui.dialog.selector.GameScannerSelector;
 import ui.pane.gamestilepane.*;
 import ui.scene.exitaction.ClassicExitAction;
 import ui.scene.exitaction.ExitAction;
@@ -128,8 +129,6 @@ public class MainScene extends BaseScene {
         getParentStage().focusedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                //String action = newValue ? "Activating" : "Deactivating";
-                //LOGGER.debug(action+" caching of GameButtons");
                 tilePane.setCacheGameButtons(newValue);
                 recentlyAddedTilePane.setCacheGameButtons(newValue);
                 toAddTilePane.setCacheGameButtons(newValue);
@@ -138,22 +137,6 @@ public class MainScene extends BaseScene {
                 for (GroupRowTilePane g : groupRowList) {
                     g.setCacheGameButtons(newValue);
                 }
-                /*if(false && getParentStage().getScene() instanceof MainScene){
-                    int i = 0;
-                    while(GARBAGE_COLLECTED_RECENTLY){
-                        try {
-                            Thread.sleep(1000);
-                            i++;
-                            GARBAGE_COLLECTED_RECENTLY = i >= 10;
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if(!GARBAGE_COLLECTED_RECENTLY){
-                        System.gc ();
-                        System.runFinalization ();
-                    }
-                }*/
             }
         });
     }
@@ -196,37 +179,45 @@ public class MainScene extends BaseScene {
     private void displayWelcomeMessage() {
         if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
             Platform.runLater(() -> {
-                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISPLAY_WELCOME_MESSAGE, false);
-                GameRoomAlert welcomeAlert = new GameRoomAlert(Alert.AlertType.INFORMATION, RESSOURCE_BUNDLE.getString("Welcome_message"));
-                welcomeAlert.setOnHidden(event -> {
-                    GameRoomCustomAlert alert = new GameRoomCustomAlert();
-                    Label text = new Label(RESSOURCE_BUNDLE.getString("welcome_input_folder"));
-                    text.setWrapText(true);
-                    text.setPadding(new Insets(20 * Main.SCREEN_HEIGHT / 1080
-                            , 20 * Main.SCREEN_WIDTH / 1920
-                            , 20 * Main.SCREEN_HEIGHT / 1080
-                            , 20 * Main.SCREEN_WIDTH / 1920));
-                    PathTextField field = new PathTextField(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER), this, PathTextField.FILE_CHOOSER_FOLDER, "");
-                    alert.setBottom(field);
-                    alert.setCenter(text);
-                    alert.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
-                    field.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
-                            , 20 * Main.SCREEN_WIDTH / 1920
-                            , 20 * Main.SCREEN_HEIGHT / 1080
-                            , 20 * Main.SCREEN_WIDTH / 1920));
+                GameRoomAlert welcomeAlert = new GameRoomAlert(Alert.AlertType.INFORMATION, Main.getString("Welcome_message"));
+                welcomeAlert.showAndWait();
 
-                    alert.getDialogPane().getButtonTypes().addAll(new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE)
-                            , new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
-                    Optional<ButtonType> result = alert.showAndWait();
-                    if (result != null && result.isPresent() && result.get().getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.GAMES_FOLDER, field.getTextField().getText());
-                    } else {
-                        // ... user chose CANCEL or closed the dialog
+                GameRoomAlert configureScannersAlert = new GameRoomAlert(Alert.AlertType.INFORMATION, Main.getString("configure_scanner_messages"));
+                configureScannersAlert.showAndWait();
+
+                GameScannerSelector selector = new GameScannerSelector();
+                Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+                ignoredOptionnal.ifPresent(pairs -> {
+                    if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
                     }
                 });
-                welcomeAlert.show();
+                GameRoomCustomAlert alert = new GameRoomCustomAlert();
+                Label text = new Label(Main.getString("welcome_input_folder"));
+                text.setWrapText(true);
+                text.setPadding(new Insets(20 * Main.SCREEN_HEIGHT / 1080
+                        , 20 * Main.SCREEN_WIDTH / 1920
+                        , 20 * Main.SCREEN_HEIGHT / 1080
+                        , 20 * Main.SCREEN_WIDTH / 1920));
+                PathTextField field = new PathTextField(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER), this, PathTextField.FILE_CHOOSER_FOLDER, "");
+                alert.setBottom(field);
+                alert.setCenter(text);
+                alert.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
+                field.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
+                        , 20 * Main.SCREEN_WIDTH / 1920
+                        , 20 * Main.SCREEN_HEIGHT / 1080
+                        , 20 * Main.SCREEN_WIDTH / 1920));
 
-
+                alert.getDialogPane().getButtonTypes().addAll(new ButtonType(Main.getString("ok"), ButtonBar.ButtonData.OK_DONE)
+                        , new ButtonType(Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result != null && result.isPresent() && result.get().getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.GAMES_FOLDER, field.getTextField().getText());
+                } else {
+                    // ... user chose CANCEL or closed the dialog
+                }
+                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISPLAY_WELCOME_MESSAGE, false);
+                startGameLookerService();
             });
         }
     }
@@ -261,7 +252,7 @@ public class MainScene extends BaseScene {
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
 
         tilesPaneWrapper.setSpacing(5 * Main.SCREEN_HEIGHT / 1080);
-        tilePane = new CoverTilePane(this, Main.RESSOURCE_BUNDLE.getString("all_games"));
+        tilePane = new CoverTilePane(this, Main.getString("all_games"));
         tilePane.setId("mainTilePane");
         tilePane.setQuickSearchEnabled(true);
 
@@ -298,7 +289,7 @@ public class MainScene extends BaseScene {
             }
         });
 
-        statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + "...");
+        statusLabel.setText(Main.getString("loading") + "...");
         wrappingPane.setOpacity(0);
 
         try {
@@ -402,7 +393,7 @@ public class MainScene extends BaseScene {
                     if (newValue.doubleValue() == 1.0) {
                         statusLabel.setText("");
                     } else {
-                        statusLabel.setText(RESSOURCE_BUNDLE.getString("loading") + " " + Math.round(newValue.doubleValue() * 100) + "%...");
+                        statusLabel.setText(Main.getString("loading") + " " + Math.round(newValue.doubleValue() * 100) + "%...");
                     }
                 });
             }
@@ -459,8 +450,8 @@ public class MainScene extends BaseScene {
                 Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
             }
         });
-        sizeSlider.setPrefWidth(Main.SCREEN_WIDTH / 8);
-        sizeSlider.setMaxWidth(Main.SCREEN_WIDTH / 8);
+        sizeSlider.setPrefWidth(Main.SCREEN_WIDTH / 12);
+        sizeSlider.setMaxWidth(Main.SCREEN_WIDTH / 12);
         sizeSlider.setPrefHeight(Main.SCREEN_WIDTH / 160);
         sizeSlider.setMaxHeight(Main.SCREEN_WIDTH / 160);
 
@@ -484,10 +475,10 @@ public class MainScene extends BaseScene {
         ImageButton sortButton = new ImageButton("main-sort-button", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35);
         sortButton.setFocusTraversable(false);
         final ContextMenu sortMenu = new ContextMenu();
-        MenuItem sortByNameItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_name"));
-        MenuItem sortByRatingItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_rating"));
-        MenuItem sortByTimePlayedItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_playtime"));
-        MenuItem sortByReleaseDateItem = new MenuItem(Main.RESSOURCE_BUNDLE.getString("sort_by_release_date"));
+        MenuItem sortByNameItem = new MenuItem(Main.getString("sort_by_name"));
+        MenuItem sortByRatingItem = new MenuItem(Main.getString("sort_by_rating"));
+        MenuItem sortByTimePlayedItem = new MenuItem(Main.getString("sort_by_playtime"));
+        MenuItem sortByReleaseDateItem = new MenuItem(Main.getString("sort_by_release_date"));
         sortByNameItem.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
 
@@ -574,7 +565,7 @@ public class MainScene extends BaseScene {
         ImageButton groupButton = new ImageButton("main-group-button", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35);
         groupButton.setFocusTraversable(false);
         final ContextMenu groupMenu = new ContextMenu();
-        MenuItem groupByAll = new MenuItem(Main.RESSOURCE_BUNDLE.getString("group_by_all"));
+        MenuItem groupByAll = new MenuItem(Main.getString("group_by_all"));
         groupByAll.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
 
@@ -588,7 +579,7 @@ public class MainScene extends BaseScene {
 
             scrollPane.setVvalue(scrollPane.getVmin());
         });
-        MenuItem groupByTheme = new MenuItem(Main.RESSOURCE_BUNDLE.getString("group_by_theme"));
+        MenuItem groupByTheme = new MenuItem(Main.getString("group_by_theme"));
         groupByTheme.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
 
@@ -604,7 +595,7 @@ public class MainScene extends BaseScene {
 
             scrollPane.setVvalue(scrollPane.getVmin());
         });
-        MenuItem groupByGenre = new MenuItem(Main.RESSOURCE_BUNDLE.getString("group_by_genre"));
+        MenuItem groupByGenre = new MenuItem(Main.getString("group_by_genre"));
         groupByGenre.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
 
@@ -620,7 +611,7 @@ public class MainScene extends BaseScene {
 
             scrollPane.setVvalue(scrollPane.getVmin());
         });
-        MenuItem groupBySerie = new MenuItem(Main.RESSOURCE_BUNDLE.getString("group_by_serie"));
+        MenuItem groupBySerie = new MenuItem(Main.getString("group_by_serie"));
         groupBySerie.setOnAction(event -> {
             showTilesPaneAgainAfterCancelSearch = false;
 
@@ -637,7 +628,24 @@ public class MainScene extends BaseScene {
             scrollPane.setVvalue(scrollPane.getVmin());
         });
 
-        groupMenu.getItems().addAll(groupByAll, groupByGenre, groupByTheme, groupBySerie);
+        MenuItem groupByLauncher = new MenuItem(Main.getString("group_by_launcher"));
+        groupByLauncher.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.setForcedHidden(true);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
+            toAddTilePane.setForcedHidden(true);
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+            groupRowList = GroupsFactory.createGroupsByLaunchers(lastPlayedTilePane, this);
+            tilesPaneWrapper.getChildren().addAll(groupRowList);
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+
+        groupMenu.getItems().addAll(groupByAll, groupByGenre, groupByTheme, groupBySerie, groupByLauncher);
 
         groupButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
@@ -666,17 +674,17 @@ public class MainScene extends BaseScene {
         addButton.setOnAction(event -> {
             getRootStackPane().setMouseTransparent(true);
             ChoiceDialog choiceDialog = new ChoiceDialog(
-                    new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_exe"), RESSOURCE_BUNDLE.getString("add_exe_long")),
-                    new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("Add_folder"), RESSOURCE_BUNDLE.getString("add_symlink_long"))
+                    new ChoiceDialog.ChoiceDialogButton(Main.getString("Add_exe"), Main.getString("add_exe_long")),
+                    new ChoiceDialog.ChoiceDialogButton(Main.getString("Add_folder"), Main.getString("add_symlink_long"))
             );
-            choiceDialog.setTitle(RESSOURCE_BUNDLE.getString("add_a_game"));
-            choiceDialog.setHeader(RESSOURCE_BUNDLE.getString("choose_action"));
+            choiceDialog.setTitle(Main.getString("add_a_game"));
+            choiceDialog.setHeader(Main.getString("choose_action"));
 
             Optional<ButtonType> result = choiceDialog.showAndWait();
             result.ifPresent(letter -> {
-                if (letter.getText().equals(RESSOURCE_BUNDLE.getString("Add_exe"))) {
+                if (letter.getText().equals(Main.getString("Add_exe"))) {
                     FileChooser fileChooser = new FileChooser();
-                    fileChooser.setTitle(RESSOURCE_BUNDLE.getString("select_program"));
+                    fileChooser.setTitle(Main.getString("select_program"));
                     fileChooser.setInitialDirectory(
                             new File(System.getProperty("user.home"))
                     );
@@ -693,12 +701,12 @@ public class MainScene extends BaseScene {
                     } catch (NullPointerException ne) {
                         ne.printStackTrace();
                         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
-                        alert.setContentText(RESSOURCE_BUNDLE.getString("warning_internet_shortcut"));
+                        alert.setContentText(Main.getString("warning_internet_shortcut"));
                         alert.showAndWait();
                     }
-                } else if (letter.getText().equals(RESSOURCE_BUNDLE.getString("Add_folder"))) {
+                } else if (letter.getText().equals(Main.getString("Add_folder"))) {
                     DirectoryChooser directoryChooser = new DirectoryChooser();
-                    directoryChooser.setTitle(RESSOURCE_BUNDLE.getString("Select_folder_ink"));
+                    directoryChooser.setTitle(Main.getString("Select_folder_ink"));
                     directoryChooser.setInitialDirectory(
                             new File(System.getProperty("user.home"))
                     );
@@ -716,10 +724,23 @@ public class MainScene extends BaseScene {
             getRootStackPane().setMouseTransparent(false);
         });
 
+        ImageButton scanButton = new ImageButton("tile-loading-button", SCREEN_WIDTH / 38.0, SCREEN_WIDTH / 38.0);
+        scanButton.setFocusTraversable(false);
+        scanButton.setOnMousePressed(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.isPrimaryButtonDown()) {
+                    GameWatcher.getInstance().start();
+                }
+            }
+        });
+        GameWatcher.getInstance().addOnSearchStartedListener(() -> scanButton.setDisable(true));
+        GameWatcher.getInstance().addOnSearchDoneListener(() -> scanButton.setDisable(false));
+
         HBox hbox = new HBox();
         hbox.setPadding(new Insets(15, 12, 15, 10));
         hbox.setSpacing(0);
-        hbox.getChildren().addAll(addButton, sortButton, groupButton, settingsButton, sizeSlider);
+        hbox.getChildren().addAll(addButton,scanButton, sortButton, groupButton, settingsButton, sizeSlider);
         hbox.setAlignment(Pos.CENTER_LEFT);
 
         searchField = new TextField();
@@ -768,6 +789,7 @@ public class MainScene extends BaseScene {
                 , 15 * Main.SCREEN_WIDTH / 1920));*/
         topPane.getChildren().add(searchBox);
         topPane.getChildren().add(hbox);
+        topPane.getStyleClass().add("header");
 
         StackPane.setAlignment(hbox, Pos.CENTER_LEFT);
 
@@ -835,7 +857,7 @@ public class MainScene extends BaseScene {
             recentlyAddedTilePane.setForcedHidden(false);
             toAddTilePane.setForcedHidden(false);
         }
-        tilePane.setTitle(Main.RESSOURCE_BUNDLE.getString("all_games"));
+        tilePane.setTitle(Main.getString("all_games"));
         tilePane.cancelSearchText();
         if (groupRowList.size() > 0) {
             for (GroupRowTilePane tilePane : groupRowList) {
@@ -859,7 +881,7 @@ public class MainScene extends BaseScene {
         recentlyAddedTilePane.setForcedHidden(true);
         toAddTilePane.setForcedHidden(true);
         int found = tilePane.searchText(text);
-        tilePane.setTitle(found + " " + Main.RESSOURCE_BUNDLE.getString("results_found_for") + " \"" + text + "\"");
+        tilePane.setTitle(found + " " + Main.getString("results_found_for") + " \"" + text + "\"");
     }
 
     public void removeGame(GameEntry entry) {
@@ -969,10 +991,23 @@ public class MainScene extends BaseScene {
     }
 
     private void startGameLookerService() {
+        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)){
+            return;
+        }
         //toAddTilePane.disableFoldButton(true);
         toAddTilePane.setAutomaticSort(false);
 
-        gameWatcher = new GameWatcher(new OnGameFoundHandler() {
+        gameWatcher = GameWatcher.getInstance();
+        gameWatcher.addOnSearchStartedListener(() -> {
+            toAddTilePane.enableSearchingIcon(true);
+            GeneralToast.displayToast(Main.getString("search_started"),getParentStage(),GeneralToast.DURATION_LONG);
+        });
+        gameWatcher.addOnSearchDoneListener(() -> {
+            toAddTilePane.enableSearchingIcon(false);
+            GeneralToast.displayToast(Main.getString("search_done"),getParentStage(),GeneralToast.DURATION_LONG);
+        });
+        toAddTilePane.getIconButton().setOnAction(event -> gameWatcher.start());
+        gameWatcher.setOnGameFoundHandler(new OnGameFoundHandler() {
             @Override
             public GameButton gameToAddFound(GameEntry entry) {
                 toAddTilePane.addGame(entry);
@@ -988,7 +1023,7 @@ public class MainScene extends BaseScene {
                 });
             }
         });
-        gameWatcher.startService();
+        gameWatcher.start();
     }
 
 

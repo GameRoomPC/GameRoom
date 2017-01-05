@@ -1,6 +1,5 @@
 package ui;
 
-import data.http.URLTools;
 import data.http.key.KeyChecker;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -15,15 +14,12 @@ import system.application.settings.GeneralSettings;
 import system.application.settings.PredefinedSetting;
 import system.application.settings.SettingValue;
 import system.device.XboxController;
-import system.os.Terminal;
 import ui.dialog.GameRoomAlert;
 import ui.scene.MainScene;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;
@@ -49,7 +45,7 @@ public class Main {
 
     public static MainScene MAIN_SCENE;
 
-    public static ResourceBundle RESSOURCE_BUNDLE;
+    private static ResourceBundle RESSOURCE_BUNDLE;
     public static ResourceBundle SETTINGS_BUNDLE;
     public static ResourceBundle GAME_GENRES_BUNDLE;
     public static ResourceBundle GAME_THEMES_BUNDLE;
@@ -71,6 +67,7 @@ public class Main {
     public static volatile boolean KEEP_THREADS_RUNNING = true;
 
     private static String[] calling_args;
+
 
     public static void main(String[] args) {
         calling_args = args;
@@ -233,6 +230,19 @@ public class Main {
             doneLatch.await();
         } catch (InterruptedException e) {
             // ignore exception
+        }
+    }
+
+    public static String getString(String key){
+        if(RESSOURCE_BUNDLE == null){
+            return "";
+        }
+        return RESSOURCE_BUNDLE.getString(key);
+    }
+
+    public static void setRessourceBundle(ResourceBundle bundle){
+        if(bundle!=null){
+            RESSOURCE_BUNDLE = bundle;
         }
     }
 }

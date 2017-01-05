@@ -1,9 +1,11 @@
 package data.game.entry;
 
 import data.FileUtils;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import system.application.GameStarter;
 import ui.Main;
+import ui.dialog.GameRoomAlert;
 
 import java.io.*;
 import java.text.DateFormat;
@@ -77,6 +79,9 @@ public class GameEntry {
 
     private boolean toAdd = false;
     private boolean beingScrapped;
+
+    private transient Runnable onGameLaunched;
+    private transient Runnable onGameStopped;
 
     public GameEntry(String name) {
         uuid = UUID.randomUUID();
@@ -373,8 +378,13 @@ public class GameEntry {
      */
     public File getImagePath(int index) {
         if (index < imagesPaths.length) {
-            File relativeFile = FileUtils.relativizePath(imagesPaths[index],Main.FILES_MAP.get("working_dir"));
-            return relativeFile;
+            File imagePath = imagesPaths[index];
+            File dir = Main.FILES_MAP.get("working_dir");
+            if(imagePath!=null && dir != null){
+                return FileUtils.relativizePath(imagePath,dir);
+            }else{
+                return null;
+            }
         }
         return null;
     }
@@ -761,7 +771,12 @@ public class GameEntry {
     }
 
     public void startGame() {
-        new GameStarter(this).start();
+        try {
+            new GameStarter(this).start();
+        }catch (IOException ioe){
+            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR ,ioe.getMessage());
+            alert.showAndWait();
+        }
     }
 
     @Override
@@ -808,5 +823,21 @@ public class GameEntry {
 
     public void setBeingScrapped(boolean beingScrapped) {
         this.beingScrapped = beingScrapped;
+    }
+
+    public Runnable getOnGameLaunched() {
+        return onGameLaunched;
+    }
+
+    public void setOnGameLaunched(Runnable onGameLaunched) {
+        this.onGameLaunched = onGameLaunched;
+    }
+
+    public Runnable getOnGameStopped() {
+        return onGameStopped;
+    }
+
+    public void setOnGameStopped(Runnable onGameStopped) {
+        this.onGameStopped = onGameStopped;
     }
 }

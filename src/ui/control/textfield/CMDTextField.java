@@ -15,7 +15,7 @@ public class CMDTextField extends TextArea {
     private CMDTextField(String initialValue, int maxRow){
         super(initialValue);
         setPrefRowCount(1);
-        setPromptText(Main.RESSOURCE_BUNDLE.getString("warning_cmd"));
+        setPromptText(Main.getString("warning_cmd"));
         this.maxRow = maxRow;
         textProperty().addListener(new ChangeListener<String>() {
             @Override

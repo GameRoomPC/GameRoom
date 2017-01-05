@@ -43,12 +43,14 @@ import ui.Main;
 import ui.control.ValidEntryCondition;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
+import ui.control.specific.GeneralToast;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
 import ui.control.textfield.PlayTimeField;
 import ui.dialog.GameRoomAlert;
-import ui.dialog.IGDBImageSelector;
 import ui.dialog.SearchDialog;
+import ui.dialog.selector.AppSelectorDialog;
+import ui.dialog.selector.IGDBImageSelector;
 import ui.pane.OnItemSelectedHandler;
 import ui.pane.SelectListPane;
 import ui.scene.exitaction.ClassicExitAction;
@@ -141,7 +143,7 @@ public class GameEditScene extends BaseScene {
         }
 
         imageChooser = new FileChooser();
-        imageChooser.setTitle(RESSOURCE_BUNDLE.getString("select_picture"));
+        imageChooser.setTitle(Main.getString("select_picture"));
         imageChooser.setInitialDirectory(
                 new File(System.getProperty("user.home"))
         );
@@ -160,17 +162,18 @@ public class GameEditScene extends BaseScene {
     private void initBottom() {
         buttonsBox = new HBox();
         buttonsBox.setSpacing(30 * SCREEN_WIDTH / 1920);
-        Button addButton = new Button(RESSOURCE_BUNDLE.getString("add") + "!");
+        Button addButton = new Button(Main.getString("add") + "!");
         if (mode == MODE_EDIT) {
-            addButton.setText(RESSOURCE_BUNDLE.getString("save") + "!");
+            addButton.setText(Main.getString("save") + "!");
         }
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 boolean allConditionsMet = true;
                 for (ValidEntryCondition condition : validEntriesConditions) {
-                    allConditionsMet = allConditionsMet && condition.isValid();
-                    if (!condition.isValid()) {
+                    boolean conditionValid = condition.isValid();
+                    allConditionsMet = allConditionsMet && conditionValid;
+                    if (!conditionValid) {
                         condition.onInvalid();
                         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, condition.message.toString());
                         alert.showAndWait();
@@ -193,9 +196,11 @@ public class GameEditScene extends BaseScene {
                         case MODE_ADD:
                             entry.setAddedDate(new Date());
                             MAIN_SCENE.addGame(entry);
+                            GeneralToast.displayToast(entry.getName()+Main.getString("added_to_your_lib"),getParentStage());
                             break;
                         case MODE_EDIT:
                             MAIN_SCENE.updateGame(entry);
+                            GeneralToast.displayToast(Main.getString("changes_saved"),getParentStage());
                             break;
                         default:
                             break;
@@ -208,7 +213,7 @@ public class GameEditScene extends BaseScene {
                 }
             }
         });
-        Button igdbButton = new Button(RESSOURCE_BUNDLE.getString("fetch_from_igdb"));
+        Button igdbButton = new Button(Main.getString("fetch_from_igdb"));
         igdbButton.setOnAction(new EventHandler<ActionEvent>() {
                                    @Override
                                    public void handle(ActionEvent event) {
@@ -279,7 +284,7 @@ public class GameEditScene extends BaseScene {
             @Override
             public boolean isValid() {
                 if (entry.getName().equals("")) {
-                    message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_name_empty"));
+                    message.replace(0, message.length(), Main.getString("invalid_name_empty"));
                     return false;
                 }
                 return true;
@@ -299,8 +304,8 @@ public class GameEditScene extends BaseScene {
         });
 
         /**************************PATH*********************************************/
-        contentPane.add(new Label(RESSOURCE_BUNDLE.getString("game_path") + " :"), 0, row_count);
-        PathTextField gamePathField = new PathTextField(entry.getPath(), this, PathTextField.FILE_CHOOSER_APPS, RESSOURCE_BUNDLE.getString("select_picture"));
+        contentPane.add(new Label(Main.getString("game_path") + " :"), 0, row_count);
+        PathTextField gamePathField = new PathTextField(entry.getPath(), this, PathTextField.FILE_CHOOSER_APPS, Main.getString("select_picture"));
         gamePathField.getTextField().setPrefColumnCount(50);
         gamePathField.setId("game_path");
         gamePathField.getTextField().textProperty().addListener(new ChangeListener<String>() {
@@ -313,15 +318,32 @@ public class GameEditScene extends BaseScene {
             @Override
             public boolean isValid() {
                 if (entry.getPath().equals("")) {
-                    message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_path_empty"));
+                    message.replace(0, message.length(), Main.getString("invalid_path_empty"));
                     return false;
                 }
                 File file = new File(entry.getPath());
                 Pattern pattern = Pattern.compile("^steam:\\/\\/rungameid\\/\\d*$");
-
-                if (!pattern.matcher(entry.getPath().trim()).matches() && (!file.exists() || file.isDirectory())) {
-                    message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_path_not_file"));
+                boolean isSteamGame = pattern.matcher(entry.getPath().trim()).matches();
+                if (!isSteamGame && !file.exists()) {
+                    message.replace(0, message.length(), Main.getString("invalid_path_not_file"));
                     return false;
+                }else if(!isSteamGame && file.isDirectory()){
+                    AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()));
+                    Optional<ButtonType> appOptionnal = selector.showAndWait();
+
+                    final boolean[] result = {true};
+
+                    appOptionnal.ifPresent(pairs -> {
+                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                            entry.setPath(selector.getSelectedFile().getAbsolutePath());
+                        }else{
+                            result[0] =  false;
+                        }
+                    });
+                    if(!result[0]){
+                        message.replace(0, message.length(), Main.getString("invalid_path_not_file"));
+                        return result[0];
+                    }
                 }
                 return true;
             }
@@ -336,8 +358,8 @@ public class GameEditScene extends BaseScene {
         row_count++;
 
         /**************************PLAYTIME*********************************************/
-        Label titlePlayTimeLabel = new Label(RESSOURCE_BUNDLE.getString("play_time") + " :");
-        titlePlayTimeLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("play_time")));
+        Label titlePlayTimeLabel = new Label(Main.getString("play_time") + " :");
+        titlePlayTimeLabel.setTooltip(new Tooltip(Main.getString("play_time")));
         contentPane.add(titlePlayTimeLabel, 0, row_count);
         PlayTimeField playTimeField = new PlayTimeField(entry);
 
@@ -352,7 +374,7 @@ public class GameEditScene extends BaseScene {
 
         /**************************RELEASE DATE*********************************************/
         TextField releaseDateField = createLineForProperty("release_date", entry.getReleaseDate() != null ? GameEntry.DATE_DISPLAY_FORMAT.format(entry.getReleaseDate()) : "", null);
-        releaseDateField.setPromptText(Main.RESSOURCE_BUNDLE.getString("date_example"));
+        releaseDateField.setPromptText(Main.getString("date_example"));
         releaseDateField.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -374,7 +396,7 @@ public class GameEditScene extends BaseScene {
                         Date date = GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText());
                         entry.setReleaseDate(date);
                     } catch (ParseException e) {
-                        message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("invalid_release_date"));
+                        message.replace(0, message.length(), Main.getString("invalid_release_date"));
                         return false;
                     }
                 }
@@ -431,8 +453,8 @@ public class GameEditScene extends BaseScene {
                 entry.setGenres(newGenres);
             }
         });
-        Label genreLabel = new Label(RESSOURCE_BUNDLE.getString("genre") + " :");
-        genreLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("genre")));
+        Label genreLabel = new Label(Main.getString("genre") + " :");
+        genreLabel.setTooltip(new Tooltip(Main.getString("genre")));
         contentPane.add(genreLabel, 0, row_count);
         contentPane.add(genreComboBox, 1, row_count);
         row_count++;
@@ -464,8 +486,8 @@ public class GameEditScene extends BaseScene {
                 entry.setThemes(newTheme);
             }
         });
-        Label themeLabel = new Label(RESSOURCE_BUNDLE.getString("theme") + " :");
-        themeLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("theme")));
+        Label themeLabel = new Label(Main.getString("theme") + " :");
+        themeLabel.setTooltip(new Tooltip(Main.getString("theme")));
         contentPane.add(themeLabel, 0, row_count);
         contentPane.add(themeComboBox, 1, row_count);
         row_count++;
@@ -486,8 +508,8 @@ public class GameEditScene extends BaseScene {
                 });
             }
         };
-        Label screenshotLabel = new Label(RESSOURCE_BUNDLE.getString("wallpaper") + " :");
-        screenshotLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("wallpaper")));
+        Label screenshotLabel = new Label(Main.getString("wallpaper") + " :");
+        screenshotLabel.setTooltip(new Tooltip(Main.getString("wallpaper")));
         contentPane.add(screenshotLabel, 0, row_count);
 
         HBox screenShotButtonsBox = new HBox();
@@ -504,9 +526,9 @@ public class GameEditScene extends BaseScene {
             File localScreenshotFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(chosenImageFiles[1].getName()));
             entry.setImagePath(1, localScreenshotFile);
         });
-        Label orLabel = new Label(RESSOURCE_BUNDLE.getString("or"));
+        Label orLabel = new Label(Main.getString("or"));
 
-        Button screenshotIGDBButton = new Button(Main.RESSOURCE_BUNDLE.getString("IGDB"));
+        Button screenshotIGDBButton = new Button(Main.getString("IGDB"));
         screenshotIGDBButton.setOnAction(new EventHandler<ActionEvent>() {
                                              @Override
                                              public void handle(ActionEvent event) {
@@ -517,14 +539,14 @@ public class GameEditScene extends BaseScene {
                                                          openImageSelector(gameEntry);
                                                      } catch (JSONException jse) {
                                                          if (jse.toString().contains("[\"screenshots\"] not found")) {
-                                                             GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, Main.RESSOURCE_BUNDLE.getString("no_screenshot_for_this_game"));
+                                                             GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, Main.getString("no_screenshot_for_this_game"));
                                                              alert.showAndWait();
                                                          } else {
                                                              jse.printStackTrace();
                                                          }
                                                      } catch (UnirestException e) {
                                                          if (e.toString().contains("UnknownHostException")) {
-                                                             GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, Main.RESSOURCE_BUNDLE.getString("no_internet"));
+                                                             GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, Main.getString("no_internet"));
                                                              alert.showAndWait();
                                                          } else {
                                                              e.printStackTrace();
@@ -557,7 +579,7 @@ public class GameEditScene extends BaseScene {
             @Override
             public boolean isValid() {
                 if (!entry.getImagePath(1).isValid()) {
-                    message.replace(0,message.length(),Main.RESSOURCE_BUNDLE.getString("background_picture_still_downloading"));
+                    message.replace(0,message.length(),Main.getString("background_picture_still_downloading"));
                     return false;
                 }
                 return true;
@@ -569,8 +591,8 @@ public class GameEditScene extends BaseScene {
             }
         });*/
         /**************************DESCRIPTION*********************************************/
-        Label titleDescriptionLabel = new Label(RESSOURCE_BUNDLE.getString("game_description") + " :");
-        titleDescriptionLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("game_description")));
+        Label titleDescriptionLabel = new Label(Main.getString("game_description") + " :");
+        titleDescriptionLabel.setTooltip(new Tooltip(Main.getString("game_description")));
         contentPane.add(titleDescriptionLabel, 0, row_count);
         TextArea gameDescriptionField = new TextArea(entry.getDescription());
         gameDescriptionField.setWrapText(true);
@@ -587,8 +609,8 @@ public class GameEditScene extends BaseScene {
 
         /**************************YOUTUBE*********************************************/
         if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)){
-            Label youtubeSoundtrackLabel = new Label(RESSOURCE_BUNDLE.getString("youtube_soundtrack_label") + " :");
-            youtubeSoundtrackLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("youtube_soundtrack_tooltip")));
+            Label youtubeSoundtrackLabel = new Label(Main.getString("youtube_soundtrack_label") + " :");
+            youtubeSoundtrackLabel.setTooltip(new Tooltip(Main.getString("youtube_soundtrack_tooltip")));
             //youtubeSoundtrackLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
             youtubeSoundtrackLabel.setId("advanced-setting-label");
             contentPane.add(youtubeSoundtrackLabel, 0, row_count);
@@ -613,8 +635,8 @@ public class GameEditScene extends BaseScene {
 
         /**************************CMD & ARGS*********************************************/
         if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)) {
-            Label argsLabel = new Label(RESSOURCE_BUNDLE.getString("args_label") + " :");
-            argsLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("args_tooltip")));
+            Label argsLabel = new Label(Main.getString("args_label") + " :");
+            argsLabel.setTooltip(new Tooltip(Main.getString("args_tooltip")));
             //argsLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
             argsLabel.setId("advanced-setting-label");
             contentPane.add(argsLabel, 0, row_count);
@@ -629,8 +651,8 @@ public class GameEditScene extends BaseScene {
             contentPane.add(argsField, 1, row_count);
             row_count++;
 
-            Label cmdBeforeLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_before_label") + " :");
-            cmdBeforeLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_before_tooltip")));
+            Label cmdBeforeLabel = new Label(Main.getString("cmd_before_label") + " :");
+            cmdBeforeLabel.setTooltip(new Tooltip(Main.getString("cmd_before_tooltip")));
             //cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
             cmdBeforeLabel.setId("advanced-setting-label");
             contentPane.add(cmdBeforeLabel, 0, row_count);
@@ -646,8 +668,8 @@ public class GameEditScene extends BaseScene {
             contentPane.add(cmdBeforeField, 1, row_count);
             row_count++;
 
-            Label cmdAfterLabel = new Label(RESSOURCE_BUNDLE.getString("cmd_after_label") + " :");
-            cmdAfterLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString("cmd_after_tooltip")));
+            Label cmdAfterLabel = new Label(Main.getString("cmd_after_label") + " :");
+            cmdAfterLabel.setTooltip(new Tooltip(Main.getString("cmd_after_tooltip")));
             //cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
             cmdAfterLabel.setId("advanced-setting-label");
             contentPane.add(cmdAfterLabel, 0, row_count);
@@ -687,8 +709,8 @@ public class GameEditScene extends BaseScene {
     }
 
     private TextField createLineForProperty(String property, String initialValue, ChangeListener<String> changeListener) {
-        Label titleLabel = new Label(RESSOURCE_BUNDLE.getString(property) + " :");
-        titleLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString(property)));
+        Label titleLabel = new Label(Main.getString(property) + " :");
+        titleLabel.setTooltip(new Tooltip(Main.getString(property)));
         contentPane.add(titleLabel, 0, row_count);
         TextField textField = new TextField(initialValue);
         textField.setPrefColumnCount(50);
@@ -875,7 +897,7 @@ public class GameEditScene extends BaseScene {
             @Override
             public void handle(ActionEvent event) {
                 GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION);
-                alert.setContentText(RESSOURCE_BUNDLE.getString("ignore_changes?"));
+                alert.setContentText(Main.getString("ignore_changes?"));
 
                 Optional<ButtonType> result = alert.showAndWait();
                 if (result.get() == ButtonType.OK) {
@@ -899,9 +921,9 @@ public class GameEditScene extends BaseScene {
                 }
             }
         };
-        String title = RESSOURCE_BUNDLE.getString("add_a_game");
+        String title = Main.getString("add_a_game");
         if (mode == MODE_EDIT) {
-            title = RESSOURCE_BUNDLE.getString("edit_a_game");
+            title = Main.getString("edit_a_game");
         }
 
         wrappingPane.setTop(createTop(backButtonHandler, title));
@@ -1029,7 +1051,7 @@ public class GameEditScene extends BaseScene {
                     @Override
                     public boolean isValid() {
                         if (donwloadTask!=null && !donwloadTask.isDone()) {
-                            message.replace(0, message.length(), Main.RESSOURCE_BUNDLE.getString("background_picture_still_downloading"));
+                            message.replace(0, message.length(), Main.getString("background_picture_still_downloading"));
                             return false;
                         }
                         return true;
@@ -1076,13 +1098,13 @@ public class GameEditScene extends BaseScene {
             }
         }
         if (!alreadyExists) {
-            Button cancelButton = new Button(RESSOURCE_BUNDLE.getString(idAndTitleKey));
+            Button cancelButton = new Button(Main.getString(idAndTitleKey));
             cancelButton.setId(idAndTitleKey);
             cancelButton.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent event) {
                     GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION);
-                    alert.setContentText(RESSOURCE_BUNDLE.getString(warningMessageKey));
+                    alert.setContentText(Main.getString(warningMessageKey));
 
                     Optional<ButtonType> result = alert.showAndWait();
                     if (result.isPresent() && result.get() == ButtonType.OK) {

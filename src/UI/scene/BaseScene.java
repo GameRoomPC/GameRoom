@@ -164,7 +164,9 @@ public abstract class BaseScene extends Scene {
     private ImageButton createBackButton(EventHandler<ActionEvent> eventHandler){
         //Image leftArrowImage = new Image("res/ui/arrowLeft.png", SCREEN_WIDTH /45, SCREEN_WIDTH /45,true,true);
         ImageButton backButton = new ImageButton("arrow-left-button", SCREEN_WIDTH /45, SCREEN_WIDTH /45);
-        backButton.setOnAction(event -> eventHandler.handle(event));
+        if(eventHandler!=null){
+            backButton.setOnAction(event -> eventHandler.handle(event));
+        }
         backButton.setId("backButton");
         addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             switch (event.getCode()){
@@ -179,20 +181,20 @@ public abstract class BaseScene extends Scene {
     }
     private static Label createTitleLabel(String title){
         Label titleLabel = new Label(title);
-        titleLabel.setScaleX(2.5);
-        titleLabel.setScaleY(2.5);
         titleLabel.setId("titleLabel");
         return titleLabel;
     }
     StackPane createTop(EventHandler<ActionEvent> backButtonEventHandler, String title){
         StackPane topPane = new StackPane();
+        topPane.getStyleClass().add("header");
         backButton = createBackButton(backButtonEventHandler);
         Label titleLabel = createTitleLabel(title);
+        titleLabel.getStyleClass().add("title-label");
 
         topPane.getChildren().addAll(backButton, titleLabel);
-        StackPane.setAlignment(backButton, Pos.TOP_LEFT);
-        StackPane.setAlignment(titleLabel, Pos.TOP_CENTER);
-        StackPane.setMargin(titleLabel, new Insets(55 * Main.SCREEN_HEIGHT / 1080
+        StackPane.setAlignment(backButton, Pos.CENTER_LEFT);
+        StackPane.setAlignment(titleLabel, Pos.CENTER);
+        StackPane.setMargin(titleLabel, new Insets(30 * Main.SCREEN_HEIGHT / 1080
                 , 12 * Main.SCREEN_WIDTH / 1920
                 , 15 * Main.SCREEN_HEIGHT / 1080
                 , 15 * Main.SCREEN_WIDTH / 1920));

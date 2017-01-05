@@ -21,6 +21,7 @@ import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.InfoGameButton;
+import ui.control.specific.GeneralToast;
 import ui.control.specific.YoutubePlayerAndButton;
 import ui.dialog.GameRoomAlert;
 
@@ -71,24 +72,25 @@ public class GameInfoScene extends BaseScene {
     private void initBottom() {
         HBox hBox = new HBox();
         hBox.setSpacing(30 * SCREEN_WIDTH / 1920);
-        Button editButton = new Button(RESSOURCE_BUNDLE.getString("edit"));
+        Button editButton = new Button(Main.getString("edit"));
         editButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 fadeTransitionTo(new GameEditScene(GameInfoScene.this, entry,coverButton.getImage()), getParentStage());
             }
         });
-        Button deleteButton = new Button(RESSOURCE_BUNDLE.getString("delete"));
+        Button deleteButton = new Button(Main.getString("delete"));
         deleteButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION);
-                alert.setContentText(RESSOURCE_BUNDLE.getString("delete_entry?"));
+                alert.setContentText(Main.getString("delete_entry?"));
 
                 Optional<ButtonType> result = alert.showAndWait();
                 if (result.get() == ButtonType.OK) {
                     entry.deleteFiles();
                     MAIN_SCENE.removeGame(entry);
+                    GeneralToast.displayToast(entry.getName()+Main.getString("removed_from_your_lib"),getParentStage());
                     fadeTransitionTo(previousScene, getParentStage());
                 }
             }
@@ -128,12 +130,16 @@ public class GameInfoScene extends BaseScene {
         StackPane topStackPane = createTop(entry.getName());
         if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
             try {
-                ytButton = new YoutubePlayerAndButton(entry);
-                topStackPane.getChildren().add(ytButton.getSoundMuteButton());
-                StackPane.setAlignment(ytButton.getSoundMuteButton(), Pos.TOP_RIGHT);
+                ytButton = new YoutubePlayerAndButton(entry,this);
+                entry.setOnGameLaunched(() -> ytButton.pause());
+                entry.setOnGameStopped(() -> ytButton.play());
+                topStackPane.getChildren().addAll(ytButton.getSoundMuteButton());
+                StackPane.setAlignment(ytButton.getSoundMuteButton(), Pos.CENTER_RIGHT);
                 setOnSceneFadedOutAction(new Runnable() {
                     @Override
                     public void run() {
+                        entry.setOnGameLaunched(null);
+                        entry.setOnGameStopped(null);
                         ytButton.quitYoutube();
                     }
                 });
@@ -233,10 +239,10 @@ public class GameInfoScene extends BaseScene {
     }
 
     private Label addProperty(String title, String value) {
-        Label titleLabel = new Label(RESSOURCE_BUNDLE.getString(title) + " :");
+        Label titleLabel = new Label(Main.getString(title) + " :");
         titleLabel.setAlignment(Pos.TOP_LEFT);
         titleLabel.setStyle("-fx-font-weight: lighter;");
-        titleLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString(title)));
+        titleLabel.setTooltip(new Tooltip(Main.getString(title)));
         propertiesPane.add(titleLabel, 0, row_count);
         Label valueLabel = new Label(value);
         if (value == null || value.equals("")) {

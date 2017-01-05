@@ -252,6 +252,11 @@ public class IGDBScrapper {
                 }
             }
             entries.add(entry);
+            try {
+                Thread.sleep(2 * 100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         return entries;
     }

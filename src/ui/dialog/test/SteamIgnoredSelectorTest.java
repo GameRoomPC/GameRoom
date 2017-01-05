@@ -7,7 +7,8 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import ui.dialog.SteamIgnoredSelector;
+import ui.Main;
+import ui.dialog.selector.SteamIgnoredSelector;
 
 import java.awt.*;
 import java.io.IOException;
@@ -58,7 +59,7 @@ public class SteamIgnoredSelectorTest extends Application {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         SCREEN_WIDTH = 1920;
         SCREEN_HEIGHT = 1080;
-        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", Locale.getDefault());
+        Main.setRessourceBundle(ResourceBundle.getBundle("strings", Locale.getDefault()));
 
         System.setErr(new PrintStream(System.err){
             public void print(final String string) {

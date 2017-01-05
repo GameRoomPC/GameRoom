@@ -19,7 +19,7 @@ public enum OnLaunchAction {
 
     @Override
     public String toString() {
-        return Main.RESSOURCE_BUNDLE.getString(ressourceKey);
+        return Main.getString(ressourceKey);
     }
     public static OnLaunchAction fromString(String key){
         for(OnLaunchAction action : OnLaunchAction.values()){

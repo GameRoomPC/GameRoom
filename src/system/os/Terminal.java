@@ -25,11 +25,11 @@ public class Terminal {
         processBuilder = new ProcessBuilder();
     }
 
-    public void execute(String[] commands, File log) {
+    public void execute(String[] commands, File log) throws IOException {
         execute(commands, log, null);
     }
 
-    public void execute(String[] commands, File log, File parentFile) {
+    public void execute(String[] commands, File log, File parentFile) throws IOException {
         processBuilder.inheritIO();
         if (parentFile != null) {
             processBuilder.directory(parentFile);
@@ -40,11 +40,7 @@ public class Terminal {
         for (int i = 0; i < commands.length; i++) {
             processBuilder.command().addAll(Arrays.asList("cmd.exe", "/c", commands[i], "&"));
         }
-        try {
-            Process preProcess = processBuilder.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Process preProcess = processBuilder.start();
     }
 
     public String[] execute(String command, String... args) throws IOException {

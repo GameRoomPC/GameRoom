@@ -9,6 +9,7 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import ui.Main;
 import ui.control.button.ImageButton;
 import ui.dialog.GameRoomAlert;
 import ui.scene.BaseScene;
@@ -92,7 +93,7 @@ public class PathTextField extends StackPane {
 
                 }catch (NullPointerException ne){
                     ne.printStackTrace();
-                    GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING,RESSOURCE_BUNDLE.getString("warning_internet_shortcut"));
+                    GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING, Main.getString("warning_internet_shortcut"));
                     alert.showAndWait();
                 }
             }
