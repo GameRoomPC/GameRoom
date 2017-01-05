@@ -228,19 +228,22 @@ public class GameWatcher {
 
                 int i = 0;
                 for (GameEntry scrappedEntry : scrappedEntries) {
-                    if (toScrapEntries.get(i).getDescription() == null ||toScrapEntries.get(i).getDescription().equals("")) {
-                        toScrapEntries.get(i).setDescription(scrappedEntry.getDescription());
+                    GameEntry toScrapEntry = toScrapEntries.get(i);
+                    toScrapEntry.setSavedLocaly(true);
+                    if (toScrapEntry.getDescription() == null ||toScrapEntry.getDescription().equals("")) {
+                        toScrapEntry.setDescription(scrappedEntry.getDescription());
                     }
-                    if (toScrapEntries.get(i).getReleaseDate() == null) {
-                        toScrapEntries.get(i).setReleaseDate(scrappedEntry.getReleaseDate());
+                    if (toScrapEntry.getReleaseDate() == null) {
+                        toScrapEntry.setReleaseDate(scrappedEntry.getReleaseDate());
                     }
-                    toScrapEntries.get(i).setThemes(scrappedEntry.getThemes());
-                    toScrapEntries.get(i).setGenres(scrappedEntry.getGenres());
-                    toScrapEntries.get(i).setSerie(scrappedEntry.getSerie());
-                    toScrapEntries.get(i).setDeveloper(scrappedEntry.getDeveloper());
-                    toScrapEntries.get(i).setPublisher(scrappedEntry.getPublisher());
-                    toScrapEntries.get(i).setIgdb_id(scrappedEntry.getIgdb_id());
-                    int finalI = i;
+                    toScrapEntry.setThemes(scrappedEntry.getThemes());
+                    toScrapEntry.setGenres(scrappedEntry.getGenres());
+                    toScrapEntry.setSerie(scrappedEntry.getSerie());
+                    toScrapEntry.setDeveloper(scrappedEntry.getDeveloper());
+                    toScrapEntry.setPublisher(scrappedEntry.getPublisher());
+                    toScrapEntry.setIgdb_id(scrappedEntry.getIgdb_id());
+                    toScrapEntry.setSavedLocaly(false);
+
                     ImageUtils.downloadIGDBImageToCache(scrappedEntry.getIgdb_id()
                             , scrappedEntry.getIgdb_imageHash(0)
                             , ImageUtils.IGDB_TYPE_COVER
@@ -249,13 +252,17 @@ public class GameWatcher {
                                 @Override
                                 public void run(File outputfile) {
                                     try {
-                                        File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntries.get(finalI).getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + GameEditScene.getExtension(outputfile));
+                                        File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + GameEditScene.getExtension(outputfile));
                                         Files.copy(outputfile.getAbsoluteFile().toPath()
                                                 , localCoverFile.getAbsoluteFile().toPath()
                                                 , StandardCopyOption.REPLACE_EXISTING);
-                                        toScrapEntries.get(finalI).setImagePath(0, localCoverFile);
+                                        toScrapEntry.setSavedLocaly(true);
+                                        toScrapEntry.setImagePath(0, localCoverFile);
+                                        toScrapEntry.setSavedLocaly(false);
                                     } catch (Exception e) {
-                                        toScrapEntries.get(finalI).setImagePath(0, outputfile);
+                                        toScrapEntry.setSavedLocaly(true);
+                                        toScrapEntry.setImagePath(0, outputfile);
+                                        toScrapEntry.setSavedLocaly(false);
                                     }
 
 
@@ -270,18 +277,24 @@ public class GameWatcher {
                                                 @Override
                                                 public void run(File outputfile) {
                                                     try {
-                                                        File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntries.get(finalI).getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + GameEditScene.getExtension(outputfile));
+                                                        File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + GameEditScene.getExtension(outputfile));
                                                         Files.copy(outputfile.getAbsoluteFile().toPath()
                                                                 , localCoverFile.getAbsoluteFile().toPath()
                                                                 , StandardCopyOption.REPLACE_EXISTING);
-                                                        toScrapEntries.get(finalI).setImagePath(1, localCoverFile);
+                                                        toScrapEntry.setSavedLocaly(true);
+                                                        toScrapEntry.setImagePath(1, localCoverFile);
+                                                        toScrapEntry.setSavedLocaly(false);
                                                     } catch (Exception e) {
-                                                        toScrapEntries.get(finalI).setImagePath(1, outputfile);
+                                                        toScrapEntry.setSavedLocaly(true);
+                                                        toScrapEntry.setImagePath(1, outputfile);
+                                                        toScrapEntry.setSavedLocaly(false);
                                                     }
-                                                    toScrapEntries.get(finalI).setWaitingToBeScrapped(false);
-                                                    toScrapEntries.get(finalI).setBeingScrapped(false);
+                                                    toScrapEntry.setSavedLocaly(true);
+                                                    toScrapEntry.setWaitingToBeScrapped(false);
+                                                    toScrapEntry.setBeingScrapped(false);
+                                                    toScrapEntry.setSavedLocaly(false);
                                                     Main.runAndWait(() -> {
-                                                        Main.MAIN_SCENE.updateGame(toScrapEntries.get(finalI));
+                                                        Main.MAIN_SCENE.updateGame(toScrapEntry);
                                                     });
                                                 }
                                             });
