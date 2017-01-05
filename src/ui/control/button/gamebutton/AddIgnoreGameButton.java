@@ -69,7 +69,7 @@ public class AddIgnoreGameButton extends GameButton {
                 mainScene.removeGame(entry);
                 parentPane.removeGame(entry);
 
-                GeneralToast.displayToast(entry.getName()+Main.getString("ignored"),mainScene.getWindow());
+                GeneralToast.displayToast(entry.getName()+Main.getString("ignored"),mainScene.getParentStage());
 
             }
         });

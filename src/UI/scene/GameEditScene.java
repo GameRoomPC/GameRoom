@@ -196,11 +196,11 @@ public class GameEditScene extends BaseScene {
                         case MODE_ADD:
                             entry.setAddedDate(new Date());
                             MAIN_SCENE.addGame(entry);
-                            GeneralToast.displayToast(entry.getName()+Main.getString("added_to_your_lib"),getWindow());
+                            GeneralToast.displayToast(entry.getName()+Main.getString("added_to_your_lib"),getParentStage());
                             break;
                         case MODE_EDIT:
                             MAIN_SCENE.updateGame(entry);
-                            GeneralToast.displayToast(Main.getString("changes_saved"),getWindow());
+                            GeneralToast.displayToast(Main.getString("changes_saved"),getParentStage());
                             break;
                         default:
                             break;

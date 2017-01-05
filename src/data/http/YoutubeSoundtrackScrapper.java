@@ -66,7 +66,7 @@ public class YoutubeSoundtrackScrapper {
         rankSoundtrackResults(videoMetadatas, entry.getName());
         Main.LOGGER.info("Using soundtrack : "+videoMetadatas.get(0));
         if(scene!=null) {
-            GeneralToast.displayToast(Main.getString("best_theme")+" \""+videoMetadatas.get(0).getTitle()+"\"", scene.getWindow());
+            GeneralToast.displayToast(Main.getString("best_theme")+" \""+videoMetadatas.get(0).getTitle()+"\"", scene.getParentStage());
         }
         return videoMetadatas.get(0).hash;
 

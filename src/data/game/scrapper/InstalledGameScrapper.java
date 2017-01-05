@@ -80,6 +80,11 @@ public class InstalledGameScrapper {
                             entries.add(potentialEntry);
                         }
                     }
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         } catch (IOException e) {
@@ -148,6 +153,11 @@ public class InstalledGameScrapper {
                             entry.setBattlenet_id(0);
                             entry.setNotInstalled(false);
                             entries.add(entry);
+                        }
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
                     }
                 }

@@ -79,7 +79,7 @@ public class GameStarter {
             }
 
             if(MAIN_SCENE!=null) {
-                GeneralToast.displayToast(entry.getName() + Main.getString("launched"), MAIN_SCENE.getWindow());
+                GeneralToast.displayToast(entry.getName() + Main.getString("launched"), MAIN_SCENE.getParentStage());
             }
 
             Process gameProcess = gameProcessBuilder.start();
@@ -118,7 +118,7 @@ public class GameStarter {
                         entry.getOnGameStopped().run();
                     }
                     if(MAIN_SCENE!=null) {
-                        GeneralToast.displayToast(entry.getName() + Main.getString("stopped"), MAIN_SCENE.getWindow());
+                        GeneralToast.displayToast(entry.getName() + Main.getString("stopped"), MAIN_SCENE.getParentStage());
                     }
 
                     String cmdAfter = entry.getCmd(GameEntry.CMD_AFTER_END);
@@ -140,7 +140,7 @@ public class GameStarter {
                     if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS) && newValue != 0) {
                         Main.TRAY_ICON.displayMessage("GameRoom",notificationText , TrayIcon.MessageType.INFO);
                     }
-                    GeneralToast.displayToast(notificationText, MAIN_SCENE.getWindow());
+                    GeneralToast.displayToast(notificationText, MAIN_SCENE.getParentStage());
 
                 } else {
                     //No need to add playtime as if we are here, it means that some thread is already monitoring play time

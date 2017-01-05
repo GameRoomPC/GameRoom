@@ -73,11 +73,21 @@ public class FolderGameScanner extends GameScanner {
                 potentialEntry.setNotInstalled(false);
                 entriesFound.add(potentialEntry);
             }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         return entriesFound;
     }
 
     public static boolean isPotentiallyAGame(File file) {
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         for (String excludedName : EXCLUDED_FILE_NAMES) {
             if (file.getName().equals(excludedName)) {
                 return false;

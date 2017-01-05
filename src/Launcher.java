@@ -49,14 +49,17 @@ public class Launcher extends Application {
     private double widthBeforeFullScreen = -1;
     private double heightBeforeFullScreen = -1;
     private static boolean START_MINIMIZED = false;
+    private static boolean WAS_MAXIMISED = false;
+    private static ChangeListener<Boolean> focusListener;
+    private static ChangeListener<Boolean> maximizedListener;
 
     public static void main(String[] args) throws URISyntaxException {
         setCurrentProcessExplicitAppUserModelID("GameRoom");
 
-        System.setErr(new PrintStream(System.err){
+        System.setErr(new PrintStream(System.err) {
             public void print(final String string) {
                 LOGGER.error(string);
-                if(DEV_MODE || GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
+                if (DEV_MODE || GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
                     Platform.runLater(() -> {
                         if (console[0] == null) {
                             console[0] = new ConsoleOutputDialog();
@@ -67,7 +70,7 @@ public class Launcher extends Application {
                 }
             }
         });
-        System.setOut(new PrintStream(System.out){
+        System.setOut(new PrintStream(System.out) {
             public void print(final String string) {
                 //System.out.print(string);
                 LOGGER.debug(string);
@@ -77,26 +80,26 @@ public class Launcher extends Application {
         System.out.println("\n\n==========================================NEW START============================================");
 
         Main.LOGGER.debug("Received args : ");
-        for(String arg : args){
-            Main.LOGGER.debug("\t\""+arg+"\"");
+        for (String arg : args) {
+            Main.LOGGER.debug("\t\"" + arg + "\"");
         }
 
-        Main.DEV_MODE = getArg(ARGS_FLAG_DEV,args,false) != null;
+        Main.DEV_MODE = getArg(ARGS_FLAG_DEV, args, false) != null;
         initFiles();
         AllGameEntries.loadGames();
 
-        String gameToStartUUID = getArg(ARGS_START_GAME,args, true);
-        if(gameToStartUUID!=null){
+        String gameToStartUUID = getArg(ARGS_START_GAME, args, true);
+        if (gameToStartUUID != null) {
             boolean gameRoomAlreadyStarted = Monitor.isProcessRunning("GameRoom.exe");
-            if(gameRoomAlreadyStarted){
+            if (gameRoomAlreadyStarted) {
                 //TODO implement network init and sendung the game to start (with a repeat functionnality if no ack after 2 sec)
 
-            }else{
+            } else {
                 //can start the game here, then let GameRoom do as usual
                 ArrayList<UUID> uuids = AllGameEntries.readUUIDS(FILES_MAP.get("games"));
                 int i = 0;
                 for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
-                    if(entry.getUuid().equals(gameToStartUUID)){
+                    if (entry.getUuid().equals(gameToStartUUID)) {
                         //found the game to start!
                         entry.startGame();
                     }
@@ -104,16 +107,16 @@ public class Launcher extends Application {
             }
         }
 
-        String igdbKey = getArg(ARGS_FLAG_IGDB_KEY,args,true);
-        if(igdbKey!=null){
+        String igdbKey = getArg(ARGS_FLAG_IGDB_KEY, args, true);
+        if (igdbKey != null) {
             IGDBScrapper.IGDB_BASIC_KEY = igdbKey;
             IGDBScrapper.IGDB_PRO_KEY = igdbKey;
             IGDBScrapper.key = igdbKey;
         }
-        String showMode = getArg(ARGS_FLAG_SHOW,args,true);
-        if(showMode!=null){
-            switch (showMode){
-                case "0" :
+        String showMode = getArg(ARGS_FLAG_SHOW, args, true);
+        if (showMode != null) {
+            switch (showMode) {
+                case "0":
                     START_MINIMIZED = true;
                     break;
                 default:
@@ -125,10 +128,10 @@ public class Launcher extends Application {
         launch(args);
     }
 
-    private static void initFiles(){
+    private static void initFiles() {
         String appdataFolder = System.getenv("APPDATA");
-        String gameRoomPath = appdataFolder+File.separator+System.getProperty("working.dir");
-        System.out.println("afinfwoeifbnw "+gameRoomPath);
+        String gameRoomPath = appdataFolder + File.separator + System.getProperty("working.dir");
+        System.out.println("afinfwoeifbnw " + gameRoomPath);
         File gameRoomFolder = FileUtils.initOrCreateFolder(gameRoomPath);
 
         File configProperties = new File("config.properties");
@@ -139,43 +142,44 @@ public class Launcher extends Application {
         File cacheFolder = new File("cache");
 
         /*****************MOVE FILES/FOLDERS IF NEEDED***********************/
-        FileUtils.moveToFolder(gamesFolder,gameRoomFolder);
-        FileUtils.moveToFolder(configProperties,gameRoomFolder);
-        FileUtils.moveToFolder(logFolder,gameRoomFolder);
-        if(logFolder.exists()){
+        FileUtils.moveToFolder(gamesFolder, gameRoomFolder);
+        FileUtils.moveToFolder(configProperties, gameRoomFolder);
+        FileUtils.moveToFolder(logFolder, gameRoomFolder);
+        if (logFolder.exists()) {
             FileUtils.clearFolder(logFolder);
             logFolder.delete();
         }
         //FileUtils.moveToFolder(libsFolder,gameRoomFolder);
-        FileUtils.moveToFolder(toAddFolder,gameRoomFolder);
-        FileUtils.moveToFolder(cacheFolder,gameRoomFolder);
+        FileUtils.moveToFolder(toAddFolder, gameRoomFolder);
+        FileUtils.moveToFolder(cacheFolder, gameRoomFolder);
 
         /*****************INIT FILES AND FOLDER***********************/
-        Main.FILES_MAP.put("working_dir",gameRoomFolder);
-        Main.FILES_MAP.put("cache",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"cache"));
-        Main.FILES_MAP.put("to_add",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"ToAdd"));
+        Main.FILES_MAP.put("working_dir", gameRoomFolder);
+        Main.FILES_MAP.put("cache", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "cache"));
+        Main.FILES_MAP.put("to_add", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "ToAdd"));
         //Main.FILES_MAP.put("libs",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"libs"));
-        Main.FILES_MAP.put("games",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"Games"));
-        Main.FILES_MAP.put("log",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"log"));
-        Main.FILES_MAP.put("config.properties",FileUtils.initOrCreateFile(gameRoomFolder+File.separator+"config.properties"));
-        Main.FILES_MAP.put("GameRoom.log",FileUtils.initOrCreateFile(Main.FILES_MAP.get("log").getAbsolutePath()+File.separator+"GameRoom.log"));
-        Main.FILES_MAP.put("themes",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"themes"));
-        Main.FILES_MAP.put("current_theme",FileUtils.initOrCreateFolder(Main.FILES_MAP.get("themes").getAbsolutePath()+File.separator+"current"));
-        Main.FILES_MAP.put("theme_css",new File(Main.FILES_MAP.get("current_theme").getAbsolutePath()+File.separator+"theme.css"));
+        Main.FILES_MAP.put("games", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "Games"));
+        Main.FILES_MAP.put("log", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "log"));
+        Main.FILES_MAP.put("config.properties", FileUtils.initOrCreateFile(gameRoomFolder + File.separator + "config.properties"));
+        Main.FILES_MAP.put("GameRoom.log", FileUtils.initOrCreateFile(Main.FILES_MAP.get("log").getAbsolutePath() + File.separator + "GameRoom.log"));
+        Main.FILES_MAP.put("themes", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "themes"));
+        Main.FILES_MAP.put("current_theme", FileUtils.initOrCreateFolder(Main.FILES_MAP.get("themes").getAbsolutePath() + File.separator + "current"));
+        Main.FILES_MAP.put("theme_css", new File(Main.FILES_MAP.get("current_theme").getAbsolutePath() + File.separator + "theme.css"));
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         MAIN_SCENE = new MainScene(primaryStage);
-        initPrimaryStage(primaryStage,MAIN_SCENE,true);
+        initPrimaryStage(primaryStage, MAIN_SCENE, true);
         initTrayIcon();
         initXboxController(primaryStage);
-        setFullScreen(primaryStage,GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN),true);
-        if(!DEV_MODE){
+        setFullScreen(primaryStage, GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN), true);
+        if (!DEV_MODE) {
             startUpdater();
         }
     }
-    private void openStage(Stage primaryStage, boolean appStart){
+
+    private void openStage(Stage primaryStage, boolean appStart) {
         if (START_MINIMIZED && appStart) {
             primaryStage.setOpacity(0);
         }
@@ -187,75 +191,98 @@ public class Launcher extends Application {
         Platform.runLater(() -> {
             primaryStage.setWidth(primaryStage.getWidth());
             primaryStage.setHeight(primaryStage.getHeight());
+            primaryStage.setMaximized(GENERAL_SETTINGS.getBoolean(PredefinedSetting.WINDOW_MAXIMIZED));
         });
     }
-    private void initPrimaryStage(Stage primaryStage, Scene initScene, boolean appStart){
+
+    private void initPrimaryStage(Stage primaryStage, Scene initScene, boolean appStart) {
         initIcons(primaryStage);
         primaryStage.setTitle("GameRoom");
-        primaryStage.focusedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                MAIN_SCENE.setChangeBackgroundNextTime(true);
-                primaryStage.getScene().getRoot().setMouseTransparent(!newValue);
-                GeneralToast.enableToasts(newValue);
+        focusListener = (observable, oldValue, newValue) -> {
+            MAIN_SCENE.setChangeBackgroundNextTime(true);
+            primaryStage.getScene().getRoot().setMouseTransparent(!newValue);
+            GeneralToast.enableToasts(newValue);
 
-                if(newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)){
-                    xboxController.startThreads();
-                }else if(!newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)){
-                    xboxController.stopThreads();
-                }
+            if (newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)) {
+                xboxController.startThreads();
+            } else if (!newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)) {
+                xboxController.stopThreads();
             }
-        });
+        };
+        primaryStage.focusedProperty().addListener(focusListener);
+
         primaryStage.setScene(initScene);
         primaryStage.setFullScreenExitHint("");
         primaryStage.setFullScreenExitKeyCombination(null);
         MAIN_SCENE.setParentStage(primaryStage);
-        if(initScene instanceof BaseScene){
-            ((BaseScene)initScene).setParentStage(primaryStage);
+        if (initScene instanceof BaseScene) {
+            ((BaseScene) initScene).setParentStage(primaryStage);
         }
         primaryStage.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, new EventHandler<javafx.scene.input.KeyEvent>() {
             @Override
             public void handle(javafx.scene.input.KeyEvent event) {
-                if(event.getCode()==KeyCode.F11){
-                    setFullScreen(primaryStage,!GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN),false);
+                if (event.getCode() == KeyCode.F11) {
+                    setFullScreen(primaryStage, !GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN), false);
                 }
-                if (event.getCode() == KeyCode.F10){
-                    if(Main.MAIN_SCENE != null){
+                if (event.getCode() == KeyCode.F10) {
+                    if (Main.MAIN_SCENE != null) {
                         Main.MAIN_SCENE.toggleTopBar();
                     }
                 }
             }
         });
+        maximizedListener = (observable, oldValue, newValue) -> {
+            if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN)) {
+                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.WINDOW_MAXIMIZED, newValue);
+            }
+        };
+        primaryStage.maximizedProperty().addListener(maximizedListener);
     }
-    private void setFullScreen(Stage primaryStage,boolean fullScreen, boolean appStart){
-        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FULL_SCREEN,fullScreen);
-        if(!appStart) {
+
+    private void clearStage(Stage stage) {
+        if (maximizedListener != null) {
+            stage.maximizedProperty().removeListener(maximizedListener);
+        }
+        if (focusListener != null) {
+            stage.focusedProperty().removeListener(focusListener);
+        }
+    }
+
+    private void setFullScreen(Stage primaryStage, boolean fullScreen, boolean appStart) {
+        if (fullScreen) {
+            WAS_MAXIMISED = primaryStage.isMaximized();
+        }
+        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FULL_SCREEN, fullScreen);
+        if (!appStart) {
+            clearStage(primaryStage);
             primaryStage.close();
         }
         Stage newStage = new Stage();
-        if(appStart){
+        if (appStart) {
             newStage = primaryStage;
         }
         newStage.setFullScreen(fullScreen);
-        if(fullScreen){
+        if (fullScreen) {
             widthBeforeFullScreen = GENERAL_SETTINGS.getWindowWidth();
             heightBeforeFullScreen = GENERAL_SETTINGS.getWindowHeight();
             newStage.setWidth(Main.SCREEN_WIDTH);
             newStage.setHeight(Main.SCREEN_HEIGHT);
             newStage.initStyle(StageStyle.UNDECORATED);
-        }else{
-            if(widthBeforeFullScreen!=-1){
+        } else {
+            if (widthBeforeFullScreen != -1) {
                 newStage.setWidth(widthBeforeFullScreen);
             }
-            if(heightBeforeFullScreen!=-1){
+            if (heightBeforeFullScreen != -1) {
                 newStage.setHeight(heightBeforeFullScreen);
             }
             newStage.initStyle(StageStyle.DECORATED);
+            newStage.setMaximized(WAS_MAXIMISED);
         }
-        if(!appStart) {
+        if (!appStart) {
+            clearStage(primaryStage);
             initPrimaryStage(newStage, primaryStage.getScene(), appStart);
         }
-        openStage(newStage,appStart);
+        openStage(newStage, appStart);
     }
 
     private void initXboxController(Stage primaryStage) {
@@ -300,7 +327,7 @@ public class Launcher extends Application {
 
                 }
             });
-            if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)) {
+            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)) {
                 xboxController.startThreads();
             }
 
@@ -312,7 +339,7 @@ public class Launcher extends Application {
     @Override
     public void stop() {
         Main.LOGGER.info("Closing app, saving settings.");
-        if(MAIN_SCENE!=null){
+        if (MAIN_SCENE != null) {
             Main.runAndWait(() -> {
                 MAIN_SCENE.saveScrollBarVValue();
             });
@@ -322,7 +349,8 @@ public class Launcher extends Application {
 
         System.exit(0);
     }
-    private void initTrayIcon(){
+
+    private void initTrayIcon() {
         //Check the SystemTray is supported
         if (!SystemTray.isSupported()) {
             Main.LOGGER.error("SystemTray not supported");
@@ -375,7 +403,7 @@ public class Launcher extends Application {
                             trayMessageCount++;
                         } else {
                             if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING)) {
-                                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING,true);
+                                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING, true);
                             }
                         }
                     }
@@ -412,8 +440,8 @@ public class Launcher extends Application {
                 try {
                     String dir = GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER);
                     File gamesFolder = new File(dir);
-                    if(gamesFolder.exists() && gamesFolder.isDirectory())
-                    Desktop.getDesktop().open(gamesFolder);
+                    if (gamesFolder.exists() && gamesFolder.isDirectory())
+                        Desktop.getDesktop().open(gamesFolder);
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -446,7 +474,7 @@ public class Launcher extends Application {
         popup.add(gameRoomFolderItem);
 
         File gameFolder = new File(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER));
-        if( gameFolder.exists() && gameFolder.isDirectory()){
+        if (gameFolder.exists() && gameFolder.isDirectory()) {
             popup.add(gamesFolderItem);
         }
         popup.add(settingsItem);

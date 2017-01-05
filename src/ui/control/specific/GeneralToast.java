@@ -1,6 +1,7 @@
 package ui.control.specific;
 
 import javafx.scene.control.Tooltip;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 import ui.Main;
 import ui.scene.BaseScene;
@@ -43,15 +44,15 @@ public class GeneralToast extends Tooltip {
         });
     }
 
-    public static void displayToast(String text, Window window) {
+    public static void displayToast(String text, Stage window) {
         displayToast(text, window, DURATION_LONG);
     }
 
-    public static void displayToast(String text, Window window, int duration) {
+    public static void displayToast(String text, Stage window, int duration) {
         displayToast(text, window, duration, false);
     }
 
-    public static void displayToast(String text, Window window, int duration, boolean interruptible) {
+    public static void displayToast(String text, Stage window, int duration, boolean interruptible) {
         GeneralToast toast = new GeneralToast(text, duration,window);
         toast.interruptible = interruptible;
         try {

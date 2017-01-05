@@ -72,7 +72,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
                     }
                     if(MAIN_SCENE!=null){
                         String end = entries.size() > 1 ? Main.getString("new_games") : Main.getString("new_game");
-                        GeneralToast.displayToast(Main.getString("gameroom_has_found")+" "+entries.size()+" "+end,MAIN_SCENE.getWindow(),GeneralToast.DURATION_LONG);
+                        GeneralToast.displayToast(Main.getString("gameroom_has_found")+" "+entries.size()+" "+end,MAIN_SCENE.getParentStage(),GeneralToast.DURATION_LONG);
                     }
 
                 } else if (letter.getText().equals(RESSOURCE_BUNDLE.getString("add_all_edit"))) {
