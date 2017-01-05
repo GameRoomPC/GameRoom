@@ -3,11 +3,14 @@ package ui.control.specific;
 import javafx.scene.control.Tooltip;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.scene.BaseScene;
 import ui.theme.ThemeUtils;
 
 import java.util.concurrent.LinkedBlockingQueue;
+
+import static ui.Main.GENERAL_SETTINGS;
 
 /**
  * Created by LM on 05/01/2017.
@@ -95,7 +98,7 @@ public class GeneralToast extends Tooltip {
     }
 
     private void showTimed(Window window) {
-        if (ENABLED) {
+        if (ENABLED && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_TOASTS)) {
             CAN_INTERRUPT_TOAST = interruptible;
             Main.runAndWait(() -> {
                 show(window);

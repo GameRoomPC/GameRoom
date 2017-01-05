@@ -121,6 +121,7 @@ public class SettingsScene extends BaseScene {
         addPropertyLine(PredefinedSetting.LOCALE, false);
         addPropertyLine(PredefinedSetting.ON_GAME_LAUNCH_ACTION);
         addPropertyLine(PredefinedSetting.NO_NOTIFICATIONS);
+        addPropertyLine(PredefinedSetting.NO_TOASTS,true);
         addPropertyLine(PredefinedSetting.START_WITH_WINDOWS, false, new ChangeListener() {
             @Override
             public void changed(ObservableValue observable, Object oldValue, Object newValue) {

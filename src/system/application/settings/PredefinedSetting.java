@@ -26,6 +26,7 @@ public enum PredefinedSetting {
     ,GAMING_POWER_MODE("gamingPowerMode", new SettingValue(PowerMode.getActivePowerMode(),PowerMode.class,CATEGORY_ON_GAME_START))
     ,ENABLE_GAMING_POWER_MODE("enableGamingPowerMode", new SettingValue(false,Boolean.class,CATEGORY_ON_GAME_START))
     , NO_NOTIFICATIONS("noNotifications", new SettingValue(false,Boolean.class, CATEGORY_UI))
+    , NO_TOASTS("noToasts", new SettingValue(false,Boolean.class, CATEGORY_UI))
     ,START_MINIMIZED("startMinimized", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     ,WINDOW_MAXIMIZED("windowMaximized", new SettingValue(true,Boolean.class,CATEGORY_NONE))
     ,START_WITH_WINDOWS("startWithWindows", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
