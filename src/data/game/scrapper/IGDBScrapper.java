@@ -18,10 +18,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
+import java.util.*;
 
 /**
  * Created by LM on 03/07/2016.
@@ -152,8 +149,8 @@ public class IGDBScrapper {
     }*/
     public static ArrayList<GameEntry> getEntries(JSONArray searchData) {
         ArrayList<GameEntry> entries = new ArrayList<>();
-        ArrayList<Integer> companiesIDs = new ArrayList<>();
-        ArrayList<Integer> seriesIDs = new ArrayList<>();
+        HashSet<Integer> companiesIDs = new HashSet<>();
+        HashSet<Integer> seriesIDs = new HashSet<>();
 
         for (int i = 0; i < searchData.length(); i++) {
             try {

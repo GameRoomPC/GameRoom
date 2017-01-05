@@ -114,7 +114,6 @@ public class GameWatcher {
                     LOGGER.info("GameWatcher started");
                     //validateKey();
                     scanNewGamesRoutine();
-                    tryScrapToAddEntries();
                     scanNewOnlineGamesRoutine();
                     tryScrapToAddEntries();
                     scanSteamGamesTime();
