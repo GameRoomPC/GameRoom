@@ -5,6 +5,7 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.GameEntry;
 import ui.Main;
+import ui.control.specific.GeneralToast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static ui.Main.DEV_MODE;
+import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 07/08/2016.
@@ -58,6 +60,9 @@ public class YoutubeSoundtrackScrapper {
         }
         rankSoundtrackResults(videoMetadatas, entry.getName());
         Main.LOGGER.info("Using soundtrack : "+videoMetadatas.get(0));
+        if(MAIN_SCENE!=null) {
+            GeneralToast.displayToast(Main.getString("best_theme")+" \""+videoMetadatas.get(0).getTitle()+"\"", MAIN_SCENE.getWindow());
+        }
         return videoMetadatas.get(0).hash;
 
     }

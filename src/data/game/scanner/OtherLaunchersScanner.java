@@ -30,7 +30,7 @@ public abstract class OtherLaunchersScanner extends FolderGameScanner {
             return new ArrayList<>();
         }
         if(MAIN_SCENE!=null){
-            GeneralToast.displayToast(Main.getString("scanning")+" "+profile.toString(),MAIN_SCENE,GeneralToast.DURATION_SHORT,true);
+            GeneralToast.displayToast(Main.getString("scanning")+" "+profile.toString(),MAIN_SCENE.getWindow(),GeneralToast.DURATION_SHORT,true);
         }
 
         return getEntriesInstalled();

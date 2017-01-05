@@ -17,6 +17,7 @@ import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
+import ui.control.specific.GeneralToast;
 import ui.pane.gamestilepane.ToAddRowTilePane;
 import ui.scene.GameEditScene;
 import ui.scene.MainScene;
@@ -67,6 +68,9 @@ public class AddIgnoreGameButton extends GameButton {
 
                 mainScene.removeGame(entry);
                 parentPane.removeGame(entry);
+
+                GeneralToast.displayToast(entry.getName()+Main.getString("ignored"),mainScene.getWindow());
+
             }
         });
         scrapingButton = new ImageButton("tile-loading-button", SCREEN_WIDTH / 10, SCREEN_WIDTH / 10);

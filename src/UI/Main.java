@@ -2,6 +2,7 @@ package ui;
 
 import data.http.URLTools;
 import data.http.key.KeyChecker;
+import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.stage.Stage;
@@ -71,6 +72,7 @@ public class Main {
     public static volatile boolean KEEP_THREADS_RUNNING = true;
 
     private static String[] calling_args;
+
 
     public static void main(String[] args) {
         calling_args = args;

@@ -136,6 +136,8 @@ public class GameInfoScene extends BaseScene {
                 setOnSceneFadedOutAction(new Runnable() {
                     @Override
                     public void run() {
+                        entry.setOnGameLaunched(null);
+                        entry.setOnGameStopped(null);
                         ytButton.quitYoutube();
                     }
                 });

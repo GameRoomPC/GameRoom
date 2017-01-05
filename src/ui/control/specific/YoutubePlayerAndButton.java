@@ -16,6 +16,7 @@ import ui.control.button.OnActionHandler;
 import java.net.MalformedURLException;
 
 import static ui.Main.LOGGER;
+import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 07/08/2016.
@@ -112,6 +113,7 @@ public class YoutubePlayerAndButton {
         try {
             if (entry.getYoutubeSoundtrackHash().equals("")) {
                 String hash = YoutubeSoundtrackScrapper.getThemeYoutubeHash(entry);
+
                 entry.setSavedLocaly(true);
                 entry.setYoutubeSoundtrackHash(hash);
                 entry.setSavedLocaly(false);

@@ -43,6 +43,7 @@ import ui.Main;
 import ui.control.ValidEntryCondition;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
+import ui.control.specific.GeneralToast;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
 import ui.control.textfield.PlayTimeField;
@@ -195,9 +196,11 @@ public class GameEditScene extends BaseScene {
                         case MODE_ADD:
                             entry.setAddedDate(new Date());
                             MAIN_SCENE.addGame(entry);
+                            GeneralToast.displayToast(entry.getName()+Main.getString("added_to_your_lib"),getWindow());
                             break;
                         case MODE_EDIT:
                             MAIN_SCENE.updateGame(entry);
+                            GeneralToast.displayToast(Main.getString("changes_saved"),getWindow());
                             break;
                         default:
                             break;

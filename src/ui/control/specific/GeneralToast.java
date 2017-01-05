@@ -1,8 +1,10 @@
 package ui.control.specific;
 
 import javafx.scene.control.Tooltip;
+import javafx.stage.Window;
 import ui.Main;
 import ui.scene.BaseScene;
+import ui.theme.ThemeUtils;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -23,32 +25,38 @@ public class GeneralToast extends Tooltip {
     private int duration;
     private boolean interruptible = false;
 
-    private GeneralToast(String text) {
-        this(text, DURATION_LONG);
+    private GeneralToast(String text, Window window) {
+        this(text, DURATION_LONG,window);
     }
 
-    private GeneralToast(String text, int duration) {
+    private GeneralToast(String text, int duration, Window window) {
         super(text);
         this.duration = duration;
         setAutoHide(false);
+        setHideOnEscape(false);
+        
         widthProperty().addListener((observable, oldValue, newValue) -> {
-            setAnchorX(Main.SCREEN_WIDTH / 2 - (newValue.doubleValue() / 2.0));
+            if(window!=null){
+                setAnchorX(window.getWidth() / 2 - (newValue.doubleValue() / 2.0));
+            }
         });
         heightProperty().addListener((observable, oldValue, newValue) -> {
-            setAnchorY(Main.SCREEN_HEIGHT - 2 * newValue.doubleValue());
+            if(window!=null) {
+                setAnchorY(window.getHeight() - 2 * newValue.doubleValue());
+            }
         });
     }
 
-    public static void displayToast(String text, BaseScene scene) {
-        displayToast(text, scene, DURATION_LONG);
+    public static void displayToast(String text, Window window) {
+        displayToast(text, window, DURATION_LONG);
     }
 
-    public static void displayToast(String text, BaseScene scene, int duration) {
-        displayToast(text, scene, duration, false);
+    public static void displayToast(String text, Window window, int duration) {
+        displayToast(text, window, duration, false);
     }
 
-    public static void displayToast(String text, BaseScene scene, int duration, boolean interruptible) {
-        GeneralToast toast = new GeneralToast(text, duration);
+    public static void displayToast(String text, Window window, int duration, boolean interruptible) {
+        GeneralToast toast = new GeneralToast(text, duration,window);
         toast.interruptible = interruptible;
         try {
             TOAST_QUEUE.put(toast);
@@ -61,7 +69,7 @@ public class GeneralToast extends Tooltip {
                 while (true) {
                     GeneralToast toast1;
                     while ((toast1 = TOAST_QUEUE.poll()) != null && ENABLED) { // does not block on empty list but returns null instead
-                        toast1.showTimed(scene);
+                        toast1.showTimed(window);
                         try {
                             Thread.sleep(100);
                         } catch (InterruptedException ignored) {
@@ -89,11 +97,11 @@ public class GeneralToast extends Tooltip {
         }
     }
 
-    private void showTimed(BaseScene scene) {
+    private void showTimed(Window window) {
         if (ENABLED) {
             CAN_INTERRUPT_TOAST = interruptible;
             Main.runAndWait(() -> {
-                show(scene.getParentStage());
+                show(window);
             });
             try {
                 Thread.sleep(duration);

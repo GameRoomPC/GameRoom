@@ -360,7 +360,7 @@ public class GameWatcher {
             Main.LOGGER.info("GameWatcher : found " + numberFound + " new games!");
             if(MAIN_SCENE!=null){
                 String end = numberFound > 1 ? Main.getString("new_games") : Main.getString("new_game");
-                GeneralToast.displayToast(Main.getString("gameroom_has_found")+" "+numberFound+end,MAIN_SCENE,GeneralToast.DURATION_LONG);
+                GeneralToast.displayToast(Main.getString("gameroom_has_found")+" "+numberFound+end,MAIN_SCENE.getWindow(),GeneralToast.DURATION_LONG);
             }
             onGameFoundHandler.onAllGamesFound();
         }
