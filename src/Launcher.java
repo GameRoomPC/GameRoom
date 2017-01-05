@@ -240,6 +240,7 @@ public class Launcher extends Application {
     }
 
     private void clearStage(Stage stage) {
+        GeneralToast.enableToasts(true);
         if (maximizedListener != null) {
             stage.maximizedProperty().removeListener(maximizedListener);
         }
@@ -257,10 +258,8 @@ public class Launcher extends Application {
             clearStage(primaryStage);
             primaryStage.close();
         }
-        Stage newStage = new Stage();
-        if (appStart) {
-            newStage = primaryStage;
-        }
+        Stage newStage = appStart ? primaryStage : new Stage();
+
         newStage.setFullScreen(fullScreen);
         if (fullScreen) {
             widthBeforeFullScreen = GENERAL_SETTINGS.getWindowWidth();
@@ -426,9 +425,7 @@ public class Launcher extends Application {
             public void actionPerformed(ActionEvent e) {
                 try {
                     Desktop.getDesktop().open(new File(Launcher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile());
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                } catch (URISyntaxException e1) {
+                } catch (IOException | URISyntaxException e1) {
                     e1.printStackTrace();
                 }
             }

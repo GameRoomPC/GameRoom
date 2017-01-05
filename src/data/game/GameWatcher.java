@@ -312,6 +312,12 @@ public class GameWatcher {
                                 }
                             });
                     i++;
+
+                    try {
+                        Thread.sleep(2 * 100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             } catch (UnirestException e) {
                 e.printStackTrace();
