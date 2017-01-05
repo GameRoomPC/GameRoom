@@ -32,6 +32,7 @@ import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
+import ui.dialog.GameRoomAlert;
 import ui.dialog.selector.AppSelectorDialog;
 import ui.scene.BaseScene;
 import ui.scene.GameInfoScene;
@@ -356,14 +357,18 @@ public abstract class GameButton extends BorderPane {
             if(!entry.isSteamGame()) {
                 File gamePath = new File(entry.getPath());
                 if (gamePath.isDirectory()) {
-                    AppSelectorDialog selector = new AppSelectorDialog(gamePath);
-                    Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
-                    ignoredOptionnal.ifPresent(pairs -> {
-                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                            entry.setPath(selector.getSelectedFile().getAbsolutePath());
-                            entry.startGame();
-                        }
-                    });
+                    try {
+                        AppSelectorDialog selector = new AppSelectorDialog(gamePath);
+                        Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+                        ignoredOptionnal.ifPresent(pairs -> {
+                            if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                                entry.setPath(selector.getSelectedFile().getAbsolutePath());
+                                entry.startGame();
+                            }
+                        });
+                    }catch (IllegalArgumentException e){
+                        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR,Main.getString("invalid_path_not_file"));
+                    }
                 } else {
                     entry.startGame();
                 }

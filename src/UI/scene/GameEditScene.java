@@ -44,6 +44,7 @@ import ui.control.ValidEntryCondition;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.specific.GeneralToast;
+import ui.control.textfield.AppPathField;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
 import ui.control.textfield.PlayTimeField;
@@ -299,15 +300,23 @@ public class GameEditScene extends BaseScene {
 
         /**************************PATH*********************************************/
         contentPane.add(new Label(Main.getString("game_path") + " :"), 0, row_count);
-        PathTextField gamePathField = new PathTextField(entry.getPath(), this, PathTextField.FILE_CHOOSER_APPS, Main.getString("select_picture"));
-        gamePathField.getTextField().setPrefColumnCount(50);
-        gamePathField.setId("game_path");
-        gamePathField.getTextField().textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                entry.setPath(newValue);
-            }
-        });
+        Node pathNode = new Label();
+        if(!entry.isSteamGame()){
+            AppPathField gamePathField = new AppPathField(entry.getPath(), this, PathTextField.FILE_CHOOSER_APPS, Main.getString("select_picture"));
+            gamePathField.getTextField().setPrefColumnCount(50);
+            gamePathField.setId("game_path");
+            gamePathField.getTextField().textProperty().addListener(new ChangeListener<String>() {
+                @Override
+                public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                    entry.setPath(newValue);
+                }
+            });
+            pathNode = gamePathField;
+        }else{
+            pathNode = new Label(entry.getPath());
+            pathNode.setFocusTraversable(false);
+        }
+
         validEntriesConditions.add(new ValidEntryCondition() {
             @Override
             public boolean isValid() {
@@ -322,21 +331,25 @@ public class GameEditScene extends BaseScene {
                     message.replace(0, message.length(), Main.getString("invalid_path_not_file"));
                     return false;
                 }else if(!isSteamGame && file.isDirectory()){
-                    AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()));
-                    Optional<ButtonType> appOptionnal = selector.showAndWait();
+                    try {
+                        AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()));
+                        Optional<ButtonType> appOptionnal = selector.showAndWait();
 
-                    final boolean[] result = {true};
+                        final boolean[] result = {true};
 
-                    appOptionnal.ifPresent(pairs -> {
-                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                            entry.setPath(selector.getSelectedFile().getAbsolutePath());
-                        }else{
-                            result[0] =  false;
+                        appOptionnal.ifPresent(pairs -> {
+                            if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                                entry.setPath(selector.getSelectedFile().getAbsolutePath());
+                            } else {
+                                result[0] = false;
+                            }
+                        });
+                        if (!result[0]) {
+                            message.replace(0, message.length(), Main.getString("invalid_path_not_file"));
+                            return result[0];
                         }
-                    });
-                    if(!result[0]){
-                        message.replace(0, message.length(), Main.getString("invalid_path_not_file"));
-                        return result[0];
+                    }catch (IllegalArgumentException e){
+                        return false;
                     }
                 }
                 return true;
@@ -348,7 +361,7 @@ public class GameEditScene extends BaseScene {
             }
         });
 
-        contentPane.add(gamePathField, 1, row_count);
+        contentPane.add(pathNode, 1, row_count);
         row_count++;
 
         /**************************PLAYTIME*********************************************/

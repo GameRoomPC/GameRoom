@@ -20,7 +20,7 @@ public class GeneralToast extends Tooltip {
     public final static int DURATION_LONG = 4000;
     public final static int DURATION_SHORT = 1000;
 
-    private static volatile boolean ENABLED = true;
+    private static volatile boolean ENABLED = false;
     private static volatile boolean WAITING_FOR_TOASTS = false;
 
     private final static LinkedBlockingQueue<GeneralToast> TOAST_QUEUE = new LinkedBlockingQueue<>();
