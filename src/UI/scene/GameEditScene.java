@@ -252,12 +252,6 @@ public class GameEditScene extends BaseScene {
                     Main.GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO,
                     Main.GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO
                     , false, true);
-
-            double widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/screenshotImage.getWidth();
-            double heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/screenshotImage.getHeight();
-
-            backgroundView.setScaleX(widthScale);
-            backgroundView.setScaleY(heightScale);
             backgroundView.setImage(screenshotImage);
         }
 

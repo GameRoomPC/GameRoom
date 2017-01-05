@@ -139,12 +139,12 @@ public class ImageUtils {
             double widthScale = (double) GENERAL_SETTINGS.getWindowWidth() / img.getWidth();
             double heightScale = (double) GENERAL_SETTINGS.getWindowHeight() / img.getHeight();
 
-            if (imageView.getScaleX() != widthScale) {
+            /*if (imageView.getScaleX() != widthScale) {
                 imageView.setScaleX(widthScale);
             }
             if (imageView.getScaleY() != heightScale) {
                 imageView.setScaleY(heightScale);
-            }
+            }*/
         }
         ImageUtils.transitionToImage(img, imageView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
 

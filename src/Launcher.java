@@ -215,6 +215,7 @@ public class Launcher extends Application {
         primaryStage.setFullScreenExitHint("");
         primaryStage.setFullScreenExitKeyCombination(null);
         MAIN_SCENE.setParentStage(primaryStage);
+
         if (initScene instanceof BaseScene) {
             ((BaseScene) initScene).setParentStage(primaryStage);
         }
@@ -281,6 +282,7 @@ public class Launcher extends Application {
             clearStage(primaryStage);
             initPrimaryStage(newStage, primaryStage.getScene(), appStart);
         }
+
         openStage(newStage, appStart);
     }
 
