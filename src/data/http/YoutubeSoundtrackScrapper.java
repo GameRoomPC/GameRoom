@@ -6,6 +6,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.GameEntry;
 import ui.Main;
 import ui.control.specific.GeneralToast;
+import ui.scene.BaseScene;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,6 +41,10 @@ public class YoutubeSoundtrackScrapper {
     private final static String VIDEO_AUTHOR_VALIDATED_SUFFIX = "</a>&nbsp;<span class=\"yt-uix-tooltip yt-channel-title-icon-verified yt-sprite\"";
 
     public static String getThemeYoutubeHash(GameEntry entry) throws IOException, UnirestException {
+        return getThemeYoutubeHash(entry,null);
+    }
+
+    public static String getThemeYoutubeHash(GameEntry entry, BaseScene scene) throws IOException, UnirestException {
         ArrayList<VideoMetadata> videoMetadatas = new ArrayList<>();
         for(String keywords : SOUNDTRACK_KEY_WORDS){
             ArrayList<VideoMetadata> searchResults = getVideosTitlesAndLinksFor(entry.getName(),keywords);
@@ -60,8 +65,8 @@ public class YoutubeSoundtrackScrapper {
         }
         rankSoundtrackResults(videoMetadatas, entry.getName());
         Main.LOGGER.info("Using soundtrack : "+videoMetadatas.get(0));
-        if(MAIN_SCENE!=null) {
-            GeneralToast.displayToast(Main.getString("best_theme")+" \""+videoMetadatas.get(0).getTitle()+"\"", MAIN_SCENE.getWindow());
+        if(scene!=null) {
+            GeneralToast.displayToast(Main.getString("best_theme")+" \""+videoMetadatas.get(0).getTitle()+"\"", scene.getWindow());
         }
         return videoMetadatas.get(0).hash;
 

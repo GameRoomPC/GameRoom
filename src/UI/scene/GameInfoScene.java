@@ -128,7 +128,7 @@ public class GameInfoScene extends BaseScene {
         StackPane topStackPane = createTop(entry.getName());
         if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
             try {
-                ytButton = new YoutubePlayerAndButton(entry);
+                ytButton = new YoutubePlayerAndButton(entry,this);
                 entry.setOnGameLaunched(() -> ytButton.pause());
                 entry.setOnGameStopped(() -> ytButton.play());
                 topStackPane.getChildren().addAll(ytButton.getSoundMuteButton());

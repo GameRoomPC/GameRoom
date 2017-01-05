@@ -12,6 +12,7 @@ import netscape.javascript.JSObject;
 import ui.Main;
 import ui.control.button.DualImageButton;
 import ui.control.button.OnActionHandler;
+import ui.scene.BaseScene;
 
 import java.net.MalformedURLException;
 
@@ -23,10 +24,12 @@ import static ui.Main.MAIN_SCENE;
  */
 public class YoutubePlayerAndButton {
     private static WebView WEB_VIEW;
+    private final BaseScene scene;
     private DualImageButton soundMuteButton;
 
-    public YoutubePlayerAndButton(GameEntry entry) throws MalformedURLException {
+    public YoutubePlayerAndButton(GameEntry entry, BaseScene scene) throws MalformedURLException {
         super();
+        this.scene = scene;
 
         double imgSize = Main.GENERAL_SETTINGS.getWindowWidth() / 35;
 
@@ -112,7 +115,7 @@ public class YoutubePlayerAndButton {
     private String getHash(GameEntry entry) {
         try {
             if (entry.getYoutubeSoundtrackHash().equals("")) {
-                String hash = YoutubeSoundtrackScrapper.getThemeYoutubeHash(entry);
+                String hash = YoutubeSoundtrackScrapper.getThemeYoutubeHash(entry,scene);
 
                 entry.setSavedLocaly(true);
                 entry.setYoutubeSoundtrackHash(hash);

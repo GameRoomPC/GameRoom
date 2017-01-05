@@ -744,7 +744,7 @@ public class MainScene extends BaseScene {
             getRootStackPane().setMouseTransparent(false);
         });
 
-        ImageButton scanButton = new ImageButton("tile-loading-button", SCREEN_WIDTH / 35.0, SCREEN_WIDTH / 35.0);
+        ImageButton scanButton = new ImageButton("tile-loading-button", SCREEN_WIDTH / 38.0, SCREEN_WIDTH / 38.0);
         scanButton.setFocusTraversable(false);
         scanButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override

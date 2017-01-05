@@ -151,19 +151,14 @@ public abstract class GameButton extends BorderPane {
         String titleLogoId = null;
         if(entry.isSteamGame()){
             titleLogoId = "steam-icon";
-            //titleLogoImage = new Image("res/ui/launcherIcons/steamChar.png",width,height,true,true);
-        }else if (entry.isGoGGame()){
-            titleLogoId = "gog-icon";
-            //titleLogoImage = new Image("res/ui/launcherIcons/gogChar.png",width,height,true,true);
         }else if (entry.isUplayGame()){
             titleLogoId = "uplay-icon";
-            //titleLogoImage = new Image("res/ui/launcherIcons/uplayChar.png",width,height,true,true);
         }else if (entry.isOriginGame()){
             titleLogoId = "origin-icon";
-            //titleLogoImage = new Image("res/ui/launcherIcons/originChar.png",width,height,true,true);
         }else if (entry.isBattlenetGame()){
             titleLogoId = "battlenet-icon";
-            //titleLogoImage = new Image("res/ui/launcherIcons/battle.netChar.png",width,height,true,true);
+        }else if (entry.isGoGGame()){
+            titleLogoId = "gog-icon";
         }
         if(titleLogoId != null) {
             titleLogoView.setSmooth(true);

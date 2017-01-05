@@ -34,7 +34,7 @@ public class GeneralToast extends Tooltip {
         this.duration = duration;
         setAutoHide(false);
         setHideOnEscape(false);
-        
+
         widthProperty().addListener((observable, oldValue, newValue) -> {
             if(window!=null){
                 setAnchorX(window.getWidth() / 2 - (newValue.doubleValue() / 2.0));
