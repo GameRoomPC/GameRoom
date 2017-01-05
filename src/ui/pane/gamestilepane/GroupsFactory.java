@@ -33,7 +33,7 @@ public class GroupsFactory {
                 return entry.getGenres() == null || entry.getGenres().length == 0;
             }
         };
-        othersTilePane.setTitle(Main.RESSOURCE_BUNDLE.getString("others"));
+        othersTilePane.setTitle(Main.getString("others"));
         originalTilePane.getTilePane().prefTileWidthProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -115,7 +115,7 @@ public class GroupsFactory {
                 return entry.getThemes() == null || entry.getThemes().length == 0;
             }
         };
-        othersTilePane.setTitle(Main.RESSOURCE_BUNDLE.getString("others"));
+        othersTilePane.setTitle(Main.getString("others"));
         originalTilePane.getTilePane().prefTileWidthProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -203,7 +203,7 @@ public class GroupsFactory {
                 return entry.getSerie() == null || entry.getSerie().trim().equals("");
             }
         };
-        othersTilePane.setTitle(Main.RESSOURCE_BUNDLE.getString("others"));
+        othersTilePane.setTitle(Main.getString("others"));
         originalTilePane.getTilePane().prefTileWidthProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -286,7 +286,7 @@ public class GroupsFactory {
                 return notFromLaunchers;
             }
         };
-        othersTilePane.setTitle(Main.RESSOURCE_BUNDLE.getString("others"));
+        othersTilePane.setTitle(Main.getString("others"));
         originalTilePane.getTilePane().prefTileWidthProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {

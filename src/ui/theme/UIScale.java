@@ -25,7 +25,7 @@ public enum UIScale {
     }
 
     public String getDisplayName(){
-        return Main.RESSOURCE_BUNDLE.getString(displayNameKey);
+        return Main.getString(displayNameKey);
     }
 
     public double getFontSize(){

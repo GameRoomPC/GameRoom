@@ -11,12 +11,10 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import system.internet.FileDownloader;
-import system.os.Terminal;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.UpdateDialog;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -25,7 +23,6 @@ import java.util.Optional;
 
 import static ui.Main.LOGGER;
 import static ui.Main.MAIN_SCENE;
-import static ui.Main.RESSOURCE_BUNDLE;
 
 /**
  * Created by LM on 26/12/2016.
@@ -94,7 +91,7 @@ public class GameRoomUpdater {
         UpdateDialog updateDialog = new UpdateDialog(currentVersion, status.getInfo(), changelogUrl);
         Optional<ButtonType> result = updateDialog.showAndWait();
         result.ifPresent(letter -> {
-            if (letter.getText().equals(RESSOURCE_BUNDLE.getString("update"))) {
+            if (letter.getText().equals(Main.getString("update"))) {
                 if (onUpdatePressedListener != null) {
                     onUpdatePressedListener.changed(null, null, null);
                 }
@@ -148,8 +145,8 @@ public class GameRoomUpdater {
 
     private void onDownloadfinished(){
         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION
-                , Main.RESSOURCE_BUNDLE.getString("gameroom_will_close_updater"));
-        alert.getButtonTypes().add(new ButtonType(Main.RESSOURCE_BUNDLE.getString("remind_me_in_1mn")));
+                , Main.getString("gameroom_will_close_updater"));
+        alert.getButtonTypes().add(new ButtonType(Main.getString("remind_me_in_1mn")));
         Optional<ButtonType> result = alert.showAndWait();
         result.ifPresent(letter -> {
             if (letter.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
@@ -163,7 +160,7 @@ public class GameRoomUpdater {
                     e.printStackTrace();
                 }
                 Main.forceStop(MAIN_SCENE.getParentStage(), "Applying update");
-            } else if(letter.getText().equals(Main.RESSOURCE_BUNDLE.getString("remind_me_in_1mn"))) {
+            } else if(letter.getText().equals(Main.getString("remind_me_in_1mn"))) {
                 Thread reminderThread = new Thread(new Runnable() {
                     @Override
                     public void run() {

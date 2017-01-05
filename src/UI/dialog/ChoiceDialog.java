@@ -39,7 +39,7 @@ public class ChoiceDialog extends GameRoomDialog<ButtonType> {
 
         mainPane.setCenter(choicesBox);
         mainPane.getStyleClass().add("container");
-        ButtonType cancelButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType cancelButton = new ButtonType(Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         getDialogPane().getButtonTypes().addAll(cancelButton);
 
     }

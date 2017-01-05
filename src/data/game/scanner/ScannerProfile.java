@@ -25,7 +25,7 @@ public enum ScannerProfile {
 
     @Override
     public String toString(){
-        return Main.RESSOURCE_BUNDLE.getString(stringKey);
+        return Main.getString(stringKey);
     }
 
     public int getCode() {

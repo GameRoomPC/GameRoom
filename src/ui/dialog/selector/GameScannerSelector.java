@@ -1,31 +1,21 @@
 package ui.dialog.selector;
 
-import data.game.scanner.FolderGameScanner;
 import data.game.scanner.ScannerProfile;
-import javafx.beans.property.ReadOnlyDoubleProperty;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
-import sun.awt.shell.ShellFolder;
 import ui.Main;
 import ui.dialog.GameRoomDialog;
 import ui.pane.SelectListPane;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by LM on 04/01/2017.
@@ -35,9 +25,9 @@ public class GameScannerSelector extends GameRoomDialog<ButtonType> {
 
     public GameScannerSelector() {
 
-        Label titleLabel = new Label(Main.RESSOURCE_BUNDLE.getString("select_game_scanners_title"));
+        Label titleLabel = new Label(Main.getString("select_game_scanners_title"));
         titleLabel.setWrapText(true);
-        titleLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("select_game_scanners_title")));
+        titleLabel.setTooltip(new Tooltip(Main.getString("select_game_scanners_title")));
         titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
                 , 20 * Main.SCREEN_WIDTH / 1920
                 , 20 * Main.SCREEN_HEIGHT / 1080
@@ -57,7 +47,7 @@ public class GameScannerSelector extends GameRoomDialog<ButtonType> {
         mainPane.setCenter(list);
 
         getDialogPane().getButtonTypes().addAll(
-                new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE));
+                new ButtonType(Main.getString("ok"), ButtonBar.ButtonData.OK_DONE));
 
         setOnHiding(event -> {
             ArrayList<ScannerProfile> profiles = list.getSelectedValues();

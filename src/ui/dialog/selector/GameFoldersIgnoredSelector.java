@@ -1,15 +1,16 @@
 package ui.dialog.selector;
 
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.dialog.GameRoomDialog;
@@ -19,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.main;
 
 /**
  * Created by LM on 19/08/2016.
@@ -31,11 +31,11 @@ public class GameFoldersIgnoredSelector extends GameRoomDialog<ButtonType> {
         private Label statusLabel;
 
         public GameFoldersIgnoredSelector() throws IOException {
-            statusLabel = new Label(Main.RESSOURCE_BUNDLE.getString("loading")+"...");
+            statusLabel = new Label(Main.getString("loading")+"...");
             rootStackPane.getChildren().add(statusLabel);
-            Label titleLabel = new Label(Main.RESSOURCE_BUNDLE.getString("select_steam_games_ignore"));
+            Label titleLabel = new Label(Main.getString("select_steam_games_ignore"));
             titleLabel.setWrapText(true);
-            titleLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("select_steam_games_ignore")));
+            titleLabel.setTooltip(new Tooltip(Main.getString("select_steam_games_ignore")));
             titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
                     , 20 * Main.SCREEN_WIDTH / 1920
                     , 20 * Main.SCREEN_HEIGHT / 1080
@@ -59,8 +59,8 @@ public class GameFoldersIgnoredSelector extends GameRoomDialog<ButtonType> {
             list.setPrefWidth(mainPane.getPrefWidth());
 
             getDialogPane().getButtonTypes().addAll(
-                    new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE)
-                    , new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
+                    new ButtonType(Main.getString("ok"), ButtonBar.ButtonData.OK_DONE)
+                    , new ButtonType(Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
 
             setOnHiding(event -> {
                 File[] temp_entries = new File[list.getSelectedValues().size()];
@@ -76,7 +76,7 @@ public class GameFoldersIgnoredSelector extends GameRoomDialog<ButtonType> {
             list.addItems(gameFolder.listFiles());
         }
         File[] ignoredFiles = GENERAL_SETTINGS.getFiles(PredefinedSetting.IGNORED_GAME_FOLDERS);
-        list.addSeparator(Main.RESSOURCE_BUNDLE.getString("others"));
+        list.addSeparator(Main.getString("others"));
         for(File ignoredFile : ignoredFiles){
             ignoredFile = new File(ignoredFile.getPath());
             boolean addFolder = true;

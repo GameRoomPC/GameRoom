@@ -21,8 +21,8 @@ public class ActivationKeyDialog extends GameRoomDialog{
         super();
         getDialogPane().setPrefWidth(Main.SCREEN_WIDTH*(1/3.0)*Main.SCREEN_WIDTH/1920);
 
-        setTitle(Main.RESSOURCE_BUNDLE.getString("supporter_key"));
-        keyField.setPromptText(Main.RESSOURCE_BUNDLE.getString("supporter_key_visit_gameroom_me"));
+        setTitle(Main.getString("supporter_key"));
+        keyField.setPromptText(Main.getString("supporter_key_visit_gameroom_me"));
         keyField.textProperty().addListener((observable, oldValue, newValue) -> {
             supporterKey = newValue;
         });
@@ -31,15 +31,15 @@ public class ActivationKeyDialog extends GameRoomDialog{
         initTopPane();
         mainPane.setCenter(keyField);
 
-        ButtonType buyButton = new ButtonType(ui.Main.RESSOURCE_BUNDLE.getString("supporter_key_buy_one")+"!", ButtonBar.ButtonData.LEFT);
-        ButtonType cancelButton = new ButtonType(ui.Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
-        ButtonType activateButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("activate"), ButtonBar.ButtonData.OK_DONE);
+        ButtonType buyButton = new ButtonType(ui.Main.getString("supporter_key_buy_one")+"!", ButtonBar.ButtonData.LEFT);
+        ButtonType cancelButton = new ButtonType(ui.Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType activateButton = new ButtonType(Main.getString("activate"), ButtonBar.ButtonData.OK_DONE);
 
         getDialogPane().getButtonTypes().addAll(buyButton,cancelButton,activateButton);
     }
 
     private void initTopPane() {
-        Label infoLabel = new Label(Main.RESSOURCE_BUNDLE.getString("supporter_key_infos"));
+        Label infoLabel = new Label(Main.getString("supporter_key_infos"));
         infoLabel.setWrapText(true);
         BorderPane.setMargin(infoLabel, new Insets(20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 

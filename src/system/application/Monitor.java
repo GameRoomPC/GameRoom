@@ -6,12 +6,9 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.stage.Modality;
-import javafx.stage.StageStyle;
 import system.os.Terminal;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
-import ui.theme.ThemeUtils;
 
 import java.io.*;
 import java.text.DateFormat;
@@ -103,9 +100,9 @@ public class Monitor {
                     @Override
                     public Long call() throws Exception {
                         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION,gameStarter.getGameEntry().getName() + " "
-                                + Main.RESSOURCE_BUNDLE.getString("monitor_wait_dialog_1") + " "
+                                + Main.getString("monitor_wait_dialog_1") + " "
                                 + GameEntry.getPlayTimeFormatted(Math.round(result/1000.0),GameEntry.TIME_FORMAT_ROUNDED_HMS)
-                                + Main.RESSOURCE_BUNDLE.getString("monitor_wait_dialog_2"));
+                                + Main.getString("monitor_wait_dialog_2"));
 
                         Optional<ButtonType> dialogResult = alert.showAndWait();
                         if (dialogResult.get() == ButtonType.OK) {

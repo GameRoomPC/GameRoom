@@ -71,13 +71,13 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         this.doNotUpdateFieldsMap = doNotUpdateFieldsMap;
         getDialogPane().getStyleClass().add("search-dialog");
 
-        statusLabel = new Label(Main.RESSOURCE_BUNDLE.getString("search_a_game"));
+        statusLabel = new Label(Main.getString("search_a_game"));
         statusLabel.setWrapText(true);
         statusLabel.setMouseTransparent(true);
         statusLabel.setFocusTraversable(false);
 
         searchField = new TextField();
-        searchField.setPromptText(Main.RESSOURCE_BUNDLE.getString("example_games"));
+        searchField.setPromptText(Main.getString("example_games"));
         searchField.setPrefColumnCount(20);
         if (gameName != null) {
             searchField.setText(gameName);
@@ -114,7 +114,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        statusLabel.setText(Main.RESSOURCE_BUNDLE.getString("searching") + "...");
+                        statusLabel.setText(Main.getString("searching") + "...");
                     }
                 });
                 try {
@@ -124,7 +124,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
-                                statusLabel.setText(Main.RESSOURCE_BUNDLE.getString("no_result") + "/" + Main.RESSOURCE_BUNDLE.getString("no_internet"));
+                                statusLabel.setText(Main.getString("no_result") + "/" + Main.getString("no_internet"));
                             }
                         });
                     } else {
@@ -136,14 +136,14 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    statusLabel.setText(Main.RESSOURCE_BUNDLE.getString("no_result"));
+                                    statusLabel.setText(Main.getString("no_result"));
                                 }
                             });
                         } else {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    statusLabel.setText(Main.RESSOURCE_BUNDLE.getString("loading") + "...");
+                                    statusLabel.setText(Main.getString("loading") + "...");
                                 }
                             });
                             Task<String> scrapping = new Task<String>() {
@@ -174,7 +174,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
-                            statusLabel.setText(Main.RESSOURCE_BUNDLE.getString("no_internet"));
+                            statusLabel.setText(Main.getString("no_internet"));
                         }
                     });
                 }
@@ -209,7 +209,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         fieldsComboBox.setConverter(new StringConverter<String>() {
             @Override
             public String toString(String object) {
-                return Main.RESSOURCE_BUNDLE.getString(object);
+                return Main.getString(object);
             }
 
             @Override
@@ -235,7 +235,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 }
             }
         });
-        Label doNotUpdateLabel = new Label(Main.RESSOURCE_BUNDLE.getString("do_not_update") + ":");
+        Label doNotUpdateLabel = new Label(Main.getString("do_not_update") + ":");
         doNotUpdateLabel.setFocusTraversable(false);
         HBox notUpdateHbox = new HBox();
         notUpdateHbox.setAlignment(Pos.CENTER);
@@ -249,8 +249,8 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         BorderPane.setMargin(topBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
         BorderPane.setMargin(notUpdateHbox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 0 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
-        ButtonType cancelButtonType = new ButtonType(ui.Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
-        ButtonType nextButtonType = new ButtonType(Main.RESSOURCE_BUNDLE.getString("next"), ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButtonType = new ButtonType(ui.Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType nextButtonType = new ButtonType(Main.getString("next"), ButtonBar.ButtonData.OK_DONE);
 
         getDialogPane().getButtonTypes().addAll(cancelButtonType, nextButtonType);
         Button cancelButton = (Button) getDialogPane().lookupButton(cancelButtonType);

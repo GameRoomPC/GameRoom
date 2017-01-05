@@ -214,18 +214,18 @@ public abstract class GameButton extends BorderPane {
 
     private void initContextMenu() {
         contextMenu = new ContextMenu();
-        MenuItem cmItem1 = new MenuItem(RESSOURCE_BUNDLE.getString("Play"));
+        MenuItem cmItem1 = new MenuItem(Main.getString("Play"));
         cmItem1.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
                 playButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
             }
         });
         contextMenu.getItems().add(cmItem1);
-        MenuItem cmItem2 = new MenuItem(RESSOURCE_BUNDLE.getString("edit"));
+        MenuItem cmItem2 = new MenuItem(Main.getString("edit"));
         cmItem2.setOnAction(eh -> {
         });
         contextMenu.getItems().add(cmItem2);
-        MenuItem cmItem3 = new MenuItem(RESSOURCE_BUNDLE.getString("About"));
+        MenuItem cmItem3 = new MenuItem(Main.getString("About"));
         cmItem3.setOnAction(nh -> {
             infoButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
         });

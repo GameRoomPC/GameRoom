@@ -398,7 +398,7 @@ public class Launcher extends Application {
                         MAIN_SCENE.getParentStage().hide();
                         if (trayMessageCount < 2 && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING) && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS)) {
                             TRAY_ICON.displayMessage("GameRoom"
-                                    , RESSOURCE_BUNDLE.getString("tray_icon_still_running"), TrayIcon.MessageType.INFO);
+                                    , Main.getString("tray_icon_still_running"), TrayIcon.MessageType.INFO);
                             trayMessageCount++;
                         } else {
                             if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING)) {
@@ -412,14 +412,14 @@ public class Launcher extends Application {
         final SystemTray tray = SystemTray.getSystemTray();
 
         // Create a pop-up menu components
-        MenuItem openItem = new MenuItem(RESSOURCE_BUNDLE.getString("open"));
+        MenuItem openItem = new MenuItem(Main.getString("open"));
         openItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 open(MAIN_SCENE.getParentStage());
             }
         });
-        MenuItem gameRoomFolderItem = new MenuItem(RESSOURCE_BUNDLE.getString("gameroom_folder"));
+        MenuItem gameRoomFolderItem = new MenuItem(Main.getString("gameroom_folder"));
         gameRoomFolderItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -430,7 +430,7 @@ public class Launcher extends Application {
                 }
             }
         });
-        MenuItem gamesFolderItem = new MenuItem(RESSOURCE_BUNDLE.getString("games_folder"));
+        MenuItem gamesFolderItem = new MenuItem(Main.getString("games_folder"));
         gamesFolderItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -444,7 +444,7 @@ public class Launcher extends Application {
                 }
             }
         });
-        MenuItem settingsItem = new MenuItem(RESSOURCE_BUNDLE.getString("Settings"));
+        MenuItem settingsItem = new MenuItem(Main.getString("Settings"));
         settingsItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -454,8 +454,8 @@ public class Launcher extends Application {
         });
         //CheckboxMenuItem cb1 = new CheckboxMenuItem("Set auto size");
         //CheckboxMenuItem cb2 = new CheckboxMenuItem("Set tooltip");
-        START_TRAY_MENU.setLabel(RESSOURCE_BUNDLE.getString("start"));
-        MenuItem exitItem = new MenuItem(RESSOURCE_BUNDLE.getString("exit"));
+        START_TRAY_MENU.setLabel(Main.getString("start"));
+        MenuItem exitItem = new MenuItem(Main.getString("exit"));
 
         exitItem.addActionListener(new ActionListener() {
             @Override

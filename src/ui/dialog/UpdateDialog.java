@@ -42,8 +42,8 @@ public class UpdateDialog extends GameRoomDialog<ButtonType> {
         setTitle("GameRoom Updater");
 
         mainPane.getStyleClass().add("container");
-        ButtonType okButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("update"), ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancelButton = new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType okButton = new ButtonType(Main.getString("update"), ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType(Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         getDialogPane().getButtonTypes().addAll(cancelButton, okButton);
 
         mainPane.setTop(createTopPane(currentVersion, newVersion));
@@ -53,12 +53,12 @@ public class UpdateDialog extends GameRoomDialog<ButtonType> {
     public Pane createTopPane(String currentVersion, String newVersion) {
         HBox pane = new HBox();
 
-        Label label1 = new Label(Main.RESSOURCE_BUNDLE.getString("current_version") + ": ");
+        Label label1 = new Label(Main.getString("current_version") + ": ");
         label1.setStyle("-fx-font-weight: bolder;");
 
         Label label2 = new Label(currentVersion + ", ");
 
-        Label label3 = new Label(Main.RESSOURCE_BUNDLE.getString("new_version") + ": ");
+        Label label3 = new Label(Main.getString("new_version") + ": ");
         label3.setStyle("-fx-font-weight: bolder;");
 
         Label label4 = new Label(newVersion);

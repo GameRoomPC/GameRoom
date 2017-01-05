@@ -34,7 +34,7 @@ public class IGDBImageSelector extends GameRoomDialog<ButtonType> {
 
     private IGDBImageSelector(String[] igdbScreenshots, int igdb_id, OnItemSelectedHandler onImageSelected) {
         super();
-        Label titleLabel = new Label(Main.RESSOURCE_BUNDLE.getString("select_a_wallpaper"));
+        Label titleLabel = new Label(Main.getString("select_a_wallpaper"));
         titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
                 , 20 * Main.SCREEN_WIDTH / 1920
                 , 20 * Main.SCREEN_HEIGHT / 1080
@@ -57,11 +57,11 @@ public class IGDBImageSelector extends GameRoomDialog<ButtonType> {
                 selectedImageHash = ((String) imageList.getSelectedValue());
             });
         }else{
-            mainPane.setCenter(new Label(Main.RESSOURCE_BUNDLE.getString("no_screenshot_for_this_game")));
+            mainPane.setCenter(new Label(Main.getString("no_screenshot_for_this_game")));
         }
 
-        getDialogPane().getButtonTypes().addAll(new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE)
-                ,new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"),ButtonBar.ButtonData.CANCEL_CLOSE));
+        getDialogPane().getButtonTypes().addAll(new ButtonType(Main.getString("ok"), ButtonBar.ButtonData.OK_DONE)
+                ,new ButtonType(Main.getString("cancel"),ButtonBar.ButtonData.CANCEL_CLOSE));
     }
 
     public String getSelectedImageHash() {
@@ -90,7 +90,7 @@ public class IGDBImageSelector extends GameRoomDialog<ButtonType> {
         }
     }
     private static class ImageItem<String> extends SelectListPane.ListItem{
-        private Label loadingLabel = new Label(Main.RESSOURCE_BUNDLE.getString("loading")+"...");
+        private Label loadingLabel = new Label(Main.getString("loading")+"...");
         private StackPane imageViewHolder = new StackPane();
         private ImageView imageView = new ImageView();
         private ReadOnlyDoubleProperty prefRowWidth;

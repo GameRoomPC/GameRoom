@@ -5,7 +5,6 @@ import data.game.scrapper.OnDLDoneHandler;
 import data.game.scrapper.SteamPreEntry;
 import data.http.SimpleImageInfo;
 import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
@@ -30,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.RESSOURCE_BUNDLE;
 
 /**
  * Created by LM on 09/08/2016.
@@ -42,11 +40,11 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
     private Label statusLabel;
 
     private SteamIgnoredSelector(ArrayList<SteamPreEntry> ownedSteamEntries) throws IOException {
-        statusLabel = new Label(Main.RESSOURCE_BUNDLE.getString("loading")+"...");
+        statusLabel = new Label(Main.getString("loading")+"...");
         rootStackPane.getChildren().add(statusLabel);
-        Label titleLabel = new Label(Main.RESSOURCE_BUNDLE.getString("select_steam_games_ignore"));
+        Label titleLabel = new Label(Main.getString("select_steam_games_ignore"));
         titleLabel.setWrapText(true);
-        titleLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("select_steam_games_ignore")));
+        titleLabel.setTooltip(new Tooltip(Main.getString("select_steam_games_ignore")));
         titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
                 , 20 * Main.SCREEN_WIDTH / 1920
                 , 20 * Main.SCREEN_HEIGHT / 1080
@@ -87,7 +85,7 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
                 @Override
                 public void handle(WorkerStateEvent event) {
                     Platform.runLater(() -> {
-                        statusLabel.setText(RESSOURCE_BUNDLE.getString("no_internet")+" ?");
+                        statusLabel.setText(Main.getString("no_internet")+" ?");
                     });
                 }
             });
@@ -98,8 +96,8 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
         mainPane.setCenter(list);
 
         getDialogPane().getButtonTypes().addAll(
-                new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE)
-                , new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
+                new ButtonType(Main.getString("ok"), ButtonBar.ButtonData.OK_DONE)
+                , new ButtonType(Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
 
         setOnHiding(event -> {
             SteamPreEntry[] temp_entries = new SteamPreEntry[list.getSelectedValues().size()];

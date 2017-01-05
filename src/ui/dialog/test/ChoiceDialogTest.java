@@ -7,6 +7,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import system.application.settings.PredefinedSetting;
+import ui.Main;
 import ui.dialog.ChoiceDialog;
 
 import java.awt.*;
@@ -62,7 +63,7 @@ public class ChoiceDialogTest extends Application {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         SCREEN_WIDTH = (int) 1920;
         SCREEN_HEIGHT = (int) 1080;
-        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
+        Main.setRessourceBundle(ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE)));
         launch(args);
     }
 }

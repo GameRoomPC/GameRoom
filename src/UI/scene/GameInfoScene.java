@@ -72,19 +72,19 @@ public class GameInfoScene extends BaseScene {
     private void initBottom() {
         HBox hBox = new HBox();
         hBox.setSpacing(30 * SCREEN_WIDTH / 1920);
-        Button editButton = new Button(RESSOURCE_BUNDLE.getString("edit"));
+        Button editButton = new Button(Main.getString("edit"));
         editButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 fadeTransitionTo(new GameEditScene(GameInfoScene.this, entry,coverButton.getImage()), getParentStage());
             }
         });
-        Button deleteButton = new Button(RESSOURCE_BUNDLE.getString("delete"));
+        Button deleteButton = new Button(Main.getString("delete"));
         deleteButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION);
-                alert.setContentText(RESSOURCE_BUNDLE.getString("delete_entry?"));
+                alert.setContentText(Main.getString("delete_entry?"));
 
                 Optional<ButtonType> result = alert.showAndWait();
                 if (result.get() == ButtonType.OK) {
@@ -239,10 +239,10 @@ public class GameInfoScene extends BaseScene {
     }
 
     private Label addProperty(String title, String value) {
-        Label titleLabel = new Label(RESSOURCE_BUNDLE.getString(title) + " :");
+        Label titleLabel = new Label(Main.getString(title) + " :");
         titleLabel.setAlignment(Pos.TOP_LEFT);
         titleLabel.setStyle("-fx-font-weight: lighter;");
-        titleLabel.setTooltip(new Tooltip(RESSOURCE_BUNDLE.getString(title)));
+        titleLabel.setTooltip(new Tooltip(Main.getString(title)));
         propertiesPane.add(titleLabel, 0, row_count);
         Label valueLabel = new Label(value);
         if (value == null || value.equals("")) {

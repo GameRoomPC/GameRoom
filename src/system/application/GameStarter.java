@@ -21,9 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 
-import static ui.Main.FILES_MAP;
-import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.MAIN_SCENE;
+import static ui.Main.*;
 
 
 /**
@@ -135,7 +133,7 @@ public class GameStarter {
                     entry.setAlreadyStartedInGameRoom(false);
                     MAIN_SCENE.updateGame(entry);
                     String notificationText = GameEntry.getPlayTimeFormatted(Math.round(newValue / 1000.0), GameEntry.TIME_FORMAT_HMS_CASUAL) + " "
-                            + Main.RESSOURCE_BUNDLE.getString("tray_icon_time_recorded") + " "
+                            + Main.getString("tray_icon_time_recorded") + " "
                             + entry.getName();
                     if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS) && newValue != 0) {
                         Main.TRAY_ICON.displayMessage("GameRoom",notificationText , TrayIcon.MessageType.INFO);

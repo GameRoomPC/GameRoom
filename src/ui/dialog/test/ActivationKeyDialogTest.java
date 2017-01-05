@@ -41,7 +41,7 @@ public class ActivationKeyDialogTest extends Application {
         launchButton.setOnAction(e -> {
                     Optional<ButtonType> result = dialog.showAndWait();
                     result.ifPresent(letter -> {
-                        if(letter.getText().contains(Main.RESSOURCE_BUNDLE.getString("supporter_key_buy_one"))){
+                        if(letter.getText().contains(Main.getString("supporter_key_buy_one"))){
                             try {
                                 Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/key"));
                             } catch (IOException e1) {
@@ -49,10 +49,10 @@ public class ActivationKeyDialogTest extends Application {
                             } catch (URISyntaxException e1) {
                                 e1.printStackTrace();
                             }
-                        }else if(letter.getText().equals(Main.RESSOURCE_BUNDLE.getString("activate"))){
+                        }else if(letter.getText().equals(Main.getString("activate"))){
                             try {
                                 JSONObject response = KeyChecker.activateKey(dialog.getSupporterKey());
-                                String message = Main.RESSOURCE_BUNDLE.getString(response.getString(KeyChecker.FIELD_MESSAGE).replace(' ','_'));
+                                String message = Main.getString(response.getString(KeyChecker.FIELD_MESSAGE).replace(' ','_'));
 
                                 switch (response.getString(KeyChecker.FIELD_RESULT)){
                                     case KeyChecker.RESULT_SUCCESS:
@@ -122,7 +122,7 @@ public class ActivationKeyDialogTest extends Application {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         SCREEN_WIDTH = (int) 1920;
         SCREEN_HEIGHT = (int) 1080;
-        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", Locale.forLanguageTag("fr_FR"));
+        Main.setRessourceBundle(ResourceBundle.getBundle("strings", Locale.forLanguageTag("fr_FR")));
         launch(args);
     }
 }

@@ -19,7 +19,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
 
-import static ui.Main.*;
+import static ui.Main.MAIN_SCENE;
+import static ui.Main.SCREEN_WIDTH;
 import static ui.control.button.gamebutton.AddIgnoreGameButton.ROTATION_TIME;
 
 /**
@@ -30,7 +31,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
 
     public ToAddRowTilePane(MainScene parentScene) {
         super(parentScene, RowCoverTilePane.TYPE_RECENTLY_ADDED);
-        setTitle(Main.RESSOURCE_BUNDLE.getString("to_add"));
+        setTitle(Main.getString("to_add"));
         maxColumn = Integer.MAX_VALUE;
         automaticSort = false;
 
@@ -42,15 +43,15 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
         addAllButton.setOnAction(event -> {
             parentScene.getRootStackPane().setMouseTransparent(true);
             ChoiceDialog choiceDialog = new ChoiceDialog(
-                    new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("add_all_no_edit"), RESSOURCE_BUNDLE.getString("add_all_no_edit_long")),
-                    new ChoiceDialog.ChoiceDialogButton(RESSOURCE_BUNDLE.getString("add_all_edit"), RESSOURCE_BUNDLE.getString("add_all_edit_long"))
+                    new ChoiceDialog.ChoiceDialogButton(Main.getString("add_all_no_edit"), Main.getString("add_all_no_edit_long")),
+                    new ChoiceDialog.ChoiceDialogButton(Main.getString("add_all_edit"), Main.getString("add_all_edit_long"))
             );
-            choiceDialog.setTitle(RESSOURCE_BUNDLE.getString("add_all_games"));
-            choiceDialog.setHeader(RESSOURCE_BUNDLE.getString("choose_action"));
+            choiceDialog.setTitle(Main.getString("add_all_games"));
+            choiceDialog.setHeader(Main.getString("choose_action"));
 
             Optional<ButtonType> result = choiceDialog.showAndWait();
             result.ifPresent(letter -> {
-                if (letter.getText().equals(RESSOURCE_BUNDLE.getString("add_all_no_edit"))) {
+                if (letter.getText().equals(Main.getString("add_all_no_edit"))) {
                     ArrayList<GameEntry> entries = new ArrayList<GameEntry>();
                     for (GameButton b : tilesList) { //have to do this, as MAIN_SCENE.addGame call deleteGame here -> concurrent modif exception
                         entries.add(b.getEntry());
@@ -75,7 +76,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
                         GeneralToast.displayToast(Main.getString("gameroom_has_found")+" "+entries.size()+" "+end,MAIN_SCENE.getParentStage(),GeneralToast.DURATION_LONG);
                     }
 
-                } else if (letter.getText().equals(RESSOURCE_BUNDLE.getString("add_all_edit"))) {
+                } else if (letter.getText().equals(Main.getString("add_all_edit"))) {
                     ArrayList<GameEntry> entries = new ArrayList<GameEntry>();
                     for (GameButton b : tilesList) {
                         entries.add(b.getEntry());
@@ -86,7 +87,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
             parentScene.getRootStackPane().setMouseTransparent(false);
         });
         addAllButton.setFocusTraversable(false);
-        addAllButton.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("add_all_games")));
+        addAllButton.setTooltip(new Tooltip(Main.getString("add_all_games")));
         topBox.getChildren().add(addAllButton);
     }
 

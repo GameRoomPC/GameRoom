@@ -1,7 +1,6 @@
 package ui.dialog.selector;
 
 import data.game.scanner.FolderGameScanner;
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -40,9 +39,9 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
         }
         this.folder = folder;
 
-        Label titleLabel = new Label(Main.RESSOURCE_BUNDLE.getString("select_an_app"));
+        Label titleLabel = new Label(Main.getString("select_an_app"));
         titleLabel.setWrapText(true);
-        titleLabel.setTooltip(new Tooltip(Main.RESSOURCE_BUNDLE.getString("select_an_app")));
+        titleLabel.setTooltip(new Tooltip(Main.getString("select_an_app")));
         titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
                 , 20 * Main.SCREEN_WIDTH / 1920
                 , 20 * Main.SCREEN_HEIGHT / 1080
@@ -63,8 +62,8 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
         mainPane.setCenter(list);
 
         getDialogPane().getButtonTypes().addAll(
-                new ButtonType(Main.RESSOURCE_BUNDLE.getString("ok"), ButtonBar.ButtonData.OK_DONE)
-                , new ButtonType(Main.RESSOURCE_BUNDLE.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
+                new ButtonType(Main.getString("ok"), ButtonBar.ButtonData.OK_DONE)
+                , new ButtonType(Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
 
         setOnHiding(event -> {
             selectedFile = (File) list.getSelectedValue();
