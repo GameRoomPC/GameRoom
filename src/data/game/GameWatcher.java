@@ -11,6 +11,7 @@ import javafx.application.Platform;
 import org.json.JSONArray;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
+import ui.control.specific.GeneralToast;
 import ui.scene.GameEditScene;
 
 import java.io.File;
@@ -24,8 +25,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
-import static ui.Main.FILES_MAP;
-import static ui.Main.LOGGER;
+import static ui.Main.*;
 
 /**
  * Created by LM on 17/08/2016.
@@ -356,7 +356,12 @@ public class GameWatcher {
         }
 
         if (entriesToAdd.size() > originalGameFoundNumber) {
-            Main.LOGGER.info("GameWatcher : found " + (entriesToAdd.size() - originalGameFoundNumber) + " new games!");
+            int numberFound = entriesToAdd.size() - originalGameFoundNumber;
+            Main.LOGGER.info("GameWatcher : found " + numberFound + " new games!");
+            if(MAIN_SCENE!=null){
+                String end = numberFound > 1 ? Main.getString("new_games") : Main.getString("new_game");
+                GeneralToast.displayToast(Main.getString("gameroom_has_found")+" "+numberFound+end,MAIN_SCENE,GeneralToast.DURATION_LONG);
+            }
             onGameFoundHandler.onAllGamesFound();
         }
     }

@@ -235,4 +235,11 @@ public class Main {
             // ignore exception
         }
     }
+
+    public static String getString(String key){
+        if(RESSOURCE_BUNDLE == null){
+            return "";
+        }
+        return RESSOURCE_BUNDLE.getString(key);
+    }
 }

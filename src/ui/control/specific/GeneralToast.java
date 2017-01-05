@@ -1,27 +1,30 @@
 package ui.control.specific;
 
-import javafx.application.Platform;
 import javafx.scene.control.Tooltip;
 import ui.Main;
 import ui.scene.BaseScene;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by LM on 05/01/2017.
  */
 public class GeneralToast extends Tooltip {
-    private final static int TOAST_DURATION = 3000;
-    private final static LinkedBlockingQueue<GeneralToast> TOAST_QUEUE = new LinkedBlockingQueue<>();    private static Thread DISPLAY_THREAD;
-    private static volatile boolean DISPLAYING_A_TOAST = false;
+    public final static int DURATION_LONG = 4000;
+    public final static int DURATION_SHORT = 1000;
+
+    private static volatile boolean ENABLED = true;
+    private static volatile boolean WAITING_FOR_TOASTS = false;
+
+    private final static LinkedBlockingQueue<GeneralToast> TOAST_QUEUE = new LinkedBlockingQueue<>();
+    private static Thread DISPLAY_THREAD;
+    private static volatile boolean CAN_INTERRUPT_TOAST = false;
 
     private int duration;
-    private boolean alreadyDisplayed = false;
+    private boolean interruptible = false;
 
     private GeneralToast(String text) {
-        this(text, TOAST_DURATION);
+        this(text, DURATION_LONG);
     }
 
     private GeneralToast(String text, int duration) {
@@ -37,56 +40,75 @@ public class GeneralToast extends Tooltip {
     }
 
     public static void displayToast(String text, BaseScene scene) {
-        GeneralToast toast = new GeneralToast(text);
+        displayToast(text, scene, DURATION_LONG);
+    }
+
+    public static void displayToast(String text, BaseScene scene, int duration) {
+        displayToast(text, scene, duration, false);
+    }
+
+    public static void displayToast(String text, BaseScene scene, int duration, boolean interruptible) {
+        GeneralToast toast = new GeneralToast(text, duration);
+        toast.interruptible = interruptible;
         try {
             TOAST_QUEUE.put(toast);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        if(DISPLAY_THREAD == null){
+        if (DISPLAY_THREAD == null) {
             DISPLAY_THREAD = new Thread(() -> {
-                while(true) {
-                    Iterator<GeneralToast> iterator = TOAST_QUEUE.iterator();
-
+                while (true) {
                     GeneralToast toast1;
-                    while ((toast1 = TOAST_QUEUE.poll()) != null) { // does not block on empty list but returns null instead
+                    while ((toast1 = TOAST_QUEUE.poll()) != null && ENABLED) { // does not block on empty list but returns null instead
                         toast1.showTimed(scene);
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException ignored) {
+
+                        }
                     }
                     TOAST_QUEUE.clear();
 
                     try {
+                        WAITING_FOR_TOASTS = true;
                         Thread.sleep(5 * 60 * 1000);
                     } catch (InterruptedException e) {
                         //toast has been added to the queue!
                     }
+                    WAITING_FOR_TOASTS = false;
                 }
             });
+
             DISPLAY_THREAD.setDaemon(true);
             DISPLAY_THREAD.setPriority(Thread.MIN_PRIORITY);
             DISPLAY_THREAD.start();
         }
-        if(DISPLAY_THREAD.getState().equals(Thread.State.TIMED_WAITING) && !DISPLAYING_A_TOAST){
+        if (DISPLAY_THREAD.getState().equals(Thread.State.TIMED_WAITING) && CAN_INTERRUPT_TOAST) {
             DISPLAY_THREAD.interrupt();
         }
     }
 
     private void showTimed(BaseScene scene) {
-        if (scene.getParentStage().isFocused()) {
-            DISPLAYING_A_TOAST = true;
+        if (ENABLED) {
+            CAN_INTERRUPT_TOAST = interruptible;
             Main.runAndWait(() -> {
                 show(scene.getParentStage());
             });
             try {
                 Thread.sleep(duration);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ignored) {
 
             }
-            Main.runAndWait(() -> {
-                hide();
-            });
-            alreadyDisplayed = true;
-            DISPLAYING_A_TOAST = false;
+            Main.runAndWait(this::hide);
+            CAN_INTERRUPT_TOAST = true;
+        }
+    }
+
+    public static void enableToasts(boolean enabled) {
+        ENABLED = enabled;
+        if((!enabled || WAITING_FOR_TOASTS) && DISPLAY_THREAD != null){
+            DISPLAY_THREAD.interrupt();
         }
     }
 }

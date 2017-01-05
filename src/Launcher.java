@@ -23,6 +23,7 @@ import system.application.settings.PredefinedSetting;
 import system.device.ControllerButtonListener;
 import system.device.XboxController;
 import ui.Main;
+import ui.control.specific.GeneralToast;
 import ui.dialog.ConsoleOutputDialog;
 import ui.scene.BaseScene;
 import ui.scene.MainScene;
@@ -196,6 +197,7 @@ public class Launcher extends Application {
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 MAIN_SCENE.setChangeBackgroundNextTime(true);
                 primaryStage.getScene().getRoot().setMouseTransparent(!newValue);
+                GeneralToast.enableToasts(newValue);
 
                 if(newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)){
                     xboxController.startThreads();
