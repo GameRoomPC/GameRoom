@@ -8,6 +8,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import system.os.Terminal;
 import ui.Main;
+import ui.control.specific.GeneralToast;
 import ui.dialog.GameRoomAlert;
 
 import java.io.*;
@@ -18,6 +19,8 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+
+import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 24/07/2016.
@@ -34,6 +37,7 @@ public class Monitor {
     private GameStarter gameStarter;
     private File vbsWatcher;
     private String timeWatcherCmd;
+    private boolean awaitingRestart = false;
 
     private ArrayList<StandbyInterval> standbyIntervals = new ArrayList<>();
 
@@ -79,6 +83,13 @@ public class Monitor {
                 }
             }
             Main.LOGGER.info("Monitoring " + gameStarter.getGameEntry().getProcessName());
+            if(awaitingRestart){
+                awaitingRestart = false;
+                if(MAIN_SCENE!=null) {
+                    GeneralToast.displayToast(gameStarter.getGameEntry().getName()
+                            +Main.getString("restarted"), MAIN_SCENE.getParentStage());
+                }
+            }
             while (isProcessRunning()) {
                 long result = computeTrueRunningTime();
                 gameStarter.getGameEntry().setSavedLocaly(true);
@@ -106,6 +117,11 @@ public class Monitor {
 
                         Optional<ButtonType> dialogResult = alert.showAndWait();
                         if (dialogResult.get() == ButtonType.OK) {
+                            if(MAIN_SCENE!=null) {
+                                GeneralToast.displayToast(Main.getString("waiting_until")
+                                        +gameStarter.getGameEntry().getName()
+                                        +Main.getString("restarts"), MAIN_SCENE.getParentStage());
+                            }
                             Main.LOGGER.info(gameStarter.getGameEntry().getProcessName() + " : waiting for until next launch to count playtime.");
                             return new Long(-1);
                         }
@@ -126,6 +142,7 @@ public class Monitor {
                             }
                         };
                         Thread th = new Thread(monitor);
+                        th.setPriority(Thread.MIN_PRIORITY);
                         th.setDaemon(true);
                         th.start();
                         return monitor.get();
