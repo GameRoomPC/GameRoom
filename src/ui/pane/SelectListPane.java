@@ -26,6 +26,7 @@ public abstract class SelectListPane<T> extends ScrollPane {
     private int selected= -1;
     private ArrayList<ListItem<T>> items = new ArrayList<>();
     private ArrayList<T> selectedValues = new ArrayList<T>();
+    private int itemCount = 0;
 
     private boolean multiSelection = false;
 
@@ -53,6 +54,7 @@ public abstract class SelectListPane<T> extends ScrollPane {
         selectedValues.clear();
         items.clear();
         selected=-1;
+        itemCount = 0;
     }
     public ArrayList<T> getSelectedValues(){
         return (multiSelection) ? selectedValues : null;
@@ -72,9 +74,9 @@ public abstract class SelectListPane<T> extends ScrollPane {
         selectedValues.remove(value);
     }
 
-    private void addItem(T value, int i) {
+    public void addItem(T value) {
         ListItem item = createListItem(value);
-        item.setItemId(i);
+        item.setItemId(itemCount++);
         if (!multiSelection) {
             item.radioButton.setToggleGroup(toggleGroup);
         }
@@ -101,21 +103,18 @@ public abstract class SelectListPane<T> extends ScrollPane {
     }
 
     public void addItems(Object[] values){
-        int i = 0;
         for(Object value : values){
-            addItem((T) value,i++);
+            addItem((T) value);
         }
     }
     public void addItems(Iterable<Object> values){
-        int i = 0;
         for(Object value : values){
-            addItem((T) value,i++);
+            addItem((T) value);
         }
     }
     public void addItems(Iterator<Object> values){
-        int i = 0;
         while (values.hasNext()){
-            addItem((T) values.next(),i++);
+            addItem((T) values.next());
         }
     }
 

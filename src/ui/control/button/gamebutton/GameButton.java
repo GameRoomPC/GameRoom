@@ -6,6 +6,7 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
@@ -32,6 +33,7 @@ import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
+import ui.control.specific.GeneralToast;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.selector.AppSelectorDialog;
 import ui.scene.BaseScene;
@@ -358,7 +360,12 @@ public abstract class GameButton extends BorderPane {
                 File gamePath = new File(entry.getPath());
                 if (gamePath.isDirectory()) {
                     try {
+                        if(MAIN_SCENE!=null){
+                            GeneralToast.displayToast(Main.getString("looking_for_game_exe"),MAIN_SCENE.getParentStage());
+                        }
                         AppSelectorDialog selector = new AppSelectorDialog(gamePath);
+                        selector.searchApps();
+
                         Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
                         ignoredOptionnal.ifPresent(pairs -> {
                             if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
@@ -366,6 +373,7 @@ public abstract class GameButton extends BorderPane {
                                 entry.startGame();
                             }
                         });
+
                     }catch (IllegalArgumentException e){
                         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR,Main.getString("invalid_path_not_file"));
                     }

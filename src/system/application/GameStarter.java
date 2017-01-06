@@ -43,7 +43,7 @@ public class GameStarter {
         if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isAlreadyStartedInGameRoom() && !entry.isNotInstalled()) {
             GENERAL_SETTINGS.getPowerMode(PredefinedSetting.GAMING_POWER_MODE).activate();
         }
-        String logFolder = FILES_MAP.get("Games") + File.separator + entry.getUuid() + File.separator;
+        String logFolder = FILES_MAP.get("games") + File.separator + entry.getUuid() + File.separator;
         File preLog = FileUtils.initOrCreateFile(logFolder + "pre_" + entry.getProcessName() + ".log");
 
         Terminal terminal = new Terminal();

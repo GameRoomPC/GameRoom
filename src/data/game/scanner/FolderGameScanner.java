@@ -21,7 +21,7 @@ import static ui.Main.MAIN_SCENE;
  * Created by LM on 19/08/2016.
  */
 public class FolderGameScanner extends GameScanner {
-    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library", "SteamLibrary", "SteamVR", "!Downloads", "vcredist_x86.exe", "vcredist_x64.exe", "Redist", "__Installer", "Data", "data", "GameData", "data_win32", "Support"};
+    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library", "SteamLibrary", "SteamVR", "!Downloads", "vcredist_x86.exe", "vcredist_x64.exe", "Redist", "__Installer", "Data", "data", "GameData", "data_win32", "Support", "DXSETUP.exe", "unins000.exe"};
     private final static String[] VALID_EXECUTABLE_EXTENSION = new String[]{".exe", ".lnk", ".jar"};
 
     public FolderGameScanner(GameWatcher parentLooker) {
@@ -265,7 +265,7 @@ public class FolderGameScanner extends GameScanner {
      * @param file the file to check
      * @return true if the file has a valid extension supported by GameRoom, false otherwise
      */
-    public static boolean fileHasValidExtension(File file) {
+    private static boolean fileHasValidExtension(File file) {
         boolean hasAValidExtension = false;
         for (String validExtension : VALID_EXECUTABLE_EXTENSION) {
             hasAValidExtension = hasAValidExtension || file.getAbsolutePath().toLowerCase().endsWith(validExtension.toLowerCase());

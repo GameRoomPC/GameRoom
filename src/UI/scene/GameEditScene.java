@@ -1075,8 +1075,9 @@ public class GameEditScene extends BaseScene {
                 }
             } else {
                 if (chosenImageFiles[1] != null) {
-                    Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO*BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight(), false, true);
+                    Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                     ImageUtils.transitionToWindowBackground(img, backgroundView);
+                    LOGGER.debug(chosenImageFiles[1].getAbsolutePath());
                 } else {
                     ImageUtils.transitionToImage(null, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
                 }

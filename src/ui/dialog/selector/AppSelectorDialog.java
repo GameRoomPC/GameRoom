@@ -1,6 +1,7 @@
 package ui.dialog.selector;
 
 import data.game.scanner.FolderGameScanner;
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -24,6 +25,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -32,6 +34,9 @@ import java.util.List;
 public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
     private File folder;
     private File selectedFile;
+    private ApplicationList list;
+    private Thread searchAppsThread;
+    private volatile boolean KEEP_SEARCHING = true;
 
     public AppSelectorDialog(File folder) throws IllegalArgumentException {
         if (folder == null || !folder.isDirectory()) {
@@ -53,12 +58,11 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
                 , 30 * Main.SCREEN_WIDTH / 1920));
         BorderPane.setAlignment(titleLabel, Pos.CENTER);
 
-        ApplicationList list = new ApplicationList<>();
+        list = new ApplicationList<>();
 
         mainPane.setPrefWidth(1.0 / 3.5 * Main.SCREEN_WIDTH);
         mainPane.setPrefHeight(1.0 / 3 * Main.SCREEN_HEIGHT);
 
-        list.addItems(getValidAppFiles(folder));
         mainPane.setCenter(list);
 
         getDialogPane().getButtonTypes().addAll(
@@ -67,20 +71,66 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
 
         setOnHiding(event -> {
             selectedFile = (File) list.getSelectedValue();
+            stopSearching();
         });
 
     }
 
-    public List<File> getValidAppFiles(File folder) {
-        List<File> potentialApps = new ArrayList<>();
-        for (File children : folder.listFiles()) {
-            if (children.isDirectory()) {
-                potentialApps.addAll(getValidAppFiles(children));
-            } else if (FolderGameScanner.fileHasValidExtension(children)) {
-                potentialApps.add(children);
+    public void searchApps(){
+        if(searchAppsThread == null){
+            searchAppsThread = new Thread(() -> addAppFiles(folder));
+            searchAppsThread.setDaemon(true);
+        }else{
+            stopSearching();
+            try {
+                searchAppsThread.join();
+            } catch (InterruptedException ignored) {
             }
         }
-        return potentialApps;
+        KEEP_SEARCHING = true;
+        searchAppsThread.start();
+    }
+
+    public void stopSearching(){
+        KEEP_SEARCHING = false;
+    }
+
+    private void addAppFiles(File folder) {
+        if(!KEEP_SEARCHING){
+            return;
+        }
+        List<File> potentialApps = new ArrayList<>();
+        potentialApps.sort((o1, o2) -> {
+            if(o1.isDirectory() && !o2.isDirectory()){
+                return -1;
+            }else if(!o1.isDirectory() && o2.isDirectory()){
+                return 1;
+            }else if(o1.isDirectory() && o2.isDirectory()){
+                return 0;
+            }else{
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+        for (File children : folder.listFiles()) {
+            if (children.isDirectory()) {
+                addAppFiles(children);
+            } else if (FolderGameScanner.isPotentiallyAGame(children)) {
+                Platform.runLater(() -> list.addItem(children));
+            }
+        }
+    }
+
+    private static int getDeepness(File file){
+        String path = file.getAbsolutePath();
+        path = path.replace('\\',File.pathSeparatorChar);
+        path = path.replace('/',File.pathSeparatorChar);
+        int charCount = 0;
+        for(char c : path.toCharArray()){
+            if(c == File.pathSeparatorChar){
+                charCount++;
+            }
+        }
+        return charCount;
     }
 
     public File getSelectedFile() {

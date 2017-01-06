@@ -29,7 +29,7 @@ public class IGDBScraper {
     public static String key = IGDB_BASIC_KEY;
     
     public static void main(String[] args) throws ConnectTimeoutException {
-        JSONArray bf4_results = searchGame("iwuefbuiw");
+        JSONArray bf4_results = searchGame("Battlefield 1");
         ArrayList list = new ArrayList();
         list.add(bf4_results.getJSONObject(0).getInt("id"));
         JSONArray bf4_data = null;
