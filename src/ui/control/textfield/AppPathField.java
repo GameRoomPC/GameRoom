@@ -35,6 +35,7 @@ public class AppPathField extends PathTextField {
             } else if (file.isDirectory()) {
                 try {
                     AppSelectorDialog selector = new AppSelectorDialog(file);
+                    selector.searchApps();
                     Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
                     ignoredOptionnal.ifPresent(pairs -> {
                         if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {

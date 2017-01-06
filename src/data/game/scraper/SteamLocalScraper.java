@@ -238,7 +238,7 @@ public class SteamLocalScraper {
             ignored = ignored || pre.getId() == entry.getSteam_id();
         }
         for (String name : FolderGameScanner.EXCLUDED_FILE_NAMES) {
-            ignored = ignored || name.equals(entry.getName());
+            ignored = ignored || name.toLowerCase().equals(entry.getName().toLowerCase());
         }
 
         return ignored;

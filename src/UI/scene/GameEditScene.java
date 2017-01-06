@@ -333,6 +333,7 @@ public class GameEditScene extends BaseScene {
                 }else if(!isSteamGame && file.isDirectory()){
                     try {
                         AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()));
+                        selector.searchApps();
                         Optional<ButtonType> appOptionnal = selector.showAndWait();
 
                         final boolean[] result = {true};

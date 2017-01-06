@@ -9,9 +9,7 @@ import ui.control.button.gamebutton.GameButton;
 import ui.control.specific.GeneralToast;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static data.game.GameWatcher.cleanNameForCompareason;
 import static ui.Main.GENERAL_SETTINGS;
@@ -21,8 +19,39 @@ import static ui.Main.MAIN_SCENE;
  * Created by LM on 19/08/2016.
  */
 public class FolderGameScanner extends GameScanner {
-    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library", "SteamLibrary", "SteamVR", "!Downloads", "vcredist_x86.exe", "vcredist_x64.exe", "Redist", "__Installer", "Data", "data", "GameData", "data_win32", "Support", "DXSETUP.exe", "unins000.exe", "uninstall"};
+    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library", "SteamLibrary", "SteamVR", "!Downloads", "VCRedist","vcredist_x86.exe", "vcredist_x64.exe", "Redist", "__Installer", "Data", "GameData", "data_win32", "DXSETUP.exe", "unins000.exe", "uninstall","Uninstall.exe","Updater.exe","Installers","_CommonRedist","directx","DotNetFX","DirectX8","DirectX9","DirectX10","DirectX11","DirectX12"};
+    public final static String[] PREFERRED_FOLDER = new String[]{"Bin","Binary","Binaries","win32", "win64","x64"};
     private final static String[] VALID_EXECUTABLE_EXTENSION = new String[]{".exe", ".lnk", ".jar"};
+
+    public final static Comparator<File> APP_FINDER_COMPARATOR = new Comparator<File>() {
+        @Override
+        public int compare(File o1, File o2) {
+            if (o1.isDirectory() && !o2.isDirectory()) {
+                return 1;
+            } else if (!o1.isDirectory() && o2.isDirectory()) {
+                return -1;
+            } else if (o1.isDirectory() && o2.isDirectory()) {
+                boolean o1p = false;
+                boolean o2p = false;
+                for(String pref : PREFERRED_FOLDER){
+                    o1p = o1p || o1.getName().toLowerCase().equals(pref.toLowerCase());
+                    o2p = o2p || o2.getName().toLowerCase().equals(pref.toLowerCase());
+                    if(o1p && o2p){
+                        break;
+                    }
+                }
+                if(o1p && ! o2p){
+                    return -1;
+                }else if(!o1p && o2p){
+                    return 1;
+                }
+
+                return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
+            } else {
+                return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
+            }
+        }
+    };
 
     public FolderGameScanner(GameWatcher parentLooker) {
         super(parentLooker);
@@ -104,7 +133,7 @@ public class FolderGameScanner extends GameScanner {
             e.printStackTrace();
         }
         for (String excludedName : EXCLUDED_FILE_NAMES) {
-            if (file.getName().equals(excludedName)) {
+            if (file.getName().toLowerCase().equals(excludedName.toLowerCase())) {
                 return false;
             }
         }
@@ -114,18 +143,11 @@ public class FolderGameScanner extends GameScanner {
                 return false;
             }
 
-            //we now sort files to first check if files are valid and then dirs. More BFS than DFS
             ArrayList<File> sortedFiles = new ArrayList<File>();
-            for(File subFile : subfiles){
-                if(!subFile.isDirectory()){
-                    sortedFiles.add(subFile);
-                }
-            }
-            for(File subFile : subfiles){
-                if(subFile.isDirectory()){
-                    sortedFiles.add(subFile);
-                }
-            }
+            Collections.addAll(sortedFiles,subfiles);
+
+            sortedFiles.sort(APP_FINDER_COMPARATOR);
+
             boolean potentialGame = false;
             for (File subFile : sortedFiles) {
                 potentialGame = potentialGame || isPotentiallyAGame(subFile);
@@ -274,5 +296,10 @@ public class FolderGameScanner extends GameScanner {
             }
         }
         return hasAValidExtension;
+    }
+
+    public static void main (String[] args){
+        File f = new File("D:\\Games\\Ben and Ed\\Ben.and.Ed\\Engine\\Extras\\Redist");
+        System.out.println(isPotentiallyAGame(f));
     }
 }

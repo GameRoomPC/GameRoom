@@ -26,10 +26,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
-import static ui.Main.LOGGER;
+import static data.game.scanner.FolderGameScanner.EXCLUDED_FILE_NAMES;
 
 /**
  * Created by LM on 03/01/2017.
@@ -40,6 +39,7 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
     private ApplicationList list;
     private Thread searchAppsThread;
     private volatile boolean KEEP_SEARCHING = true;
+    private Label statusLabel;
 
     public AppSelectorDialog(File folder) throws IllegalArgumentException {
         if (folder == null || !folder.isDirectory()) {
@@ -66,7 +66,11 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
         mainPane.setPrefWidth(1.0 / 3.5 * Main.SCREEN_WIDTH);
         mainPane.setPrefHeight(1.0 / 3 * Main.SCREEN_HEIGHT);
 
-        mainPane.setCenter(list);
+
+        statusLabel = new Label(Main.getString("loading") + "...");
+        StackPane contentPane = new StackPane();
+        contentPane.getChildren().addAll(list, statusLabel);
+        mainPane.setCenter(contentPane);
 
         getDialogPane().getButtonTypes().addAll(
                 new ButtonType(Main.getString("ok"), ButtonBar.ButtonData.OK_DONE)
@@ -81,7 +85,10 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
 
     public void searchApps() {
         if (searchAppsThread == null) {
-            searchAppsThread = new Thread(() -> addAppFiles(folder));
+            searchAppsThread = new Thread(() -> {
+                addAppFiles(folder);
+                statusLabel.setText(Main.getString("no_result"));
+            });
             searchAppsThread.setDaemon(true);
         } else {
             stopSearching();
@@ -103,6 +110,11 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
             return;
         }
         if (file.isDirectory()) {
+            for (String excludedName : EXCLUDED_FILE_NAMES) {
+                if (file.getName().toLowerCase().equals(excludedName.toLowerCase())) {
+                    return;
+                }
+            }
             List<File> potentialApps = new ArrayList<>();
             File[] files = file.listFiles();
 
@@ -111,24 +123,17 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
             }
             Collections.addAll(potentialApps, files);
 
-            potentialApps.sort((o1, o2) -> {
-                if (o1.isDirectory() && !o2.isDirectory()) {
-                    return 1;
-                } else if (!o1.isDirectory() && o2.isDirectory()) {
-                    return -1;
-                } else if (o1.isDirectory() && o2.isDirectory()) {
-                    return 0;
-                } else {
-                    return o2.getName().toLowerCase().compareTo(o1.getName().toLowerCase());
-                }
-            });
+            potentialApps.sort(FolderGameScanner.APP_FINDER_COMPARATOR);
 
             for (File children : potentialApps) {
                 addAppFiles(children);
             }
         } else {
             if (FolderGameScanner.isPotentiallyAGame(file) && KEEP_SEARCHING) {
-                Platform.runLater(() -> list.addItem(file));
+                Platform.runLater(() -> {
+                    list.addItem(file);
+                    statusLabel.setVisible(false);
+                });
             }
         }
     }
