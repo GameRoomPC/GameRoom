@@ -33,7 +33,7 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
     private File folder;
     private File selectedFile;
 
-    public AppSelectorDialog(File folder) {
+    public AppSelectorDialog(File folder) throws IllegalArgumentException {
         if (folder == null || !folder.isDirectory()) {
             throw new IllegalArgumentException("Given folder is either null or not a dir : \"" + folder.getAbsolutePath() + "\"");
         }

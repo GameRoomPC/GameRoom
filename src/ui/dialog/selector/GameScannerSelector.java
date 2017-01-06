@@ -43,7 +43,7 @@ public class GameScannerSelector extends GameRoomDialog<ButtonType> {
         list.addItems(ScannerProfile.values());
 
         mainPane.setPrefWidth(1.0 / 3.5 * Main.SCREEN_WIDTH);
-        mainPane.setPrefHeight(2.0 / 3 * Main.SCREEN_HEIGHT);
+        mainPane.setPrefHeight(1.0 / 2.2 * Main.SCREEN_HEIGHT);
         mainPane.setCenter(list);
 
         getDialogPane().getButtonTypes().addAll(

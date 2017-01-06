@@ -6,6 +6,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -28,27 +29,27 @@ public class PathTextField extends StackPane {
     public final static int FILE_CHOOSER_FOLDER = 1;
 
     private TextField field;
-    private ImageButton button;
-    private BaseScene parentScene;
+    private ImageButton folderButton;
+    protected HBox buttonsBox;
     private String initialPath;
 
-    public PathTextField(String initialPath, BaseScene parentScene, int fileChooserCode, String fileChooserTitle){
+    public PathTextField(String initialPath, BaseScene parentScene,int fileChooserCode, String fileChooserTitle){
         super();
         this.initialPath = initialPath;
         field = new TextField(initialPath);
-        /*if(DEFAULT_FOLDER_IMAGE == null){
-            DEFAULT_FOLDER_IMAGE= new Image("res/ui/folderButton.png", 50*SCREEN_WIDTH/1920, 50*SCREEN_HEIGHT/1080, false, true);
-        }*/
-        double imgSize = 50*SCREEN_WIDTH/1920;
-        button = new ImageButton("folder-button", imgSize,imgSize);
-        //button = new ImageButton(DEFAULT_FOLDER_IMAGE);
-        button.setFocusTraversable(false);
-        this.parentScene = parentScene;
-        getChildren().addAll(field,button);
-        StackPane.setAlignment(button, Pos.CENTER_RIGHT);
-        //StackPane.setMargin(button, new Insets(0,field.getHeight()-0.9*field.getHeight(),0,0));
+        buttonsBox = new HBox(5*Main.SCREEN_WIDTH/1920);
+        buttonsBox.setFocusTraversable(false);
+        buttonsBox.setAlignment(Pos.CENTER_RIGHT);
 
-        button.setOnAction(new EventHandler<ActionEvent>() {
+        double imgSize = 50*SCREEN_WIDTH/1920;
+        folderButton = new ImageButton("folder-button", imgSize,imgSize);
+        folderButton.setFocusTraversable(false);
+        buttonsBox.setPickOnBounds(false);
+        buttonsBox.getChildren().add(folderButton);
+
+        getChildren().addAll(field, buttonsBox);
+
+        folderButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 try {
@@ -105,5 +106,9 @@ public class PathTextField extends StackPane {
 
     public TextField getTextField() {
         return field;
+    }
+
+    public ImageButton getFolderButton() {
+        return folderButton;
     }
 }
