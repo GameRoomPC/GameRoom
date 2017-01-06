@@ -116,5 +116,5 @@ public class PathTextField extends StackPane {
     public ImageButton getFolderButton() {
         return folderButton;
     }
-    
+
 }

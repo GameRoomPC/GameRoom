@@ -8,6 +8,7 @@ import data.game.scrapper.SteamOnlineScrapper;
 import data.game.scrapper.SteamPreEntry;
 import javafx.application.Platform;
 import ui.Main;
+import ui.control.specific.GeneralToast;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,6 +34,9 @@ public class SteamOnlineGameScanner extends GameScanner {
         if(!profile.isEnabled()){
             LOGGER.info(profile.toString()+" is disabled.");
             return;
+        }
+        if(MAIN_SCENE!=null){
+            GeneralToast.displayToast(Main.getString("scanning")+" "+profile.toString(),MAIN_SCENE.getParentStage(),GeneralToast.DURATION_SHORT,true);
         }
         ArrayList<SteamPreEntry> steamEntriesToAdd = new ArrayList<SteamPreEntry>();
         try {

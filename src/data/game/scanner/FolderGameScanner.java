@@ -5,6 +5,7 @@ import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
+import ui.control.specific.GeneralToast;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -65,6 +66,9 @@ public class FolderGameScanner extends GameScanner {
         ArrayList<GameEntry> entriesFound = new ArrayList<>();
         if (!gamesFolder.exists() || !gamesFolder.isDirectory()) {
             return entriesFound;
+        }
+        if(MAIN_SCENE!=null){
+            GeneralToast.displayToast(Main.getString("scanning")+" "+Main.getString("games_folder"),MAIN_SCENE.getParentStage(),GeneralToast.DURATION_SHORT,true);
         }
         for (File file : gamesFolder.listFiles()) {
             if (isPotentiallyAGame(file)) {

@@ -207,6 +207,9 @@ public class GameWatcher {
         ArrayList<Integer> searchIGDBIDs = new ArrayList<>();
         ArrayList<GameEntry> toScrapEntries = new ArrayList<>();
         synchronized (entriesToAdd){
+            if(MAIN_SCENE!=null){
+                GeneralToast.displayToast(Main.getString("downloading_from_igdb"),MAIN_SCENE.getParentStage(),GeneralToast.DURATION_SHORT,true);
+            }
             for (GameEntry entry : entriesToAdd) {
                 if (entry.isWaitingToBeScrapped() && !entry.isBeingScrapped()) {
                     try {
@@ -328,6 +331,9 @@ public class GameWatcher {
     private void scanSteamGamesTime() {
         try {
             ArrayList<GameEntry> ownedSteamApps = SteamOnlineScrapper.getOwnedSteamGames();
+            if(MAIN_SCENE!=null){
+                GeneralToast.displayToast(Main.getString("scanning_steam_play_time"),MAIN_SCENE.getParentStage(),GeneralToast.DURATION_SHORT,true);
+            }
             for (GameEntry ownedEntry : ownedSteamApps) {
                 if (ownedEntry.getPlayTimeSeconds() != 0) {
                     for (GameEntry storedEntry : AllGameEntries.ENTRIES_LIST) {
