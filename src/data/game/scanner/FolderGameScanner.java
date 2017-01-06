@@ -19,7 +19,7 @@ import static ui.Main.MAIN_SCENE;
  * Created by LM on 19/08/2016.
  */
 public class FolderGameScanner extends GameScanner {
-    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library","SteamLibrary","SteamVR","!Downloads"};
+    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library","SteamLibrary","SteamVR","!Downloads","vcredist_x86.exe","vcredist_x64.exe","Redist","__Installer","Data","data","GameData"};
     private final static String[] VALID_EXECUTABLE_EXTENSION = new String[]{".exe", ".lnk", ".jar"};
 
 
@@ -70,17 +70,26 @@ public class FolderGameScanner extends GameScanner {
         if(MAIN_SCENE!=null){
             GeneralToast.displayToast(Main.getString("scanning")+" "+Main.getString("games_folder"),MAIN_SCENE.getParentStage(),GeneralToast.DURATION_SHORT,true);
         }
-        for (File file : gamesFolder.listFiles()) {
-            if (isPotentiallyAGame(file)) {
+        if(gamesFolder.listFiles() != null) {
+            for (File file : gamesFolder.listFiles()) {
                 GameEntry potentialEntry = new GameEntry(file.getName());
                 potentialEntry.setPath(file.getAbsolutePath());
-                potentialEntry.setNotInstalled(false);
-                entriesFound.add(potentialEntry);
-            }
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                boolean gameAlreadyInLibrary = gameAlreadyInLibrary(potentialEntry);
+                boolean folderGameIgnored = folderGameIgnored(potentialEntry);
+                boolean alreadyWaitingToBeAdded = parentLooker.alreadyWaitingToBeAdded(potentialEntry);
+                if (!gameAlreadyInLibrary
+                        && !folderGameIgnored
+                        && !alreadyWaitingToBeAdded) {
+                    if (isPotentiallyAGame(file)) {
+                        potentialEntry.setPath(file.getAbsolutePath());
+                        potentialEntry.setNotInstalled(false);
+                        entriesFound.add(potentialEntry);
+                    }
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }                }
             }
         }
         return entriesFound;
@@ -101,6 +110,9 @@ public class FolderGameScanner extends GameScanner {
             boolean potentialGame = false;
             for (File subFile : file.listFiles()) {
                 potentialGame = potentialGame || isPotentiallyAGame(subFile);
+                if(potentialGame){
+                    return potentialGame;
+                }
             }
             return potentialGame;
         } else {
