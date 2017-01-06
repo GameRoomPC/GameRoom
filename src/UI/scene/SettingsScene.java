@@ -582,7 +582,7 @@ public class SettingsScene extends BaseScene {
             } else if (setting.isClass(String.class)) {
                 /**************** PATH **************/
                 String p = GENERAL_SETTINGS.getString(setting);
-                PathTextField gamesFolderField = new PathTextField(p, this, PathTextField.FILE_CHOOSER_FOLDER, Main.getString("select_a_folder"));
+                PathTextField gamesFolderField = new PathTextField(p, getWindow(), PathTextField.FILE_CHOOSER_FOLDER, Main.getString("select_a_folder"));
                 gamesFolderField.setId(setting.getKey());
                 gamesFolderField.getTextField().textProperty().addListener(new ChangeListener<String>() {
                     @Override

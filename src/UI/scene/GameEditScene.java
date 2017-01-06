@@ -302,7 +302,7 @@ public class GameEditScene extends BaseScene {
         contentPane.add(new Label(Main.getString("game_path") + " :"), 0, row_count);
         Node pathNode = new Label();
         if(!entry.isSteamGame()){
-            AppPathField gamePathField = new AppPathField(entry.getPath(), this, PathTextField.FILE_CHOOSER_APPS, Main.getString("select_picture"));
+            AppPathField gamePathField = new AppPathField(entry.getPath(), getWindow(), PathTextField.FILE_CHOOSER_APPS, Main.getString("select_picture"));
             gamePathField.getTextField().setPrefColumnCount(50);
             gamePathField.setId("game_path");
             gamePathField.getTextField().textProperty().addListener(new ChangeListener<String>() {

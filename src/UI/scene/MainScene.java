@@ -199,7 +199,8 @@ public class MainScene extends BaseScene {
                         , 20 * Main.SCREEN_WIDTH / 1920
                         , 20 * Main.SCREEN_HEIGHT / 1080
                         , 20 * Main.SCREEN_WIDTH / 1920));
-                PathTextField field = new PathTextField(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER), this, PathTextField.FILE_CHOOSER_FOLDER, "");
+                PathTextField field = new PathTextField(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER), getWindow(), PathTextField.FILE_CHOOSER_FOLDER, "");
+
                 alert.setBottom(field);
                 alert.setCenter(text);
                 alert.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
