@@ -1,4 +1,4 @@
-package data.game.scrapper;
+package data.game.scraper;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
@@ -23,7 +23,7 @@ import java.util.*;
 /**
  * Created by LM on 03/07/2016.
  */
-public class IGDBScrapper {
+public class IGDBScraper {
     public static String IGDB_BASIC_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
     public static String IGDB_PRO_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
     public static String key = IGDB_BASIC_KEY;
@@ -379,8 +379,8 @@ public class IGDBScrapper {
         }
 
         try {
-            entry.setIgdb_imageHash(0, IGDBScrapper.getCoverImageHash(game_data));
-            String[] screenshotsHashes = IGDBScrapper.getScreenshotHash(game_data);
+            entry.setIgdb_imageHash(0, IGDBScraper.getCoverImageHash(game_data));
+            String[] screenshotsHashes = IGDBScraper.getScreenshotHash(game_data);
             for (int i = 0; i < screenshotsHashes.length; i++) {
                 entry.setIgdb_imageHash(i + 1, screenshotsHashes[i]);
             }

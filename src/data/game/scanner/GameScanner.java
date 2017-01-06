@@ -1,37 +1,48 @@
 package data.game.scanner;
 
 import data.game.GameWatcher;
+import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import javafx.concurrent.Task;
+import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
+import ui.control.specific.GeneralToast;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static data.game.GameWatcher.cleanNameForCompareason;
+import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 19/08/2016.
  */
 public abstract class GameScanner {
+    protected ScannerProfile profile = null;
     private volatile boolean scanDone = false;
     ArrayList<GameEntry> foundGames = new ArrayList<>();
     GameWatcher parentLooker;
 
-    GameScanner(GameWatcher parentLooker){
+    GameScanner(GameWatcher parentLooker) {
         this.parentLooker = parentLooker;
     }
 
-    public void startScanning(){
+    public void startScanning() {
         scanDone = false;
         scanForGames();
         scanDone = true;
     }
+
     protected abstract void scanForGames();
 
     public boolean isScanDone() {
         return scanDone;
     }
 
-    private GameButton onGameFound(GameEntry foundEntry){
+    private GameButton onGameFound(GameEntry foundEntry) {
         return parentLooker.onGameFound(foundEntry);
     }
 
@@ -44,4 +55,20 @@ public abstract class GameScanner {
         });
     }
 
+    protected void displayStartToast() {
+        if (MAIN_SCENE != null) {
+            if (profile != null) {
+                GeneralToast.displayToast(Main.getString("scanning") + " " + profile.toString(), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
+            } else {
+                GeneralToast.displayToast(Main.getString("scanning"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
+            }
+        }
+
+    }
+
+    public abstract void checkAndAdd(GameEntry entry);
+
+    public ScannerProfile getScannerProfile() {
+        return profile;
+    }
 }

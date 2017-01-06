@@ -1,7 +1,7 @@
 package system.application;
 
 import data.game.entry.GameEntry;
-import data.game.scrapper.SteamLocalScrapper;
+import data.game.scraper.SteamLocalScraper;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
@@ -145,10 +145,10 @@ public class Monitor {
             return result;
         }else{
             Main.LOGGER.info("Not monitoring time for " + gameStarter.getGameEntry().getName()+", is steam game");
-            if(SteamLocalScrapper.isSteamGameInstalled(gameStarter.getGameEntry().getSteam_id())){
+            if(SteamLocalScraper.isSteamGameInstalled(gameStarter.getGameEntry().getSteam_id())){
                 //waiting for the game to start
-                while (!SteamLocalScrapper.isSteamGameRunning(gameStarter.getGameEntry().getSteam_id())
-                        && !SteamLocalScrapper.isSteamGameLaunching(gameStarter.getGameEntry().getSteam_id())) {
+                while (!SteamLocalScraper.isSteamGameRunning(gameStarter.getGameEntry().getSteam_id())
+                        && !SteamLocalScraper.isSteamGameLaunching(gameStarter.getGameEntry().getSteam_id())) {
                     try {
                         Thread.sleep(MONITOR_REFRESH);
                     } catch (InterruptedException e) {
@@ -156,8 +156,8 @@ public class Monitor {
                     }
                 }
             }
-            while (SteamLocalScrapper.isSteamGameRunning(gameStarter.getGameEntry().getSteam_id())
-                    || SteamLocalScrapper.isSteamGameLaunching(gameStarter.getGameEntry().getSteam_id())) {
+            while (SteamLocalScraper.isSteamGameRunning(gameStarter.getGameEntry().getSteam_id())
+                    || SteamLocalScraper.isSteamGameLaunching(gameStarter.getGameEntry().getSteam_id())) {
                 try {
                     Thread.sleep(MONITOR_REFRESH);
                 } catch (InterruptedException e) {

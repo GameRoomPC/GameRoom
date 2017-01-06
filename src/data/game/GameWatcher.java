@@ -5,7 +5,7 @@ import data.ImageUtils;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scanner.*;
-import data.game.scrapper.*;
+import data.game.scraper.*;
 import data.http.key.KeyChecker;
 import javafx.application.Platform;
 import org.json.JSONArray;
@@ -16,7 +16,6 @@ import ui.scene.GameEditScene;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -34,7 +33,7 @@ public class GameWatcher {
     private final static int SCAN_DELAY_MINUTES = 5;
     private static GameWatcher WATCHER;
 
-    private OnGameFoundHandler onGameFoundHandler;
+    private OnScannerResultHandler onGameFoundHandler;
 
     private final ArrayList<GameEntry> entriesToAdd = new ArrayList<>();
 
@@ -56,48 +55,18 @@ public class GameWatcher {
         return WATCHER;
     }
 
-    public void setOnGameFoundHandler(OnGameFoundHandler onGameFoundHandler) {
+    public void setOnGameFoundHandler(OnScannerResultHandler onGameFoundHandler) {
         this.onGameFoundHandler = onGameFoundHandler;
     }
 
     private GameWatcher() {
-        localGameScanners.add(new OtherLaunchersScanner(this,ScannerProfile.GOG) {
-            @Override
-            public ArrayList<GameEntry> getEntriesInstalled() {
-                return InstalledGameScrapper.getGOGGames();
-            }
-        });
-        localGameScanners.add(new OtherLaunchersScanner(this,ScannerProfile.ORIGIN) {
-            @Override
-            public ArrayList<GameEntry> getEntriesInstalled() {
-                return InstalledGameScrapper.getOriginGames();
-            }
-        });
-        localGameScanners.add(new OtherLaunchersScanner(this,ScannerProfile.UPLAY) {
-            @Override
-            public ArrayList<GameEntry> getEntriesInstalled() {
-                return InstalledGameScrapper.getUplayGames();
-            }
-        });
-        localGameScanners.add(new OtherLaunchersScanner(this,ScannerProfile.BATTLE_NET) {
-            @Override
-            public ArrayList<GameEntry> getEntriesInstalled() {
-                return InstalledGameScrapper.getBattleNetGames();
-            }
-        });
-        localGameScanners.add(new OtherLaunchersScanner(this,ScannerProfile.STEAM) {
-            @Override
-            public ArrayList<GameEntry> getEntriesInstalled() {
-                try {
-                    return SteamLocalScrapper.getSteamAppsInstalledExcludeIgnored();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return new ArrayList<GameEntry>();
-            }
-        });
+        localGameScanners.add(new LauncherScanner(this,ScannerProfile.GOG));
+        localGameScanners.add(new LauncherScanner(this,ScannerProfile.ORIGIN));
+        localGameScanners.add(new LauncherScanner(this,ScannerProfile.UPLAY));
+        localGameScanners.add(new LauncherScanner(this,ScannerProfile.BATTLE_NET));
+        localGameScanners.add(new LauncherScanner(this,ScannerProfile.STEAM));
         localGameScanners.add(new FolderGameScanner(this));
-        onlineGameScanners.add(new SteamOnlineGameScanner(this));
+        onlineGameScanners.add(new LauncherScanner(this,ScannerProfile.STEAM_ONLINE));
     }
 
     private void startService() {
@@ -198,7 +167,7 @@ public class GameWatcher {
         if (!Main.SUPPORTER_MODE) {
             Main.SUPPORTER_MODE = !Main.GENERAL_SETTINGS.getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(Main.GENERAL_SETTINGS.getString(SUPPORTER_KEY));
             if(Main.SUPPORTER_MODE){
-                IGDBScrapper.key = IGDBScrapper.IGDB_PRO_KEY;
+                IGDBScraper.key = IGDBScraper.IGDB_PRO_KEY;
             }
         }
     }
@@ -216,7 +185,7 @@ public class GameWatcher {
                         entry.setSavedLocaly(true);
                         entry.setBeingScrapped(true);
                         entry.setSavedLocaly(false);
-                        JSONArray search_results = IGDBScrapper.searchGame(entry.getName());
+                        JSONArray search_results = IGDBScraper.searchGame(entry.getName());
                         searchIGDBIDs.add(search_results.getJSONObject(0).getInt("id"));
                         toScrapEntries.add(entry);
 
@@ -236,7 +205,7 @@ public class GameWatcher {
         }
         if (searchIGDBIDs.size() > 0) {
             try {
-                ArrayList<GameEntry> scrappedEntries = IGDBScrapper.getEntries(IGDBScrapper.getGamesData(searchIGDBIDs));
+                ArrayList<GameEntry> scrappedEntries = IGDBScraper.getEntries(IGDBScraper.getGamesData(searchIGDBIDs));
 
                 int i = 0;
                 for (GameEntry scrappedEntry : scrappedEntries) {
@@ -330,7 +299,7 @@ public class GameWatcher {
 
     private void scanSteamGamesTime() {
         try {
-            ArrayList<GameEntry> ownedSteamApps = SteamOnlineScrapper.getOwnedSteamGames();
+            ArrayList<GameEntry> ownedSteamApps = SteamOnlineScraper.getOwnedSteamGames();
             if(MAIN_SCENE!=null){
                 GeneralToast.displayToast(Main.getString("scanning_steam_play_time"),MAIN_SCENE.getParentStage(),GeneralToast.DURATION_SHORT,true);
             }
@@ -383,7 +352,7 @@ public class GameWatcher {
                 String end = numberFound > 1 ? Main.getString("new_games") : Main.getString("new_game");
                 GeneralToast.displayToast(Main.getString("gameroom_has_found")+" "+numberFound+" "+end,MAIN_SCENE.getParentStage(),GeneralToast.DURATION_LONG);
             }
-            onGameFoundHandler.onAllGamesFound();
+            onGameFoundHandler.onAllGamesFound(numberFound);
         }
     }
     private void scanNewGamesRoutine() {

@@ -1,7 +1,11 @@
-package data.game.scrapper;
+package data.game.scraper;
 
+import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.GameEntry;
 import data.game.scanner.FolderGameScanner;
+import data.game.scanner.GameScanner;
+import data.game.scanner.OnGameFound;
+import org.apache.http.conn.ConnectTimeoutException;
 import system.os.Terminal;
 import ui.Main;
 
@@ -15,7 +19,7 @@ import static ui.Main.LOGGER;
 /**
  * Created by LM on 08/08/2016.
  */
-public class SteamLocalScrapper {
+public class SteamLocalScraper {
     private static boolean STEAM_ID_ALREADY_DISPLAYED = false;
     private static boolean STEAMAPPS_DEFAULTPATH1_ALREADY_DISPLAYED = false;
     private static boolean STEAMAPPS_DEFAULTPATH2_ALREADY_DISPLAYED = false;
@@ -23,7 +27,7 @@ public class SteamLocalScrapper {
     private static boolean STEAM_PATH_ALREADY_DISPLAYED = false;
     private static boolean STEAM_DRIVE_LETTER_ALREADY_DISPLAYED = false;
 
-    public static String getSteamUserId() throws IOException {
+    static String getSteamUserId() throws IOException {
         File vdfFile = new File(getSteamPath() + "\\config\\config.vdf");
         String returnValue = null;
         String fileString = new String(Files.readAllBytes(vdfFile.toPath()));
@@ -48,51 +52,35 @@ public class SteamLocalScrapper {
         return returnValue;
     }
 
-    public static ArrayList<GameEntry> getSteamAppsInstalledExcludeIgnored() throws IOException {
-        ArrayList<GameEntry> steamEntries = getSteamAppsInstalled();
-        ArrayList<GameEntry> result = new ArrayList<>();
-
-        SteamPreEntry[] ignoredEntries = Main.GENERAL_SETTINGS.getSteamAppsIgnored();
-        for (GameEntry entry : steamEntries) {
-            boolean ignored = false;
-
-            for (SteamPreEntry pre : ignoredEntries) {
-                ignored = ignored || pre.getId() == entry.getSteam_id();
-            }
-            for (String name : FolderGameScanner.EXCLUDED_FILE_NAMES) {
-                ignored = ignored || name.equals(entry.getName());
-            }
-            if (!ignored) {
-                result.add(entry);
-            }
+    static void scanSteamGames(GameScanner scanner){
+        try {
+            scanSteamApps(entry -> {
+                if(!isSteamGameIgnored(entry)){
+                    try {
+                        entry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
+                    } catch (ConnectTimeoutException | UnirestException ignored) {
+                       LOGGER.error("scanSteamGames, Error connecting to steam");
+                    }
+                    scanner.checkAndAdd(entry);
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return result;
     }
 
-    private static ArrayList<GameEntry> getSteamAppsInstalled() throws IOException {
-        ArrayList<SteamPreEntry> installedPreEntries = getSteamAppsInstalledPreEntries();
-        ArrayList<GameEntry> result = new ArrayList<>();
-        for (SteamPreEntry s : installedPreEntries) {
-            GameEntry g = new GameEntry(s.getName());
-            g.setSteam_id(s.getId());
-            result.add(g);
-        }
-        return result;
-    }
-
-    public static ArrayList<SteamPreEntry> getSteamAppsInstalledPreEntries() throws IOException {
-        ArrayList<SteamPreEntry> steamApps = new ArrayList<>();
+    private static void scanSteamApps(OnGameFound handler) throws IOException {
         String[] steamAppsPaths = getSteamAppsPath();
 
         boolean allNull = true;
-        for(String s : steamAppsPaths){
+        for (String s : steamAppsPaths) {
             allNull = allNull && (s == null);
         }
-        if(allNull){
-            return steamApps;
+        if (allNull) {
+            return;
         }
-        for(String path : steamAppsPaths) {
-            if(path!=null){
+        for (String path : steamAppsPaths) {
+            if (path != null) {
                 File steamAppsFolder = new File(path);
                 String idPrefix = "appmanifest_";
                 String idSuffix = ".acf";
@@ -111,13 +99,11 @@ public class SteamLocalScrapper {
                                 name = name.replace("\"", "").trim();
                             }
                         }
-
-                        steamApps.add(new SteamPreEntry(name, id));
+                        handler.handle(new SteamPreEntry(name, id).toGameEntry());
                     }
                 }
             }
         }
-        return steamApps;
     }
 
     private static String[] getSteamAppsPath() throws IOException {
@@ -129,8 +115,8 @@ public class SteamLocalScrapper {
         if (steamPath != null && (new File(steamPath)).exists()) {
             if (Character.isLetter(steamPath.charAt(0))) {
                 driveLetter = steamPath.charAt(0);
-                if(!STEAM_DRIVE_LETTER_ALREADY_DISPLAYED){
-                    LOGGER.info("SteamLocalScrapper : Steam path on drive '"+driveLetter+"'");
+                if (!STEAM_DRIVE_LETTER_ALREADY_DISPLAYED) {
+                    LOGGER.info("SteamLocalScraper : Steam path on drive '" + driveLetter + "'");
                     STEAM_DRIVE_LETTER_ALREADY_DISPLAYED = true;
                 }
             }
@@ -142,26 +128,26 @@ public class SteamLocalScrapper {
                 LOGGER.info("Using default Steam's common path at : " + defaultSteamAppsPath);
                 STEAMAPPS_DEFAULTPATH1_ALREADY_DISPLAYED = true;
             }
-            pathsToReturn[dirCounter++]=defaultSteamAppsPath;
+            pathsToReturn[dirCounter++] = defaultSteamAppsPath;
         }
 
-        defaultSteamAppsPath = defaultSteamAppsPath.replaceFirst("C",driveLetter+"");
-        defaultCommonPath = defaultCommonPath.replaceFirst("C",driveLetter+"");
+        defaultSteamAppsPath = defaultSteamAppsPath.replaceFirst("C", driveLetter + "");
+        defaultCommonPath = defaultCommonPath.replaceFirst("C", driveLetter + "");
         if (new File(defaultCommonPath).exists()) {
             if (!STEAMAPPS_DEFAULTPATH2_ALREADY_DISPLAYED) {
                 LOGGER.info("Using default Steam's common path at : " + defaultSteamAppsPath);
                 STEAMAPPS_DEFAULTPATH2_ALREADY_DISPLAYED = true;
             }
-            pathsToReturn[dirCounter++]=defaultSteamAppsPath;
+            pathsToReturn[dirCounter++] = defaultSteamAppsPath;
         }
-        defaultSteamAppsPath = steamPath+"\\steamapps";
-        defaultCommonPath = steamPath+"\\steamapps\\common";
+        defaultSteamAppsPath = steamPath + "\\steamapps";
+        defaultCommonPath = steamPath + "\\steamapps\\common";
         if (new File(defaultCommonPath).exists()) {
             if (!STEAMAPPS_DEFAULTPATH3_ALREADY_DISPLAYED) {
                 LOGGER.info("Using default Steam's common path at : " + defaultSteamAppsPath);
                 STEAMAPPS_DEFAULTPATH3_ALREADY_DISPLAYED = true;
             }
-            pathsToReturn[dirCounter++]=defaultSteamAppsPath;
+            pathsToReturn[dirCounter++] = defaultSteamAppsPath;
         }
 
         File vdfFile = new File(getSteamPath() + "\\steamapps\\libraryfolders.vdf");
@@ -182,7 +168,7 @@ public class SteamLocalScrapper {
             }
         }
         if (returnValue == null) {
-            LOGGER.error("Steam's path is : "+ getSteamPath());
+            LOGGER.error("Steam's path is : " + getSteamPath());
             LOGGER.error("Could not retrieve user's steam apps path, here is libraryfolders.vdf : ");
             LOGGER.error(fileString);
         }
@@ -212,8 +198,13 @@ public class SteamLocalScrapper {
         return getSteamGameStatus(steam_id, "Running");
     }
 
-    public static boolean isSteamGameInstalled(int steam_id) throws IOException {
-        return getSteamGameStatus(steam_id, "Installed");
+    public static boolean isSteamGameInstalled(int steam_id){
+        try {
+            return getSteamGameStatus(steam_id, "Installed");
+        } catch (IOException ignored) {
+
+        }
+        return false;
     }
 
     public static boolean isSteamGameLaunching(int steam_id) throws IOException {
@@ -233,6 +224,24 @@ public class SteamLocalScrapper {
             }
         }
         return (result != null) && (result.equals("1"));
+    }
+
+    public static boolean isSteamGameIgnored(GameEntry entry){
+        SteamPreEntry[] ignoredEntries = Main.GENERAL_SETTINGS.getSteamAppsIgnored();
+
+        if(ignoredEntries == null ||ignoredEntries.length == 0){
+            return false;
+        }
+        boolean ignored = false;
+
+        for (SteamPreEntry pre : ignoredEntries) {
+            ignored = ignored || pre.getId() == entry.getSteam_id();
+        }
+        for (String name : FolderGameScanner.EXCLUDED_FILE_NAMES) {
+            ignored = ignored || name.equals(entry.getName());
+        }
+
+        return ignored;
     }
 
     public static void main(String[] args) throws IOException {

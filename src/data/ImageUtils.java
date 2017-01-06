@@ -1,6 +1,6 @@
 package data;
 
-import data.game.scrapper.OnDLDoneHandler;
+import data.game.scraper.OnDLDoneHandler;
 import data.io.HTTPDownloader;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;

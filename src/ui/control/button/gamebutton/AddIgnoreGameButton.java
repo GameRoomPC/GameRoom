@@ -1,7 +1,7 @@
 package ui.control.button.gamebutton;
 
 import data.game.entry.GameEntry;
-import data.game.scrapper.SteamPreEntry;
+import data.game.scraper.SteamPreEntry;
 import javafx.animation.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;

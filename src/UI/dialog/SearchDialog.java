@@ -2,8 +2,8 @@ package ui.dialog;
 
 import data.ImageUtils;
 import data.game.entry.GameEntry;
-import data.game.scrapper.IGDBScrapper;
-import data.game.scrapper.OnDLDoneHandler;
+import data.game.scraper.IGDBScraper;
+import data.game.scraper.OnDLDoneHandler;
 import data.http.SimpleImageInfo;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
@@ -118,7 +118,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                     }
                 });
                 try {
-                    JSONArray resultArray = IGDBScrapper.searchGame(searchField.getText());
+                    JSONArray resultArray = IGDBScraper.searchGame(searchField.getText());
                     ArrayList<Integer> ids = new ArrayList<Integer>();
                     if (resultArray == null) {
                         Platform.runLater(new Runnable() {
@@ -149,7 +149,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                             Task<String> scrapping = new Task<String>() {
                                 @Override
                                 protected String call() throws Exception {
-                                    gamesDataArray = IGDBScrapper.getGamesData(ids);
+                                    gamesDataArray = IGDBScraper.getGamesData(ids);
                                     String gameList = "SearchResult : ";
                                     searchListPane.setGamesDataArray(gamesDataArray);
                                     Platform.runLater(new Runnable() {
@@ -262,8 +262,8 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
 
         setOnHiding(event -> {
             if (searchListPane.getSelectedValue() != null) {
-                selectedEntry = IGDBScrapper.getEntry(searchListPane.getSelectedValue());
-                String coverHash = IGDBScrapper.getEntry(searchListPane.getSelectedValue()).getIgdb_imageHash(0);
+                selectedEntry = IGDBScraper.getEntry(searchListPane.getSelectedValue());
+                String coverHash = IGDBScraper.getEntry(searchListPane.getSelectedValue()).getIgdb_imageHash(0);
             }
         });
         if(gameName!=null){
@@ -296,7 +296,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         protected ListItem<JSONObject> createListItem(JSONObject value) {
             String coverHash = null;
             try {
-                coverHash = IGDBScrapper.getCoverImageHash(value);
+                coverHash = IGDBScraper.getCoverImageHash(value);
             } catch (JSONException je) {
                 Main.LOGGER.debug("No cover for game " + value.getString("name"));
                 if (!je.toString().contains("cover")) {
@@ -304,7 +304,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 }
             }
             SearchItem row = new SearchItem(value, this, value.getString("name")
-                    , IGDBScrapper.getReleaseDate(value.getInt("id"), gamesDataArray)
+                    , IGDBScraper.getReleaseDate(value.getInt("id"), gamesDataArray)
                     , value.getInt("id")
                     , coverHash, prefRowWidth);
             row.prefWidthProperty().bind(prefRowWidth);

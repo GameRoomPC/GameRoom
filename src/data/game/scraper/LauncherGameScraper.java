@@ -1,22 +1,56 @@
-package data.game.scrapper;
+package data.game.scraper;
 
 import data.game.entry.GameEntry;
-import data.game.scanner.ScannerProfile;
+import data.game.scanner.GameScanner;
 import system.os.Terminal;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static ui.Main.LOGGER;
-
 /**
  * Created by LM on 29/08/2016.
  */
-public class InstalledGameScrapper {
+public class LauncherGameScraper {
 
-    private static ArrayList<GameEntry> getInstalledGames(String regFolder, String installDirPrefix, String namePrefix, ScannerProfile scannerProfile) {
-        ArrayList<GameEntry> entries = new ArrayList<>();
+    public static void scanInstalledGames(GameScanner scanner) {
+        if(scanner.getScannerProfile() == null){
+            return;
+        }
+        switch (scanner.getScannerProfile()) {
+            case GOG:
+                scanGOGGames(scanner);
+                break;
+            case UPLAY:
+                scanUplayGames(scanner);
+                break;
+            case ORIGIN:
+                scanOriginGames(scanner);
+                break;
+            case BATTLE_NET:
+                scanBattleNetGames(scanner);
+                break;
+            case STEAM:
+                scanSteamGames(scanner);
+                break;
+            case STEAM_ONLINE:
+                scanSteamOnlineGames(scanner);
+                break;
+            default:
+                break;
+
+        }
+    }
+
+    private static void scanSteamGames(GameScanner scanner){
+        SteamLocalScraper.scanSteamGames(scanner);
+    }
+
+    private static void scanSteamOnlineGames(GameScanner scanner){
+        SteamOnlineScraper.scanSteamOnlineGames(scanner);
+    }
+
+    private static void scanInstalledGames(String regFolder, String installDirPrefix, String namePrefix, GameScanner scanner) {
         Terminal terminal = new Terminal(false);
         String[] output = new String[0];
         try {
@@ -38,7 +72,7 @@ public class InstalledGameScrapper {
                         } else if (namePrefix != null && s2.contains(namePrefix)) {
                             int index2 = s2.indexOf(namePrefix) + namePrefix.length();
                             name = s2.substring(index2).replace("®", "").replace("™", "");
-                        } else if(s2.contains("DEPENDSON    REG_SZ    ")){
+                        } else if (s2.contains("DEPENDSON    REG_SZ    ")) {
                             notAGame = !s2.equals("    DEPENDSON    REG_SZ    ");
                         }
                     }
@@ -61,7 +95,7 @@ public class InstalledGameScrapper {
                             } catch (NumberFormatException nfe) {
                                 //no id to scrap!
                             }
-                            switch (scannerProfile) {
+                            switch (scanner.getScannerProfile()) {
                                 case GOG:
                                     potentialEntry.setGog_id(id);
                                     break;
@@ -77,7 +111,7 @@ public class InstalledGameScrapper {
                                 default:
                                     break;
                             }
-                            entries.add(potentialEntry);
+                            scanner.checkAndAdd(potentialEntry);
                         }
                     }
                     try {
@@ -90,15 +124,14 @@ public class InstalledGameScrapper {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return entries;
     }
 
-    public static ArrayList<GameEntry> getUplayGames() {
-        return getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Ubisoft\\Launcher\\Installs", "InstallDir    REG_SZ    ", null, ScannerProfile.UPLAY);
+    public static void scanUplayGames(GameScanner scanner) {
+        scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Ubisoft\\Launcher\\Installs", "InstallDir    REG_SZ    ", null, scanner);
     }
 
-    public static ArrayList<GameEntry> getGOGGames() {
-        return getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\GOG.com\\Games", "EXE    REG_SZ    ", "GAMENAME    REG_SZ    ", ScannerProfile.GOG);
+    public static void scanGOGGames(GameScanner scanner) {
+        scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\GOG.com\\Games", "EXE    REG_SZ    ", "GAMENAME    REG_SZ    ", scanner);
     }
 
     /**
@@ -109,26 +142,23 @@ public class InstalledGameScrapper {
         return null;
     }
 
-    public static ArrayList<GameEntry> getOriginGames() {
-        ArrayList<GameEntry> entries = new ArrayList<>();
-        entries.addAll(getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\EA Games", "Install Dir    REG_SZ    ", "DisplayName    REG_SZ    ", ScannerProfile.ORIGIN));
-        entries.addAll(getInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Electronic Arts", "Install Dir    REG_SZ    ", "DisplayName    REG_SZ    ", ScannerProfile.ORIGIN));
-        return entries;
+    public static void scanOriginGames(GameScanner scanner) {
+        scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\EA Games", "Install Dir    REG_SZ    ", "DisplayName    REG_SZ    ", scanner);
+        scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Electronic Arts", "Install Dir    REG_SZ    ", "DisplayName    REG_SZ    ", scanner);
     }
 
-    public static ArrayList<GameEntry> getBattleNetGames() {
+    public static void scanBattleNetGames(GameScanner scanner) {
         String regFolder = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
         String keywordSeach = "Battle.net\\Agent\\Blizzard Uninstaller.exe";
         String[] excludedNames = new String[]{"Battle.net"};
 
-        ArrayList<GameEntry> entries = new ArrayList<>();
         Terminal terminal = new Terminal(false);
 
         try {
-            String[] output = terminal.execute("reg", "query", '"' + regFolder + '"',"/s","/f",'"'+keywordSeach+'"');
+            String[] output = terminal.execute("reg", "query", '"' + regFolder + '"', "/s", "/f", '"' + keywordSeach + '"');
             for (String line : output) {
                 if (line.startsWith(regFolder)) {
-                    String name = line.substring(regFolder.length()+1); //+1 for the \
+                    String name = line.substring(regFolder.length() + 1); //+1 for the \
 
                     boolean excluded = false;
                     for (String excludedName : excludedNames) {
@@ -137,22 +167,22 @@ public class InstalledGameScrapper {
                             break;
                         }
                     }
-                    if(!excluded){
-                        String[] gameRegOutput = terminal.execute("reg","query",'"' + regFolder + '\\' + name + '"',"/v","DisplayIcon");
+                    if (!excluded) {
+                        String[] gameRegOutput = terminal.execute("reg", "query", '"' + regFolder + '\\' + name + '"', "/v", "DisplayIcon");
                         String pathPrefix = "DisplayIcon    REG_SZ";
                         String path = null;
-                        for(String s : gameRegOutput){
-                            if(s.contains(pathPrefix)){
-                                path = s.substring(s.indexOf(pathPrefix)+pathPrefix.length()).trim();
+                        for (String s : gameRegOutput) {
+                            if (s.contains(pathPrefix)) {
+                                path = s.substring(s.indexOf(pathPrefix) + pathPrefix.length()).trim();
                                 break;
                             }
                         }
-                        if(path!=null){
+                        if (path != null) {
                             GameEntry entry = new GameEntry(name);
                             entry.setPath(path);
                             entry.setBattlenet_id(0);
                             entry.setNotInstalled(false);
-                            entries.add(entry);
+                            scanner.checkAndAdd(entry);
                         }
                         try {
                             Thread.sleep(100);
@@ -165,7 +195,5 @@ public class InstalledGameScrapper {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return entries;
-
     }
 }

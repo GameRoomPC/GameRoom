@@ -4,11 +4,10 @@ import com.sun.jna.WString;
 import data.FileUtils;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
-import data.game.scrapper.IGDBScrapper;
+import data.game.scraper.IGDBScraper;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
@@ -109,9 +108,9 @@ public class Launcher extends Application {
 
         String igdbKey = getArg(ARGS_FLAG_IGDB_KEY, args, true);
         if (igdbKey != null) {
-            IGDBScrapper.IGDB_BASIC_KEY = igdbKey;
-            IGDBScrapper.IGDB_PRO_KEY = igdbKey;
-            IGDBScrapper.key = igdbKey;
+            IGDBScraper.IGDB_BASIC_KEY = igdbKey;
+            IGDBScraper.IGDB_PRO_KEY = igdbKey;
+            IGDBScraper.key = igdbKey;
         }
         String showMode = getArg(ARGS_FLAG_SHOW, args, true);
         if (showMode != null) {

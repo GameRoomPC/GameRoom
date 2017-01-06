@@ -5,7 +5,7 @@ import data.game.GameWatcher;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scanner.FolderGameScanner;
-import data.game.scanner.OnGameFoundHandler;
+import data.game.scanner.OnScannerResultHandler;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -1008,7 +1008,7 @@ public class MainScene extends BaseScene {
             GeneralToast.displayToast(Main.getString("search_done"),getParentStage(),GeneralToast.DURATION_SHORT);
         });
         toAddTilePane.getIconButton().setOnAction(event -> gameWatcher.start());
-        gameWatcher.setOnGameFoundHandler(new OnGameFoundHandler() {
+        gameWatcher.setOnGameFoundHandler(new OnScannerResultHandler() {
             @Override
             public GameButton gameToAddFound(GameEntry entry) {
                 toAddTilePane.addGame(entry);
@@ -1016,7 +1016,7 @@ public class MainScene extends BaseScene {
             }
 
             @Override
-            public void onAllGamesFound() {
+            public void onAllGamesFound(int gamesCount) {
                 //toAddTilePane.disableFoldButton(false);
                 toAddTilePane.show();
                 Platform.runLater(() -> {

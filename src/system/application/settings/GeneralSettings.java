@@ -1,7 +1,7 @@
 package system.application.settings;
 
 import data.game.scanner.ScannerProfile;
-import data.game.scrapper.SteamPreEntry;
+import data.game.scraper.SteamPreEntry;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;

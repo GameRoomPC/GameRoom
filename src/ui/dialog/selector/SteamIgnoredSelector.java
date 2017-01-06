@@ -1,8 +1,8 @@
 package ui.dialog.selector;
 
 import data.ImageUtils;
-import data.game.scrapper.OnDLDoneHandler;
-import data.game.scrapper.SteamPreEntry;
+import data.game.scraper.OnDLDoneHandler;
+import data.game.scraper.SteamPreEntry;
 import data.http.SimpleImageInfo;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -125,9 +125,9 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
         @Override
         protected ListItem createListItem(Object value) {
             SteamAppItem item = new SteamAppItem(value,this);
-            data.game.scrapper.SteamPreEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
-            for (data.game.scrapper.SteamPreEntry steamPreEntry : ignoredSteamApps) {
-                if (((data.game.scrapper.SteamPreEntry) item.getValue()).getId() == steamPreEntry.getId()) {
+            data.game.scraper.SteamPreEntry[] ignoredSteamApps = GENERAL_SETTINGS.getSteamAppsIgnored();
+            for (data.game.scraper.SteamPreEntry steamPreEntry : ignoredSteamApps) {
+                if (((data.game.scraper.SteamPreEntry) item.getValue()).getId() == steamPreEntry.getId()) {
                     item.setSelected(true);
 
                     break;

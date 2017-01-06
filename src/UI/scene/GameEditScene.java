@@ -5,8 +5,8 @@ import data.ImageUtils;
 import data.game.entry.GameEntry;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
-import data.game.scrapper.IGDBScrapper;
-import data.game.scrapper.OnDLDoneHandler;
+import data.game.scraper.IGDBScraper;
+import data.game.scraper.OnDLDoneHandler;
 import data.http.YoutubeSoundtrackScrapper;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -542,7 +542,7 @@ public class GameEditScene extends BaseScene {
                                                  if (entry.getIgdb_id() != -1) {
                                                      GameEntry gameEntry = entry;
                                                      try {
-                                                         gameEntry.setIgdb_imageHashs(IGDBScrapper.getScreenshotHash(IGDBScrapper.getGameData(gameEntry.getIgdb_id())));
+                                                         gameEntry.setIgdb_imageHashs(IGDBScraper.getScreenshotHash(IGDBScraper.getGameData(gameEntry.getIgdb_id())));
                                                          openImageSelector(gameEntry);
                                                      } catch (JSONException jse) {
                                                          if (jse.toString().contains("[\"screenshots\"] not found")) {
