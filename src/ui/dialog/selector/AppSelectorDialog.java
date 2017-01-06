@@ -25,8 +25,11 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 03/01/2017.
@@ -76,11 +79,11 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
 
     }
 
-    public void searchApps(){
-        if(searchAppsThread == null){
+    public void searchApps() {
+        if (searchAppsThread == null) {
             searchAppsThread = new Thread(() -> addAppFiles(folder));
             searchAppsThread.setDaemon(true);
-        }else{
+        } else {
             stopSearching();
             try {
                 searchAppsThread.join();
@@ -91,42 +94,52 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
         searchAppsThread.start();
     }
 
-    public void stopSearching(){
+    public void stopSearching() {
         KEEP_SEARCHING = false;
     }
 
-    private void addAppFiles(File folder) {
-        if(!KEEP_SEARCHING){
+    private void addAppFiles(File file) {
+        if (!KEEP_SEARCHING) {
             return;
         }
-        List<File> potentialApps = new ArrayList<>();
-        potentialApps.sort((o1, o2) -> {
-            if(o1.isDirectory() && !o2.isDirectory()){
-                return -1;
-            }else if(!o1.isDirectory() && o2.isDirectory()){
-                return 1;
-            }else if(o1.isDirectory() && o2.isDirectory()){
-                return 0;
-            }else{
-                return o1.getName().compareTo(o2.getName());
+        if (file.isDirectory()) {
+            List<File> potentialApps = new ArrayList<>();
+            File[] files = file.listFiles();
+
+            if (files == null) {
+                return;
             }
-        });
-        for (File children : folder.listFiles()) {
-            if (children.isDirectory()) {
+            Collections.addAll(potentialApps, files);
+
+            potentialApps.sort((o1, o2) -> {
+                if (o1.isDirectory() && !o2.isDirectory()) {
+                    return 1;
+                } else if (!o1.isDirectory() && o2.isDirectory()) {
+                    return -1;
+                } else if (o1.isDirectory() && o2.isDirectory()) {
+                    return 0;
+                } else {
+                    return o2.getName().toLowerCase().compareTo(o1.getName().toLowerCase());
+                }
+            });
+
+            for (File children : potentialApps) {
                 addAppFiles(children);
-            } else if (FolderGameScanner.isPotentiallyAGame(children)) {
-                Platform.runLater(() -> list.addItem(children));
+            }
+        } else {
+            if (FolderGameScanner.isPotentiallyAGame(file) && KEEP_SEARCHING) {
+                Platform.runLater(() -> list.addItem(file));
             }
         }
     }
 
-    private static int getDeepness(File file){
+    private static int getDeepness(File file) {
         String path = file.getAbsolutePath();
-        path = path.replace('\\',File.pathSeparatorChar);
-        path = path.replace('/',File.pathSeparatorChar);
+        path = path.replace('\\', File.pathSeparatorChar);
+        path = path.replace('/', File.pathSeparatorChar);
         int charCount = 0;
-        for(char c : path.toCharArray()){
-            if(c == File.pathSeparatorChar){
+        for (char c : path.toCharArray()) {
+            if (c == File.pathSeparatorChar) {
                 charCount++;
             }
         }
@@ -144,12 +157,12 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
         } catch (FileNotFoundException e) {
             return null;
         }
-        if(sf == null){
+        if (sf == null) {
             return null;
         }
         java.awt.Image img = sf.getIcon(true);
 
-        if(img == null){
+        if (img == null) {
             return null;
         }
 
@@ -204,7 +217,7 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
             Label idLabel = new Label(file.getParent());
             idLabel.setStyle("-fx-font-size: 0.7em;");
 
-            vbox.getChildren().addAll(titleLabel,idLabel);
+            vbox.getChildren().addAll(titleLabel, idLabel);
             GridPane.setMargin(vbox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
             add(vbox, columnCount++, 0);
         }

@@ -21,7 +21,7 @@ import static ui.Main.MAIN_SCENE;
  * Created by LM on 19/08/2016.
  */
 public class FolderGameScanner extends GameScanner {
-    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library", "SteamLibrary", "SteamVR", "!Downloads", "vcredist_x86.exe", "vcredist_x64.exe", "Redist", "__Installer", "Data", "data", "GameData", "data_win32", "Support", "DXSETUP.exe", "unins000.exe"};
+    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library", "SteamLibrary", "SteamVR", "!Downloads", "vcredist_x86.exe", "vcredist_x64.exe", "Redist", "__Installer", "Data", "data", "GameData", "data_win32", "Support", "DXSETUP.exe", "unins000.exe", "uninstall"};
     private final static String[] VALID_EXECUTABLE_EXTENSION = new String[]{".exe", ".lnk", ".jar"};
 
     public FolderGameScanner(GameWatcher parentLooker) {
