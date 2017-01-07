@@ -73,7 +73,6 @@ public class FolderGameScanner extends GameScanner {
         if (!gamesFolder.exists() || !gamesFolder.isDirectory()) {
             return;
         }
-        displayStartToast();
 
         if (gamesFolder.listFiles() != null) {
             for (File file : gamesFolder.listFiles()) {
@@ -163,10 +162,10 @@ public class FolderGameScanner extends GameScanner {
 
     @Override
     protected void displayStartToast(){
-        if(profile!=null && MAIN_SCENE!=null){
-            GeneralToast.displayToast(Main.getString("scanning")+" "+profile.toString(),MAIN_SCENE.getParentStage(),GeneralToast.DURATION_SHORT,true);
-        }else{
-            if(MAIN_SCENE!=null){
+        if(MAIN_SCENE!=null){
+            if(profile!=null){
+                GeneralToast.displayToast(Main.getString("scanning")+" "+profile.toString(),MAIN_SCENE.getParentStage(),GeneralToast.DURATION_SHORT,true);
+            }else{
                 GeneralToast.displayToast(Main.getString("scanning") + " " + Main.getString("games_folder"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
             }
         }
