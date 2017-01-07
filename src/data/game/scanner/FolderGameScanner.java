@@ -117,7 +117,8 @@ public class FolderGameScanner extends GameScanner {
         boolean gameAlreadyInLibrary = gameAlreadyInLibrary(potentialEntry);
         boolean folderGameIgnored = folderGameIgnored(potentialEntry);
         boolean alreadyWaitingToBeAdded = gameAlreadyIn(potentialEntry,parentLooker.getEntriesToAdd());
-        return !gameAlreadyInLibrary && !folderGameIgnored && !alreadyWaitingToBeAdded;
+        boolean pathExists = new File(potentialEntry.getPath()).exists();
+        return !gameAlreadyInLibrary && !folderGameIgnored && !alreadyWaitingToBeAdded && pathExists;
     }
 
     /**Checks if the given file is a valid application or if the folder contains a valid application
