@@ -316,15 +316,16 @@ public class SettingsScene extends BaseScene {
 
         flowPaneHashMap.get(PredefinedSetting.SUPPORTER_KEY.getCategory()).getChildren().add(createLine(supporterKeyLabel, actDeactButton));
 
-        /********** KEYS ******************/
-        Label keysLabel = new Label(Main.getString("keys_label"));
-        Button keysButton = new Button(Main.getString("see"));
-        keysButton.setOnAction(event -> {
-            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION, Main.getString("key_content"));
+        /********** SHORTCUTS ******************/
+        Label shortcutsLabel = new Label(Main.getString("shortcuts_label"));
+        Button shortcutButton = new Button(Main.getString("see"));
+        shortcutButton.setOnAction(event -> {
+            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION
+                    , Main.getString("shortcuts_content"));
             alert.showAndWait();
         });
 
-        flowPaneHashMap.get(SettingValue.CATEGORY_GENERAL).getChildren().add(createLine(keysLabel, keysButton));
+        flowPaneHashMap.get(SettingValue.CATEGORY_GENERAL).getChildren().add(createLine(shortcutsLabel, shortcutButton));
 
 
         /***********************VERSION CHECK****************************/

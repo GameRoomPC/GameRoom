@@ -21,6 +21,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;
 
@@ -235,9 +236,14 @@ public class Main {
 
     public static String getString(String key){
         if(RESSOURCE_BUNDLE == null){
-            return "";
+            return "no_string";
         }
-        return RESSOURCE_BUNDLE.getString(key);
+        try{
+            return RESSOURCE_BUNDLE.getString(key);
+
+        }catch (MissingResourceException e){
+            return "no_string";
+        }
     }
 
     public static void setRessourceBundle(ResourceBundle bundle){
@@ -248,9 +254,14 @@ public class Main {
 
     public static String getSettingsString(String key){
         if(SETTINGS_BUNDLE == null){
-            return null;
+            return "no_string";
         }
-        return SETTINGS_BUNDLE.getString(key);
+        try{
+            return SETTINGS_BUNDLE.getString(key);
+
+        }catch (MissingResourceException e){
+            return "no_string";
+        }
     }
 
     public static void setSettingsBundle(ResourceBundle bundle){
