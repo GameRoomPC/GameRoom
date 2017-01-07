@@ -27,7 +27,6 @@ import static ui.control.button.gamebutton.AddIgnoreGameButton.ROTATION_TIME;
  * Created by LM on 17/08/2016.
  */
 public abstract class ToAddRowTilePane extends RowCoverTilePane {
-    Timeline rotateAnim;
 
     public ToAddRowTilePane(MainScene parentScene) {
         super(parentScene, RowCoverTilePane.TYPE_RECENTLY_ADDED);
@@ -35,9 +34,6 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
         maxColumn = Integer.MAX_VALUE;
         automaticSort = false;
 
-        //initSearchingIcon();
-
-        //ImageButton addAllButton = new ImageButton(new Image("res/ui/doubleValidIcon.png", SCREEN_WIDTH / 65, SCREEN_WIDTH / 65, true, true));
         double imgSize =  SCREEN_WIDTH / 65;
         ImageButton addAllButton = new ImageButton("tile-addAll-button", imgSize, imgSize);
         addAllButton.setOnAction(event -> {
@@ -104,33 +100,6 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
             return getGameButtons().get(indexOfTile(entry));
         }
         return null;
-    }
-
-    private void initSearchingIcon(){
-        getIconButton().setImageView("tile-loading-button",Main.SCREEN_WIDTH/60,Main.SCREEN_WIDTH/60);
-        getIconButton().setVisible(true);
-        getIconButton().setManaged(true);
-        rotateAnim = new Timeline(
-                new KeyFrame(Duration.seconds(0),
-                        new KeyValue(getIconButton().rotateProperty(), getIconButton().rotateProperty().getValue(), Interpolator.LINEAR)),
-                new KeyFrame(Duration.seconds(ROTATION_TIME),
-                        new KeyValue(getIconButton().rotateProperty(), 360, Interpolator.LINEAR)
-                ));
-        rotateAnim.setCycleCount(Animation.INDEFINITE);
-        rotateAnim.setAutoReverse(false);
-        rotateAnim.play();
-    }
-
-    public void enableSearchingIcon(boolean enable){
-        /*getIconButton().setMouseTransparent(enable);
-        if(rotateAnim!=null){
-            if(enable){
-                rotateAnim.play();
-            }else{
-                rotateAnim.stop();
-                getIconButton().rotateProperty().setValue(0.0);
-            }
-        }*/
     }
 
 }

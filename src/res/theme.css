@@ -736,6 +736,10 @@
 	-fx-image: url("icons/main/add.png");
 }
 
+#scan-button{
+	-fx-image: url("icons/main/scan.png");
+}
+
 /************TILES RELATED BUTTONS*******************/
 
 #toaddtile-add-button{

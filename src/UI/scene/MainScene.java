@@ -41,6 +41,7 @@ import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.specific.GeneralToast;
+import ui.control.specific.ScanButton;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ChoiceDialog;
 import ui.dialog.GameRoomAlert;
@@ -732,7 +733,7 @@ public class MainScene extends BaseScene {
             getRootStackPane().setMouseTransparent(false);
         });
 
-        ImageButton scanButton = new ImageButton("tile-loading-button", SCREEN_WIDTH / 38.0, SCREEN_WIDTH / 38.0);
+        /*ImageButton scanButton = new ImageButton("tile-loading-button", SCREEN_WIDTH / 38.0, SCREEN_WIDTH / 38.0);
         scanButton.setFocusTraversable(false);
         scanButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
@@ -743,12 +744,12 @@ public class MainScene extends BaseScene {
             }
         });
         GameWatcher.getInstance().addOnSearchStartedListener(() -> scanButton.setDisable(true));
-        GameWatcher.getInstance().addOnSearchDoneListener(() -> scanButton.setDisable(false));
+        GameWatcher.getInstance().addOnSearchDoneListener(() -> scanButton.setDisable(false));*/
 
         HBox hbox = new HBox();
         hbox.setPadding(new Insets(15, 12, 15, 10));
         hbox.setSpacing(0);
-        hbox.getChildren().addAll(addButton, scanButton, sortButton, groupButton, settingsButton, sizeSlider);
+        hbox.getChildren().addAll(addButton, new ScanButton(SCREEN_WIDTH / 38.0, SCREEN_WIDTH / 38.0), sortButton, groupButton, settingsButton, sizeSlider);
         hbox.setAlignment(Pos.CENTER_LEFT);
 
         searchField = new TextField();
@@ -1042,11 +1043,9 @@ public class MainScene extends BaseScene {
 
         gameWatcher = GameWatcher.getInstance();
         gameWatcher.addOnSearchStartedListener(() -> {
-            toAddTilePane.enableSearchingIcon(true);
             GeneralToast.displayToast(Main.getString("search_started"), getParentStage(), GeneralToast.DURATION_SHORT);
         });
         gameWatcher.addOnSearchDoneListener(() -> {
-            toAddTilePane.enableSearchingIcon(false);
             GeneralToast.displayToast(Main.getString("search_done"), getParentStage(), GeneralToast.DURATION_SHORT);
         });
         toAddTilePane.getIconButton().setOnAction(event -> gameWatcher.start());
