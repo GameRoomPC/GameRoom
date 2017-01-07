@@ -5,6 +5,7 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -610,10 +611,12 @@ public abstract class GamesTilePane extends BorderPane {
             Pattern pattern = Pattern.compile(".*\\(\\d*\\)");
             Matcher matcher = pattern.matcher(title);
             if (!matcher.find()) {
-                setTitle(getTitle().getText() + " (" + nbVisible + ")");
+                int finalNbVisible = nbVisible;
+                Main.runAndWait(() -> setTitle(getTitle().getText() + " (" + finalNbVisible + ")") );
             } else {
                 title = title.replaceAll("\\(\\d*\\)", "(" + nbVisible + ")");
-                setTitle(title);
+                String finalTitle = title;
+                Main.runAndWait(() ->  setTitle(finalTitle));
             }
         }
     }

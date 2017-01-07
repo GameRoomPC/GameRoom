@@ -1,20 +1,13 @@
 package data.game.scanner;
 
 import data.game.GameWatcher;
-import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
-import javafx.concurrent.Task;
-import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.specific.GeneralToast;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
-import static data.game.GameWatcher.cleanNameForCompareason;
 import static ui.Main.MAIN_SCENE;
 
 /**

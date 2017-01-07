@@ -5,13 +5,12 @@ import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
-import ui.control.button.gamebutton.GameButton;
 import ui.control.specific.GeneralToast;
 
 import java.io.File;
 import java.util.*;
 
-import static data.game.GameWatcher.cleanNameForCompareason;
+import static data.game.GameWatcher.formatNameForCompareason;
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.MAIN_SCENE;
 
@@ -117,7 +116,7 @@ public class FolderGameScanner extends GameScanner {
         boolean gameAlreadyInLibrary = gameAlreadyInLibrary(potentialEntry);
         boolean folderGameIgnored = folderGameIgnored(potentialEntry);
         boolean alreadyWaitingToBeAdded = gameAlreadyIn(potentialEntry,parentLooker.getEntriesToAdd());
-        boolean pathExists = new File(potentialEntry.getPath()).exists();
+        boolean pathExists = new File(potentialEntry.getPath()).exists() || potentialEntry.getPath().startsWith("steam");
         return !gameAlreadyInLibrary && !folderGameIgnored && !alreadyWaitingToBeAdded && pathExists;
     }
 
@@ -131,6 +130,9 @@ public class FolderGameScanner extends GameScanner {
             Thread.sleep(50);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+        if(!file.exists()){
+            return false;
         }
         for (String excludedName : EXCLUDED_FILE_NAMES) {
             if (file.getName().toLowerCase().equals(excludedName.toLowerCase())) {
@@ -261,7 +263,7 @@ public class FolderGameScanner extends GameScanner {
             }
         }
         //cannot use UUID as they are different at this pre-add-time
-        return e1IncludesE2 || e2IncludesE1 || cleanNameForCompareason(e2.getName()).equals(cleanNameForCompareason(e1.getName()));
+        return e1IncludesE2 || e2IncludesE1 || formatNameForCompareason(e2.getName()).equals(formatNameForCompareason(e1.getName()));
     }
 
     /**
@@ -298,7 +300,7 @@ public class FolderGameScanner extends GameScanner {
      * @param file the file to check
      * @return true if the file has a valid extension supported by GameRoom, false otherwise
      */
-    private static boolean fileHasValidExtension(File file) {
+    public static boolean fileHasValidExtension(File file) {
         boolean hasAValidExtension = false;
         for (String validExtension : VALID_EXECUTABLE_EXTENSION) {
             hasAValidExtension = hasAValidExtension || file.getAbsolutePath().toLowerCase().endsWith(validExtension.toLowerCase());

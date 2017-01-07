@@ -396,12 +396,16 @@ public class GameWatcher {
         return null;
     }
 
-    public static String cleanNameForCompareason(String name) {
+    public static String formatNameForCompareason(String name) {
         return name.toLowerCase().trim()
                 .replace(":", "")
                 .replace("-", "")
                 .replace("_", "")
-                .replace(".", "");
+                .replace(".", "")
+                .replace(" ", "")
+                .replace("\\u00AE","")//registered symbol
+                .replace("\\u00A9","")//copyright symbol
+                .replace("\\u2122",""); //TM symbol
     }
 
     public void removeGame(GameEntry entry) {

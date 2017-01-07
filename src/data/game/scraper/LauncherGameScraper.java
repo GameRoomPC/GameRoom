@@ -1,12 +1,14 @@
 package data.game.scraper;
 
 import data.game.entry.GameEntry;
+import data.game.scanner.FolderGameScanner;
 import data.game.scanner.GameScanner;
 import system.os.Terminal;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+
+import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 29/08/2016.
@@ -68,7 +70,7 @@ public class LauncherGameScraper {
                     for (String s2 : subOutPut) {
                         if (s2.contains(installDirPrefix)) {
                             int index2 = s2.indexOf(installDirPrefix) + installDirPrefix.length();
-                            installDir = s2.substring(index2).replace("/", "\\");
+                            installDir = s2.substring(index2).replace("/", "\\").replace("\"","");;
                         } else if (namePrefix != null && s2.contains(namePrefix)) {
                             int index2 = s2.indexOf(namePrefix) + namePrefix.length();
                             name = s2.substring(index2).replace("®", "").replace("™", "");
@@ -126,21 +128,28 @@ public class LauncherGameScraper {
         }
     }
 
-    public static void scanUplayGames(GameScanner scanner) {
+    private static void scanUplayGames(GameScanner scanner) {
         scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Ubisoft\\Launcher\\Installs", "InstallDir    REG_SZ    ", null, scanner);
     }
 
-    public static void scanGOGGames(GameScanner scanner) {
+    private static void scanGOGGames(GameScanner scanner) {
         scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\GOG.com\\Games", "EXE    REG_SZ    ", "GAMENAME    REG_SZ    ", scanner);
+        String keyWord = "GOG.com";
+        String[] excludedNames = new String[]{"GOG Galaxy"};
+        scanUninstallReg(scanner, keyWord, excludedNames);
     }
 
-    public static void scanOriginGames(GameScanner scanner) {
+    private static void scanOriginGames(GameScanner scanner) {
         scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\EA Games", "Install Dir    REG_SZ    ", "DisplayName    REG_SZ    ", scanner);
         scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Electronic Arts", "Install Dir    REG_SZ    ", "DisplayName    REG_SZ    ", scanner);
         scanUXGamesForOrigin(scanner);
+
+        String keyWord = "Support\\EA Help";
+        String[] excludedNames = new String[]{"Origin"};
+        scanUninstallReg(scanner, keyWord, excludedNames);
     }
 
-    public static void scanUXGamesForOrigin(GameScanner scanner) {
+    private static void scanUXGamesForOrigin(GameScanner scanner) {
         String regFolder = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameUX\\Games";
         String pathPrefix = "AppExePath    REG_SZ";
         String namePrefix = "Title    REG_SZ";
@@ -158,22 +167,22 @@ public class LauncherGameScraper {
                     String root = null;
                     for (String propLine : gameRegOutput) {
                         if (propLine.contains(pathPrefix)) {
-                            path = propLine.substring(propLine.indexOf(pathPrefix) + pathPrefix.length()).trim();
+                            path = getValue(pathPrefix,propLine).replace("\"","");;
                         }
                         if (propLine.contains(namePrefix)) {
-                            name = propLine.substring(propLine.indexOf(namePrefix) + namePrefix.length()).trim();
+                            name = getValue(namePrefix,propLine);
                         }
                         if (propLine.contains(rootPrefix)) {
-                            root = propLine.substring(propLine.indexOf(rootPrefix) + rootPrefix.length()).trim();
+                            root = getValue(rootPrefix,propLine).replace("\"","");;
                         }
                     }
                     if (name != null && path != null) {
                         GameEntry entry = new GameEntry(name);
                         entry.setPath(path);
-                        if(gameIsOrigin(root)){
+                        if (gameIsOrigin(root)) {
                             entry.setOrigin_id(0);
+                            scanner.checkAndAdd(entry);
                         }
-                        scanner.checkAndAdd(entry);
                     }
                 }
             }
@@ -196,47 +205,84 @@ public class LauncherGameScraper {
         }
 
         File root = new File(gameRoot);
-        if(!root.exists()){
+        if (!root.exists()) {
             return false;
         }
-        File eaHelp = new File(root.getAbsolutePath()+File.separator+"Support"+File.separator+"EA Help");
+        File eaHelp = new File(root.getAbsolutePath() + File.separator + "Support" + File.separator + "EA Help");
         return eaHelp.exists();
     }
 
-    public static void scanBattleNetGames(GameScanner scanner) {
-        String regFolder = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-        String keywordSeach = "Battle.net\\Agent\\Blizzard Uninstaller.exe";
+
+    private static void scanBattleNetGames(GameScanner scanner) {
+        String keyword = "Battle.net\\Agent\\Blizzard Uninstaller.exe";
         String[] excludedNames = new String[]{"Battle.net"};
 
+        scanUninstallReg(scanner, keyword, excludedNames);
+    }
+
+    private static void scanUninstallReg(GameScanner scanner, String keyWord, String[] excludedNames) {
+        String regFolder = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
         Terminal terminal = new Terminal(false);
 
         try {
-            String[] output = terminal.execute("reg", "query", '"' + regFolder + '"', "/s", "/f", '"' + keywordSeach + '"');
+            String[] output = terminal.execute("reg", "query", '"' + regFolder + '"', "/s", "/f", '"' + keyWord + '"');
             for (String line : output) {
                 if (line.startsWith(regFolder)) {
-                    String name = line.substring(regFolder.length() + 1); //+1 for the \
+                    String appCode = line.substring(regFolder.length() + 1); //+1 for the \
 
                     boolean excluded = false;
                     for (String excludedName : excludedNames) {
-                        excluded = name.equals(excludedName);
+                        excluded = appCode.equals(excludedName);
                         if (excluded) {
                             break;
                         }
                     }
                     if (!excluded) {
-                        String[] gameRegOutput = terminal.execute("reg", "query", '"' + regFolder + '\\' + name + '"', "/v", "DisplayIcon");
+                        String[] gameRegOutput = terminal.execute("reg", "query", '"' + regFolder + '\\' + appCode + '"', "/v", "DisplayIcon");
                         String pathPrefix = "DisplayIcon    REG_SZ";
+                        String rootPrefix = "InstallLocation    REG_SZ";
+                        String namePrefix = "DisplayName    REG_SZ";
                         String path = null;
+                        String name = appCode;
+
                         for (String s : gameRegOutput) {
                             if (s.contains(pathPrefix)) {
-                                path = s.substring(s.indexOf(pathPrefix) + pathPrefix.length()).trim();
+                                String tempPath = getValue(pathPrefix,s).replace("\"","");
+                                if (FolderGameScanner.fileHasValidExtension(new File(tempPath))) {
+                                    path = tempPath;;
+                                }
                                 break;
                             }
+                            if (s.contains(rootPrefix)) {
+                                if (path == null) {
+                                    path = getValue(rootPrefix,s).replace("\"","");
+                                }
+                            }
+                            if (s.contains(namePrefix)){
+                                name = getValue(namePrefix,s);
+                            }
                         }
-                        if (path != null) {
+                        if (path != null && FolderGameScanner.isPotentiallyAGame(new File(path))) {
                             GameEntry entry = new GameEntry(name);
                             entry.setPath(path);
-                            entry.setBattlenet_id(0);
+
+                            switch (scanner.getScannerProfile()) {
+                                case GOG:
+                                    entry.setGog_id(0);
+                                    break;
+                                case UPLAY:
+                                    entry.setUplay_id(0);
+                                    break;
+                                case BATTLE_NET:
+                                    entry.setBattlenet_id(0);
+                                    break;
+                                case ORIGIN:
+                                    entry.setOrigin_id(0);
+                                    break;
+                                default:
+                                    break;
+                            }
+
                             entry.setNotInstalled(false);
                             scanner.checkAndAdd(entry);
                         }
@@ -251,5 +297,12 @@ public class LauncherGameScraper {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static String getValue(String prefix, String line) {
+        if (prefix == null || line == null) {
+            return null;
+        }
+        return line.substring(line.indexOf(prefix) + prefix.length()).trim();
     }
 }
