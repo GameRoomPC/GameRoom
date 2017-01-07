@@ -26,6 +26,7 @@ public class YoutubePlayerAndButton {
     private static WebView WEB_VIEW;
     private final BaseScene scene;
     private DualImageButton soundMuteButton;
+    private volatile boolean stopThread = false;
 
     public YoutubePlayerAndButton(GameEntry entry, BaseScene scene) throws MalformedURLException {
         super();
@@ -62,12 +63,16 @@ public class YoutubePlayerAndButton {
                     String hash = getHash(entry);
                     YoutubePlayerHTML html = new YoutubePlayerHTML(hash);
 
+                    if(stopThread){
+                        return null;
+                    }
                     Platform.runLater(() -> {
-                        WEB_VIEW.getEngine().loadContent(html.getHTMLCode());
-                        JSObject win
-                                = (JSObject) WEB_VIEW.getEngine().executeScript("window");
-                        win.setMember("buttonToggler", new ButtonToggler(soundMuteButton));
-                        //soundMuteButton.toggleState();
+                        if(!stopThread) {
+                            WEB_VIEW.getEngine().loadContent(html.getHTMLCode());
+                            JSObject win
+                                    = (JSObject) WEB_VIEW.getEngine().executeScript("window");
+                            win.setMember("buttonToggler", new ButtonToggler(soundMuteButton));
+                        }//soundMuteButton.toggleState();
                     });
                 } catch (Exception e) {
                     Main.LOGGER.error(e.toString());
@@ -93,6 +98,7 @@ public class YoutubePlayerAndButton {
     }
 
     public void quitYoutube() {
+        stopThread = true;
         WEB_VIEW.getEngine().load("about:blank");
 // Delete cookies
         java.net.CookieHandler.setDefault(new java.net.CookieManager());
