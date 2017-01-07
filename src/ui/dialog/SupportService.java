@@ -17,7 +17,7 @@ import static ui.Main.LOGGER;
 public class SupportService {
     private static SupportService INSTANCE;
     private final static int CHECK_FREQ = 2 * 60 * 60 * 1000;
-    private final static int DISPLAY_FREQUENCY = 2 * 60 * 1000;
+    private final static int DISPLAY_FREQUENCY = 30 * 24 * 60 * 60 * 1000;
     private Thread thread;
 
     private SupportService(){
