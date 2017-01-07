@@ -41,25 +41,22 @@ public class SteamOnlineScraper {
             JSONArray ownedArray = askGamesOwned(SteamLocalScraper.getSteamUserId());
             for (int i = 0; i < ownedArray.length(); i++) {
                 SteamPreEntry preEntry = new SteamPreEntry(ownedArray.getJSONObject(i).getString("name"), ownedArray.getJSONObject(i).getInt("appID"));
-                JSONObject info = askGameInfos(preEntry.getId());
-                if (info != null && (info.getString("type").equals("game") || info.getString("type").equals("demo"))){
-                    GameEntry entry = preEntry.toGameEntry();
-                    try {
-                        GameEntry scrapedEntry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
-                        if(scrapedEntry != null){
-                            entry = scrapedEntry;
-                        }
-                        double playTimeHours = ownedArray.getJSONObject(i).getDouble("hoursOnRecord");
-                        entry.setPlayTimeSeconds((long) (playTimeHours * 3600));
-                    } catch (JSONException jse) {
-                        if (jse.toString().contains("not found")) {
-                            //System.out.println(entry.getName() + " was never played");
-                        } else {
-                            jse.printStackTrace();
-                        }
+                GameEntry entry = preEntry.toGameEntry();
+                try {
+                    GameEntry scrapedEntry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
+                    if (scrapedEntry != null) {
+                        entry = scrapedEntry;
                     }
-                    handler.handle(entry);
+                    double playTimeHours = ownedArray.getJSONObject(i).getDouble("hoursOnRecord");
+                    entry.setPlayTimeSeconds((long) (playTimeHours * 3600));
+                } catch (JSONException jse) {
+                    if (jse.toString().contains("not found")) {
+                        //System.out.println(entry.getName() + " was never played");
+                    } else {
+                        jse.printStackTrace();
+                    }
                 }
+                handler.handle(entry);
             }
         } catch (UnirestException | IOException e) {
             Main.LOGGER.error("Error connectiong to steamcommunity.com");
@@ -72,22 +69,25 @@ public class SteamOnlineScraper {
         scanOwnedSteamGames(entry -> {
             try {
                 entry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
+                if(entry!=null){
+                    entries.add(entry);
+                }
             } catch (ConnectTimeoutException | UnirestException ignored) {
                 LOGGER.error("scanSteamGames, Error connecting to steam");
             }
-            entries.add(entry);
         });
         return entries;
     }
 
     public static GameEntry getEntryForSteamId(int steamId) throws ConnectTimeoutException, UnirestException {
         try {
-            Thread.sleep(150);
+            Thread.sleep(100);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         JSONObject gameInfoJson = askGameInfos(steamId);
-        if (gameInfoJson != null) {
+        if (gameInfoJson != null && (gameInfoJson.getString("type").equals("game") || gameInfoJson.getString("type").equals("demo"))) {
+
             GameEntry entry = new GameEntry(gameInfoJson.getString("name"));
             entry.setDescription(Jsoup.parse(gameInfoJson.getString("about_the_game")).text());
             try {

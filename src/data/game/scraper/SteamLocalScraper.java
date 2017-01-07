@@ -52,21 +52,20 @@ public class SteamLocalScraper {
         return returnValue;
     }
 
-    static void scanSteamGames(GameScanner scanner){
-        try {
-            scanSteamApps(entry -> {
-                if(!isSteamGameIgnored(entry)){
+    static void scanSteamGames(GameScanner scanner) {
+        scanSteamAppsByReg(scanner);
+            /*scanSteamApps(entry -> {
+                if (!isSteamGameIgnored(entry)) {
                     try {
                         entry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
+                        if(entry!=null){
+                            scanner.checkAndAdd(entry);
+                        }
                     } catch (ConnectTimeoutException | UnirestException ignored) {
-                       LOGGER.error("scanSteamGames, Error connecting to steam");
+                        LOGGER.error("scanSteamGames, Error connecting to steam");
                     }
-                    scanner.checkAndAdd(entry);
                 }
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            });*/
     }
 
     private static void scanSteamApps(OnGameFound handler) throws IOException {
@@ -102,6 +101,48 @@ public class SteamLocalScraper {
                         handler.handle(new SteamPreEntry(name, id).toGameEntry());
                     }
                 }
+            }
+        }
+    }
+
+    private static void scanSteamAppsByReg(GameScanner scanner) {
+        String installedPrefix = "Installed    REG_DWORD";
+        String regFolder = "HKEY_CURRENT_USER\\SOFTWARE\\Valve\\Steam\\Apps\\";
+        ArrayList<String> steamIds = new ArrayList<>();
+        Terminal terminal = new Terminal(false);
+        String[] output = null;
+        try {
+            output = terminal.execute("reg", "query", regFolder, "/s");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (output == null || output.length == 0) {
+            return;
+        }
+
+        String id = null;
+        for (String line : output) {
+            if(line.contains(regFolder)){
+                id = LauncherGameScraper.getValue(regFolder,line);
+            }
+            if(id != null && line.contains(installedPrefix)){
+                String installed = LauncherGameScraper.getValue(installedPrefix,line);
+                LOGGER.debug(installed);
+                if(installed.equals("0x1")){
+                    steamIds.add(id);
+                }
+                id = null;
+            }
+        }
+        for(String steamId : steamIds){
+            try {
+                GameEntry entry = SteamOnlineScraper.getEntryForSteamId(Integer.parseInt(steamId));
+                if(entry!=null){
+                    entry.setNotInstalled(false);
+                    scanner.checkAndAdd(entry);
+                }
+            } catch (ConnectTimeoutException | UnirestException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -198,7 +239,7 @@ public class SteamLocalScraper {
         return getSteamGameStatus(steam_id, "Running");
     }
 
-    public static boolean isSteamGameInstalled(int steam_id){
+    public static boolean isSteamGameInstalled(int steam_id) {
         try {
             return getSteamGameStatus(steam_id, "Installed");
         } catch (IOException ignored) {
@@ -226,10 +267,10 @@ public class SteamLocalScraper {
         return (result != null) && (result.equals("1"));
     }
 
-    public static boolean isSteamGameIgnored(GameEntry entry){
+    public static boolean isSteamGameIgnored(GameEntry entry) {
         SteamPreEntry[] ignoredEntries = Main.GENERAL_SETTINGS.getSteamAppsIgnored();
 
-        if(ignoredEntries == null ||ignoredEntries.length == 0){
+        if (ignoredEntries == null || ignoredEntries.length == 0) {
             return false;
         }
         boolean ignored = false;

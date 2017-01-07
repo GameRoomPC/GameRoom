@@ -299,7 +299,7 @@ public class LauncherGameScraper {
         }
     }
 
-    private static String getValue(String prefix, String line) {
+    public static String getValue(String prefix, String line) {
         if (prefix == null || line == null) {
             return null;
         }

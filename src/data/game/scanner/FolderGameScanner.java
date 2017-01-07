@@ -227,7 +227,8 @@ public class FolderGameScanner extends GameScanner {
     protected static boolean folderGameIgnored(GameEntry entry) {
         boolean ignored = false;
         for (File ignoredFile : Main.GENERAL_SETTINGS.getFiles(PredefinedSetting.IGNORED_GAME_FOLDERS)) {
-            ignored = ignoredFile.toPath().toAbsolutePath().toString().toLowerCase().contains(entry.getPath().toLowerCase());
+            ignored = ignoredFile.getAbsolutePath().toLowerCase().contains(entry.getPath().toLowerCase())
+                    || entry.getPath().toLowerCase().contains(ignoredFile.getPath().toLowerCase());
             if (ignored) {
                 return true;
             }
