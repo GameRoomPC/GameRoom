@@ -846,7 +846,7 @@ public class MainScene extends BaseScene {
             if (fullScreen && disableInFullscreen) {
                 scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             } else if (!fullScreen) {
-                scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+                scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
             }
         }
     }

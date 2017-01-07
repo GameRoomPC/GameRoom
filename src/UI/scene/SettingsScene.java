@@ -179,7 +179,9 @@ public class SettingsScene extends BaseScene {
                 }
             }
         });
-        addPropertyLine(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT, true, new ChangeListener<Boolean>() {
+        addPropertyLine(PredefinedSetting.DISABLE_SCROLLBAR_IN_FULLSCREEN, true);
+
+            addPropertyLine(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT, true, new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 if (newValue) {
