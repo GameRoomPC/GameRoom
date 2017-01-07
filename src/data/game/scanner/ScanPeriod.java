@@ -2,6 +2,8 @@ package data.game.scanner;
 
 import ui.Main;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by LM on 07/01/2017.
  */
@@ -49,11 +51,11 @@ public enum ScanPeriod {
         return s.trim();
     }
 
-    public int toMillis() {
+    public long toMillis() {
         if (minutes == ONLY_START_CONSTANT || hours == ONLY_START_CONSTANT) {
             return -1;
         }
 
-        return minutes * 60 * 1000 + hours * 60 * 60 * 1000;
+        return TimeUnit.MINUTES.toMillis(minutes) + TimeUnit.HOURS.toMillis(hours);
     }
 }

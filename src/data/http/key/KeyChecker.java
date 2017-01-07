@@ -202,20 +202,6 @@ public class KeyChecker {
         }
     }
 
-    public static void main(String[] args) {
-        String key = "57a49ece72e10";
-        try {
-
-            deactivateKey(key);
-            activateKey(key);
-            isKeyValid(key);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        }
-    }
-
     public static boolean assumeSupporterMode(){
         String supporterKey = GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY);
         boolean valid = false;

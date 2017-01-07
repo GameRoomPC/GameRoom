@@ -7,6 +7,7 @@ import system.application.Monitor;
 import system.application.settings.PredefinedSetting;
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.LOGGER;
@@ -16,8 +17,8 @@ import static ui.Main.LOGGER;
  */
 public class SupportService {
     private static SupportService INSTANCE;
-    private final static int CHECK_FREQ = 2 * 60 * 60 * 1000;
-    private final static int DISPLAY_FREQUENCY = 30 * 24 * 60 * 60 * 1000;
+    private final static long CHECK_FREQ = TimeUnit.HOURS.toMillis(2);
+    private final static long DISPLAY_FREQUENCY = TimeUnit.DAYS.toMillis(30);
     private Thread thread;
 
     private SupportService(){
