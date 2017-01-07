@@ -116,7 +116,7 @@ public class FolderGameScanner extends GameScanner {
     protected boolean checkValidToAdd(GameEntry potentialEntry) {
         boolean gameAlreadyInLibrary = gameAlreadyInLibrary(potentialEntry);
         boolean folderGameIgnored = folderGameIgnored(potentialEntry);
-        boolean alreadyWaitingToBeAdded = parentLooker.alreadyWaitingToBeAdded(potentialEntry);
+        boolean alreadyWaitingToBeAdded = gameAlreadyIn(potentialEntry,parentLooker.getEntriesToAdd());
         return !gameAlreadyInLibrary && !folderGameIgnored && !alreadyWaitingToBeAdded;
     }
 
@@ -236,20 +236,31 @@ public class FolderGameScanner extends GameScanner {
      * Compares entry with paths or name, and not with UUID.
      * This is helpful to compare entries in toAdd and !toAdd states, as they may point to the same game but not have the same UUID
      *
-     * @param entry      the first entry to compare
-     * @param otherEntry the other entry to compare
+     * @param e1      the first entry to compare
+     * @param e2 the other entry to compare
      * @return true if a path includes an other or if they have the same name, false otherwise
      */
-    protected static boolean entryNameOrPathEquals(GameEntry entry, GameEntry otherEntry) {
-        if (entry == null && otherEntry == null) {
+    public static boolean entryNameOrPathEquals(GameEntry e1, GameEntry e2) {
+        if (e1 == null && e2 == null) {
             return true;
-        } else if (entry == null || otherEntry == null) {
+        } else if (e1 == null || e2 == null) {
             return false;
         }
+        boolean e1IncludesE2 = e1.getPath().trim().toLowerCase().contains(e2.getPath().trim().toLowerCase());
+        boolean e2IncludesE1 = e2.getPath().trim().toLowerCase().contains(e1.getPath().trim().toLowerCase());
+
+        if(e1IncludesE2){
+            if(e2.isToAdd()){
+                e2.setPath(e1.getPath());
+            }
+        }
+        if(e2IncludesE1){
+            if(e1.isToAdd()){
+                e1.setPath(e2.getPath());
+            }
+        }
         //cannot use UUID as they are different at this pre-add-time
-        return entry.getPath().toLowerCase().trim().contains(otherEntry.getPath().trim().toLowerCase())
-                || otherEntry.getPath().trim().toLowerCase().contains(entry.getPath().trim().toLowerCase())
-                || cleanNameForCompareason(otherEntry.getName()).equals(cleanNameForCompareason(entry.getName()));
+        return e1IncludesE2 || e2IncludesE1 || cleanNameForCompareason(e2.getName()).equals(cleanNameForCompareason(e1.getName()));
     }
 
     /**
@@ -259,7 +270,7 @@ public class FolderGameScanner extends GameScanner {
      * @param foundEntry the entry to check
      * @return true if already in the library, false otherwise
      */
-    protected static boolean gameAlreadyInLibrary(GameEntry foundEntry) {
+    public static boolean gameAlreadyInLibrary(GameEntry foundEntry) {
         return gameAlreadyIn(foundEntry,AllGameEntries.ENTRIES_LIST);
     }
 
@@ -270,7 +281,7 @@ public class FolderGameScanner extends GameScanner {
      * @param foundEntry the entry to check
      * @return true if already in the library, false otherwise
      */
-    protected static boolean gameAlreadyIn(GameEntry foundEntry, Collection<GameEntry> library) {
+    public static boolean gameAlreadyIn(GameEntry foundEntry, Collection<GameEntry> library) {
         boolean alreadyAddedToLibrary = false;
         for (GameEntry entry : library) {
             alreadyAddedToLibrary = entryNameOrPathEquals(entry, foundEntry);

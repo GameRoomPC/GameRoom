@@ -377,38 +377,13 @@ public class GameWatcher {
         }
     }
 
-    public boolean alreadyWaitingToBeAdded(GameEntry entry) {
-        boolean already = false;
-        for (GameEntry gameEntry : entriesToAdd) {
-            already = entry.getPath().toLowerCase().trim().contains(gameEntry.getPath().trim().toLowerCase())
-                    || gameEntry.getPath().trim().toLowerCase().contains(entry.getPath().trim().toLowerCase())
-                    || cleanNameForCompareason(entry.getName()).equals(cleanNameForCompareason(gameEntry.getName())); //cannot use UUID as they are different at this pre-add-time
-            if (already) {
-                break;
-            }
-        }
-
-        return already;
-    }
-
-    public boolean alreadyWaitingToBeAdded(SteamPreEntry entry) {
-        boolean already = false;
-        for (GameEntry gameEntry : entriesToAdd) {
-            already = gameEntry.getSteam_id() == entry.getId();
-            if (already) {
-                return already;
-            }
-        }
-        return already;
-    }
-
     public ArrayList<GameEntry> getEntriesToAdd() {
         return entriesToAdd;
     }
 
     public GameButton onGameFound(GameEntry foundEntry) {
         synchronized (entriesToAdd) {
-            if (!alreadyWaitingToBeAdded(foundEntry)) {
+            if (!FolderGameScanner.gameAlreadyIn(foundEntry,entriesToAdd)) {
                 foundEntry.setAddedDate(new Date());
                 foundEntry.setToAdd(true);
                 foundEntry.setSavedLocaly(true);
@@ -437,7 +412,7 @@ public class GameWatcher {
                 if(n.isToAdd()) //check if not added to Games folder
                     n.deleteFiles();
             } else {
-                if (n.getPath().trim().toLowerCase().equals(entry.getPath().trim().toLowerCase())) {
+                if (FolderGameScanner.entryNameOrPathEquals(n,entry)) {
                     toRemoveEntries.add(n);
                     if(n.isToAdd()) //check if not added to Games folder
                         n.deleteFiles();

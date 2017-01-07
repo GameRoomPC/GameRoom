@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class LauncherGameScraper {
 
     public static void scanInstalledGames(GameScanner scanner) {
-        if(scanner.getScannerProfile() == null){
+        if (scanner.getScannerProfile() == null) {
             return;
         }
         switch (scanner.getScannerProfile()) {
@@ -42,11 +42,11 @@ public class LauncherGameScraper {
         }
     }
 
-    private static void scanSteamGames(GameScanner scanner){
+    private static void scanSteamGames(GameScanner scanner) {
         SteamLocalScraper.scanSteamGames(scanner);
     }
 
-    private static void scanSteamOnlineGames(GameScanner scanner){
+    private static void scanSteamOnlineGames(GameScanner scanner) {
         SteamOnlineScraper.scanSteamOnlineGames(scanner);
     }
 
@@ -134,17 +134,73 @@ public class LauncherGameScraper {
         scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\GOG.com\\Games", "EXE    REG_SZ    ", "GAMENAME    REG_SZ    ", scanner);
     }
 
-    /**
-     * @return Games that do have a shortcut in Windows Game folder (introduced in windows 7, not used so much)
-     */
-    public static ArrayList<GameEntry> getGameUXGames() {
-        //TODO scan reg with HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\GameUX\Games
-        return null;
-    }
-
     public static void scanOriginGames(GameScanner scanner) {
         scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\EA Games", "Install Dir    REG_SZ    ", "DisplayName    REG_SZ    ", scanner);
         scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Electronic Arts", "Install Dir    REG_SZ    ", "DisplayName    REG_SZ    ", scanner);
+        scanUXGamesForOrigin(scanner);
+    }
+
+    public static void scanUXGamesForOrigin(GameScanner scanner) {
+        String regFolder = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameUX\\Games";
+        String pathPrefix = "AppExePath    REG_SZ";
+        String namePrefix = "Title    REG_SZ";
+        String rootPrefix = "ConfigApplicationPath    REG_SZ";
+
+        try {
+            Terminal terminal = new Terminal(false);
+            String[] output = terminal.execute("reg", "query", regFolder);
+            for (String line : output) {
+                if (line.startsWith(regFolder)) {
+                    String[] gameRegOutput = terminal.execute("reg", "query", line);
+
+                    String name = null;
+                    String path = null;
+                    String root = null;
+                    for (String propLine : gameRegOutput) {
+                        if (propLine.contains(pathPrefix)) {
+                            path = propLine.substring(propLine.indexOf(pathPrefix) + pathPrefix.length()).trim();
+                        }
+                        if (propLine.contains(namePrefix)) {
+                            name = propLine.substring(propLine.indexOf(namePrefix) + namePrefix.length()).trim();
+                        }
+                        if (propLine.contains(rootPrefix)) {
+                            root = propLine.substring(propLine.indexOf(rootPrefix) + rootPrefix.length()).trim();
+                        }
+                    }
+                    if (name != null && path != null) {
+                        GameEntry entry = new GameEntry(name);
+                        entry.setPath(path);
+                        if(gameIsOrigin(root)){
+                            entry.setOrigin_id(0);
+                        }
+                        scanner.checkAndAdd(entry);
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * Checks the existence of the Origin's typical folder "Support\EA Help"
+     *
+     * @param gameRoot
+     * @return
+     */
+    private static boolean gameIsOrigin(String gameRoot) {
+        if (gameRoot == null) {
+            return false;
+        }
+
+        File root = new File(gameRoot);
+        if(!root.exists()){
+            return false;
+        }
+        File eaHelp = new File(root.getAbsolutePath()+File.separator+"Support"+File.separator+"EA Help");
+        return eaHelp.exists();
     }
 
     public static void scanBattleNetGames(GameScanner scanner) {
