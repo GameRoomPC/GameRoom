@@ -31,11 +31,8 @@ public class ThemeUtils {
     private static String getThemeCSS() {
         File themeCSS = Main.FILES_MAP.get("theme_css");
         Theme currentTheme = Main.GENERAL_SETTINGS.getTheme();
-        String supporterKey = GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY);
 
-        if((KeyChecker.testInet(GameRoomUpdater.HTTPS_HOST) && !SUPPORTER_MODE) || supporterKey==null || supporterKey.isEmpty()){
-            //FileUtils.deleteFolder(Main.FILES_MAP.get("current_theme"));
-            //Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.THEME,Theme.DEFAULT_THEME);
+        if(!KeyChecker.assumeSupporterMode()){
             return DEFAULT_THEME_CSS;
         }
         if(themeCSS == null || !themeCSS.exists() || currentTheme.equals(Theme.DEFAULT_THEME)){

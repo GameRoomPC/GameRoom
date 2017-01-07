@@ -10,6 +10,7 @@ import ui.theme.Theme;
 import ui.theme.UIScale;
 
 import java.io.File;
+import java.util.Date;
 import java.util.Locale;
 
 import static system.application.settings.SettingValue.*;
@@ -54,6 +55,7 @@ public enum PredefinedSetting {
     , UI_SCALE("uiscale", new SettingValue(UIScale.NORMAL,UIScale.class,CATEGORY_UI))
     , THEME("theme", new SettingValue(Theme.DEFAULT_THEME,Theme.class,CATEGORY_UI))
     , ENABLED_GAME_SCANNERS("enabledGameScanners",new SettingValue(ScannerProfile.values(),ScannerProfile[].class,CATEGORY_GENERAL))
+    , LAST_SUPPORT_MESSAGE("lastSupportMessage", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     ;
 
 

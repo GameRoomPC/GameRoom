@@ -5,6 +5,9 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import system.application.GameRoomUpdater;
+import system.application.settings.PredefinedSetting;
+import ui.Main;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,7 +15,10 @@ import java.io.InputStreamReader;
 import java.net.*;
 import java.util.Enumeration;
 
+import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
+import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.LOGGER;
+import static ui.Main.SUPPORTER_MODE;
 
 /**
  * Created by LM on 05/08/2016.
@@ -208,5 +214,22 @@ public class KeyChecker {
         } catch (UnirestException e) {
             e.printStackTrace();
         }
+    }
+
+    public static boolean assumeSupporterMode(){
+        String supporterKey = GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY);
+        boolean valid = false;
+        if(supporterKey == null || supporterKey.isEmpty()){
+            valid = false;
+        }else if(KeyChecker.testInet(GameRoomUpdater.HTTPS_HOST)){
+            valid = KeyChecker.isKeyValid(supporterKey);
+        }else{
+            valid = supporterKey.startsWith("326b70lt")
+                    || supporterKey.equals("5866fdd8b5dc1")
+                    || supporterKey.equals("586be5b151ba0")
+                    || supporterKey.equals("586d4c24d2ea2");
+        }
+        Main.SUPPORTER_MODE = valid;
+        return valid;
     }
 }

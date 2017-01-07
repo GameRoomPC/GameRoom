@@ -46,6 +46,7 @@ import ui.control.textfield.PathTextField;
 import ui.dialog.ChoiceDialog;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.GameRoomCustomAlert;
+import ui.dialog.SupportService;
 import ui.dialog.selector.GameScannerSelector;
 import ui.pane.gamestilepane.*;
 import ui.scene.exitaction.ClassicExitAction;
@@ -123,6 +124,7 @@ public class MainScene extends BaseScene {
         loadGames();
         loadPreviousUIValues();
         configureAutomaticCaching();
+        SupportService.start();
     }
 
     private void configureAutomaticCaching() {

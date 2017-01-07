@@ -10,6 +10,7 @@ import ui.theme.Theme;
 import ui.theme.UIScale;
 
 import java.io.*;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
@@ -152,6 +153,11 @@ public class GeneralSettings {
 
     public ScanPeriod getScanPeriod() {
         SettingValue<ScanPeriod> setting = settingsMap.get(PredefinedSetting.SCAN_PERIOD.getKey());
+        return setting.getSettingValue();
+    }
+
+    public Date getDate(PredefinedSetting predefSetting) {
+        SettingValue<Date> setting = settingsMap.get(predefSetting.getKey());
         return setting.getSettingValue();
     }
 
