@@ -46,7 +46,7 @@ public class Main {
     public static MainScene MAIN_SCENE;
 
     private static ResourceBundle RESSOURCE_BUNDLE;
-    public static ResourceBundle SETTINGS_BUNDLE;
+    private static ResourceBundle SETTINGS_BUNDLE;
     public static ResourceBundle GAME_GENRES_BUNDLE;
     public static ResourceBundle GAME_THEMES_BUNDLE;
 
@@ -243,6 +243,19 @@ public class Main {
     public static void setRessourceBundle(ResourceBundle bundle){
         if(bundle!=null){
             RESSOURCE_BUNDLE = bundle;
+        }
+    }
+
+    public static String getSettingsString(String key){
+        if(SETTINGS_BUNDLE == null){
+            return null;
+        }
+        return SETTINGS_BUNDLE.getString(key);
+    }
+
+    public static void setSettingsBundle(ResourceBundle bundle){
+        if(bundle!=null){
+            SETTINGS_BUNDLE = bundle;
         }
     }
 }

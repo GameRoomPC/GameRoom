@@ -168,6 +168,13 @@ public class MainScene extends BaseScene {
                 sizeSliderValue = MAX_TILE_ZOOM + 0.00001; //extreme values of the slider are buggy
             }
             sizeSlider.setValue(sizeSliderValue);
+
+            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
+                forceHideToolbar(true);
+            }
+            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS)) {
+                forceHideTilesRows(true);
+            }
         });
     }
 
@@ -741,7 +748,7 @@ public class MainScene extends BaseScene {
         HBox hbox = new HBox();
         hbox.setPadding(new Insets(15, 12, 15, 10));
         hbox.setSpacing(0);
-        hbox.getChildren().addAll(addButton,scanButton, sortButton, groupButton, settingsButton, sizeSlider);
+        hbox.getChildren().addAll(addButton, scanButton, sortButton, groupButton, settingsButton, sizeSlider);
         hbox.setAlignment(Pos.CENTER_LEFT);
 
         searchField = new TextField();
@@ -801,10 +808,45 @@ public class MainScene extends BaseScene {
         wrappingPane.setTop(topPane);
     }
 
-    public void toggleTopBar(){
-        if(topPane!=null) {
-            topPane.setVisible(!topPane.isVisible());
-            topPane.setManaged(!topPane.isManaged());
+    private void forceHideToolbar(boolean hide){
+        if (topPane != null) {
+            topPane.setVisible(!hide);
+            topPane.setManaged(!hide);
+        }
+    }
+
+    public void toggleToolBar() {
+            boolean wasHidden = GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR);
+            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TOOLBAR, !wasHidden);
+            forceHideToolbar(!wasHidden);
+    }
+
+    private void forceHideTilesRows(boolean hide){
+        if (toAddTilePane != null) {
+            toAddTilePane.setForcedHidden(hide);
+        }
+        if (lastPlayedTilePane != null) {
+            lastPlayedTilePane.setForcedHidden(hide);
+        }
+        if (recentlyAddedTilePane != null) {
+            recentlyAddedTilePane.setForcedHidden(hide);
+
+        }
+    }
+    public void toggleTilesRows() {
+        boolean wasHidden = GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS);
+        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TILES_ROWS, !wasHidden);
+        forceHideTilesRows(!wasHidden);
+    }
+
+    public void toggleScrollBar(boolean fullScreen) {
+        boolean disableInFullscreen = GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_SCROLLBAR_IN_FULLSCREEN);
+        if (scrollPane != null) {
+            if (fullScreen && disableInFullscreen) {
+                scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            } else if (!fullScreen) {
+                scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            }
         }
     }
 
@@ -992,7 +1034,7 @@ public class MainScene extends BaseScene {
     }
 
     private void startGameLookerService() {
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)){
+        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
             return;
         }
         //toAddTilePane.disableFoldButton(true);
@@ -1001,11 +1043,11 @@ public class MainScene extends BaseScene {
         gameWatcher = GameWatcher.getInstance();
         gameWatcher.addOnSearchStartedListener(() -> {
             toAddTilePane.enableSearchingIcon(true);
-            GeneralToast.displayToast(Main.getString("search_started"),getParentStage(),GeneralToast.DURATION_SHORT);
+            GeneralToast.displayToast(Main.getString("search_started"), getParentStage(), GeneralToast.DURATION_SHORT);
         });
         gameWatcher.addOnSearchDoneListener(() -> {
             toAddTilePane.enableSearchingIcon(false);
-            GeneralToast.displayToast(Main.getString("search_done"),getParentStage(),GeneralToast.DURATION_SHORT);
+            GeneralToast.displayToast(Main.getString("search_done"), getParentStage(), GeneralToast.DURATION_SHORT);
         });
         toAddTilePane.getIconButton().setOnAction(event -> gameWatcher.start());
         gameWatcher.setOnGameFoundHandler(new OnScannerResultHandler() {

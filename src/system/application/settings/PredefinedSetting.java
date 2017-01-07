@@ -29,12 +29,15 @@ public enum PredefinedSetting {
     , NO_TOASTS("noToasts", new SettingValue(false,Boolean.class, CATEGORY_UI))
     ,START_MINIMIZED("startMinimized", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     ,WINDOW_MAXIMIZED("windowMaximized", new SettingValue(true,Boolean.class,CATEGORY_NONE))
+    ,HIDE_TOOLBAR("hideToolBar", new SettingValue(false,Boolean.class,CATEGORY_NONE))
+    ,HIDE_TILES_ROWS("hideTilesRows", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,START_WITH_WINDOWS("startWithWindows", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     ,NO_MORE_ICON_TRAY_WARNING("noMoreIconTrayWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,ENABLE_XBOX_CONTROLLER_SUPPORT("enableXboxControllerSupport", new SettingValue(false,Boolean.class,CATEGORY_UI))
     ,GAMES_FOLDER("gamesFolder", new SettingValue("",String.class,CATEGORY_GENERAL))
     , SUPPORTER_KEY("supporterKey", new SettingValue("",String.class,CATEGORY_GENERAL))
     ,DISABLE_MAINSCENE_WALLPAPER("disableMainSceneWallpaper", new SettingValue(false,Boolean.class,CATEGORY_UI))
+    ,DISABLE_SCROLLBAR_IN_FULLSCREEN("disableScrollbarFullScreen", new SettingValue(true,Boolean.class,CATEGORY_UI))
     ,IGNORED_STEAM_APPS("ignoredSteamApps",new SettingValue(new SteamPreEntry[]{},SteamPreEntry[].class,CATEGORY_GENERAL))
     ,IGNORED_GAME_FOLDERS("ignoredGameFolders",new SettingValue(new File[]{},File[].class,CATEGORY_GENERAL))
     , DISABLE_GAME_MAIN_THEME("disableGameMainTheme", new SettingValue(true,Boolean.class,CATEGORY_UI))
@@ -60,13 +63,16 @@ public enum PredefinedSetting {
         this.defaultValue = setting;
     }
     public String getLabel(){
-        String label = Main.SETTINGS_BUNDLE.getString(key +"_label");
+        String label = Main.getSettingsString(key +"_label");
+        if(label == null){
+            throw new NullPointerException("Forgot to set label for key"+key);
+        }
         return label!=null ? label : key;
     }
 
     public String getTooltip(){
-        String label = Main.SETTINGS_BUNDLE.getString(key +"_tooltip");
-        return label!=null ? label : null;
+        String tooltip = Main.getSettingsString(key +"_tooltip");
+        return tooltip!=null ? tooltip : getLabel();
     }
 
     public String getKey() {

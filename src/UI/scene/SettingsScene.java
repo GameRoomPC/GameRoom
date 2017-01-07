@@ -204,8 +204,8 @@ public class SettingsScene extends BaseScene {
         addPropertyLine(PredefinedSetting.GAMES_FOLDER);
 
         /***********************GAME SCANNERS GAMES IGNORED****************************/
-        Label scannersLabel = new Label(Main.SETTINGS_BUNDLE.getString("enabledGameScanners_label") + " : ");
-        scannersLabel.setTooltip(new Tooltip(Main.SETTINGS_BUNDLE.getString("enabledGameScanners_tooltip")));
+        Label scannersLabel = new Label(Main.getSettingsString("enabledGameScanners_label") + " : ");
+        scannersLabel.setTooltip(new Tooltip(Main.getSettingsString("enabledGameScanners_tooltip")));
         Button manageScannersButton = new Button(Main.getString("manage"));
 
         manageScannersButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -226,8 +226,8 @@ public class SettingsScene extends BaseScene {
 
 
         /***********************GAME FOLDER IGNORED****************************/
-        Label gameFoldersIgnoredLabel = new Label(Main.SETTINGS_BUNDLE.getString("manage_ignored_game_folders_label") + " : ");
-        gameFoldersIgnoredLabel.setTooltip(new Tooltip(Main.SETTINGS_BUNDLE.getString("manage_ignored_game_folders_tooltip")));
+        Label gameFoldersIgnoredLabel = new Label(Main.getSettingsString("manage_ignored_game_folders_label") + " : ");
+        gameFoldersIgnoredLabel.setTooltip(new Tooltip(Main.getSettingsString("manage_ignored_game_folders_tooltip")));
         Button manageGameFoldersIgnoredButton = new Button(Main.getString("manage"));
 
         manageGameFoldersIgnoredButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -249,8 +249,8 @@ public class SettingsScene extends BaseScene {
         flowPaneHashMap.get(PredefinedSetting.IGNORED_GAME_FOLDERS.getCategory()).getChildren().add(createLine(gameFoldersIgnoredLabel, manageGameFoldersIgnoredButton));
 
         /***********************STEAM GAMES IGNORED****************************/
-        Label steamIgnoredGamesLabel = new Label(Main.SETTINGS_BUNDLE.getString("manage_ignored_steam_games_label") + " : ");
-        steamIgnoredGamesLabel.setTooltip(new Tooltip(Main.SETTINGS_BUNDLE.getString("manage_ignored_steam_games_tooltip")));
+        Label steamIgnoredGamesLabel = new Label(Main.getSettingsString("manage_ignored_steam_games_label") + " : ");
+        steamIgnoredGamesLabel.setTooltip(new Tooltip(Main.getSettingsString("manage_ignored_steam_games_tooltip")));
         Button manageSteamGamesIgnoredButton = new Button(Main.getString("manage"));
 
         manageSteamGamesIgnoredButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -569,7 +569,7 @@ public class SettingsScene extends BaseScene {
                             changeListener.changed(null, Main.GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE), localeComboBox.getValue());
                         }
                         Main.setRessourceBundle(ResourceBundle.getBundle("strings", localeComboBox.getValue()));
-                        Main.SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", localeComboBox.getValue());
+                        Main.setSettingsBundle(ResourceBundle.getBundle("settings", localeComboBox.getValue()));
                         Main.GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", localeComboBox.getValue());
                         Main.GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", localeComboBox.getValue());
                         Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.LOCALE, localeComboBox.getValue());

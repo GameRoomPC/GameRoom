@@ -22,6 +22,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
+import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
@@ -33,6 +34,7 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.MAIN_SCENE;
 import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
 
@@ -69,8 +71,6 @@ public abstract class GamesTilePane extends BorderPane {
     HBox topBox;
 
 
-
-
     public boolean isQuickSearchEnabled() {
         return quickSearchEnabled;
     }
@@ -83,14 +83,14 @@ public abstract class GamesTilePane extends BorderPane {
         super();
         this.tilePane = new TilePane();
         this.titleLabel = new Label();
-        this.iconButton = new ImageButton("",Main.SCREEN_HEIGHT/42,Main.SCREEN_HEIGHT/42);
+        this.iconButton = new ImageButton("", Main.SCREEN_HEIGHT / 42, Main.SCREEN_HEIGHT / 42);
         this.parentScene = parentScene;
         //centerPane.setPrefViewportHeight(tilePane.getPrefHeight());
         setCenter(getTilePane());
         topBox = new HBox(10 * Main.SCREEN_WIDTH / 1920);
         topBox.setAlignment(Pos.CENTER_LEFT);
         topBox.setFocusTraversable(false);
-        topBox.getChildren().addAll(iconButton,titleLabel);
+        topBox.getChildren().addAll(iconButton, titleLabel);
         topBox.setPadding(new Insets(15 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920
                 , 5 * Main.SCREEN_HEIGHT / 1080
@@ -181,7 +181,7 @@ public abstract class GamesTilePane extends BorderPane {
                                 }
                                 matchingButtonscounter++;
                             }
-                            if(!selectedAButton && matchingButtons.size() > 0){
+                            if (!selectedAButton && matchingButtons.size() > 0) {
                                 //means we got to the end of the matching buttons and need to loop
 
                                 MAIN_SCENE.setInputMode(MainScene.INPUT_MODE_KEYBOARD);
@@ -193,7 +193,7 @@ public abstract class GamesTilePane extends BorderPane {
                             previousTypedChar = s.charAt(0);
                         }
                     }
-                }else{
+                } else {
                     MAIN_SCENE.triggerKeyPressedOnMainPane(event);
                 }
             }
@@ -547,6 +547,18 @@ public abstract class GamesTilePane extends BorderPane {
     }
 
     public void setForcedHidden(boolean forcedHidden) {
+        boolean wasHidden = GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS);
+        switch (getId()) {
+            case "lastPlayedTilePane":
+            case "recentlyAddedTilePane":
+            case "toAddTilePane":
+                if (!forcedHidden && wasHidden) {
+                    return;
+                }
+            default:
+                break;
+        }
+
         this.forcedHidden = forcedHidden;
         if (forcedHidden) {
             hide(false);
@@ -587,7 +599,7 @@ public abstract class GamesTilePane extends BorderPane {
     }
 
     private void updateTitleGameCount() {
-        if(displayGamesCount) {
+        if (displayGamesCount) {
             int nbVisible = 0;
             for (GameButton button1 : tilesList) {
                 if (button1.isVisible()) {
@@ -629,7 +641,7 @@ public abstract class GamesTilePane extends BorderPane {
         return titleLabel;
     }
 
-    public ImageButton getIconButton(){
+    public ImageButton getIconButton() {
         return iconButton;
     }
 

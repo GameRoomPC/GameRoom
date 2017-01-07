@@ -226,7 +226,12 @@ public class Launcher extends Application {
                 }
                 if (event.getCode() == KeyCode.F10) {
                     if (Main.MAIN_SCENE != null) {
-                        Main.MAIN_SCENE.toggleTopBar();
+                        Main.MAIN_SCENE.toggleToolBar();
+                    }
+                }
+                if (event.getCode() == KeyCode.F9) {
+                    if (Main.MAIN_SCENE != null) {
+                        Main.MAIN_SCENE.toggleTilesRows();
                     }
                 }
             }
@@ -281,7 +286,9 @@ public class Launcher extends Application {
             clearStage(primaryStage);
             initPrimaryStage(newStage, primaryStage.getScene(), appStart);
         }
-
+        if(MAIN_SCENE!=null){
+            MAIN_SCENE.toggleScrollBar(fullScreen);
+        }
         openStage(newStage, appStart);
     }
 
