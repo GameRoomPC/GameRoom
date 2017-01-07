@@ -100,6 +100,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         topBox = new HBox();
         topBox.setAlignment(Pos.CENTER);
         topBox.setSpacing(15 * Main.SCREEN_WIDTH / 1920);
+        topBox.getStyleClass().add("header");
         topBox.getChildren().addAll(searchField, searchButton);
 
         mainPane.setPrefWidth(1.0 / 3.5 * Main.SCREEN_WIDTH);

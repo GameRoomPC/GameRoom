@@ -127,7 +127,6 @@ public class SteamLocalScraper {
             }
             if(id != null && line.contains(installedPrefix)){
                 String installed = LauncherGameScraper.getValue(installedPrefix,line);
-                LOGGER.debug(installed);
                 if(installed.equals("0x1")){
                     steamIds.add(id);
                 }
