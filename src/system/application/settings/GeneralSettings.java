@@ -1,5 +1,6 @@
 package system.application.settings;
 
+import data.game.scanner.ScanPeriod;
 import data.game.scanner.ScannerProfile;
 import data.game.scraper.SteamPreEntry;
 import system.application.OnLaunchAction;
@@ -19,10 +20,11 @@ import java.util.Properties;
 public class GeneralSettings {
     private HashMap<String, SettingValue> settingsMap = new HashMap<>();
 
-    public GeneralSettings(){
+    public GeneralSettings() {
         loadSettings();
     }
-    private void loadSettings(){
+
+    private void loadSettings() {
         Properties prop = new Properties();
         InputStream input = null;
 
@@ -32,8 +34,8 @@ public class GeneralSettings {
             // load a properties file
             prop.load(input);
 
-            for(PredefinedSetting predefinedSetting : PredefinedSetting.values()){
-                SettingValue.loadSetting(settingsMap,prop, predefinedSetting);
+            for (PredefinedSetting predefinedSetting : PredefinedSetting.values()) {
+                SettingValue.loadSetting(settingsMap, prop, predefinedSetting);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -47,13 +49,13 @@ public class GeneralSettings {
                 }
             }
             Main.LOGGER.info("Loaded settings : "
-                    +"windowWidth="+getWindowWidth()
-                    +", windowHeight="+ getWindowHeight()
-                    +", locale="+getLocale(PredefinedSetting.LOCALE).getLanguage());
+                    + "windowWidth=" + getWindowWidth()
+                    + ", windowHeight=" + getWindowHeight()
+                    + ", locale=" + getLocale(PredefinedSetting.LOCALE).getLanguage());
         }
     }
 
-    public void saveSettings(){
+    public void saveSettings() {
         Properties prop = new Properties();
         OutputStream output = null;
 
@@ -61,8 +63,8 @@ public class GeneralSettings {
 
             output = new FileOutputStream(Main.FILES_MAP.get("config.properties"));
 
-            for(PredefinedSetting key : PredefinedSetting.values()){
-                prop.setProperty(key.toString(),settingsMap.get(key.getKey()).toString());
+            for (PredefinedSetting key : PredefinedSetting.values()) {
+                prop.setProperty(key.toString(), settingsMap.get(key.getKey()).toString());
             }
             // save properties to project root folder
             prop.store(output, null);
@@ -85,79 +87,93 @@ public class GeneralSettings {
 
     public int getWindowWidth() {
         SettingValue setting = settingsMap.get(PredefinedSetting.WINDOW_WIDTH.getKey());
-        return (int)setting.getSettingValue();
+        return (int) setting.getSettingValue();
     }
 
     public int getWindowHeight() {
         SettingValue setting = settingsMap.get(PredefinedSetting.WINDOW_HEIGHT.getKey());
-        return (int)setting.getSettingValue();
+        return (int) setting.getSettingValue();
     }
 
-    public Boolean getBoolean(PredefinedSetting key){
+    public Boolean getBoolean(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
         return (boolean) setting.getSettingValue();
     }
-    public Locale getLocale(PredefinedSetting key){
+
+    public Locale getLocale(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
         return (Locale) setting.getSettingValue();
     }
-    public OnLaunchAction getOnLaunchAction(PredefinedSetting key){
+
+    public OnLaunchAction getOnLaunchAction(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
         return (OnLaunchAction) setting.getSettingValue();
     }
-    public PowerMode getPowerMode(PredefinedSetting key){
+
+    public PowerMode getPowerMode(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
         return (PowerMode) setting.getSettingValue();
     }
-    public int getInt(PredefinedSetting key){
+
+    public int getInt(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
         return (int) setting.getSettingValue();
     }
-    public double getDouble(PredefinedSetting key){
+
+    public double getDouble(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
         return (double) setting.getSettingValue();
     }
-    public File[] getFiles(PredefinedSetting key){
+
+    public File[] getFiles(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
         return (File[]) setting.getSettingValue();
     }
-    public String[] getStrings(PredefinedSetting key){
+
+    public String[] getStrings(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
         return (String[]) setting.getSettingValue();
     }
-    public String getString(PredefinedSetting key){
+
+    public String getString(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
         return (String) setting.getSettingValue();
     }
-    public SteamPreEntry[] getSteamAppsIgnored(){
+
+    public SteamPreEntry[] getSteamAppsIgnored() {
         SettingValue setting = settingsMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getKey());
         return (SteamPreEntry[]) setting.getSettingValue();
     }
 
-    public UIScale getUIScale(){
+    public UIScale getUIScale() {
         SettingValue<UIScale> settingValue = settingsMap.get(PredefinedSetting.UI_SCALE.getKey());
         return settingValue.getSettingValue();
     }
 
-    public Theme getTheme(){
+    public ScanPeriod getScanPeriod() {
+        SettingValue<ScanPeriod> setting = settingsMap.get(PredefinedSetting.SCAN_PERIOD.getKey());
+        return setting.getSettingValue();
+    }
+
+    public Theme getTheme() {
         SettingValue<Theme> settingValue = settingsMap.get(PredefinedSetting.THEME.getKey());
         return settingValue.getSettingValue();
     }
 
-    public boolean isGameScannerEnabled(ScannerProfile profile){
+    public boolean isGameScannerEnabled(ScannerProfile profile) {
         ScannerProfile[] enabledValues = (ScannerProfile[]) settingsMap.get(PredefinedSetting.ENABLED_GAME_SCANNERS.getKey()).getSettingValue();
 
         boolean enabled = false;
-        for(ScannerProfile disabledProfile : enabledValues){
+        for (ScannerProfile disabledProfile : enabledValues) {
             enabled = enabled || disabledProfile.equals(profile);
-            if(enabled){
+            if (enabled) {
                 break;
             }
         }
         return enabled;
     }
 
-    public void setGameScannersEnabled(ScannerProfile[] profiles){
+    public void setGameScannersEnabled(ScannerProfile[] profiles) {
         setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, profiles);
     }
 
@@ -185,17 +201,17 @@ public class GeneralSettings {
 
     }*/
 
-    public void setSettingValue(PredefinedSetting key, Object value){
-        SettingValue settingValue = new SettingValue(value,value.getClass(),key.getDefaultValue().getCategory());
-        settingsMap.put(key.getKey(),settingValue);
+    public void setSettingValue(PredefinedSetting key, Object value) {
+        SettingValue settingValue = new SettingValue(value, value.getClass(), key.getDefaultValue().getCategory());
+        settingsMap.put(key.getKey(), settingValue);
         saveSettings();
     }
 
-    public void onSupporterModeActivated(){
+    public void onSupporterModeActivated() {
 
     }
 
-    public void onSupporterModeDeactivated(){
-        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.THEME,Theme.DEFAULT_THEME);
+    public void onSupporterModeDeactivated() {
+        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.THEME, Theme.DEFAULT_THEME);
     }
 }

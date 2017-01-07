@@ -35,7 +35,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
         maxColumn = Integer.MAX_VALUE;
         automaticSort = false;
 
-        initSearchingIcon();
+        //initSearchingIcon();
 
         //ImageButton addAllButton = new ImageButton(new Image("res/ui/doubleValidIcon.png", SCREEN_WIDTH / 65, SCREEN_WIDTH / 65, true, true));
         double imgSize =  SCREEN_WIDTH / 65;
@@ -122,7 +122,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
     }
 
     public void enableSearchingIcon(boolean enable){
-        getIconButton().setMouseTransparent(enable);
+        /*getIconButton().setMouseTransparent(enable);
         if(rotateAnim!=null){
             if(enable){
                 rotateAnim.play();
@@ -130,7 +130,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
                 rotateAnim.stop();
                 getIconButton().rotateProperty().setValue(0.0);
             }
-        }
+        }*/
     }
 
 }

@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.UUID;
 
+import static system.application.settings.PredefinedSetting.GAMES_FOLDER;
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
 import static ui.Main.*;
 
@@ -30,7 +31,7 @@ import static ui.Main.*;
  * Created by LM on 17/08/2016.
  */
 public class GameWatcher {
-    private final static int SCAN_DELAY_MINUTES = 5;
+    private static ScanPeriod SCAN_PERIOD = ScanPeriod.HALF_HOUR;
     private static GameWatcher WATCHER;
 
     private OnScannerResultHandler onGameFoundHandler;
@@ -45,6 +46,8 @@ public class GameWatcher {
     private ArrayList<Runnable> onSearchDoneListeners = new ArrayList<>();
 
     private Thread serviceThread;
+    private volatile static boolean KEEP_LOOPING = true;
+    private volatile static boolean WAIT_FULL_PERIOD = false;
 
     private volatile boolean awaitingStart = false;
 
@@ -67,14 +70,26 @@ public class GameWatcher {
         localGameScanners.add(new LauncherScanner(this,ScannerProfile.STEAM));
         localGameScanners.add(new FolderGameScanner(this));
         onlineGameScanners.add(new LauncherScanner(this,ScannerProfile.STEAM_ONLINE));
+
+        SCAN_PERIOD = GENERAL_SETTINGS.getScanPeriod();
     }
 
-    private void startService() {
+    private void initService() {
         serviceThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 initToAddEntries();
-                while (Main.KEEP_THREADS_RUNNING) {
+                do {
+                    if(WAIT_FULL_PERIOD){
+                        WAIT_FULL_PERIOD = false;
+                        try {
+                            Thread.sleep(SCAN_PERIOD.toMillis());
+                            awaitingStart = false;
+                        } catch (InterruptedException e) {
+                            awaitingStart = false;
+                            LOGGER.info("Forced start of GameWatcher");
+                        }
+                    }
                     for(Runnable onSearchStarted : onSearchStartedListeners) {
                         if (onSearchStarted != null) {
                             onSearchStarted.run();
@@ -95,7 +110,7 @@ public class GameWatcher {
                     }
                     if(!awaitingStart){
                         try {
-                            Thread.sleep(SCAN_DELAY_MINUTES * 60 * 1000);
+                            Thread.sleep(SCAN_PERIOD.toMillis());
                             awaitingStart = false;
                         } catch (InterruptedException e) {
                             awaitingStart = false;
@@ -105,20 +120,22 @@ public class GameWatcher {
                         awaitingStart = false;
                     }
 
-                }
+                }while (Main.KEEP_THREADS_RUNNING && KEEP_LOOPING);
             }
         });
         serviceThread.setPriority(Thread.MIN_PRIORITY);
         serviceThread.setDaemon(true);
-        serviceThread.start();
     }
 
     public void start(){
         if(serviceThread == null){
-            startService();
+            initService();
         }else{
             awaitingStart = true;
             serviceThread.interrupt();
+        }
+        if(serviceThread.getState().equals(Thread.State.RUNNABLE) || serviceThread.getState().equals(Thread.State.NEW)){
+            serviceThread.start();
         }
     }
 
@@ -435,6 +452,19 @@ public class GameWatcher {
     public void addOnSearchDoneListener(Runnable onSearchDone){
         if(onSearchDone!=null) {
             onSearchDoneListeners.add(onSearchDone);
+        }
+    }
+
+    public static void setScanPeriod(ScanPeriod period, boolean waitFullPeriod) {
+        boolean oldValue = KEEP_LOOPING;
+        if(period.equals(ScanPeriod.START_ONLY)){
+            KEEP_LOOPING = false;
+        }else{
+            SCAN_PERIOD = period;
+            KEEP_LOOPING = true;
+            if(!oldValue){
+                WAIT_FULL_PERIOD = waitFullPeriod;
+            }
         }
     }
 }

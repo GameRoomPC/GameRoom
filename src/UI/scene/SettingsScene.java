@@ -3,6 +3,7 @@ package ui.scene;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.GameWatcher;
 import data.game.entry.GameEntry;
+import data.game.scanner.ScanPeriod;
 import data.http.key.KeyChecker;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -32,8 +33,8 @@ import ui.control.ValidEntryCondition;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ActivationKeyDialog;
-import ui.dialog.selector.GameFoldersIgnoredSelector;
 import ui.dialog.GameRoomAlert;
+import ui.dialog.selector.GameFoldersIgnoredSelector;
 import ui.dialog.selector.GameScannerSelector;
 import ui.dialog.selector.SteamIgnoredSelector;
 import ui.theme.Theme;
@@ -121,7 +122,7 @@ public class SettingsScene extends BaseScene {
         addPropertyLine(PredefinedSetting.LOCALE, false);
         addPropertyLine(PredefinedSetting.ON_GAME_LAUNCH_ACTION);
         addPropertyLine(PredefinedSetting.NO_NOTIFICATIONS);
-        addPropertyLine(PredefinedSetting.NO_TOASTS,true);
+        addPropertyLine(PredefinedSetting.NO_TOASTS, true);
         addPropertyLine(PredefinedSetting.START_WITH_WINDOWS, false, new ChangeListener() {
             @Override
             public void changed(ObservableValue observable, Object oldValue, Object newValue) {
@@ -223,6 +224,10 @@ public class SettingsScene extends BaseScene {
         });
 
         flowPaneHashMap.get(PredefinedSetting.ENABLED_GAME_SCANNERS.getCategory()).getChildren().add(createLine(scannersLabel, manageScannersButton));
+
+        addPropertyLine(PredefinedSetting.SCAN_PERIOD, false, (observable, oldValue, newValue) -> {
+            GameWatcher.setScanPeriod((ScanPeriod) newValue,true);
+        });
 
 
         /***********************GAME FOLDER IGNORED****************************/
@@ -690,6 +695,32 @@ public class SettingsScene extends BaseScene {
                 });
 
                 node2 = themeComboBox;
+            } else if (setting.isClass(ScanPeriod.class)) {
+                /**************** POWER MODE **************/
+                ComboBox<ScanPeriod> scanPeriodComboBox = new ComboBox<>();
+                scanPeriodComboBox.getItems().addAll(ScanPeriod.values());
+                scanPeriodComboBox.setConverter(new StringConverter<ScanPeriod>() {
+                    @Override
+                    public String toString(ScanPeriod object) {
+                        return object.toString();
+                    }
+
+                    @Override
+                    public ScanPeriod fromString(String string) {
+                        return ScanPeriod.fromString(string);
+                    }
+                });
+                scanPeriodComboBox.setValue(GENERAL_SETTINGS.getScanPeriod());
+                scanPeriodComboBox.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SCAN_PERIOD, scanPeriodComboBox.getValue());
+                        if (changeListener != null) {
+                            changeListener.changed(null, null, scanPeriodComboBox.getValue());
+                        }
+                    }
+                });
+                node2 = scanPeriodComboBox;
             }
             if (node2 != null) {
                 node2.setId(setting.getKey());

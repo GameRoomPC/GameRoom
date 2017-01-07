@@ -1,5 +1,6 @@
 package system.application.settings;
 
+import data.game.scanner.ScanPeriod;
 import data.game.scanner.ScannerProfile;
 import data.game.scraper.SteamPreEntry;
 import system.application.OnLaunchAction;
@@ -40,6 +41,7 @@ public enum PredefinedSetting {
     ,DISABLE_SCROLLBAR_IN_FULLSCREEN("disableScrollbarFullScreen", new SettingValue(true,Boolean.class,CATEGORY_UI))
     ,IGNORED_STEAM_APPS("ignoredSteamApps",new SettingValue(new SteamPreEntry[]{},SteamPreEntry[].class,CATEGORY_GENERAL))
     ,IGNORED_GAME_FOLDERS("ignoredGameFolders",new SettingValue(new File[]{},File[].class,CATEGORY_GENERAL))
+    , SCAN_PERIOD("scanPeriod", new SettingValue(ScanPeriod.HALF_HOUR,ScanPeriod.class,CATEGORY_GENERAL))
     , DISABLE_GAME_MAIN_THEME("disableGameMainTheme", new SettingValue(true,Boolean.class,CATEGORY_UI))
     , ADVANCED_MODE("advancedMode", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     , DEBUG_MODE("debugMode", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
