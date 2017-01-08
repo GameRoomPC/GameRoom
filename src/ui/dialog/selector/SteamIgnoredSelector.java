@@ -1,6 +1,6 @@
 package ui.dialog.selector;
 
-import data.ImageUtils;
+import data.http.images.ImageUtils;
 import data.game.scraper.OnDLDoneHandler;
 import data.game.scraper.SteamPreEntry;
 import data.http.SimpleImageInfo;

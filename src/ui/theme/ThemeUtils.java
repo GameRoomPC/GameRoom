@@ -1,23 +1,17 @@
 package ui.theme;
 
-import data.FileUtils;
-import data.http.URLTools;
 import data.http.key.KeyChecker;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import net.lingala.zip4j.exception.ZipException;
-import system.application.GameRoomUpdater;
-import system.application.settings.PredefinedSetting;
 import ui.Main;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.LOGGER;
-import static ui.Main.SUPPORTER_MODE;
 
 /**
  * Created by LM on 26/10/2016.

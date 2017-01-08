@@ -1,6 +1,6 @@
 package ui.dialog.selector;
 
-import data.ImageUtils;
+import data.http.images.ImageUtils;
 import data.game.entry.GameEntry;
 import data.game.scraper.OnDLDoneHandler;
 import javafx.beans.property.ReadOnlyDoubleProperty;

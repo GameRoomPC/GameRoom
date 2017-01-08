@@ -1,13 +1,12 @@
 package data.game;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
-import data.ImageUtils;
+import data.http.images.ImageUtils;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scanner.*;
 import data.game.scraper.*;
 import data.http.key.KeyChecker;
-import javafx.application.Platform;
 import org.json.JSONArray;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
@@ -15,7 +14,6 @@ import ui.control.specific.GeneralToast;
 import ui.scene.GameEditScene;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -23,7 +21,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.UUID;
 
-import static system.application.settings.PredefinedSetting.GAMES_FOLDER;
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
 import static ui.Main.*;
 

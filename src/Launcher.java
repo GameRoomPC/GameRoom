@@ -1,7 +1,7 @@
 import com.sun.jna.Native;
 import com.sun.jna.NativeLong;
 import com.sun.jna.WString;
-import data.FileUtils;
+import data.io.FileUtils;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scraper.IGDBScraper;

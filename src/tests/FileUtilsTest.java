@@ -1,6 +1,6 @@
 package tests;
 
-import data.FileUtils;
+import data.io.FileUtils;
 import org.junit.Test;
 
 import java.io.File;

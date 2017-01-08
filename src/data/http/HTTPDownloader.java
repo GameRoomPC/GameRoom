@@ -1,4 +1,4 @@
-package data.io;
+package data.http;
 
 /**
  * Created by LM on 13/07/2016.

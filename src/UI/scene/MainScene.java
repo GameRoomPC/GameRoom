@@ -1,6 +1,6 @@
 package ui.scene;
 
-import data.ImageUtils;
+import data.http.images.ImageUtils;
 import data.game.GameWatcher;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;

@@ -1,4 +1,4 @@
-package data;
+package data.io;
 
 import ui.Main;
 

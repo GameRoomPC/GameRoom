@@ -1,11 +1,9 @@
 package ui.pane.gamestilepane;
 
-import data.ImageUtils;
+import data.http.images.ImageUtils;
 import data.game.entry.GameEntry;
-import javafx.animation.*;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tooltip;
-import javafx.util.Duration;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.AddIgnoreGameButton;
@@ -21,7 +19,6 @@ import java.util.Optional;
 
 import static ui.Main.MAIN_SCENE;
 import static ui.Main.SCREEN_WIDTH;
-import static ui.control.button.gamebutton.AddIgnoreGameButton.ROTATION_TIME;
 
 /**
  * Created by LM on 17/08/2016.

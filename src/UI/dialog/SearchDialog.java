@@ -1,6 +1,6 @@
 package ui.dialog;
 
-import data.ImageUtils;
+import data.http.images.ImageUtils;
 import data.game.entry.GameEntry;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;

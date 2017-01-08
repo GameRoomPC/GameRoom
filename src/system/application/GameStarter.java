@@ -1,6 +1,6 @@
 package system.application;
 
-import data.FileUtils;
+import data.io.FileUtils;
 import data.game.entry.GameEntry;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;

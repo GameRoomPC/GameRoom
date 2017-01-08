@@ -1,12 +1,11 @@
 package ui.control.button.gamebutton;
 
-import data.ImageUtils;
+import data.http.images.ImageUtils;
 import data.game.entry.GameEntry;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;

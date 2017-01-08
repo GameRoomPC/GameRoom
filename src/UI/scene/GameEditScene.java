@@ -1,7 +1,7 @@
 package ui.scene;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
-import data.ImageUtils;
+import data.http.images.ImageUtils;
 import data.game.entry.GameEntry;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;

@@ -1,6 +1,6 @@
 package data.game.entry;
 
-import data.FileUtils;
+import data.io.FileUtils;
 import ui.Main;
 
 import java.io.File;

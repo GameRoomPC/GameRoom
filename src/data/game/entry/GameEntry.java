@@ -1,6 +1,6 @@
 package data.game.entry;
 
-import data.FileUtils;
+import data.io.FileUtils;
 import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import system.application.GameStarter;

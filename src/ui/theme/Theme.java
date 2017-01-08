@@ -1,6 +1,6 @@
 package ui.theme;
 
-import data.FileUtils;
+import data.io.FileUtils;
 import javafx.scene.image.Image;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
@@ -10,8 +10,6 @@ import ui.Main;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
