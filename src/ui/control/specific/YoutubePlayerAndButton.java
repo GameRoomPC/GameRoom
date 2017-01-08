@@ -27,6 +27,7 @@ public class YoutubePlayerAndButton {
     private final BaseScene scene;
     private DualImageButton soundMuteButton;
     private volatile boolean stopThread = false;
+    private boolean wasPlaying = true;
 
     public YoutubePlayerAndButton(GameEntry entry, BaseScene scene) throws MalformedURLException {
         super();
@@ -40,6 +41,10 @@ public class YoutubePlayerAndButton {
         soundMuteButton.setOnDualAction(new OnActionHandler() {
             @Override
             public void handle(ActionEvent me) {
+                if(me != null) {
+                    //this means that it was not forced but mouse actioned
+                    wasPlaying = soundMuteButton.inFirstState();
+                }
                 if (soundMuteButton.inFirstState()) {
                     WEB_VIEW.getEngine().executeScript("player.playVideo()");
                 } else {
@@ -104,17 +109,27 @@ public class YoutubePlayerAndButton {
         java.net.CookieHandler.setDefault(new java.net.CookieManager());
     }
 
-    public void play() {
+    private void play() {
         if (soundMuteButton != null) {
             soundMuteButton.forceState("sound-button", true);
             soundMuteButton.setMouseTransparent(false);
         }
     }
 
-    public void pause() {
+    private void pause() {
         if (soundMuteButton != null) {
             soundMuteButton.forceState("mute-button", true);
             soundMuteButton.setMouseTransparent(false);
+        }
+    }
+
+    public void automaticPause(){
+        pause();
+    }
+
+    public void automaticPlay(){
+        if(wasPlaying){
+            play();
         }
     }
 
@@ -158,11 +173,13 @@ public class YoutubePlayerAndButton {
         }
 
         public void muteAndDisable() {
+            wasPlaying = false;
             pause();
             mutesoundButton.setMouseTransparent(true);
         }
 
         public void unmuteAndEnable() {
+            wasPlaying = true;
             play();
         }
     }

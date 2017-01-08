@@ -122,8 +122,8 @@ public class GameInfoScene extends BaseScene {
         if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
             try {
                 ytButton = new YoutubePlayerAndButton(entry,this);
-                entry.setOnGameLaunched(() -> ytButton.pause());
-                entry.setOnGameStopped(() -> ytButton.play());
+                entry.setOnGameLaunched(() -> ytButton.automaticPause());
+                entry.setOnGameStopped(() -> ytButton.automaticPlay());
                 topStackPane.getChildren().addAll(ytButton.getSoundMuteButton());
                 StackPane.setAlignment(ytButton.getSoundMuteButton(), Pos.CENTER_RIGHT);
                 setOnSceneFadedOutAction(new Runnable() {

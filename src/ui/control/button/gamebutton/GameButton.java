@@ -370,6 +370,7 @@ public abstract class GameButton extends BorderPane {
                         ignoredOptionnal.ifPresent(pairs -> {
                             if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
                                 entry.setPath(selector.getSelectedFile().getAbsolutePath());
+                                setFocused(false);
                                 entry.startGame();
                             }
                         });
@@ -378,9 +379,11 @@ public abstract class GameButton extends BorderPane {
                         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR,Main.getString("invalid_path_not_file"));
                     }
                 } else {
+                    setFocused(false);
                     entry.startGame();
                 }
             }else{
+                setFocused(false);
                 entry.startGame();
             }
         });
