@@ -1,5 +1,6 @@
 package ui;
 
+import data.http.images.ImageDownloaderService;
 import data.http.key.KeyChecker;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -132,6 +133,7 @@ public class Main {
             public void run() {
                 MAIN_SCENE.saveScrollBarVValue();
                 KEEP_THREADS_RUNNING = false;
+                ImageDownloaderService.getInstance().shutDownNow();
                 Platform.setImplicitExit(true);
                 NETWORK_MANAGER.disconnect();
                 stage.close();

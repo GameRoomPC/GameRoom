@@ -48,8 +48,8 @@ public class GameWatcher {
 
     private volatile boolean awaitingStart = false;
 
-    public static GameWatcher getInstance(){
-        if(WATCHER == null){
+    public static GameWatcher getInstance() {
+        if (WATCHER == null) {
             WATCHER = new GameWatcher();
         }
         return WATCHER;
@@ -60,13 +60,13 @@ public class GameWatcher {
     }
 
     private GameWatcher() {
-        localGameScanners.add(new LauncherScanner(this,ScannerProfile.GOG));
-        localGameScanners.add(new LauncherScanner(this,ScannerProfile.ORIGIN));
-        localGameScanners.add(new LauncherScanner(this,ScannerProfile.UPLAY));
-        localGameScanners.add(new LauncherScanner(this,ScannerProfile.BATTLE_NET));
-        localGameScanners.add(new LauncherScanner(this,ScannerProfile.STEAM));
+        localGameScanners.add(new LauncherScanner(this, ScannerProfile.GOG));
+        localGameScanners.add(new LauncherScanner(this, ScannerProfile.ORIGIN));
+        localGameScanners.add(new LauncherScanner(this, ScannerProfile.UPLAY));
+        localGameScanners.add(new LauncherScanner(this, ScannerProfile.BATTLE_NET));
+        localGameScanners.add(new LauncherScanner(this, ScannerProfile.STEAM));
         localGameScanners.add(new FolderGameScanner(this));
-        onlineGameScanners.add(new LauncherScanner(this,ScannerProfile.STEAM_ONLINE));
+        onlineGameScanners.add(new LauncherScanner(this, ScannerProfile.STEAM_ONLINE));
 
         SCAN_PERIOD = GENERAL_SETTINGS.getScanPeriod();
     }
@@ -79,7 +79,7 @@ public class GameWatcher {
                 do {
                     long start = System.currentTimeMillis();
 
-                    if(WAIT_FULL_PERIOD){
+                    if (WAIT_FULL_PERIOD) {
                         WAIT_FULL_PERIOD = false;
                         try {
                             Thread.sleep(SCAN_PERIOD.toMillis());
@@ -89,26 +89,26 @@ public class GameWatcher {
                             LOGGER.info("Forced start of GameWatcher");
                         }
                     }
-                    for(Runnable onSearchStarted : onSearchStartedListeners) {
+                    for (Runnable onSearchStarted : onSearchStartedListeners) {
                         if (onSearchStarted != null) {
                             onSearchStarted.run();
                         }
                     }
                     LOGGER.info("GameWatcher started");
                     //validateKey();
-                    scanNewGamesRoutine();
-                    scanNewOnlineGamesRoutine();
+                    //scanNewGamesRoutine();
+                    //scanNewOnlineGamesRoutine();
                     tryScrapToAddEntries();
 
                     LOGGER.info("GameWatcher ended");
-                    for(Runnable onSeachDone : onSearchDoneListeners) {
+                    for (Runnable onSeachDone : onSearchDoneListeners) {
                         if (onSeachDone != null) {
                             onSeachDone.run();
                         }
                     }
                     long elapsedTime = System.currentTimeMillis() - start;
-                    if(!awaitingStart){
-                        if(elapsedTime < SCAN_PERIOD.toMillis()) {
+                    if (!awaitingStart) {
+                        if (elapsedTime < SCAN_PERIOD.toMillis()) {
                             try {
                                 Thread.sleep(SCAN_PERIOD.toMillis() - elapsedTime);
                                 awaitingStart = false;
@@ -117,30 +117,30 @@ public class GameWatcher {
                                 LOGGER.info("Forced start of GameWatcher");
                             }
                         }
-                    }else{
+                    } else {
                         awaitingStart = false;
                     }
 
-                }while (Main.KEEP_THREADS_RUNNING && KEEP_LOOPING);
+                } while (Main.KEEP_THREADS_RUNNING && KEEP_LOOPING);
             }
         });
         serviceThread.setPriority(Thread.MIN_PRIORITY);
         serviceThread.setDaemon(true);
     }
 
-    public void start(){
-        if(serviceThread == null){
+    public void start() {
+        if (serviceThread == null) {
             initService();
-        }else{
+        } else {
             awaitingStart = true;
             serviceThread.interrupt();
         }
-        if(serviceThread.getState().equals(Thread.State.RUNNABLE) || serviceThread.getState().equals(Thread.State.NEW)){
+        if (serviceThread.getState().equals(Thread.State.RUNNABLE) || serviceThread.getState().equals(Thread.State.NEW)) {
             serviceThread.start();
         }
     }
 
-    private void initToAddEntries(){
+    private void initToAddEntries() {
         ArrayList<UUID> uuids = AllGameEntries.readUUIDS(FILES_MAP.get("to_add"));
 
         ArrayList<GameEntry> savedEntries = new ArrayList<>();
@@ -174,7 +174,7 @@ public class GameWatcher {
                 return result;
             }
         });
-        for(GameEntry savedEntry : savedEntries){
+        for (GameEntry savedEntry : savedEntries) {
             Main.runAndWait(() -> {
                 onGameFound(savedEntry);
             });
@@ -184,7 +184,7 @@ public class GameWatcher {
     private void validateKey() {
         if (!Main.SUPPORTER_MODE) {
             Main.SUPPORTER_MODE = !Main.GENERAL_SETTINGS.getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(Main.GENERAL_SETTINGS.getString(SUPPORTER_KEY));
-            if(Main.SUPPORTER_MODE){
+            if (Main.SUPPORTER_MODE) {
                 IGDBScraper.key = IGDBScraper.IGDB_PRO_KEY;
             }
         }
@@ -193,10 +193,11 @@ public class GameWatcher {
     private void tryScrapToAddEntries() {
         ArrayList<Integer> searchIGDBIDs = new ArrayList<>();
         ArrayList<GameEntry> toScrapEntries = new ArrayList<>();
-        synchronized (entriesToAdd){
-            if(MAIN_SCENE!=null){
-                GeneralToast.displayToast(Main.getString("downloading_from_igdb"),MAIN_SCENE.getParentStage(),GeneralToast.DURATION_SHORT,true);
+        synchronized (entriesToAdd) {
+            if (MAIN_SCENE != null) {
+                GeneralToast.displayToast(Main.getString("downloading_from_igdb"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
             }
+            LOGGER.info("Now scraping found games");
             for (GameEntry entry : entriesToAdd) {
                 if (entry.isWaitingToBeScrapped() && !entry.isBeingScrapped()) {
                     try {
@@ -229,7 +230,7 @@ public class GameWatcher {
                 for (GameEntry scrappedEntry : scrappedEntries) {
                     GameEntry toScrapEntry = toScrapEntries.get(i);
                     toScrapEntry.setSavedLocaly(true);
-                    if (toScrapEntry.getDescription() == null ||toScrapEntry.getDescription().equals("")) {
+                    if (toScrapEntry.getDescription() == null || toScrapEntry.getDescription().equals("")) {
                         toScrapEntry.setDescription(scrappedEntry.getDescription());
                     }
                     if (toScrapEntry.getReleaseDate() == null) {
@@ -264,10 +265,10 @@ public class GameWatcher {
                                         toScrapEntry.setSavedLocaly(false);
                                     }
 
-
                                     Main.runAndWait(() -> {
                                         Main.MAIN_SCENE.updateGame(scrappedEntry);
                                     });
+
                                     ImageUtils.downloadIGDBImageToCache(scrappedEntry.getIgdb_id()
                                             , scrappedEntry.getIgdb_imageHash(1)
                                             , ImageUtils.IGDB_TYPE_SCREENSHOT
@@ -297,9 +298,11 @@ public class GameWatcher {
                                                     });
                                                 }
                                             });
-
                                 }
                             });
+
+
+
                     i++;
 
                     try {
@@ -315,7 +318,7 @@ public class GameWatcher {
         }
     }
 
-    private void scanNewOnlineGamesRoutine(){
+    private void scanNewOnlineGamesRoutine() {
         for (GameScanner scanner : onlineGameScanners) {
             scanner.startScanning();
         }
@@ -337,13 +340,14 @@ public class GameWatcher {
         if (entriesToAdd.size() > originalGameFoundNumber) {
             int numberFound = entriesToAdd.size() - originalGameFoundNumber;
             Main.LOGGER.info("GameWatcher : found " + numberFound + " new games!");
-            if(MAIN_SCENE!=null){
+            if (MAIN_SCENE != null) {
                 String end = numberFound > 1 ? Main.getString("new_games") : Main.getString("new_game");
-                GeneralToast.displayToast(Main.getString("gameroom_has_found")+" "+numberFound+" "+end,MAIN_SCENE.getParentStage(),GeneralToast.DURATION_LONG);
+                GeneralToast.displayToast(Main.getString("gameroom_has_found") + " " + numberFound + " " + end, MAIN_SCENE.getParentStage(), GeneralToast.DURATION_LONG);
             }
             onGameFoundHandler.onAllGamesFound(numberFound);
         }
     }
+
     private void scanNewGamesRoutine() {
         originalGameFoundNumber = entriesToAdd.size();
 
@@ -372,7 +376,7 @@ public class GameWatcher {
 
     public GameButton onGameFound(GameEntry foundEntry) {
         synchronized (entriesToAdd) {
-            if (!FolderGameScanner.gameAlreadyIn(foundEntry,entriesToAdd)) {
+            if (!FolderGameScanner.gameAlreadyIn(foundEntry, entriesToAdd)) {
                 foundEntry.setAddedDate(new Date());
                 foundEntry.setToAdd(true);
                 foundEntry.setSavedLocaly(true);
@@ -392,9 +396,9 @@ public class GameWatcher {
                 .replace("_", "")
                 .replace(".", "")
                 .replace(" ", "")
-                .replace("\\u00AE","")//registered symbol
-                .replace("\\u00A9","")//copyright symbol
-                .replace("\\u2122",""); //TM symbol
+                .replace("\\u00AE", "")//registered symbol
+                .replace("\\u00A9", "")//copyright symbol
+                .replace("\\u2122", ""); //TM symbol
     }
 
     public void removeGame(GameEntry entry) {
@@ -402,12 +406,12 @@ public class GameWatcher {
         for (GameEntry n : entriesToAdd) {
             if (n.getUuid().equals(entry.getUuid())) {
                 toRemoveEntries.add(n);
-                if(n.isToAdd()) //check if not added to Games folder
+                if (n.isToAdd()) //check if not added to Games folder
                     n.deleteFiles();
             } else {
-                if (FolderGameScanner.entryNameOrPathEquals(n,entry)) {
+                if (FolderGameScanner.entryNameOrPathEquals(n, entry)) {
                     toRemoveEntries.add(n);
-                    if(n.isToAdd()) //check if not added to Games folder
+                    if (n.isToAdd()) //check if not added to Games folder
                         n.deleteFiles();
                 }
             }
@@ -415,26 +419,26 @@ public class GameWatcher {
         entriesToAdd.removeAll(toRemoveEntries);
     }
 
-    public void addOnSearchStartedListener(Runnable onSearchStarted){
-        if(onSearchStarted!=null) {
+    public void addOnSearchStartedListener(Runnable onSearchStarted) {
+        if (onSearchStarted != null) {
             onSearchStartedListeners.add(onSearchStarted);
         }
     }
 
-    public void addOnSearchDoneListener(Runnable onSearchDone){
-        if(onSearchDone!=null) {
+    public void addOnSearchDoneListener(Runnable onSearchDone) {
+        if (onSearchDone != null) {
             onSearchDoneListeners.add(onSearchDone);
         }
     }
 
     public static void setScanPeriod(ScanPeriod period, boolean waitFullPeriod) {
         boolean oldValue = KEEP_LOOPING;
-        if(period.equals(ScanPeriod.START_ONLY)){
+        if (period.equals(ScanPeriod.START_ONLY)) {
             KEEP_LOOPING = false;
-        }else{
+        } else {
             SCAN_PERIOD = period;
             KEEP_LOOPING = true;
-            if(!oldValue){
+            if (!oldValue) {
                 WAIT_FULL_PERIOD = waitFullPeriod;
             }
         }

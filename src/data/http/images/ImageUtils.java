@@ -77,65 +77,22 @@ public class ImageUtils {
 
     public static Task downloadIGDBImageToCache(int igdb_id, String imageHash, String type, String size, OnDLDoneHandler dlDoneHandler) {
         String imageURL = IGDB_IMAGE_URL_PREFIX + type + size + "/" + imageHash + ".jpg";
-        return downloadImgToCache(imageURL, getIGDBImageCacheFileOutput(igdb_id,imageHash,type,size), dlDoneHandler);
+        return downloadImgToCache(imageURL, getIGDBImageCacheFileOutput(igdb_id, imageHash, type, size), dlDoneHandler);
     }
 
     private static Task downloadImgToCache(String url, File fileOutput, OnDLDoneHandler dlDoneHandler) {
         fileOutput.deleteOnExit();
-        Task<String> imageDownloadTask = null;
-
-        //TODO if image isValid, try to load it and if an error occur (errorProperty), re-download it
-        if (!fileOutput.exists()) {
-            imageDownloadTask = new Task<String>() {
-                @Override
-                protected String call() throws Exception {
-                    try {
-                        Main.LOGGER.debug("Downloading " + url + " to " + fileOutput.getName());
-                        HTTPDownloader.downloadFile(url, Main.FILES_MAP.get("cache").getAbsolutePath(), fileOutput.getName());
-                        Main.LOGGER.debug(fileOutput + " downloaded");
-                    } catch (Exception e) {
-                        Main.LOGGER.error(e.toString());
-                        throw e;
-                    }
-                    return null;
-                }
-            };
-            Thread th = new Thread(imageDownloadTask);
-
-            imageDownloadTask.setOnSucceeded(event -> {
-                /*if (threadsList.size() > 0) {
-                    Thread nextThread;
-                    while (!(nextThread = threadsList.get(0)).equals(th)) {
-                        try {
-                            nextThread.join();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                synchronized (threadsList) {
-                    threadsList.remove(th);
-                }*/
-                if (dlDoneHandler != null) {
-                    dlDoneHandler.run(fileOutput);
-                }
-            });
-            /*synchronized (threadsList){
-                threadsList.add(th);
-            }*/
-            th.setDaemon(true);
-            th.start();
-        } else {
-            dlDoneHandler.run(fileOutput);
-        }
-        return imageDownloadTask;
+        ImageDownloadTask task = new ImageDownloadTask(url,fileOutput,dlDoneHandler);
+        ImageDownloaderService.getInstance().addTask(task);
+        return task;
     }
 
     private static Task downloadImgToCache(String url, String filenameOutput, OnDLDoneHandler dlDoneHandler) {
-        return downloadImgToCache(url, getOutputImageCacheFile(filenameOutput),dlDoneHandler);
+        return downloadImgToCache(url, getOutputImageCacheFile(filenameOutput), dlDoneHandler);
     }
-    public static void transitionToWindowBackground(Image img, ImageView imageView){
-        if(img!=null) {
+
+    public static void transitionToWindowBackground(Image img, ImageView imageView) {
+        if (img != null) {
             double widthScale = (double) GENERAL_SETTINGS.getWindowWidth() / img.getWidth();
             double heightScale = (double) GENERAL_SETTINGS.getWindowHeight() / img.getHeight();
 
@@ -184,11 +141,11 @@ public class ImageUtils {
         transitionToImage(image2, imageView, 1);
     }
 
-    public static boolean imagesEquals(Image img1, Image img2){
-        if(img1 == null || img2 == null){
+    public static boolean imagesEquals(Image img1, Image img2) {
+        if (img1 == null || img2 == null) {
             return false;
         }
-        if(img1.getWidth()!= img2.getWidth() || img1.getHeight()!=img2.getHeight()){
+        if (img1.getWidth() != img2.getWidth() || img1.getHeight() != img2.getHeight()) {
             return false;
         }
         for (int i = 0; i < img1.getWidth(); i++) {

@@ -67,7 +67,7 @@ public class GeneralToast extends Tooltip {
 
         if (DISPLAY_THREAD == null) {
             DISPLAY_THREAD = new Thread(() -> {
-                while (true) {
+                while (Main.KEEP_THREADS_RUNNING) {
                     GeneralToast toast1;
                     while ((toast1 = TOAST_QUEUE.poll()) != null && ENABLED) { // does not block on empty list but returns null instead
                         toast1.showTimed(window);
