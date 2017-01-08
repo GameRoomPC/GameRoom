@@ -632,15 +632,7 @@ public class GameEntry {
 
     public void deleteFiles() {
         File file = new File((isToAdd() ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + getUuid().toString());
-        String[] entries = file.list();
-        if (entries != null) {
-            for (String s : entries) {
-                File currentFile = new File(file.getAbsolutePath(), s);
-                currentFile.delete();
-            }
-            file.delete();
-        }
-        file.delete();
+        FileUtils.deleteFolder(file);
     }
 
     public String getProcessName() {
