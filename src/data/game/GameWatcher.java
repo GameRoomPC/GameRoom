@@ -80,6 +80,8 @@ public class GameWatcher {
             public void run() {
                 initToAddEntries();
                 do {
+                    long start = System.currentTimeMillis();
+
                     if(WAIT_FULL_PERIOD){
                         WAIT_FULL_PERIOD = false;
                         try {
@@ -100,7 +102,6 @@ public class GameWatcher {
                     scanNewGamesRoutine();
                     scanNewOnlineGamesRoutine();
                     tryScrapToAddEntries();
-                    scanSteamGamesTime();
 
                     LOGGER.info("GameWatcher ended");
                     for(Runnable onSeachDone : onSearchDoneListeners) {
@@ -108,13 +109,16 @@ public class GameWatcher {
                             onSeachDone.run();
                         }
                     }
+                    long elapsedTime = System.currentTimeMillis() - start;
                     if(!awaitingStart){
-                        try {
-                            Thread.sleep(SCAN_PERIOD.toMillis());
-                            awaitingStart = false;
-                        } catch (InterruptedException e) {
-                            awaitingStart = false;
-                            LOGGER.info("Forced start of GameWatcher");
+                        if(elapsedTime < SCAN_PERIOD.toMillis()) {
+                            try {
+                                Thread.sleep(SCAN_PERIOD.toMillis() - elapsedTime);
+                                awaitingStart = false;
+                            } catch (InterruptedException e) {
+                                awaitingStart = false;
+                                LOGGER.info("Forced start of GameWatcher");
+                            }
                         }
                     }else{
                         awaitingStart = false;
@@ -311,35 +315,6 @@ public class GameWatcher {
                 e.printStackTrace();
             }
 
-        }
-    }
-
-    private void scanSteamGamesTime() {
-        try {
-            ArrayList<GameEntry> ownedSteamApps = SteamOnlineScraper.getOwnedSteamGames();
-            if(MAIN_SCENE!=null){
-                GeneralToast.displayToast(Main.getString("scanning_steam_play_time"),MAIN_SCENE.getParentStage(),GeneralToast.DURATION_SHORT,true);
-            }
-            for (GameEntry ownedEntry : ownedSteamApps) {
-                if (ownedEntry.getPlayTimeSeconds() != 0) {
-                    for (GameEntry storedEntry : AllGameEntries.ENTRIES_LIST) {
-                        if (ownedEntry.getSteam_id() == storedEntry.getSteam_id() && ownedEntry.getPlayTimeSeconds() != storedEntry.getPlayTimeSeconds()) {
-                            storedEntry.setPlayTimeSeconds(ownedEntry.getPlayTimeSeconds());
-                            Platform.runLater(() -> {
-                                Main.MAIN_SCENE.updateGame(storedEntry);
-                            });
-                            try {
-                                Thread.sleep(2 * 100);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

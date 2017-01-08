@@ -46,7 +46,7 @@ import ui.control.textfield.PathTextField;
 import ui.dialog.ChoiceDialog;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.GameRoomCustomAlert;
-import ui.dialog.SupportService;
+import system.application.SupportService;
 import ui.dialog.selector.GameScannerSelector;
 import ui.pane.gamestilepane.*;
 import ui.scene.exitaction.ClassicExitAction;
