@@ -155,7 +155,7 @@ public class GameWatcher {
         ArrayList<GameEntry> savedEntries = new ArrayList<>();
         for (UUID uuid : uuids) {
             GameEntry entry = new GameEntry(uuid, true);
-            if(!FolderGameScanner.isGameIgnored(entry)){
+            if (!FolderGameScanner.isGameIgnored(entry)) {
                 entry.setSavedLocaly(true);
                 savedEntries.add(entry);
             }
@@ -209,6 +209,8 @@ public class GameWatcher {
                 GeneralToast.displayToast(Main.getString("fetching_data_igdb"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
             }
             LOGGER.info("Now scraping found games");
+
+            boolean alreadyDisplayedIGDBError = false;
             for (GameEntry entry : entriesToAdd) {
                 if (entry.isWaitingToBeScrapped() && !entry.isBeingScrapped() && !FolderGameScanner.isGameIgnored(entry)) {
                     try {
@@ -218,12 +220,22 @@ public class GameWatcher {
                         JSONArray search_results = IGDBScraper.searchGame(entry.getName());
                         searchIGDBIDs.add(search_results.getJSONObject(0).getInt("id"));
                         toScrapEntries.add(entry);
+                        MAIN_SCENE.updateGame(entry);
 
                     } catch (Exception e) {
-                        Main.LOGGER.error(entry.getName() + " not found on igdb first guess");
+                        if (e instanceof IOException) {
+                            Main.LOGGER.error(entry.getName() + " not found on igdb first guess");
+                        } else if (e instanceof UnirestException) {
+                            if (!alreadyDisplayedIGDBError) {
+                                GameRoomAlert.errorIGDB();
+                                alreadyDisplayedIGDBError = true;
+                            }
+                        }
                         entry.setSavedLocaly(true);
                         entry.setWaitingToBeScrapped(false);
+                        entry.setBeingScrapped(false);
                         entry.setSavedLocaly(false);
+                        MAIN_SCENE.updateGame(entry);
                     }
                     try {
                         Thread.sleep(2 * 100);

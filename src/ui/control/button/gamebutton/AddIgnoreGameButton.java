@@ -167,8 +167,8 @@ public class AddIgnoreGameButton extends GameButton {
         addButton.setVisible(!scraping);
         addButton.setMouseTransparent(scraping);
 
-        scrapingButton.setVisible(scraping);
-        scrapingButton.setMouseTransparent(!scraping);
+        scrapingButton.setVisible(entry.isBeingScrapped());
+        scrapingButton.setMouseTransparent(!entry.isBeingScrapped());
     }
 
     @Override
