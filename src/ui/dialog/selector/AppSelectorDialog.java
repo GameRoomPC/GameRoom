@@ -87,7 +87,7 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
         if (searchAppsThread == null) {
             searchAppsThread = new Thread(() -> {
                 addAppFiles(folder);
-                statusLabel.setText(Main.getString("no_result"));
+                Platform.runLater(() -> statusLabel.setText(Main.getString("no_result")));
             });
             searchAppsThread.setDaemon(true);
         } else {
