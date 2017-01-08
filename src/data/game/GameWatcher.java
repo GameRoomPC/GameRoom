@@ -95,9 +95,16 @@ public class GameWatcher {
                         }
                     }
                     LOGGER.info("GameWatcher started");
+                    if (MAIN_SCENE != null) {
+                        GeneralToast.displayToast(Main.getString("search_started"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
+                    }
                     //validateKey();
-                    //scanNewGamesRoutine();
-                    //scanNewOnlineGamesRoutine();
+                    scanNewGamesRoutine();
+                    scanNewOnlineGamesRoutine();
+                    if (MAIN_SCENE != null) {
+                        GeneralToast.displayToast(Main.getString("search_done"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
+                    }
+
                     tryScrapToAddEntries();
 
                     LOGGER.info("GameWatcher ended");
@@ -195,7 +202,7 @@ public class GameWatcher {
         ArrayList<GameEntry> toScrapEntries = new ArrayList<>();
         synchronized (entriesToAdd) {
             if (MAIN_SCENE != null) {
-                GeneralToast.displayToast(Main.getString("downloading_from_igdb"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
+                GeneralToast.displayToast(Main.getString("fetching_data_igdb"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
             }
             LOGGER.info("Now scraping found games");
             for (GameEntry entry : entriesToAdd) {
@@ -227,6 +234,10 @@ public class GameWatcher {
                 ArrayList<GameEntry> scrappedEntries = IGDBScraper.getEntries(IGDBScraper.getGamesData(searchIGDBIDs));
 
                 int i = 0;
+
+                if (MAIN_SCENE != null) {
+                    GeneralToast.displayToast(Main.getString("downloading_images"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
+                }
                 for (GameEntry scrappedEntry : scrappedEntries) {
                     GameEntry toScrapEntry = toScrapEntries.get(i);
                     toScrapEntry.setSavedLocaly(true);

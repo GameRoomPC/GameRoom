@@ -15,11 +15,14 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import ui.Main;
+import ui.control.specific.GeneralToast;
 import ui.dialog.GameRoomDialog;
 import ui.pane.OnItemSelectedHandler;
 import ui.pane.SelectListPane;
 
 import java.io.File;
+
+import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 06/08/2016.
@@ -77,6 +80,10 @@ public class IGDBImageSelector extends GameRoomDialog<ButtonType> {
             this.prefRowWidth = prefRowWidth;
             this.igdb_id = igdb_id;
             this.onImageSelected = onImageSelected;
+
+            if(MAIN_SCENE != null){
+                GeneralToast.displayToast(Main.getString("downloading_images"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
+            }
         }
 
         @Override

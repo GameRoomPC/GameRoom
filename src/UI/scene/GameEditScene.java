@@ -100,7 +100,7 @@ public class GameEditScene extends BaseScene {
         mode = MODE_ADD;
 
         String name = chosenFile.getName();
-        if(!getExtension(name).equals("")) {
+        if (!getExtension(name).equals("")) {
             int extensionIndex = name.lastIndexOf(getExtension(name));
             if (extensionIndex != -1) {
                 name = name.substring(0, extensionIndex - 1);
@@ -138,7 +138,7 @@ public class GameEditScene extends BaseScene {
         onExitAction = new ClassicExitAction(this, previousScene.getParentStage(), previousScene);
 
         for (int i = 0; i < chosenImageFiles.length; i++) {
-            if(entry.getImagePath(i)!=null){
+            if (entry.getImagePath(i) != null) {
                 this.chosenImageFiles[i] = entry.getImagePath(i);
             }
         }
@@ -184,10 +184,10 @@ public class GameEditScene extends BaseScene {
                     for (int i = 0; i < chosenImageFiles.length; i++) {
                         if (chosenImageFiles[i] != null) {
                             String type = i == 0 ? ImageUtils.IGDB_TYPE_COVER : ImageUtils.IGDB_TYPE_SCREENSHOT;
-                            moveImage(entry,chosenImageFiles[i],type);
+                            moveImage(entry, chosenImageFiles[i], type);
                         }
                     }
-                    if(entry.isToAdd()){
+                    if (entry.isToAdd()) {
                         entry.deleteFiles();
                         entry.setToAdd(false);
                     }
@@ -197,11 +197,11 @@ public class GameEditScene extends BaseScene {
                         case MODE_ADD:
                             entry.setAddedDate(new Date());
                             MAIN_SCENE.addGame(entry);
-                            GeneralToast.displayToast(entry.getName()+Main.getString("added_to_your_lib"),getParentStage());
+                            GeneralToast.displayToast(entry.getName() + Main.getString("added_to_your_lib"), getParentStage());
                             break;
                         case MODE_EDIT:
                             MAIN_SCENE.updateGame(entry);
-                            GeneralToast.displayToast(Main.getString("changes_saved"),getParentStage());
+                            GeneralToast.displayToast(Main.getString("changes_saved"), getParentStage());
                             break;
                         default:
                             break;
@@ -250,8 +250,8 @@ public class GameEditScene extends BaseScene {
         if (entry.getImagePath(1) != null) {
             //Main.LOGGER.debug("Screenshot available : "+entry.getImagePath(1));
             Image screenshotImage = entry.getImage(1,
-                    Main.GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO,
-                    Main.GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO
+                    Main.GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
+                    Main.GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
                     , false, true);
             backgroundView.setImage(screenshotImage);
         }
@@ -301,7 +301,7 @@ public class GameEditScene extends BaseScene {
         /**************************PATH*********************************************/
         contentPane.add(new Label(Main.getString("game_path") + " :"), 0, row_count);
         Node pathNode = new Label();
-        if(!entry.isSteamGame()){
+        if (!entry.isSteamGame()) {
             AppPathField gamePathField = new AppPathField(entry.getPath(), getWindow(), PathTextField.FILE_CHOOSER_APPS, Main.getString("select_picture"));
             gamePathField.getTextField().setPrefColumnCount(50);
             gamePathField.setId("game_path");
@@ -312,7 +312,7 @@ public class GameEditScene extends BaseScene {
                 }
             });
             pathNode = gamePathField;
-        }else{
+        } else {
             pathNode = new Label(entry.getPath());
             pathNode.setFocusTraversable(false);
         }
@@ -330,7 +330,7 @@ public class GameEditScene extends BaseScene {
                 if (!isSteamGame && !file.exists()) {
                     message.replace(0, message.length(), Main.getString("invalid_path_not_file"));
                     return false;
-                }else if(!isSteamGame && file.isDirectory()){
+                } else if (!isSteamGame && file.isDirectory()) {
                     try {
                         AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()));
                         selector.searchApps();
@@ -349,7 +349,7 @@ public class GameEditScene extends BaseScene {
                             message.replace(0, message.length(), Main.getString("invalid_path_not_file"));
                             return result[0];
                         }
-                    }catch (IllegalArgumentException e){
+                    } catch (IllegalArgumentException e) {
                         return false;
                     }
                 }
@@ -507,7 +507,7 @@ public class GameEditScene extends BaseScene {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO, false, true);
+                        Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                         ImageUtils.transitionToWindowBackground(img, backgroundView);
                         chosenImageFiles[1] = outputfile;
                         File coverLocalImageFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
@@ -526,7 +526,7 @@ public class GameEditScene extends BaseScene {
 
         double imgSize = GENERAL_SETTINGS.getWindowWidth() / 24;
         //ImageButton screenshotFileButton = new ImageButton(new Image("res/ui/folderButton.png", , GENERAL_SETTINGS.getWindowWidth() / 24, false, true));
-        ImageButton screenshotFileButton = new ImageButton("folder-button", imgSize,imgSize);
+        ImageButton screenshotFileButton = new ImageButton("folder-button", imgSize, imgSize);
         screenshotFileButton.setOnAction(event -> {
             chosenImageFiles[1] = imageChooser.showOpenDialog(getParentStage());
             screenshotDlDoneHandler.run(chosenImageFiles[1]);
@@ -616,7 +616,7 @@ public class GameEditScene extends BaseScene {
         row_count++;
 
         /**************************YOUTUBE*********************************************/
-        if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)){
+        if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
             Label youtubeSoundtrackLabel = new Label(Main.getString("youtube_soundtrack_label") + " :");
             youtubeSoundtrackLabel.setTooltip(new Tooltip(Main.getString("youtube_soundtrack_tooltip")));
             //youtubeSoundtrackLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
@@ -627,11 +627,11 @@ public class GameEditScene extends BaseScene {
             youtubeSoundtrackField.textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                    if(newValue.equals("")){
+                    if (newValue.equals("")) {
                         entry.setYoutubeSoundtrackHash("");
                     }
                     String hash = YoutubeSoundtrackScrapper.hashFromYoutubeUrl(newValue);
-                    if(hash!=null){
+                    if (hash != null) {
                         entry.setYoutubeSoundtrackHash(hash);
                     }
                 }
@@ -642,7 +642,7 @@ public class GameEditScene extends BaseScene {
 
 
         /**************************CMD & ARGS*********************************************/
-        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)) {
+        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)) {
             Label argsLabel = new Label(Main.getString("args_label") + " :");
             argsLabel.setTooltip(new Tooltip(Main.getString("args_tooltip")));
             //argsLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
@@ -670,7 +670,7 @@ public class GameEditScene extends BaseScene {
             cmdBeforeField.textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                    entry.setCmd(GameEntry.CMD_BEFORE_START,newValue);
+                    entry.setCmd(GameEntry.CMD_BEFORE_START, newValue);
                 }
             });
             contentPane.add(cmdBeforeField, 1, row_count);
@@ -687,7 +687,7 @@ public class GameEditScene extends BaseScene {
             cmdAfterField.textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                    entry.setCmd(GameEntry.CMD_AFTER_END,newValue);
+                    entry.setCmd(GameEntry.CMD_AFTER_END, newValue);
                 }
             });
             contentPane.add(cmdAfterField, 1, row_count);
@@ -750,7 +750,7 @@ public class GameEditScene extends BaseScene {
     }
 
     private void updateLineProperty(String property, Object newValue, HashMap<String, Boolean> doNotUpdateFieldsMap) {
-        if (doNotUpdateFieldsMap.get(property)==null || !doNotUpdateFieldsMap.get(property))
+        if (doNotUpdateFieldsMap.get(property) == null || !doNotUpdateFieldsMap.get(property))
             if (newValue != null && !newValue.equals("")) {
                 for (Node node : contentPane.getChildren()) {
                     if (node.getId() != null && node.getId().equals(property)) {
@@ -825,7 +825,7 @@ public class GameEditScene extends BaseScene {
 
         double imgSize = GENERAL_SETTINGS.getWindowWidth() / 15;
         //ImageButton changeImageButton = new ImageButton(new Image("res/ui/folderButton.png", GENERAL_SETTINGS.getWindowWidth() / 12, GENERAL_SETTINGS.getWindowWidth() / 12, false, true));
-        ImageButton changeImageButton = new ImageButton("folder-button", imgSize,imgSize);
+        ImageButton changeImageButton = new ImageButton("folder-button", imgSize, imgSize);
         changeImageButton.setOpacity(0);
         changeImageButton.setFocusTraversable(false);
         changeImageButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -894,7 +894,7 @@ public class GameEditScene extends BaseScene {
 
             fadeOutTimeline.play();
         });
-        pane.getChildren().addAll(defaultImageView,coverView, changeImageButton);
+        pane.getChildren().addAll(defaultImageView, coverView, changeImageButton);
         wrappingPane.setLeft(pane);
         BorderPane.setMargin(pane, new Insets(50 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920, 50 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920));
         return pane;
@@ -951,14 +951,14 @@ public class GameEditScene extends BaseScene {
     private HashMap<String, Boolean> createDoNotUpdateFielsMap() {
         HashMap<String, Boolean> map = new HashMap<>();
         map.put("game_name", false);
-        map.put("serie", entry.getSerie()!= null && !entry.getSerie().equals(""));
+        map.put("serie", entry.getSerie() != null && !entry.getSerie().equals(""));
         map.put("release_date", entry.getReleaseDate() != null);
-        map.put("developer", entry.getDeveloper()!= null &&!entry.getDeveloper().equals(""));
-        map.put("game_description", entry.getDescription()!= null &&!entry.getDescription().equals(""));
-        map.put("publisher", entry.getPublisher()!= null &&!entry.getPublisher().equals(""));
+        map.put("developer", entry.getDeveloper() != null && !entry.getDeveloper().equals(""));
+        map.put("game_description", entry.getDescription() != null && !entry.getDescription().equals(""));
+        map.put("publisher", entry.getPublisher() != null && !entry.getPublisher().equals(""));
         map.put("genre", entry.getGenres() != null);
         map.put("theme", entry.getThemes() != null);
-        map.put("cover", mode!=MODE_ADD && entry.getImagePath(0) != null);
+        map.put("cover", mode != MODE_ADD && entry.getImagePath(0) != null);
         return map;
     }
 
@@ -985,19 +985,20 @@ public class GameEditScene extends BaseScene {
 
     //called when user selected a igdb game or when a steam game is added
     private void onNewEntryData(GameEntry gameEntry, HashMap<String, Boolean> doNotUpdateFieldsMap) {
-        updateLineProperty("game_name", gameEntry.getName(),doNotUpdateFieldsMap);
-        updateLineProperty("serie", gameEntry.getSerie(),doNotUpdateFieldsMap);
-        updateLineProperty("release_date", gameEntry.getReleaseDate(),doNotUpdateFieldsMap);
-        updateLineProperty("developer", gameEntry.getDeveloper(),doNotUpdateFieldsMap);
-        updateLineProperty("publisher", gameEntry.getPublisher(),doNotUpdateFieldsMap);
-        updateLineProperty("game_description", StringEscapeUtils.unescapeHtml(gameEntry.getDescription()),doNotUpdateFieldsMap);
-        updateLineProperty("genre", gameEntry.getGenres(),doNotUpdateFieldsMap);
-        updateLineProperty("theme", gameEntry.getThemes(),doNotUpdateFieldsMap);
+        updateLineProperty("game_name", gameEntry.getName(), doNotUpdateFieldsMap);
+        updateLineProperty("serie", gameEntry.getSerie(), doNotUpdateFieldsMap);
+        updateLineProperty("release_date", gameEntry.getReleaseDate(), doNotUpdateFieldsMap);
+        updateLineProperty("developer", gameEntry.getDeveloper(), doNotUpdateFieldsMap);
+        updateLineProperty("publisher", gameEntry.getPublisher(), doNotUpdateFieldsMap);
+        updateLineProperty("game_description", StringEscapeUtils.unescapeHtml(gameEntry.getDescription()), doNotUpdateFieldsMap);
+        updateLineProperty("genre", gameEntry.getGenres(), doNotUpdateFieldsMap);
+        updateLineProperty("theme", gameEntry.getThemes(), doNotUpdateFieldsMap);
         entry.setIgdb_id(gameEntry.getIgdb_id());
         entry.setAggregated_rating(gameEntry.getAggregated_rating());
 
         /*****************COVER DOWNLOAD***************************/
         if (!doNotUpdateFieldsMap.get("cover")) {
+            GeneralToast.displayToast(Main.getString("downloading_images"), getParentStage(), GeneralToast.DURATION_SHORT);
             ImageUtils.downloadIGDBImageToCache(gameEntry.getIgdb_id()
                     , gameEntry.getIgdb_imageHash(0)
                     , ImageUtils.IGDB_TYPE_COVER
@@ -1029,7 +1030,7 @@ public class GameEditScene extends BaseScene {
                         , new OnDLDoneHandler() {
                             @Override
                             public void run(File outputfile) {
-                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO, false, true);
+                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                                 ImageUtils.transitionToWindowBackground(img, backgroundView);
 
                             }
@@ -1039,6 +1040,8 @@ public class GameEditScene extends BaseScene {
         Optional<ButtonType> screenShotSelectedHash = screenshotSelector.showAndWait();
         screenShotSelectedHash.ifPresent(button -> {
             if (!button.getButtonData().isCancelButton()) {
+                GeneralToast.displayToast(Main.getString("downloading_images"), getParentStage(), GeneralToast.DURATION_SHORT);
+
                 Task donwloadTask = ImageUtils.downloadIGDBImageToCache(gameEntry.getIgdb_id()
                         , screenshotSelector.getSelectedImageHash()
                         , ImageUtils.IGDB_TYPE_SCREENSHOT
@@ -1046,7 +1049,7 @@ public class GameEditScene extends BaseScene {
                         , new OnDLDoneHandler() {
                             @Override
                             public void run(File outputfile) {
-                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO, false, true);
+                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                                 ImageUtils.transitionToWindowBackground(img, backgroundView);
 
                                 chosenImageFiles[1] = outputfile;
@@ -1058,7 +1061,7 @@ public class GameEditScene extends BaseScene {
                 validEntriesConditions.add(new ValidEntryCondition() {
                     @Override
                     public boolean isValid() {
-                        if (donwloadTask!=null && !donwloadTask.isDone()) {
+                        if (donwloadTask != null && !donwloadTask.isDone()) {
                             message.replace(0, message.length(), Main.getString("background_picture_still_downloading"));
                             return false;
                         }
@@ -1076,7 +1079,7 @@ public class GameEditScene extends BaseScene {
                 }
             } else {
                 if (chosenImageFiles[1] != null) {
-                    Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO, false, true);
+                    Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                     ImageUtils.transitionToWindowBackground(img, backgroundView);
                     LOGGER.debug(chosenImageFiles[1].getAbsolutePath());
                 } else {
@@ -1093,12 +1096,14 @@ public class GameEditScene extends BaseScene {
 
 
     void addCancelAllButton() {
-        addCancelButton(new ClassicExitAction(GameEditScene.this,getParentStage(),previousScene),"cancel_all_button","ignore_changes_all");
+        addCancelButton(new ClassicExitAction(GameEditScene.this, getParentStage(), previousScene), "cancel_all_button", "ignore_changes_all");
     }
+
     void addCancelButton(ExitAction onAction) {
-        addCancelButton(onAction,"cancel_button","ignore_changes?");
+        addCancelButton(onAction, "cancel_button", "ignore_changes?");
     }
-    private void addCancelButton(ExitAction action, String idAndTitleKey, String warningMessageKey){
+
+    private void addCancelButton(ExitAction action, String idAndTitleKey, String warningMessageKey) {
         boolean alreadyExists = false;
         for (Node n : buttonsBox.getChildren()) {
             if (n.getId() != null && n.getId().equals(idAndTitleKey)) {
@@ -1141,12 +1146,13 @@ public class GameEditScene extends BaseScene {
             buttonsBox.getChildren().add(cancelButton);
         }
     }
-    public static void moveImage(GameEntry entry, File imageFile, String imageType){
-        if(imageFile!=null) {
-            if(!imageFile.exists()){
-                imageFile = new File(FILES_MAP.get("working_dir").getPath()+File.separator+imageFile.getPath());
+
+    public static void moveImage(GameEntry entry, File imageFile, String imageType) {
+        if (imageFile != null) {
+            if (!imageFile.exists()) {
+                imageFile = new File(FILES_MAP.get("working_dir").getPath() + File.separator + imageFile.getPath());
             }
-            if(imageFile.exists()) {
+            if (imageFile.exists()) {
                 File localCoverFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + imageType + "." + getExtension(imageFile.getName()));
                 try {
                     if (!localCoverFile.getParentFile().exists()) {
@@ -1156,7 +1162,7 @@ public class GameEditScene extends BaseScene {
                         localCoverFile.createNewFile();
                     }*/
                     Files.copy(imageFile.toPath().toAbsolutePath()
-                            ,localCoverFile.toPath().toAbsolutePath()
+                            , localCoverFile.toPath().toAbsolutePath()
                             , StandardCopyOption.REPLACE_EXISTING);
                     int imageIndex = 0;
                     if (imageType.equals(ImageUtils.IGDB_TYPE_SCREENSHOT)) {
@@ -1167,8 +1173,8 @@ public class GameEditScene extends BaseScene {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }else{
-                LOGGER.error("Could not move non existing image : " +imageFile.getPath());
+            } else {
+                LOGGER.error("Could not move non existing image : " + imageFile.getPath());
             }
         }
     }
