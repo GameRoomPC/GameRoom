@@ -1,5 +1,6 @@
 package ui.dialog;
 
+import com.mashape.unirest.http.exceptions.UnirestException;
 import data.http.images.ImageUtils;
 import data.game.entry.GameEntry;
 import data.game.scraper.IGDBScraper;
@@ -45,6 +46,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 
+import static ui.Main.LOGGER;
 import static ui.Main.SCREEN_WIDTH;
 
 /**
@@ -151,6 +153,10 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                                 @Override
                                 protected String call() throws Exception {
                                     gamesDataArray = IGDBScraper.getGamesData(ids);
+                                    if(gamesDataArray == null){
+                                        GameRoomAlert.errorIGDB();
+                                        return null;
+                                    }
                                     String gameList = "SearchResult : ";
                                     searchListPane.setGamesDataArray(gamesDataArray);
                                     Platform.runLater(new Runnable() {
@@ -178,6 +184,10 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                             statusLabel.setText(Main.getString("no_internet"));
                         }
                     });
+                } catch (UnirestException | IOException e) {
+                    LOGGER.error(e.getMessage());
+                    GameRoomAlert.errorIGDB();
+                    close();
                 }
             }
         });

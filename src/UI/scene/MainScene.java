@@ -91,8 +91,6 @@ public class MainScene extends BaseScene {
     private RowCoverTilePane recentlyAddedTilePane;
     private ToAddRowTilePane toAddTilePane;
 
-    private GameWatcher gameWatcher = null;
-
     private ArrayList<GroupRowTilePane> groupRowList = new ArrayList<>();
 
     private TextField searchField;
@@ -935,9 +933,8 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.removeGame(entry);
         recentlyAddedTilePane.removeGame(entry);
         toAddTilePane.removeGame(entry);
-        if (gameWatcher != null) {
-            gameWatcher.removeGame(entry);
-        }
+        GameWatcher.getInstance().removeGame(entry);
+
         for (GroupRowTilePane tilePane : groupRowList) {
             tilePane.removeGame(entry);
         }
@@ -963,9 +960,8 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.addGame(entry);
         recentlyAddedTilePane.addGame(entry);
         toAddTilePane.removeGame(entry);
-        if (gameWatcher != null) {
-            gameWatcher.removeGame(entry);
-        }
+        GameWatcher.getInstance().removeGame(entry);
+
         for (GroupRowTilePane tilePane : groupRowList) {
             tilePane.addGame(entry);
         }
@@ -1043,9 +1039,8 @@ public class MainScene extends BaseScene {
         //toAddTilePane.disableFoldButton(true);
         toAddTilePane.setAutomaticSort(false);
 
-        gameWatcher = GameWatcher.getInstance();
-        toAddTilePane.getIconButton().setOnAction(event -> gameWatcher.start());
-        gameWatcher.setOnGameFoundHandler(new OnScannerResultHandler() {
+        toAddTilePane.getIconButton().setOnAction(event -> GameWatcher.getInstance().start());
+        GameWatcher.getInstance().setOnGameFoundHandler(new OnScannerResultHandler() {
             @Override
             public GameButton gameToAddFound(GameEntry entry) {
                 toAddTilePane.addGame(entry);
@@ -1061,7 +1056,7 @@ public class MainScene extends BaseScene {
                 });
             }
         });
-        gameWatcher.start();
+        GameWatcher.getInstance().start();
     }
 
 

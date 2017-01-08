@@ -58,7 +58,6 @@ public class FolderGameScanner extends GameScanner {
 
     @Override
     public void scanForGames() {
-        foundGames.clear();
         if(profile== null || profile.isEnabled()){
             displayStartToast();
             scanAndAddGames();

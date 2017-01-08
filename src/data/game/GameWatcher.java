@@ -11,9 +11,11 @@ import org.json.JSONArray;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.specific.GeneralToast;
+import ui.dialog.GameRoomAlert;
 import ui.scene.GameEditScene;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -231,7 +233,8 @@ public class GameWatcher {
         }
         if (searchIGDBIDs.size() > 0) {
             try {
-                ArrayList<GameEntry> scrappedEntries = IGDBScraper.getEntries(IGDBScraper.getGamesData(searchIGDBIDs));
+                JSONArray gamesDataArray = IGDBScraper.getGamesData(searchIGDBIDs);
+                ArrayList<GameEntry> scrappedEntries = IGDBScraper.getEntries(gamesDataArray);
 
                 int i = 0;
 
@@ -322,8 +325,9 @@ public class GameWatcher {
                         e.printStackTrace();
                     }
                 }
-            } catch (UnirestException e) {
-                e.printStackTrace();
+            } catch (UnirestException | IOException e) {
+                LOGGER.error(e.getMessage());
+                GameRoomAlert.errorIGDB();
             }
 
         }
@@ -414,6 +418,7 @@ public class GameWatcher {
 
     public void removeGame(GameEntry entry) {
         ArrayList<GameEntry> toRemoveEntries = new ArrayList<>();
+        entry.setSavedLocaly(false);
         for (GameEntry n : entriesToAdd) {
             if (n.getUuid().equals(entry.getUuid())) {
                 toRemoveEntries.add(n);

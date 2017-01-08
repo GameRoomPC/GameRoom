@@ -1,5 +1,6 @@
 package ui.dialog;
 
+import javafx.application.Platform;
 import javafx.beans.NamedArg;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
@@ -7,6 +8,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogEvent;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
+import ui.Main;
 import ui.theme.ThemeUtils;
 
 import static ui.Main.GENERAL_SETTINGS;
@@ -31,5 +33,12 @@ public class GameRoomAlert extends Alert {
 
         initOwner(MAIN_SCENE.getParentStage());
         initModality(Modality.WINDOW_MODAL);
+    }
+
+    public static void errorIGDB(){
+        Platform.runLater(() -> {
+            GameRoomAlert alert = new GameRoomAlert(AlertType.ERROR, Main.getString("error_igdb"));
+            alert.showAndWait();
+        });
     }
 }

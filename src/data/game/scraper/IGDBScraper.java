@@ -20,6 +20,8 @@ import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static ui.Main.LOGGER;
+
 /**
  * Created by LM on 03/07/2016.
  */
@@ -27,8 +29,8 @@ public class IGDBScraper {
     public static String IGDB_BASIC_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
     public static String IGDB_PRO_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
     public static String key = IGDB_BASIC_KEY;
-    
-    public static void main(String[] args) throws ConnectTimeoutException {
+
+    public static void main(String[] args) throws IOException, UnirestException {
         JSONArray bf4_results = searchGame("Battlefield 1");
         ArrayList list = new ArrayList();
         list.add(bf4_results.getJSONObject(0).getInt("id"));
@@ -36,43 +38,26 @@ public class IGDBScraper {
         try {
             bf4_data = getGamesData(list);
             System.out.println(bf4_data.toString(4));
-        } catch (UnirestException e) {
+        } catch (UnirestException | IOException e) {
             e.printStackTrace();
         }
-
-        //System.out.println(getSerie(bf4_data.getJSONObject(0)));
-
-        //System.out.println(getThemes(bf4_data.getJSONObject(0)));
-
-        /*ArrayList<Integer> list = new ArrayList();
-        list.add(12);
-        list.add(31);
-        JSONArray genres_data = getGenresData(list);
-        System.out.println(genres_data);
-        System.out.println(GameGenre.getThemeFromIGDB(getGenreName(12,genres_data)));*/
-
-
     }
 
-    public static JSONArray getAllFields(int id) {
+    public static JSONArray getAllFields(int id) throws UnirestException, IOException {
+        HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + id + "?fields=*")
+                .header("X-Mashape-Key", key)
+                .header("Accept", "application/json")
+                .asString();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
+        String json = reader.readLine();
+        reader.close();
+
         try {
-            HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + id + "?fields=*")
-                    .header("X-Mashape-Key", key)
-                    .header("Accept", "application/json")
-                    .asString();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
-            String json = reader.readLine();
-            reader.close();
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener);
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (JSONException e) {
+            throw new UnirestException("IGDB : received invalid JSON \""+json+"\"");
         }
-        return null;
     }
 
     private static Date getReleaseDate(JSONObject gameData) {
@@ -147,7 +132,7 @@ public class IGDBScraper {
         JSONArray gamesData = getGamesData(new ArrayList<>(id));
         return getEntry(gamesData.getJSONObject(indexOf(id,gamesData)));
     }*/
-    public static ArrayList<GameEntry> getEntries(JSONArray searchData) {
+    public static ArrayList<GameEntry> getEntries(JSONArray searchData) throws IOException, UnirestException {
         ArrayList<GameEntry> entries = new ArrayList<>();
         HashSet<Integer> companiesIDs = new HashSet<>();
         HashSet<Integer> seriesIDs = new HashSet<>();
@@ -199,7 +184,7 @@ public class IGDBScraper {
             try {
                 int publishersNumber = searchData.getJSONObject(i).getJSONArray("publishers").length();
                 String publishers = "";
-                if(companiesData!=null) {
+                if (companiesData != null) {
                     for (int j = 0; j < publishersNumber; j++) {
                         publishers += getCompanyName(searchData.getJSONObject(i).getJSONArray("publishers").getInt(j), companiesData);
                         if (j != publishersNumber - 1) {
@@ -218,7 +203,7 @@ public class IGDBScraper {
 
             try {
                 String developers = "";
-                if(companiesData!=null) {
+                if (companiesData != null) {
                     int developersNumber = searchData.getJSONObject(i).getJSONArray("developers").length();
                     for (int j = 0; j < developersNumber; j++) {
                         developers += getCompanyName(searchData.getJSONObject(i).getJSONArray("developers").getInt(j), companiesData);
@@ -238,7 +223,7 @@ public class IGDBScraper {
 
             try {
                 int serieId = searchData.getJSONObject(i).getInt("collection");
-                if(seriesData!=null) {
+                if (seriesData != null) {
                     entry.setSerie(getSerieName(serieId, seriesData));
                 }
             } catch (JSONException je) {
@@ -333,6 +318,10 @@ public class IGDBScraper {
                 } else {
                     je.printStackTrace();
                 }
+            } catch (UnirestException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
             try {
@@ -413,80 +402,67 @@ public class IGDBScraper {
         return entry;
     }
 
-    public static JSONArray searchGame(String gameName) throws ConnectTimeoutException {
+    public static JSONArray searchGame(String gameName) throws UnirestException, IOException {
         gameName = gameName.replace(' ', '+');
+        HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/?fields=name&limit=10&offset=0&search=" + gameName)
+                .header("X-Mashape-Key", key)
+                .header("Accept", "application/json")
+                .asString();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
+        String json = reader.readLine();
+        reader.close();
         try {
-            HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/?fields=name&limit=10&offset=0&search=" + gameName)
-                    .header("X-Mashape-Key", key)
-                    .header("Accept", "application/json")
-                    .asString();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
-            String json = reader.readLine();
-            reader.close();
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener);
-        } catch (UnirestException e) {
-            Main.LOGGER.error("Not connected to internet");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (JSONException e) {
+            throw new UnirestException("IGDB : received invalid json : \""+json+"\"");
         }
-        return null;
     }
 
-    public static JSONObject getGameData(int id) throws UnirestException {
+    public static JSONObject getGameData(int id) throws UnirestException, IOException {
         ArrayList<Integer> list = new ArrayList<>();
         list.add(id);
         return getGamesData(list).getJSONObject(0);
     }
 
-    public static JSONArray getGenresData(Collection<Integer> ids) {
+    public static JSONArray getGenresData(Collection<Integer> ids) throws UnirestException, IOException {
+        String idsString = "";
+        for (Integer id : ids) {
+            idsString += id + ",";
+        }
+        HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/genres/" + idsString.substring(0, idsString.length() - 1) + "?fields=name")
+                .header("X-Mashape-Key", key)
+                .header("Accept", "application/json")
+                .asString();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
+        String json = reader.readLine();
+        reader.close();
         try {
-            String idsString = "";
-            for (Integer id : ids) {
-                idsString += id + ",";
-            }
-            HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/genres/" + idsString.substring(0, idsString.length() - 1) + "?fields=name")
-                    .header("X-Mashape-Key", key)
-                    .header("Accept", "application/json")
-                    .asString();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
-            String json = reader.readLine();
-            reader.close();
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener);
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (JSONException e) {
+            throw new UnirestException("IGDB : received invalid JSON \""+json+"\"");
         }
-        return null;
     }
 
-    public static JSONArray getGamesData(Collection<Integer> ids) throws UnirestException {
+    public static JSONArray getGamesData(Collection<Integer> ids) throws IOException, UnirestException {
+        String idsString = "";
+        for (Integer id : ids) {
+            idsString += id + ",";
+        }
+        HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + idsString.substring(0, idsString.length() - 1) + "?fields=*")
+                .header("X-Mashape-Key", key)
+                .header("Accept", "application/json")
+                .asString();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
+        String json = reader.readLine();
+        reader.close();
         try {
-            String idsString = "";
-            for (Integer id : ids) {
-                idsString += id + ",";
-            }
-            HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + idsString.substring(0, idsString.length() - 1) + "?fields=*")
-                    .header("X-Mashape-Key", key)
-                    .header("Accept", "application/json")
-                    .asString();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
-            String json = reader.readLine();
-            reader.close();
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (JSONException e) {
+            throw new UnirestException("IGSB : invalid JSON, received \"" + json + "\"");
         }
-        return null;
     }
 
     private static GameGenre[] getGenres(JSONObject gameData) {
@@ -527,30 +503,25 @@ public class IGDBScraper {
         return null;
     }
 
-    private static String getSerie(JSONObject gameData) {
+    private static String getSerie(JSONObject gameData) throws IOException, UnirestException {
+        int serieId = gameData.getInt("collection");
+        HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/collections/" + serieId + "?fields=name")
+                .header("X-Mashape-Key", key)
+                .header("Accept", "application/json")
+                .asString();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
+        String json = reader.readLine();
+        reader.close();
+
         try {
-            int serieId = gameData.getInt("collection");
-            HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/collections/" + serieId + "?fields=name")
-                    .header("X-Mashape-Key", key)
-                    .header("Accept", "application/json")
-                    .asString();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
-            String json = reader.readLine();
-            reader.close();
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener).getJSONObject(0).getString("name");
         } catch (JSONException jse) {
             if (jse.toString().contains("not found")) {
                 //Main.LOGGER.error("Serie not found");
             } else {
-                jse.printStackTrace();
+                throw new UnirestException("IGDB : received invalid json \""+json+"\"");
             }
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (UnirestException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -564,32 +535,28 @@ public class IGDBScraper {
         }
     }
 
-    private static JSONArray getSeriesData(Collection<Integer> ids) {
-        if(ids.size()<1){
+    private static JSONArray getSeriesData(Collection<Integer> ids) throws UnirestException, IOException {
+        if (ids.size() < 1) {
             return null;
         }
         String idsString = "";
         for (Integer id : ids) {
             idsString += id + ",";
         }
+        HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/collections/" + idsString.substring(0, idsString.length() - 1) + /*"?fields=*"+*/ "?fields=name")
+                .header("X-Mashape-Key", key)
+                .header("Accept", "application/json")
+                .asString();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
+        String json = reader.readLine();
+        reader.close();
         try {
-            HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/collections/" + idsString.substring(0, idsString.length() - 1) + /*"?fields=*"+*/ "?fields=name")
-                    .header("X-Mashape-Key", key)
-                    .header("Accept", "application/json")
-                    .asString();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
-            String json = reader.readLine();
-            reader.close();
+
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener);
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (JSONException e) {
+            throw new JSONException("IGDB : received invalid json \""+json+"\"");
         }
-        return null;
     }
 
     private static String getCompanyName(int id, JSONArray companiesData) {
@@ -602,7 +569,7 @@ public class IGDBScraper {
     }
 
     private static JSONArray getCompaniesData(Collection<Integer> ids) {
-        if(ids.size()<1){
+        if (ids.size() < 1) {
             return null;
         }
         String idsString = "";

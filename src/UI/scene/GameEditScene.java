@@ -552,13 +552,9 @@ public class GameEditScene extends BaseScene {
                                                          } else {
                                                              jse.printStackTrace();
                                                          }
-                                                     } catch (UnirestException e) {
-                                                         if (e.toString().contains("UnknownHostException")) {
-                                                             GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, Main.getString("no_internet"));
-                                                             alert.showAndWait();
-                                                         } else {
-                                                             e.printStackTrace();
-                                                         }
+                                                     } catch (UnirestException |IOException e) {
+                                                             GameRoomAlert.errorIGDB();
+                                                             LOGGER.error(e.getMessage());
                                                      }
                                                  } else {
                                                      SearchDialog dialog = new SearchDialog(createDoNotUpdateFielsMap(), entry.getName());

@@ -16,14 +16,13 @@ import static ui.Main.MAIN_SCENE;
 public abstract class GameScanner {
     protected ScannerProfile profile = null;
     private volatile boolean scanDone = false;
-    ArrayList<GameEntry> foundGames = new ArrayList<>();
     GameWatcher parentLooker;
 
     GameScanner(GameWatcher parentLooker) {
         this.parentLooker = parentLooker;
     }
 
-    public void startScanning() {
+    public final void startScanning() {
         scanDone = false;
         scanForGames();
         scanDone = true;
@@ -41,7 +40,6 @@ public abstract class GameScanner {
 
     void addGameEntryFound(GameEntry entryFound) {
         entryFound.setWaitingToBeScrapped(true);
-        foundGames.add(entryFound);
 
         Main.runAndWait(() -> {
             onGameFound(entryFound);

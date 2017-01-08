@@ -99,6 +99,9 @@ public class GeneralToast extends Tooltip {
     }
 
     private void showTimed(Window window) {
+        if(!window.isShowing() || !window.isFocused()){
+            return;
+        }
         if (ENABLED && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_TOASTS)) {
             CAN_INTERRUPT_TOAST = interruptible;
             Main.runAndWait(() -> {
