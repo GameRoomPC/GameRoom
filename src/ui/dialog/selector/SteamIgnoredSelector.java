@@ -163,8 +163,7 @@ public class SteamIgnoredSelector extends GameRoomDialog<ButtonType> {
                     try {
                         SimpleImageInfo imageInfo = new SimpleImageInfo(outputfile);
                         keepRatio = Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - (double)IMAGE_HEIGHT/IMAGE_WIDTH) > 0.2;
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    } catch (IOException ignored) {
                     }
                     boolean finalKeepRatio = keepRatio;
                     Platform.runLater(() -> {

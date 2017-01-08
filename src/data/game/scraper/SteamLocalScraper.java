@@ -54,18 +54,6 @@ public class SteamLocalScraper {
 
     static void scanSteamGames(GameScanner scanner) {
         scanSteamAppsByReg(scanner);
-            /*scanSteamApps(entry -> {
-                if (!isSteamGameIgnored(entry)) {
-                    try {
-                        entry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
-                        if(entry!=null){
-                            scanner.checkAndAdd(entry);
-                        }
-                    } catch (ConnectTimeoutException | UnirestException ignored) {
-                        LOGGER.error("scanSteamGames, Error connecting to steam");
-                    }
-                }
-            });*/
     }
 
     private static void scanSteamApps(OnGameFound handler) throws IOException {
@@ -270,6 +258,9 @@ public class SteamLocalScraper {
         SteamPreEntry[] ignoredEntries = Main.GENERAL_SETTINGS.getSteamAppsIgnored();
 
         if (ignoredEntries == null || ignoredEntries.length == 0) {
+            return false;
+        }
+        if(!entry.isSteamGame()){
             return false;
         }
         boolean ignored = false;

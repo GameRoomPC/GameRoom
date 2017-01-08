@@ -3,6 +3,7 @@ package data.game.scanner;
 import data.game.GameWatcher;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
+import data.game.scraper.SteamLocalScraper;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.specific.GeneralToast;
@@ -100,7 +101,7 @@ public class FolderGameScanner extends GameScanner {
     public void checkAndAdd(GameEntry potentialEntry) {
         if (checkValidToAdd(potentialEntry)) {
             addGameEntryFound(potentialEntry);
-        } else if (!folderGameIgnored(potentialEntry)) {
+        } else if (!isGameIgnored(potentialEntry)) {
             compareAndSetLauncherId(potentialEntry);
         }
     }
@@ -113,7 +114,7 @@ public class FolderGameScanner extends GameScanner {
      */
     protected boolean checkValidToAdd(GameEntry potentialEntry) {
         boolean gameAlreadyInLibrary = gameAlreadyInLibrary(potentialEntry);
-        boolean folderGameIgnored = folderGameIgnored(potentialEntry);
+        boolean folderGameIgnored = isGameIgnored(potentialEntry);
         boolean alreadyWaitingToBeAdded = gameAlreadyIn(potentialEntry,parentLooker.getEntriesToAdd());
         boolean pathExists = new File(potentialEntry.getPath()).exists() || potentialEntry.getPath().startsWith("steam");
         return !gameAlreadyInLibrary && !folderGameIgnored && !alreadyWaitingToBeAdded && pathExists;
@@ -179,9 +180,13 @@ public class FolderGameScanner extends GameScanner {
      * @param foundEntry the entry to check against other existing entries
      */
     protected void compareAndSetLauncherId(GameEntry foundEntry) {
-        List<GameEntry> toAddAndLibEntries = AllGameEntries.ENTRIES_LIST;
+        List<GameEntry> toAddAndLibEntries = new ArrayList<>();
+        toAddAndLibEntries.addAll(AllGameEntries.ENTRIES_LIST);
         toAddAndLibEntries.addAll(parentLooker.getEntriesToAdd());
 
+        if(isGameIgnored(foundEntry)){
+            return;
+        }
         for (GameEntry entry : toAddAndLibEntries) {
             if (entryNameOrPathEquals(entry, foundEntry)) {
                 //TODO replace launchers with an enum and an id ?
@@ -218,21 +223,22 @@ public class FolderGameScanner extends GameScanner {
         }
     }
 
-    /** Checks if a given entry is ignored
+    /** Checks if a given entry is ignored (folder or steam)
      *
      * @param entry the entry to check
      * @return true if this entry is ignored, false otherwise
      */
-    protected static boolean folderGameIgnored(GameEntry entry) {
+    public static boolean isGameIgnored(GameEntry entry) {
         boolean ignored = false;
         for (File ignoredFile : Main.GENERAL_SETTINGS.getFiles(PredefinedSetting.IGNORED_GAME_FOLDERS)) {
             ignored = ignoredFile.getAbsolutePath().toLowerCase().contains(entry.getPath().toLowerCase())
-                    || entry.getPath().toLowerCase().contains(ignoredFile.getPath().toLowerCase());
+                    || entry.getPath().toLowerCase().contains(ignoredFile.getPath().toLowerCase())
+                    || SteamLocalScraper.isSteamGameIgnored(entry);
             if (ignored) {
                 return true;
             }
         }
-        return false;
+        return ignored;
     }
 
     /**
