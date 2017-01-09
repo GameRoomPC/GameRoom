@@ -70,7 +70,9 @@ public class GameStarter {
             gameProcessBuilder.redirectError(gameLog);
             gameProcessBuilder.directory(new File(new File(entry.getPath()).getParent()));
 
+            entry.setSavedLocaly(true);
             entry.setLastPlayedDate(new Date());
+            entry.setSavedLocaly(false);
 
             if(entry.getOnGameLaunched() != null){
                 entry.getOnGameLaunched().run();

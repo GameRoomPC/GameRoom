@@ -902,25 +902,27 @@ public class GameEditScene extends BaseScene {
                 alert.setContentText(Main.getString("ignore_changes?"));
 
                 Optional<ButtonType> result = alert.showAndWait();
-                if (result.get() == ButtonType.OK) {
-                    switch (mode) {
-                        case MODE_ADD:
-                            break;
-                        case MODE_EDIT:
-                            try {
-                                entry.loadEntry();
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                result.ifPresent(buttonType -> {
+                    if (buttonType.equals(ButtonType.OK)) {
+                        switch (mode) {
+                            case MODE_ADD:
                                 break;
-                            }
-                            break;
-                        default:
-                            break;
+                            case MODE_EDIT:
+                                try {
+                                    entry.loadEntry();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    break;
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                        fadeTransitionTo(previousScene, getParentStage());
+                    } else {
+                        // ... user chose CANCEL or closed the dialog
                     }
-                    fadeTransitionTo(previousScene, getParentStage());
-                } else {
-                    // ... user chose CANCEL or closed the dialog
-                }
+                });
             }
         };
         String title = Main.getString("add_a_game");
@@ -1115,26 +1117,28 @@ public class GameEditScene extends BaseScene {
                     alert.setContentText(Main.getString(warningMessageKey));
 
                     Optional<ButtonType> result = alert.showAndWait();
-                    if (result.isPresent() && result.get() == ButtonType.OK) {
-                        switch (mode) {
-                            case MODE_ADD:
-                                break;
-                            case MODE_EDIT:
-                                try {
-                                    entry.loadEntry();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                    result.ifPresent(buttonType -> {
+                        if (buttonType.equals(ButtonType.OK)) {
+                            switch (mode) {
+                                case MODE_ADD:
                                     break;
-                                }
-                                break;
-                            default:
-                                break;
+                                case MODE_EDIT:
+                                    try {
+                                        entry.loadEntry();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        break;
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+                            action.run();
+                        } else {
+                            // ... user chose CANCEL or closed the dialog
                         }
-                        action.run();
-                    } else {
-                        // ... user chose CANCEL or closed the dialog
-                    }
-                    //onAction.run();
+                        //onAction.run();
+                    });
                 }
             });
             buttonsBox.getChildren().add(cancelButton);
