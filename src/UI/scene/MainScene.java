@@ -464,14 +464,11 @@ public class MainScene extends BaseScene {
         //ImageButton settingsButton = new ImageButton(settingsImage);
         ImageButton settingsButton = new ImageButton("main-settings-button", SCREEN_WIDTH / 35.0, SCREEN_WIDTH / 35.0);
         settingsButton.setFocusTraversable(false);
-        settingsButton.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.isPrimaryButtonDown()) {
-                    SettingsScene settingsScene = new SettingsScene(new StackPane(), getParentStage(), MainScene.this);
-                    fadeTransitionTo(settingsScene, getParentStage(), true);
-                }
-            }
+        settingsButton.setOnAction(event -> {
+            long start = System.currentTimeMillis();
+            SettingsScene settingsScene = new SettingsScene(new StackPane(), getParentStage(), MainScene.this);
+            LOGGER.debug("SettingsScene : init = "+(System.currentTimeMillis() - start)+ "ms");
+            fadeTransitionTo(settingsScene, getParentStage(), true);
         });
 
         //Image sortImage = new Image("res/ui/sortIcon.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
@@ -546,21 +543,16 @@ public class MainScene extends BaseScene {
         });
         sortMenu.getItems().addAll(sortByNameItem, sortByRatingItem, sortByTimePlayedItem, sortByReleaseDateItem);
 
-        sortButton.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.isPrimaryButtonDown()) {
-                    if (sortMenu.isShowing()) {
-                        sortMenu.hide();
-                    } else {
-                        Bounds bounds = sortButton.getBoundsInLocal();
-                        Bounds screenBounds = sortButton.localToScreen(bounds);
-                        int x = (int) (screenBounds.getMinX() + 0.25 * bounds.getWidth());
-                        int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
+        sortButton.setOnAction(event -> {
+            if (sortMenu.isShowing()) {
+                sortMenu.hide();
+            } else {
+                Bounds bounds = sortButton.getBoundsInLocal();
+                Bounds screenBounds = sortButton.localToScreen(bounds);
+                int x = (int) (screenBounds.getMinX() + 0.25 * bounds.getWidth());
+                int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
 
-                        sortMenu.show(sortButton, x, y);
-                    }
-                }
+                sortMenu.show(sortButton, x, y);
             }
         });
 
@@ -652,21 +644,16 @@ public class MainScene extends BaseScene {
 
         groupMenu.getItems().addAll(groupByAll, groupByGenre, groupByTheme, groupBySerie, groupByLauncher);
 
-        groupButton.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.isPrimaryButtonDown()) {
-                    if (groupMenu.isShowing()) {
-                        groupMenu.hide();
-                    } else {
-                        Bounds bounds = groupButton.getBoundsInLocal();
-                        Bounds screenBounds = groupButton.localToScreen(bounds);
-                        int x = (int) (screenBounds.getMinX() + 0.25 * bounds.getWidth());
-                        int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
+        groupButton.setOnAction(event -> {
+            if (groupMenu.isShowing()) {
+                groupMenu.hide();
+            } else {
+                Bounds bounds = groupButton.getBoundsInLocal();
+                Bounds screenBounds = groupButton.localToScreen(bounds);
+                int x = (int) (screenBounds.getMinX() + 0.25 * bounds.getWidth());
+                int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
 
-                        groupMenu.show(groupButton, x, y);
-                    }
-                }
+                groupMenu.show(groupButton, x, y);
             }
         });
 
@@ -728,19 +715,6 @@ public class MainScene extends BaseScene {
             });
             getRootStackPane().setMouseTransparent(false);
         });
-
-        /*ImageButton scanButton = new ImageButton("tile-loading-button", SCREEN_WIDTH / 38.0, SCREEN_WIDTH / 38.0);
-        scanButton.setFocusTraversable(false);
-        scanButton.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.isPrimaryButtonDown()) {
-                    GameWatcher.getInstance().start();
-                }
-            }
-        });
-        GameWatcher.getInstance().addOnSearchStartedListener(() -> scanButton.setDisable(true));
-        GameWatcher.getInstance().addOnSearchDoneListener(() -> scanButton.setDisable(false));*/
 
         HBox hbox = new HBox();
         hbox.setPadding(new Insets(15, 12, 15, 10));
