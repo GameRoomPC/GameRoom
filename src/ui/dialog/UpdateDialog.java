@@ -38,7 +38,7 @@ public class UpdateDialog extends GameRoomDialog<ButtonType> {
                     + "}";
 
     public UpdateDialog(String currentVersion, String newVersion, URL changelogUrl) {
-        super(Modality.NONE);
+        super(Modality.WINDOW_MODAL);
         setTitle("GameRoom Updater");
 
         mainPane.getStyleClass().add("container");
@@ -107,7 +107,7 @@ public class UpdateDialog extends GameRoomDialog<ButtonType> {
             pane.getChildren().add(label);
         }
         pane.getStyleClass().add("changelog-scrollpane");
-        pane.setPrefWidth(400 * Main.SCREEN_WIDTH / 1920);
+        pane.setPrefWidth(600 * Main.SCREEN_WIDTH / 1920);
         pane.setPrefHeight(500 * Main.SCREEN_HEIGHT / 1080);
         initModality(Modality.WINDOW_MODAL);
         BorderPane.setMargin(pane, new Insets(0 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 0 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));

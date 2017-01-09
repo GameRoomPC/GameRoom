@@ -56,6 +56,7 @@ public enum PredefinedSetting {
     , THEME("theme", new SettingValue(Theme.DEFAULT_THEME,Theme.class,CATEGORY_UI))
     , ENABLED_GAME_SCANNERS("enabledGameScanners",new SettingValue(ScannerProfile.values(),ScannerProfile[].class,CATEGORY_GENERAL))
     , LAST_SUPPORT_MESSAGE("lastSupportMessage", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
+    , LAST_UPDATE_CHECK("lastUpdateCheck", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     ;
 
 

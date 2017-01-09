@@ -10,6 +10,7 @@ import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import system.application.settings.PredefinedSetting;
 import system.internet.FileDownloader;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
@@ -19,10 +20,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.Optional;
 
-import static ui.Main.LOGGER;
-import static ui.Main.MAIN_SCENE;
+import static ui.Main.*;
 
 /**
  * Created by LM on 26/12/2016.
@@ -30,7 +31,7 @@ import static ui.Main.MAIN_SCENE;
 public class GameRoomUpdater {
     public final static String HTTPS_HOST = "gameroom.me";
     private final static String HTTP_HOST = "s639232867.onlinehome.fr";
-    private final static String URL_VERSION_XML_SUFFIX = "/software/version.xml";
+    private final static String URL_VERSION_XML_SUFFIX = DEV_MODE ? "/software/test_version.xml" : "/software/version.xml";
     private final static String URL_CHANGELOG_MD_SUFFIX = "/software/changelog.md";
 
     private String currentVersion;
@@ -68,6 +69,9 @@ public class GameRoomUpdater {
 
     public void start() {
         started = true;
+        if (GENERAL_SETTINGS != null) {
+            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.LAST_UPDATE_CHECK, new Date());
+        }
         Updater updater = new Updater();
         LOGGER.info("Starting updater");
 
@@ -87,19 +91,24 @@ public class GameRoomUpdater {
         }
 
         Main.LOGGER.info("Received info : " + status.getInfo());
+        openUpdateDialog(status);
+    }
 
-        UpdateDialog updateDialog = new UpdateDialog(currentVersion, status.getInfo(), changelogUrl);
-        Optional<ButtonType> result = updateDialog.showAndWait();
-        result.ifPresent(letter -> {
-            if (letter.getText().equals(Main.getString("update"))) {
-                if (onUpdatePressedListener != null) {
-                    onUpdatePressedListener.changed(null, null, null);
+    private void openUpdateDialog(ApplicationStatus status) {
+        Platform.runLater(() -> {
+            UpdateDialog updateDialog = new UpdateDialog(currentVersion, status.getInfo(), changelogUrl);
+            Optional<ButtonType> result = updateDialog.showAndWait();
+            result.ifPresent(letter -> {
+                if (letter.getText().equals(Main.getString("update"))) {
+                    if (onUpdatePressedListener != null) {
+                        onUpdatePressedListener.changed(null, null, null);
+                    }
+                    downloadUpdate(status);
+                } else {
+                    updateDialog.close();
+                    cancel();
                 }
-                downloadUpdate(status);
-            } else {
-                updateDialog.close();
-                cancel();
-            }
+            });
         });
     }
 
@@ -143,7 +152,7 @@ public class GameRoomUpdater {
         fdl.startDownload();
     }
 
-    private void onDownloadfinished(){
+    private void onDownloadfinished() {
         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION
                 , Main.getString("gameroom_will_close_updater"));
         alert.getButtonTypes().add(new ButtonType(Main.getString("remind_me_in_1mn")));
@@ -160,7 +169,7 @@ public class GameRoomUpdater {
                     e.printStackTrace();
                 }
                 Main.forceStop(MAIN_SCENE.getParentStage(), "Applying update");
-            } else if(letter.getText().equals(Main.getString("remind_me_in_1mn"))) {
+            } else if (letter.getText().equals(Main.getString("remind_me_in_1mn"))) {
                 Thread reminderThread = new Thread(new Runnable() {
                     @Override
                     public void run() {

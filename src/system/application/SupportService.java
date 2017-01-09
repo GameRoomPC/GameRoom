@@ -27,7 +27,10 @@ import static ui.Main.*;
 public class SupportService {
     private static SupportService INSTANCE;
     private final static long RUN_FREQ = TimeUnit.MINUTES.toMillis(DEV_MODE ? 2 : 15);
-    private final static long DISPLAY_FREQUENCY = TimeUnit.DAYS.toMillis(30);
+
+    private final static long UPDATE_CHECK_FREQ = TimeUnit.MINUTES.toMillis(DEV_MODE ? 2 : 60);
+    private final static long SUPPORT_ALERT_FREQ = TimeUnit.DAYS.toMillis(30);
+
     private Thread thread;
     private static volatile boolean DISPLAYING_SUPPORT_ALERT = false;
 
@@ -38,6 +41,7 @@ public class SupportService {
 
                 checkAndDisplaySupportAlert();
                 scanSteamGamesTime();
+                checkForUpdates();
 
                 long elapsedTime = System.currentTimeMillis() - start;
                 if(elapsedTime < RUN_FREQ){
@@ -85,7 +89,7 @@ public class SupportService {
 
                 long elapsedTime = currentDate.getTime() - lastMessageDate.getTime();
 
-                if(elapsedTime >= DISPLAY_FREQUENCY){
+                if(elapsedTime >= SUPPORT_ALERT_FREQ){
                     Platform.runLater(() -> displaySupportAlert());
                     GENERAL_SETTINGS.setSettingValue(PredefinedSetting.LAST_SUPPORT_MESSAGE,new Date());
                 }
@@ -138,6 +142,22 @@ public class SupportService {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void checkForUpdates(){
+        if(GENERAL_SETTINGS == null){
+            return;
+        }
+        if(DEV_MODE){
+            return;
+        }
+        Date lastCheck = GENERAL_SETTINGS.getDate(PredefinedSetting.LAST_UPDATE_CHECK);
+        long elapsed = System.currentTimeMillis() - lastCheck.getTime();
+        if(elapsed >= UPDATE_CHECK_FREQ){
+            if(!GameRoomUpdater.getInstance().isStarted()){
+                GameRoomUpdater.getInstance().start();
+            }
         }
     }
 }

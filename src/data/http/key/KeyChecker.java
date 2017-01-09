@@ -117,8 +117,10 @@ public class KeyChecker {
         } catch (Exception e) {
             if(e.toString().contains("org.apache.http.conn.ConnectTimeoutException")){
                 LOGGER.error("[KeyChecker] gameroom.me not reachable");
+                LOGGER.error(e.getMessage());
+            }else{
+                e.printStackTrace();
             }
-            e.printStackTrace();
         }
         return false;
     }
