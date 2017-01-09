@@ -17,7 +17,7 @@ import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
-import ui.control.specific.GeneralToast;
+import ui.GeneralToast;
 import ui.pane.gamestilepane.ToAddRowTilePane;
 import ui.scene.GameEditScene;
 import ui.scene.MainScene;

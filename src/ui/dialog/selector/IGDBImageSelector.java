@@ -15,7 +15,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import ui.Main;
-import ui.control.specific.GeneralToast;
+import ui.GeneralToast;
 import ui.dialog.GameRoomDialog;
 import ui.pane.OnItemSelectedHandler;
 import ui.pane.SelectListPane;

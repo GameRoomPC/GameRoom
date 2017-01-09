@@ -11,6 +11,8 @@ import javafx.stage.StageStyle;
 import ui.Main;
 import ui.theme.ThemeUtils;
 
+import java.util.Optional;
+
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.MAIN_SCENE;
 
@@ -35,10 +37,35 @@ public class GameRoomAlert extends Alert {
         initModality(Modality.WINDOW_MODAL);
     }
 
-    public static void errorIGDB(){
-        Platform.runLater(() -> {
-            GameRoomAlert alert = new GameRoomAlert(AlertType.ERROR, Main.getString("error_igdb"));
-            alert.showAndWait();
+    public static ButtonType warning(String s){
+        return displayAlert(AlertType.WARNING, s);
+    }
+
+    public static ButtonType confirmation(String s){
+        return displayAlert(AlertType.CONFIRMATION, s);
+    }
+
+    public static ButtonType info(String s){
+        return displayAlert(AlertType.INFORMATION,s);
+    }
+
+    public static ButtonType error(String s){
+        return displayAlert(AlertType.ERROR,s);
+    }
+
+    public static ButtonType errorIGDB(){
+        return error(Main.getString("error_igdb"));
+    }
+
+    private static ButtonType displayAlert(AlertType type, String s){
+        ButtonType[] buttonChosen = new ButtonType[1];
+        Main.runAndWait(() -> {
+            GameRoomAlert alert = new GameRoomAlert(type, s);
+            Optional<ButtonType> result = alert.showAndWait();
+            result.ifPresent(buttonType -> {
+                buttonChosen[0] = buttonType;
+            });
         });
+        return buttonChosen[0];
     }
 }

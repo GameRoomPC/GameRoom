@@ -10,7 +10,7 @@ import data.http.key.KeyChecker;
 import org.json.JSONArray;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
-import ui.control.specific.GeneralToast;
+import ui.GeneralToast;
 import ui.dialog.GameRoomAlert;
 import ui.scene.GameEditScene;
 

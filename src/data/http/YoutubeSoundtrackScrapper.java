@@ -5,7 +5,7 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.GameEntry;
 import ui.Main;
-import ui.control.specific.GeneralToast;
+import ui.GeneralToast;
 import ui.scene.BaseScene;
 
 import java.io.BufferedReader;
@@ -20,7 +20,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static ui.Main.DEV_MODE;
-import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 07/08/2016.

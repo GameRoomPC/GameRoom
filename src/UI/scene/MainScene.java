@@ -40,7 +40,6 @@ import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
-import ui.control.specific.GeneralToast;
 import ui.control.specific.ScanButton;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ChoiceDialog;
@@ -187,11 +186,8 @@ public class MainScene extends BaseScene {
     private void displayWelcomeMessage() {
         if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
             Platform.runLater(() -> {
-                GameRoomAlert welcomeAlert = new GameRoomAlert(Alert.AlertType.INFORMATION, Main.getString("Welcome_message"));
-                welcomeAlert.showAndWait();
-
-                GameRoomAlert configureScannersAlert = new GameRoomAlert(Alert.AlertType.INFORMATION, Main.getString("configure_scanner_messages"));
-                configureScannersAlert.showAndWait();
+                GameRoomAlert.info(Main.getString("Welcome_message"));
+                GameRoomAlert.info(Main.getString("configure_scanner_messages"));
 
                 GameScannerSelector selector = new GameScannerSelector();
                 Optional<ButtonType> ignoredOptionnal = selector.showAndWait();

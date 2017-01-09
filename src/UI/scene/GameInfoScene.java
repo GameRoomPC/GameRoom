@@ -21,7 +21,7 @@ import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.InfoGameButton;
-import ui.control.specific.GeneralToast;
+import ui.GeneralToast;
 import ui.control.specific.YoutubePlayerAndButton;
 import ui.dialog.GameRoomAlert;
 

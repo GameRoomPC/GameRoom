@@ -32,7 +32,7 @@ import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
-import ui.control.specific.GeneralToast;
+import ui.GeneralToast;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.selector.AppSelectorDialog;
 import ui.scene.BaseScene;
@@ -375,7 +375,7 @@ public abstract class GameButton extends BorderPane {
                         });
 
                     }catch (IllegalArgumentException e){
-                        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR,Main.getString("invalid_path_not_file"));
+                        GameRoomAlert.error(Main.getString("invalid_path_not_file"));
                     }
                 } else {
                     setFocused(false);

@@ -1,17 +1,13 @@
-package ui.control.specific;
+package ui;
 
 import javafx.scene.control.Tooltip;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import system.application.settings.PredefinedSetting;
-import ui.Main;
-import ui.scene.BaseScene;
-import ui.theme.ThemeUtils;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 05/01/2017.

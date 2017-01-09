@@ -4,11 +4,10 @@ import data.game.entry.GameEntry;
 import data.game.scraper.SteamLocalScraper;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import system.os.Terminal;
 import ui.Main;
-import ui.control.specific.GeneralToast;
+import ui.GeneralToast;
 import ui.dialog.GameRoomAlert;
 
 import java.io.*;
@@ -27,6 +26,8 @@ import static ui.Main.MAIN_SCENE;
  */
 public class Monitor {
     private static String TIME_TAG = "$$time$$";
+
+    private final static long MONITOR_AGAIN = -1;
 
     private static int MONITOR_REFRESH = 1000;
     private static final int MIN_MONITOR_TIME = 20000;
@@ -99,14 +100,14 @@ public class Monitor {
         while (isProcessRunning()) {
             long startTimeRec = System.currentTimeMillis();
 
-            timer+=MONITOR_REFRESH;
+            timer += MONITOR_REFRESH;
             long result = computeTrueRunningTime();
             gameStarter.getGameEntry().setSavedLocaly(true);
             gameStarter.getGameEntry().setPlayTimeSeconds(originalPlayTime + Math.round(result / 1000.0));
             gameStarter.getGameEntry().setSavedLocaly(false);
 
             try {
-                Thread.sleep(MONITOR_REFRESH-(System.currentTimeMillis() - startTimeRec));
+                Thread.sleep(MONITOR_REFRESH - (System.currentTimeMillis() - startTimeRec));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -120,20 +121,19 @@ public class Monitor {
             final FutureTask<Long> query = new FutureTask(new Callable() {
                 @Override
                 public Long call() throws Exception {
-                    GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION, gameStarter.getGameEntry().getName() + " "
+                    ButtonType buttonResult = GameRoomAlert.confirmation(gameStarter.getGameEntry().getName() + " "
                             + Main.getString("monitor_wait_dialog_1") + " "
                             + GameEntry.getPlayTimeFormatted(Math.round(result / 1000.0), GameEntry.TIME_FORMAT_ROUNDED_HMS)
                             + Main.getString("monitor_wait_dialog_2"));
 
-                    Optional<ButtonType> dialogResult = alert.showAndWait();
-                    if (dialogResult.get() == ButtonType.OK) {
+                    if (buttonResult.getButtonData().isDefaultButton()) {
                         if (MAIN_SCENE != null) {
                             GeneralToast.displayToast(Main.getString("waiting_until")
                                     + gameStarter.getGameEntry().getName()
                                     + Main.getString("restarts"), MAIN_SCENE.getParentStage());
                         }
-                        Main.LOGGER.info(gameStarter.getGameEntry().getProcessName() + " : waiting for until next launch to count playtime.");
-                        return new Long(-1);
+                        Main.LOGGER.info(gameStarter.getGameEntry().getProcessName() + " : waiting until next launch to count playtime.");
+                        return MONITOR_AGAIN;
                     }
                     gameStarter.onStop();
 
@@ -143,7 +143,8 @@ public class Monitor {
             Platform.runLater(query);
 
             try {
-                if (query.get().equals(new Long(-1))) {
+                long queryResult = query.get();
+                if (queryResult == MONITOR_AGAIN) {
                     //we wait for next game launch
                     FutureTask<Long> monitor = new Task() {
                         @Override
@@ -157,11 +158,9 @@ public class Monitor {
                     th.start();
                     return monitor.get();
                 } else {
-                    return query.get();
+                    return queryResult;
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
                 return result;
             }
@@ -169,7 +168,6 @@ public class Monitor {
             gameStarter.onStop();
             return result;
         }
-        return result;
     }
 
     private long computeTrueRunningTime() throws IOException {
@@ -252,7 +250,7 @@ public class Monitor {
         errors.close();
 
 
-        if(isSteamGame()){
+        if (isSteamGame()) {
             result = timer;
         }
 
@@ -261,7 +259,7 @@ public class Monitor {
 
     private Date computeCreationDate() throws IOException {
         if (isSteamGame()) {
-            if(SteamLocalScraper.isSteamGameRunning(gameStarter.getGameEntry().getSteam_id())){
+            if (SteamLocalScraper.isSteamGameRunning(gameStarter.getGameEntry().getSteam_id())) {
                 return new Date();
             }
             return null;
@@ -318,7 +316,7 @@ public class Monitor {
         return found;
     }
 
-    private boolean isSteamGame(){
+    private boolean isSteamGame() {
         return gameStarter.getGameEntry().isSteamGame();
     }
 

@@ -22,7 +22,7 @@ import system.application.settings.PredefinedSetting;
 import system.device.ControllerButtonListener;
 import system.device.XboxController;
 import ui.Main;
-import ui.control.specific.GeneralToast;
+import ui.GeneralToast;
 import ui.dialog.ConsoleOutputDialog;
 import ui.scene.BaseScene;
 import ui.scene.MainScene;

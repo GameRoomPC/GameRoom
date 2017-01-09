@@ -41,7 +41,7 @@ public class ActivationKeyDialogTest extends Application {
         launchButton.setOnAction(e -> {
                     Optional<ButtonType> result = dialog.showAndWait();
                     result.ifPresent(letter -> {
-                        if(letter.getText().contains(Main.getString("supporter_key_buy_one"))){
+                        if(letter.getText().contains(Main.getString("buy"))){
                             try {
                                 Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/key"));
                             } catch (IOException e1) {

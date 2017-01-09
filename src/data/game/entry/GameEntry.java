@@ -766,8 +766,7 @@ public class GameEntry {
         try {
             new GameStarter(this).start();
         }catch (IOException ioe){
-            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR ,ioe.getMessage());
-            alert.showAndWait();
+            GameRoomAlert.error(ioe.getMessage());
         }
     }
 

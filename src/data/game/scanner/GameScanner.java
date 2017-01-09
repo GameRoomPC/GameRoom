@@ -4,9 +4,7 @@ import data.game.GameWatcher;
 import data.game.entry.GameEntry;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
-import ui.control.specific.GeneralToast;
-
-import java.util.ArrayList;
+import ui.GeneralToast;
 
 import static ui.Main.MAIN_SCENE;
 

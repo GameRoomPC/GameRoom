@@ -97,8 +97,7 @@ public class PathTextField extends StackPane {
 
                 } catch (NullPointerException ne) {
                     ne.printStackTrace();
-                    GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING, Main.getString("warning_internet_shortcut"));
-                    alert.showAndWait();
+                    GameRoomAlert.warning(Main.getString("warning_internet_shortcut"));
                 }
             }
         });

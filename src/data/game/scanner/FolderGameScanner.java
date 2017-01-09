@@ -6,7 +6,7 @@ import data.game.entry.GameEntry;
 import data.game.scraper.SteamLocalScraper;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
-import ui.control.specific.GeneralToast;
+import ui.GeneralToast;
 
 import java.io.File;
 import java.util.*;

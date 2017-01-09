@@ -6,14 +6,19 @@ import data.game.scraper.SteamOnlineScraper;
 import data.http.key.KeyChecker;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
-import ui.control.specific.GeneralToast;
+import ui.GeneralToast;
 import ui.dialog.GameRoomAlert;
 
+import java.awt.*;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static ui.Main.*;
@@ -26,6 +31,7 @@ public class SupportService {
     private final static long RUN_FREQ = TimeUnit.MINUTES.toMillis(DEV_MODE ? 2 : 15);
     private final static long DISPLAY_FREQUENCY = TimeUnit.DAYS.toMillis(30);
     private Thread thread;
+    private static volatile boolean DISPLAYING_SUPPORT_ALERT = false;
 
     private SupportService(){
         thread = new Thread(() ->{
@@ -41,6 +47,7 @@ public class SupportService {
                     } catch (InterruptedException ignored) {
                     }
                 }
+                Platform.runLater(() -> displaySupportAlert());
             }
         });
         thread.setPriority(Thread.MIN_PRIORITY);
@@ -89,9 +96,26 @@ public class SupportService {
     }
 
     private static void displaySupportAlert(){
-        //TODO display a real alert
-        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION,"Support us");
-        alert.showAndWait();
+        if(DISPLAYING_SUPPORT_ALERT){
+            return;
+        }
+        DISPLAYING_SUPPORT_ALERT = true;
+
+        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION
+                , Main.getString("support_alert_message"));
+        alert.getButtonTypes().add(new ButtonType(Main.getString("buy")));
+        Optional<ButtonType> result = alert.showAndWait();
+        result.ifPresent(letter -> {
+            if(letter.getText().equals(Main.getString("buy"))) {
+                try {
+                    Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/key"));
+                } catch (IOException | URISyntaxException e1) {
+                    LOGGER.error(e1.getMessage());
+                    GameRoomAlert.error(Main.getString("error")+" "+e1.getMessage());
+                }
+            }
+        });
+        DISPLAYING_SUPPORT_ALERT = false;
     }
 
     private void scanSteamGamesTime() {

@@ -10,7 +10,7 @@ import system.application.settings.PredefinedSetting;
 import system.os.PowerMode;
 import system.os.Terminal;
 import ui.Main;
-import ui.control.specific.GeneralToast;
+import ui.GeneralToast;
 
 import java.awt.*;
 import java.io.File;

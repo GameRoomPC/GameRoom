@@ -30,8 +30,7 @@ public class AppPathField extends PathTextField {
         searchButton.setOnAction(event -> {
             File file = new File(getTextField().getText());
             if (!file.exists()) {
-                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, Main.getString("invalid_gamesFolder_exist"));
-                alert.showAndWait();
+                GameRoomAlert.error(Main.getString("invalid_gamesFolder_exist"));
             } else if (file.isDirectory()) {
                 try {
                     AppSelectorDialog selector = new AppSelectorDialog(file);
@@ -43,12 +42,10 @@ public class AppPathField extends PathTextField {
                         }
                     });
                 } catch (IllegalArgumentException e) {
-                    GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING, Main.getString("invalid_gamesFolder_is_no_folder"));
-                    alert.showAndWait();
+                    GameRoomAlert.warning(Main.getString("invalid_gamesFolder_is_no_folder"));
                 }
             } else {
-                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING, Main.getString("invalid_gamesFolder_is_no_folder"));
-                alert.showAndWait();
+                GameRoomAlert.warning(Main.getString("invalid_gamesFolder_is_no_folder"));
             }
         });
     }

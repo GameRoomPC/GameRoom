@@ -43,7 +43,7 @@ import ui.Main;
 import ui.control.ValidEntryCondition;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
-import ui.control.specific.GeneralToast;
+import ui.GeneralToast;
 import ui.control.textfield.AppPathField;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
@@ -176,8 +176,7 @@ public class GameEditScene extends BaseScene {
                     allConditionsMet = allConditionsMet && conditionValid;
                     if (!conditionValid) {
                         condition.onInvalid();
-                        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, condition.message.toString());
-                        alert.showAndWait();
+                        GameRoomAlert.error(condition.message.toString());
                     }
                 }
                 if (allConditionsMet) {
@@ -547,8 +546,7 @@ public class GameEditScene extends BaseScene {
                                                          openImageSelector(gameEntry);
                                                      } catch (JSONException jse) {
                                                          if (jse.toString().contains("[\"screenshots\"] not found")) {
-                                                             GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, Main.getString("no_screenshot_for_this_game"));
-                                                             alert.showAndWait();
+                                                             GameRoomAlert.error(Main.getString("no_screenshot_for_this_game"));
                                                          } else {
                                                              jse.printStackTrace();
                                                          }

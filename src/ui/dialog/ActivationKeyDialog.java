@@ -31,7 +31,7 @@ public class ActivationKeyDialog extends GameRoomDialog{
         initTopPane();
         mainPane.setCenter(keyField);
 
-        ButtonType buyButton = new ButtonType(ui.Main.getString("supporter_key_buy_one")+"!", ButtonBar.ButtonData.LEFT);
+        ButtonType buyButton = new ButtonType(ui.Main.getString("buy")+"!", ButtonBar.ButtonData.LEFT);
         ButtonType cancelButton = new ButtonType(ui.Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType activateButton = new ButtonType(Main.getString("activate"), ButtonBar.ButtonData.OK_DONE);
 
@@ -39,7 +39,7 @@ public class ActivationKeyDialog extends GameRoomDialog{
     }
 
     private void initTopPane() {
-        Label infoLabel = new Label(Main.getString("supporter_key_infos"));
+        Label infoLabel = new Label(Main.getString("input_here_supporter_key")+" "+Main.getString("supporter_key_infos"));
         infoLabel.setWrapText(true);
         BorderPane.setMargin(infoLabel, new Insets(20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 

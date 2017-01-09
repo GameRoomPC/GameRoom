@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
 
@@ -51,6 +53,11 @@ public class Main {
     private static ResourceBundle SETTINGS_BUNDLE;
     public static ResourceBundle GAME_GENRES_BUNDLE;
     public static ResourceBundle GAME_THEMES_BUNDLE;
+
+    public final static char MANUAL_TAG_CHAR = '$';
+    private final static char AUTO_TAG_CHAR = '%';
+    private final static Pattern AUTO_TAG_PATTERN = Pattern.compile("\\"+ AUTO_TAG_CHAR +"(.*)\\"+ AUTO_TAG_CHAR);
+    private final static String NO_STRING = "\'no_string\'";
 
     public static GeneralSettings GENERAL_SETTINGS;
 
@@ -237,14 +244,25 @@ public class Main {
     }
 
     public static String getString(String key){
+        String result = NO_STRING;
         if(RESSOURCE_BUNDLE == null){
-            return "no_string";
+            return result;
         }
         try{
-            return RESSOURCE_BUNDLE.getString(key);
+            result = RESSOURCE_BUNDLE.getString(key);
+            Matcher tagMatcher = AUTO_TAG_PATTERN.matcher(result);
+
+            while(tagMatcher.find()){
+                String otherKey = tagMatcher.group(1);
+                String otherString = Main.getString(otherKey);
+                if(!otherString.equals(NO_STRING)){
+                    result = result.replace(AUTO_TAG_CHAR + otherKey + AUTO_TAG_CHAR, otherString);
+                }
+            }
+            return result;
 
         }catch (MissingResourceException e){
-            return "no_string";
+            return result;
         }
     }
 

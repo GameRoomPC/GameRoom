@@ -8,7 +8,7 @@ import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.AddIgnoreGameButton;
 import ui.control.button.gamebutton.GameButton;
-import ui.control.specific.GeneralToast;
+import ui.GeneralToast;
 import ui.dialog.ChoiceDialog;
 import ui.scene.GameEditScene;
 import ui.scene.MainScene;

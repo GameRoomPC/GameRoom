@@ -322,9 +322,7 @@ public class SettingsScene extends BaseScene {
         Label shortcutsLabel = new Label(Main.getString("shortcuts_label"));
         Button shortcutButton = new Button(Main.getString("see"));
         shortcutButton.setOnAction(event -> {
-            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION
-                    , Main.getString("shortcuts_content"));
-            alert.showAndWait();
+            GameRoomAlert.info(Main.getString("shortcuts_content"));
         });
 
         flowPaneHashMap.get(SettingValue.CATEGORY_GENERAL).getChildren().add(createLine(shortcutsLabel, shortcutButton));
@@ -690,8 +688,7 @@ public class SettingsScene extends BaseScene {
                                 displayRestartDialog();
                                 Main.restart(getParentStage(), "ApplyingTheme");
                             } catch (IOException | ZipException e) {
-                                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, Main.getString("error_applying_theme"));
-                                alert.showAndWait();
+                                GameRoomAlert.error(Main.getString("error_applying_theme"));
                             }
                         }
                     }
@@ -780,8 +777,7 @@ public class SettingsScene extends BaseScene {
                 allConditionsMet = allConditionsMet && condition.isValid();
                 if (!condition.isValid()) {
                     condition.onInvalid();
-                    GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.ERROR, condition.message.toString());
-                    alert.showAndWait();
+                    GameRoomAlert.error(condition.message.toString());
                 }
             }
             if (allConditionsMet) {
@@ -879,7 +875,7 @@ public class SettingsScene extends BaseScene {
 
         Optional<ButtonType> result = dialog.showAndWait();
         result.ifPresent(letter -> {
-            if (letter.getText().contains(Main.getString("supporter_key_buy_one"))) {
+            if (letter.getText().contains(Main.getString("buy"))) {
                 try {
                     Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/key"));
                 } catch (IOException | URISyntaxException e1) {
@@ -892,8 +888,7 @@ public class SettingsScene extends BaseScene {
 
                     switch (response.getString(KeyChecker.FIELD_RESULT)) {
                         case KeyChecker.RESULT_SUCCESS:
-                            GameRoomAlert successDialog = new GameRoomAlert(Alert.AlertType.INFORMATION, message);
-                            successDialog.showAndWait();
+                            GameRoomAlert.info(message);
 
                             GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SUPPORTER_KEY, dialog.getSupporterKey());
                             SUPPORTER_MODE = KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY));
@@ -909,8 +904,7 @@ public class SettingsScene extends BaseScene {
 
                             break;
                         case KeyChecker.RESULT_ERROR:
-                            GameRoomAlert errorDialog = new GameRoomAlert(Alert.AlertType.ERROR, message);
-                            errorDialog.showAndWait();
+                            GameRoomAlert.error(message);
                             break;
                         default:
                             break;
