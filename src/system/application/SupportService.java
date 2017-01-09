@@ -35,6 +35,7 @@ public class SupportService {
         thread = new Thread(() ->{
             while(Main.KEEP_THREADS_RUNNING){
                 long start = System.currentTimeMillis();
+
                 checkAndDisplaySupportAlert();
                 scanSteamGamesTime();
 
@@ -45,7 +46,6 @@ public class SupportService {
                     } catch (InterruptedException ignored) {
                     }
                 }
-                Platform.runLater(() -> displaySupportAlert());
             }
         });
         thread.setPriority(Thread.MIN_PRIORITY);

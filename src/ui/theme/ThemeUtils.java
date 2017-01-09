@@ -62,10 +62,15 @@ public class ThemeUtils {
         INSTALLED_THEMES.clear();
         INSTALLED_THEMES.add(Theme.DEFAULT_THEME);
         File themeFolder = Main.FILES_MAP.get("themes");
-        for(File file : themeFolder.listFiles()){
-            Theme tempTheme = new Theme(file.getName());
-            if(tempTheme.isValid()){
-                INSTALLED_THEMES.add(tempTheme);
+        File[] children = themeFolder.listFiles();
+        if(children!=null){
+            for(File file : children){
+                if(!file.isDirectory() && file.getName().toLowerCase().contains(".zip")){
+                    Theme tempTheme = new Theme(file.getName());
+                    if(tempTheme.isValid()){
+                        INSTALLED_THEMES.add(tempTheme);
+                    }
+                }
             }
         }
         return INSTALLED_THEMES;
