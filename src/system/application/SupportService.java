@@ -16,16 +16,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.LOGGER;
-import static ui.Main.MAIN_SCENE;
+import static ui.Main.*;
 
 /**
  * Created by LM on 07/01/2017.
  */
 public class SupportService {
     private static SupportService INSTANCE;
-    private final static long RUN_FREQ = TimeUnit.MINUTES.toMillis(2);
+    private final static long RUN_FREQ = TimeUnit.MINUTES.toMillis(DEV_MODE ? 2 : 15);
     private final static long DISPLAY_FREQUENCY = TimeUnit.DAYS.toMillis(30);
     private Thread thread;
 

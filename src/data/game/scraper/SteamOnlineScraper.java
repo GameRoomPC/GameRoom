@@ -68,8 +68,11 @@ public class SteamOnlineScraper {
         ArrayList<GameEntry> entries = new ArrayList<>();
         scanOwnedSteamGames(entry -> {
             try {
+                long playTime = entry.getPlayTimeSeconds();
                 entry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
                 if(entry!=null){
+                    entry.setPlayTimeSeconds(playTime);
+                    LOGGER.debug("Play time of "+entry.getName()+" : "+entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
                     entries.add(entry);
                 }
             } catch (ConnectTimeoutException | UnirestException ignored) {
