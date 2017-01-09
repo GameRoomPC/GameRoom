@@ -31,7 +31,7 @@ public class ActivationKeyDialog extends GameRoomDialog{
         initTopPane();
         mainPane.setCenter(keyField);
 
-        ButtonType buyButton = new ButtonType(ui.Main.getString("buy")+"!", ButtonBar.ButtonData.LEFT);
+        ButtonType buyButton = new ButtonType(ui.Main.getString("more_infos")+"!", ButtonBar.ButtonData.LEFT);
         ButtonType cancelButton = new ButtonType(ui.Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType activateButton = new ButtonType(Main.getString("activate"), ButtonBar.ButtonData.OK_DONE);
 

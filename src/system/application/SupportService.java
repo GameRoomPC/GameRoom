@@ -11,11 +11,9 @@ import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.GeneralToast;
 import ui.dialog.GameRoomAlert;
+import ui.dialog.WebBrowser;
 
-import java.awt.*;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
@@ -103,16 +101,11 @@ public class SupportService {
 
         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION
                 , Main.getString("support_alert_message"));
-        alert.getButtonTypes().add(new ButtonType(Main.getString("buy")));
+        alert.getButtonTypes().add(new ButtonType(Main.getString("more_infos")));
         Optional<ButtonType> result = alert.showAndWait();
         result.ifPresent(letter -> {
-            if(letter.getText().equals(Main.getString("buy"))) {
-                try {
-                    Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/key"));
-                } catch (IOException | URISyntaxException e1) {
-                    LOGGER.error(e1.getMessage());
-                    GameRoomAlert.error(Main.getString("error")+" "+e1.getMessage());
-                }
+            if(letter.getText().equals(Main.getString("more_infos"))) {
+                WebBrowser.openSupporterKeyBuyBrowser();
             }
         });
         DISPLAYING_SUPPORT_ALERT = false;

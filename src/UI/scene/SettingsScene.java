@@ -34,6 +34,7 @@ import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ActivationKeyDialog;
 import ui.dialog.GameRoomAlert;
+import ui.dialog.WebBrowser;
 import ui.dialog.selector.GameFoldersIgnoredSelector;
 import ui.dialog.selector.GameScannerSelector;
 import ui.dialog.selector.SteamIgnoredSelector;
@@ -44,8 +45,6 @@ import ui.theme.UIScale;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
 
 import static ui.Main.*;
@@ -73,11 +72,11 @@ public class SettingsScene extends BaseScene {
 
     private void initBottom() {
         //Removed as there is no need to display it if paying IGDB
-        /*Label igdbLabel = new Label(RESSOURCE_BUNDLE.getString("credit_igdb"));
+        Label igdbLabel = new Label(Main.getString("credit_igdb"));
         wrappingPane.setBottom(igdbLabel);
 
         BorderPane.setAlignment(igdbLabel, Pos.CENTER_RIGHT);
-        BorderPane.setMargin(igdbLabel, new Insets(15, 15, 15, 15));*/
+        BorderPane.setMargin(igdbLabel, new Insets(15, 15, 15, 15));
     }
 
     private void initCenter() {
@@ -875,12 +874,8 @@ public class SettingsScene extends BaseScene {
 
         Optional<ButtonType> result = dialog.showAndWait();
         result.ifPresent(letter -> {
-            if (letter.getText().contains(Main.getString("buy"))) {
-                try {
-                    Desktop.getDesktop().browse(new URI("https://gameroom.me/downloads/key"));
-                } catch (IOException | URISyntaxException e1) {
-                    e1.printStackTrace();
-                }
+            if (letter.getText().contains(Main.getString("more_infos"))) {
+                WebBrowser.openSupporterKeyBuyBrowser();
             } else if (letter.getText().equals(Main.getString("activate"))) {
                 try {
                     JSONObject response = KeyChecker.activateKey(dialog.getSupporterKey());
