@@ -84,8 +84,7 @@ public class FolderGameScanner extends GameScanner {
                     }
                     try {
                         Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    } catch (InterruptedException ignored) {
                     }
                 }
             }
@@ -128,8 +127,7 @@ public class FolderGameScanner extends GameScanner {
     public static boolean isPotentiallyAGame(File file) {
         try {
             Thread.sleep(50);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (InterruptedException ignored) {
         }
         if(!file.exists()){
             return false;

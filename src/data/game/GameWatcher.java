@@ -144,7 +144,7 @@ public class GameWatcher {
             awaitingStart = true;
             serviceThread.interrupt();
         }
-        if (serviceThread.getState().equals(Thread.State.RUNNABLE) || serviceThread.getState().equals(Thread.State.NEW)) {
+        if (serviceThread.getState().equals(Thread.State.NEW)) {
             serviceThread.start();
         }
     }
@@ -239,8 +239,7 @@ public class GameWatcher {
                     }
                     try {
                         Thread.sleep(2 * 100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    } catch (InterruptedException ignored) {
                     }
                 }
             }
@@ -336,8 +335,7 @@ public class GameWatcher {
 
                     try {
                         Thread.sleep(2 * 100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    } catch (InterruptedException ignored) {
                     }
                 }
             } catch (UnirestException | IOException e) {

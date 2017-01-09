@@ -118,8 +118,7 @@ public class LauncherGameScraper {
                     }
                     try {
                         Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    } catch (InterruptedException ignored) {
                     }
                 }
             }
@@ -288,8 +287,7 @@ public class LauncherGameScraper {
                         }
                         try {
                             Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                        } catch (InterruptedException ignored) {
                         }
                     }
                 }

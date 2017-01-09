@@ -82,8 +82,7 @@ public class SteamOnlineScraper {
     public static GameEntry getEntryForSteamId(int steamId) throws ConnectTimeoutException, UnirestException {
         try {
             Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (InterruptedException ignored) {
         }
         JSONObject gameInfoJson = askGameInfos(steamId);
         if (gameInfoJson != null && (gameInfoJson.getString("type").equals("game") || gameInfoJson.getString("type").equals("demo"))) {
