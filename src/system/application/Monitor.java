@@ -19,6 +19,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
+import static ui.Main.KEEP_THREADS_RUNNING;
 import static ui.Main.MAIN_SCENE;
 
 /**
@@ -51,7 +52,7 @@ public class Monitor {
         if (!isSteamGame()) {
             DATE_FORMAT.setTimeZone(Calendar.getInstance().getTimeZone());
 
-            vbsWatcher = File.createTempFile(gameStarter.getGameEntry().getProcessName() + "_watcher", ".vbs");
+            vbsWatcher = File.createTempFile(getGameEntry().getProcessName() + "_watcher", ".vbs");
             vbsWatcher.deleteOnExit();
             FileWriter fw = new java.io.FileWriter(vbsWatcher);
 
@@ -59,7 +60,7 @@ public class Monitor {
                     + "Set locator = CreateObject(\"WbemScripting.SWbemLocator\")\n"
                     + "Set service = locator.ConnectServer()\n"
                     + "Set processes = service.ExecQuery _\n"
-                    + " (\"select * from Win32_Process where name='" + gameStarter.getGameEntry().getProcessName() + "'\")\n"
+                    + " (\"select * from Win32_Process where name='" + getGameEntry().getProcessName() + "'\")\n"
                     + "For Each process in processes\n"
                     + "wscript.echo process.Name \n"
                     + "wscript.echo \"" + TIME_TAG + "\" & process.CreationDate \n"
@@ -74,14 +75,14 @@ public class Monitor {
     }
 
     public long start(Date initialDate) throws IOException {
-        if (isSteamGame() && !SteamLocalScraper.isSteamGameInstalled(gameStarter.getGameEntry().getSteam_id())) {
+        if (isSteamGame() && !SteamLocalScraper.isSteamGameInstalled(getGameEntry().getSteam_id())) {
             return 0;
         }
         timer = 0;
 
-        long originalPlayTime = gameStarter.getGameEntry().getPlayTimeSeconds();
+        long originalPlayTime = getGameEntry().getPlayTimeSeconds();
 
-        while (creationDate == null || creationDate.equals(initialDate)) {
+        while ((creationDate == null || creationDate.equals(initialDate)) && KEEP_THREADS_RUNNING) {
             creationDate = computeCreationDate();
             try {
                 Thread.sleep(MONITOR_REFRESH);
@@ -89,22 +90,25 @@ public class Monitor {
                 e.printStackTrace();
             }
         }
-        Main.LOGGER.info("Monitoring " + gameStarter.getGameEntry().getProcessName());
+        if(!KEEP_THREADS_RUNNING){
+            return 0;
+        }
+        Main.LOGGER.info("Monitoring " + getGameEntry().getProcessName());
         if (awaitingRestart) {
             awaitingRestart = false;
             if (MAIN_SCENE != null) {
-                GeneralToast.displayToast(gameStarter.getGameEntry().getName()
+                GeneralToast.displayToast(getGameEntry().getName()
                         + Main.getString("restarted"), MAIN_SCENE.getParentStage());
             }
         }
-        while (isProcessRunning()) {
+        while (isProcessRunning() && KEEP_THREADS_RUNNING) {
             long startTimeRec = System.currentTimeMillis();
 
             timer += MONITOR_REFRESH;
             long result = computeTrueRunningTime();
-            gameStarter.getGameEntry().setSavedLocaly(true);
-            gameStarter.getGameEntry().setPlayTimeSeconds(originalPlayTime + Math.round(result / 1000.0));
-            gameStarter.getGameEntry().setSavedLocaly(false);
+            getGameEntry().setSavedLocaly(true);
+            getGameEntry().setPlayTimeSeconds(originalPlayTime + Math.round(result / 1000.0));
+            getGameEntry().setSavedLocaly(false);
 
             try {
                 Thread.sleep(MONITOR_REFRESH - (System.currentTimeMillis() - startTimeRec));
@@ -112,27 +116,28 @@ public class Monitor {
                 e.printStackTrace();
             }
         }
-        Main.LOGGER.info(gameStarter.getGameEntry().getProcessName() + " killed");
+        if(!KEEP_THREADS_RUNNING){
+            return 0;
+        }
+        Main.LOGGER.info(getGameEntry().getProcessName() + " killed");
 
         long result = computeTrueRunningTime();
         Main.LOGGER.debug("\tComputed playtime : " + GameEntry.getPlayTimeFormatted(Math.round(result / 1000), GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
 
         if (result < MIN_MONITOR_TIME) {
+            String time = GameEntry.getPlayTimeFormatted(Math.round(result / 1000.0), GameEntry.TIME_FORMAT_ROUNDED_HMS);
+            String text  = Main.getString("monitor_wait_dialog",getGameEntry().getName(),time);
             final FutureTask<Long> query = new FutureTask(new Callable() {
                 @Override
                 public Long call() throws Exception {
-                    ButtonType buttonResult = GameRoomAlert.confirmation(gameStarter.getGameEntry().getName() + " "
-                            + Main.getString("monitor_wait_dialog_1") + " "
-                            + GameEntry.getPlayTimeFormatted(Math.round(result / 1000.0), GameEntry.TIME_FORMAT_ROUNDED_HMS)
-                            + Main.getString("monitor_wait_dialog_2"));
-
+                    ButtonType buttonResult = GameRoomAlert.confirmation(text);
                     if (buttonResult.getButtonData().isDefaultButton()) {
                         if (MAIN_SCENE != null) {
                             GeneralToast.displayToast(Main.getString("waiting_until")
-                                    + gameStarter.getGameEntry().getName()
+                                    + getGameEntry().getName()
                                     + Main.getString("restarts"), MAIN_SCENE.getParentStage());
                         }
-                        Main.LOGGER.info(gameStarter.getGameEntry().getProcessName() + " : waiting until next launch to count playtime.");
+                        Main.LOGGER.info(getGameEntry().getProcessName() + " : waiting until next launch to count playtime.");
                         return MONITOR_AGAIN;
                     }
                     gameStarter.onStop();
@@ -173,7 +178,7 @@ public class Monitor {
     private long computeTrueRunningTime() throws IOException {
         long currentTime = System.currentTimeMillis();
 
-        while (creationDate == null) {
+        while (creationDate == null && KEEP_THREADS_RUNNING) {
             creationDate = computeCreationDate();
             try {
                 Thread.sleep(MONITOR_REFRESH);
@@ -250,7 +255,7 @@ public class Monitor {
         errors.close();
 
 
-        if (isSteamGame()) {
+        if (isSteamGame() ||!KEEP_THREADS_RUNNING) {
             result = timer;
         }
 
@@ -259,7 +264,7 @@ public class Monitor {
 
     private Date computeCreationDate() throws IOException {
         if (isSteamGame()) {
-            if (SteamLocalScraper.isSteamGameRunning(gameStarter.getGameEntry().getSteam_id())) {
+            if (SteamLocalScraper.isSteamGameRunning(getGameEntry().getSteam_id())) {
                 return new Date();
             }
             return null;
@@ -288,9 +293,9 @@ public class Monitor {
 
     private boolean isProcessRunning() throws IOException {
         if (isSteamGame()) {
-            return SteamLocalScraper.isSteamGameRunning(gameStarter.getGameEntry().getSteam_id());
+            return SteamLocalScraper.isSteamGameRunning(getGameEntry().getSteam_id());
         } else {
-            return isProcessRunning(gameStarter.getGameEntry().getProcessName());
+            return isProcessRunning(getGameEntry().getProcessName());
         }
     }
 
@@ -317,7 +322,7 @@ public class Monitor {
     }
 
     private boolean isSteamGame() {
-        return gameStarter.getGameEntry().isSteamGame();
+        return getGameEntry().isSteamGame();
     }
 
     public static class StandbyInterval {
@@ -332,5 +337,9 @@ public class Monitor {
         public long getStandbyTime() {
             return endDate.getTime() - startDate.getTime();
         }
+    }
+
+    private GameEntry getGameEntry(){
+        return gameStarter.getGameEntry();
     }
 }

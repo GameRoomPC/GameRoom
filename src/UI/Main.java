@@ -54,7 +54,7 @@ public class Main {
     public static ResourceBundle GAME_GENRES_BUNDLE;
     public static ResourceBundle GAME_THEMES_BUNDLE;
 
-    public final static char MANUAL_TAG_CHAR = '$';
+    private final static String MANUAL_TAG= "\\$string\\$";
     private final static char AUTO_TAG_CHAR = '%';
     private final static Pattern AUTO_TAG_PATTERN = Pattern.compile("\\"+ AUTO_TAG_CHAR +"(.*)\\"+ AUTO_TAG_CHAR);
     private final static String NO_STRING = "\'no_string\'";
@@ -243,7 +243,7 @@ public class Main {
         }
     }
 
-    public static String getString(String key){
+    public static String getString(String key, String... manuals){
         String result = NO_STRING;
         if(RESSOURCE_BUNDLE == null){
             return result;
@@ -259,6 +259,10 @@ public class Main {
                     result = result.replace(AUTO_TAG_CHAR + otherKey + AUTO_TAG_CHAR, otherString);
                 }
             }
+            for(String s : manuals){
+                result = result.replaceFirst(MANUAL_TAG,s);
+            }
+
             return result;
 
         }catch (MissingResourceException e){
