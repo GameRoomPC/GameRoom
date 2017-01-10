@@ -145,6 +145,7 @@ public abstract class GameButton extends BorderPane {
         Thread setCoverThread = new Thread(coverTask);
         setCoverThread.setDaemon(true);
         setCoverThread.start();
+        initNotInstalled();
     }
     private void setLauncherLogo(){
         double width = 18*Main.SCREEN_WIDTH/1920;
@@ -583,7 +584,7 @@ public abstract class GameButton extends BorderPane {
         notInstalledImage.setPreserveRatio(true);
         coverPane.getChildren().add(notInstalledImage);
         StackPane.setAlignment(notInstalledImage, Pos.TOP_RIGHT);
-        setNotInstalledEffect();
+        initNotInstalled();
         setCache(true);
     }
 
@@ -664,17 +665,8 @@ public abstract class GameButton extends BorderPane {
 
     protected abstract void onNewTileHeight(double height);
 
-    private void setNotInstalledEffect(){
+    private void initNotInstalled(){
         if (getEntry().isNotInstalled()){
-            /*GaussianBlur blur = new GaussianBlur(0.6);
-            blur.setRadius(4);
-            blur.setInput(coverView.getEffect());
-
-            ColorAdjust coverColorAdjust = new ColorAdjust();
-            coverColorAdjust.setBrightness(-0.8);
-            coverColorAdjust.setSaturation(-0.5);
-            coverColorAdjust.setInput(blur);
-            coverColorAdjust.setContrast(-0.3);*/
 
             //Image addImage = new Image("res/ui/toDownloadIcon.png");
             notInstalledImage.setId("tile-todownload-overlay");

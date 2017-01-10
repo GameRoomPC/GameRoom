@@ -192,6 +192,10 @@ public class FolderGameScanner extends GameScanner {
                     entry.setSteam_id(foundEntry.getSteam_id());
                     needRefresh = true;
                 }
+                if(entry.isNotInstalled() != foundEntry.isNotInstalled()){
+                    entry.setNotInstalled(foundEntry.isNotInstalled());
+                    needRefresh = true;
+                }
                 if (!entry.isBattlenetGame() && foundEntry.isBattlenetGame()) {
                     entry.setBattlenet_id(foundEntry.getBattlenet_id());
                     needRefresh = true;
