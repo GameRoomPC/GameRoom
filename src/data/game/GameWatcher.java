@@ -447,6 +447,7 @@ public class GameWatcher {
             foundEntry.setAddedDate(new Date());
             foundEntry.setToAdd(true);
             foundEntry.setSavedLocaly(true);
+            foundEntry.setName(cleanName(foundEntry.getName()));
 
             Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
             entriesToAdd.add(foundEntry);
@@ -455,16 +456,27 @@ public class GameWatcher {
         return null;
     }
 
-    public static String formatNameForCompareason(String name) {
-        return name.toLowerCase().trim()
+    public static String formatNameForComparison(String name) {
+        return cleanName(name).toLowerCase()
                 .replace(":", "")
                 .replace("-", "")
                 .replace("_", "")
                 .replace(".", "")
-                .replace(" ", "")
-                .replace("\\u00AE", "")//registered symbol
-                .replace("\\u00A9", "")//copyright symbol
-                .replace("\\u2122", ""); //TM symbol
+                .replace(" ", "");//remove spaces for a cleaner comparison;
+    }
+
+    public static String cleanName(String name){
+        return name.replace("."," ")
+                .replace("\u00AE", "")//registered symbol
+                .replace("\u00A9", "")//copyright symbol
+                .replace("\u2122", "")//TM symbol
+                .replace("32bit", "")
+                .replace("32 bit", "")
+                .replace("64bit", "")
+                .replace("64 bit", "")
+                .replace("x86","")
+                .replace("x64","")
+                .replace("()","");
     }
 
     public void removeGame(GameEntry entry) {

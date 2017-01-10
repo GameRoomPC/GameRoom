@@ -4,7 +4,6 @@ import data.game.GameWatcher;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scraper.SteamLocalScraper;
-import javafx.concurrent.Task;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.GeneralToast;
@@ -12,10 +11,8 @@ import ui.GeneralToast;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import static data.game.GameWatcher.formatNameForCompareason;
+import static data.game.GameWatcher.formatNameForComparison;
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.MAIN_SCENE;
 
@@ -269,7 +266,7 @@ public class FolderGameScanner extends GameScanner {
             }
         }
         //cannot use UUID as they are different at this pre-add-time
-        return e1IncludesE2 || e2IncludesE1 || formatNameForCompareason(e2.getName()).equals(formatNameForCompareason(e1.getName()));
+        return e1IncludesE2 || e2IncludesE1 || formatNameForComparison(e2.getName()).equals(formatNameForComparison(e1.getName()));
     }
 
     /**
