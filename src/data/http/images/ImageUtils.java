@@ -16,6 +16,8 @@ import ui.Main;
 import ui.scene.BaseScene;
 
 import java.io.File;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.scene.BaseScene.FADE_IN_OUT_TIME;
@@ -75,20 +77,28 @@ public class ImageUtils {
         return new File(Main.FILES_MAP.get("cache") + File.separator + fileName);
     }
 
-    public static Task downloadIGDBImageToCache(int igdb_id, String imageHash, String type, String size, OnDLDoneHandler dlDoneHandler) {
+    public static Task downloadIGDBImageToCache(ExecutorService executor, int igdb_id, String imageHash, String type, String size, OnDLDoneHandler dlDoneHandler) {
         String imageURL = IGDB_IMAGE_URL_PREFIX + type + size + "/" + imageHash + ".jpg";
-        return downloadImgToCache(imageURL, getIGDBImageCacheFileOutput(igdb_id, imageHash, type, size), dlDoneHandler);
+        return downloadImgToCache(imageURL, getIGDBImageCacheFileOutput(igdb_id, imageHash, type, size), dlDoneHandler, executor);
     }
 
-    private static Task downloadImgToCache(String url, File fileOutput, OnDLDoneHandler dlDoneHandler) {
+    public static Task downloadIGDBImageToCache(int igdb_id, String imageHash, String type, String size, OnDLDoneHandler dlDoneHandler) {
+        return downloadIGDBImageToCache(null, igdb_id, imageHash,type,size, dlDoneHandler);
+    }
+
+    private static Task downloadImgToCache(String url, File fileOutput, OnDLDoneHandler dlDoneHandler, ExecutorService executor) {
         fileOutput.deleteOnExit();
-        ImageDownloadTask task = new ImageDownloadTask(url,fileOutput,dlDoneHandler);
-        ImageDownloaderService.getInstance().addTask(task);
+        ImageDownloadTask task = new ImageDownloadTask(url, fileOutput, dlDoneHandler);
+        if (executor != null && executor.isShutdown()) {
+            executor.submit(task);
+        } else {
+            ImageDownloaderService.getInstance().addTask(task);
+        }
         return task;
     }
 
     private static Task downloadImgToCache(String url, String filenameOutput, OnDLDoneHandler dlDoneHandler) {
-        return downloadImgToCache(url, getOutputImageCacheFile(filenameOutput), dlDoneHandler);
+        return downloadImgToCache(url, getOutputImageCacheFile(filenameOutput), dlDoneHandler,null);
     }
 
     public static void transitionToWindowBackground(Image img, ImageView imageView) {

@@ -8,6 +8,7 @@ import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.images.ImageUtils;
 import data.http.key.KeyChecker;
+import javafx.application.Platform;
 import org.json.JSONArray;
 import ui.GeneralToast;
 import ui.Main;
@@ -19,10 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
@@ -144,7 +142,9 @@ public class GameWatcher {
             EXECUTOR_SERVICE.awaitTermination(1, TimeUnit.HOURS);
         } catch (InterruptedException e) {
             e.printStackTrace();
+            EXECUTOR_SERVICE.shutdownNow();
         }
+        EXECUTOR_SERVICE = Executors.newCachedThreadPool();
 
         if (MAIN_SCENE != null) {
             GeneralToast.displayToast(Main.getString("search_done"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
@@ -236,48 +236,58 @@ public class GameWatcher {
     }
 
     private void tryScrapToAddEntries() {
-        ArrayList<Integer> searchIGDBIDs = new ArrayList<>();
-        ArrayList<GameEntry> toScrapEntries = new ArrayList<>();
-        synchronized (entriesToAdd) {
-            if (MAIN_SCENE != null) {
-                GeneralToast.displayToast(Main.getString("fetching_data_igdb"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
-            }
-            LOGGER.info("Now scraping found games");
+        CopyOnWriteArrayList<Integer> searchIGDBIDs = new CopyOnWriteArrayList<>();
+        CopyOnWriteArrayList<GameEntry> toScrapEntries = new CopyOnWriteArrayList<>();
+        HashSet<Callable<Object>> tasks = new HashSet<>();
 
-            boolean alreadyDisplayedIGDBError = false;
-            for (GameEntry entry : entriesToAdd) {
-                if (entry.isWaitingToBeScrapped() && !entry.isBeingScrapped() && !FolderGameScanner.isGameIgnored(entry)) {
-                    try {
-                        entry.setSavedLocaly(true);
-                        entry.setBeingScrapped(true);
-                        entry.setSavedLocaly(false);
-                        JSONArray search_results = IGDBScraper.searchGame(entry.getName());
-                        searchIGDBIDs.add(search_results.getJSONObject(0).getInt("id"));
-                        toScrapEntries.add(entry);
-                        MAIN_SCENE.updateGame(entry);
+        if (MAIN_SCENE != null) {
+            GeneralToast.displayToast(Main.getString("fetching_data_igdb"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
+        }
+        LOGGER.info("Now scraping found games");
 
-                    } catch (Exception e) {
-                        if (e instanceof IOException) {
-                            Main.LOGGER.error(entry.getName() + " not found on igdb first guess");
-                        } else if (e instanceof UnirestException) {
-                            if (!alreadyDisplayedIGDBError) {
-                                GameRoomAlert.errorIGDB();
-                                alreadyDisplayedIGDBError = true;
+        final boolean[] alreadyDisplayedIGDBError = {false};
+        for (GameEntry entry : entriesToAdd) {
+            if (entry.isWaitingToBeScrapped() && !entry.isBeingScrapped() && !FolderGameScanner.isGameIgnored(entry)) {
+                Callable task = new Callable() {
+                    @Override
+                    public Object call() throws Exception {
+                        try {
+                            entry.setSavedLocaly(true);
+                            entry.setBeingScrapped(true);
+                            entry.setSavedLocaly(false);
+                            JSONArray search_results = IGDBScraper.searchGame(entry.getName());
+                            searchIGDBIDs.add(search_results.getJSONObject(0).getInt("id"));
+                            toScrapEntries.add(entry);
+                            Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
+
+                        } catch (Exception e) {
+                            if (e instanceof IOException) {
+                                Main.LOGGER.error(entry.getName() + " not found on igdb first guess");
+                            } else if (e instanceof UnirestException) {
+                                if (!alreadyDisplayedIGDBError[0]) {
+                                    GameRoomAlert.errorIGDB();
+                                    alreadyDisplayedIGDBError[0] = true;
+                                }
                             }
+                            entry.setSavedLocaly(true);
+                            entry.setWaitingToBeScrapped(false);
+                            entry.setBeingScrapped(false);
+                            entry.setSavedLocaly(false);
+                            Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
                         }
-                        entry.setSavedLocaly(true);
-                        entry.setWaitingToBeScrapped(false);
-                        entry.setBeingScrapped(false);
-                        entry.setSavedLocaly(false);
-                        MAIN_SCENE.updateGame(entry);
+                        return null;
                     }
-                    try {
-                        Thread.sleep(2 * 100);
-                    } catch (InterruptedException ignored) {
-                    }
-                }
+                };
+                tasks.add(task);
             }
         }
+
+        try {
+            EXECUTOR_SERVICE.invokeAll(tasks);
+        } catch (InterruptedException e) {
+            EXECUTOR_SERVICE.shutdownNow();
+        }
+
         if (searchIGDBIDs.size() > 0) {
             try {
                 JSONArray gamesDataArray = IGDBScraper.getGamesData(searchIGDBIDs);
@@ -306,7 +316,8 @@ public class GameWatcher {
                         toScrapEntry.setIgdb_id(scrappedEntry.getIgdb_id());
                         toScrapEntry.setSavedLocaly(false);
 
-                        ImageUtils.downloadIGDBImageToCache(scrappedEntry.getIgdb_id()
+                        ImageUtils.downloadIGDBImageToCache(EXECUTOR_SERVICE
+                                ,scrappedEntry.getIgdb_id()
                                 , scrappedEntry.getIgdb_imageHash(0)
                                 , ImageUtils.IGDB_TYPE_COVER
                                 , ImageUtils.IGDB_SIZE_BIG_2X
@@ -331,7 +342,8 @@ public class GameWatcher {
                                             Main.MAIN_SCENE.updateGame(scrappedEntry);
                                         });
 
-                                        ImageUtils.downloadIGDBImageToCache(scrappedEntry.getIgdb_id()
+                                        ImageUtils.downloadIGDBImageToCache(EXECUTOR_SERVICE
+                                                ,scrappedEntry.getIgdb_id()
                                                 , scrappedEntry.getIgdb_imageHash(1)
                                                 , ImageUtils.IGDB_TYPE_SCREENSHOT
                                                 , ImageUtils.IGDB_SIZE_BIG_2X
