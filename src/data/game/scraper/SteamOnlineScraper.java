@@ -3,6 +3,7 @@ package data.game.scraper;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import data.game.GameWatcher;
 import data.game.entry.GameEntry;
 import data.game.scanner.GameScanner;
 import data.game.scanner.OnGameFound;
@@ -14,11 +15,11 @@ import ui.Main;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.concurrent.Callable;
 
 import static ui.Main.LOGGER;
 
@@ -30,9 +31,16 @@ public class SteamOnlineScraper {
 
     static void scanSteamOnlineGames(GameScanner scanner) {
         scanOwnedSteamGames(entry -> {
-            if (!SteamLocalScraper.isSteamGameIgnored(entry) && !SteamLocalScraper.isSteamGameInstalled(entry.getSteam_id())) {
-                scanner.checkAndAdd(entry);
-            }
+            Callable task = new Callable() {
+                @Override
+                public Object call() throws Exception {
+                    if (!SteamLocalScraper.isSteamGameIgnored(entry) && !SteamLocalScraper.isSteamGameInstalled(entry.getSteam_id())) {
+                        scanner.checkAndAdd(entry);
+                    }
+                    return null;
+                }
+            };
+            GameWatcher.getInstance().submitTask(task);
         });
     }
 
@@ -70,9 +78,9 @@ public class SteamOnlineScraper {
             try {
                 long playTime = entry.getPlayTimeSeconds();
                 entry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
-                if(entry!=null){
+                if (entry != null) {
                     entry.setPlayTimeSeconds(playTime);
-                    LOGGER.debug("Play time of "+entry.getName()+" : "+entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
+                    LOGGER.debug("Play time of " + entry.getName() + " : " + entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
                     entries.add(entry);
                 }
             } catch (ConnectTimeoutException | UnirestException ignored) {

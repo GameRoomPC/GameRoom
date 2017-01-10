@@ -1,10 +1,10 @@
 package data.game.scraper;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
+import data.game.GameWatcher;
 import data.game.entry.GameEntry;
 import data.game.scanner.FolderGameScanner;
 import data.game.scanner.GameScanner;
-import data.game.scanner.OnGameFound;
 import org.apache.http.conn.ConnectTimeoutException;
 import system.os.Terminal;
 import ui.Main;
@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 
 import static ui.Main.LOGGER;
 
@@ -53,10 +54,15 @@ public class SteamLocalScraper {
     }
 
     static void scanSteamGames(GameScanner scanner) {
+        try {
+            scanSteamApps(scanner);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         scanSteamAppsByReg(scanner);
     }
 
-    private static void scanSteamApps(OnGameFound handler) throws IOException {
+    private static void scanSteamApps(GameScanner scanner) throws IOException {
         String[] steamAppsPaths = getSteamAppsPath();
 
         boolean allNull = true;
@@ -66,29 +72,38 @@ public class SteamLocalScraper {
         if (allNull) {
             return;
         }
+
         for (String path : steamAppsPaths) {
             if (path != null) {
-                File steamAppsFolder = new File(path);
-                String idPrefix = "appmanifest_";
-                String idSuffix = ".acf";
-                String namePrefix = "\"name\"";
-                for (File file : steamAppsFolder.listFiles()) {
-                    String fileName = file.getName();
-                    if (fileName.contains(idPrefix)) {
-                        int id = Integer.parseInt(fileName.substring(idPrefix.length(), fileName.indexOf(idSuffix)));
+                Callable task = new Callable() {
+                    @Override
+                    public Object call() throws Exception {
+                        File steamAppsFolder = new File(path);
+                        String idPrefix = "appmanifest_";
+                        String idSuffix = ".acf";
+                        String namePrefix = "\"name\"";
+                        for (File file : steamAppsFolder.listFiles()) {
+                            String fileName = file.getName();
+                            if (fileName.contains(idPrefix)) {
+                                int id = Integer.parseInt(fileName.substring(idPrefix.length(), fileName.indexOf(idSuffix)));
 
-                        String fileString = new String(Files.readAllBytes(file.toPath()));
-                        String name = "";
-                        for (String line : fileString.split("\n")) {
-                            if (line.contains(namePrefix)) {
-                                int indexNamePrefix = line.indexOf(namePrefix);
-                                name = line.substring(indexNamePrefix + namePrefix.length());
-                                name = name.replace("\"", "").trim();
+                                String fileString = new String(Files.readAllBytes(file.toPath()));
+                                String name = "";
+                                for (String line : fileString.split("\n")) {
+                                    if (line.contains(namePrefix)) {
+                                        int indexNamePrefix = line.indexOf(namePrefix);
+                                        name = line.substring(indexNamePrefix + namePrefix.length());
+                                        name = name.replace("\"", "").trim();
+                                    }
+                                }
+                                scanner.checkAndAdd(new SteamPreEntry(name, id).toGameEntry());
                             }
                         }
-                        handler.handle(new SteamPreEntry(name, id).toGameEntry());
+                        return null;
                     }
-                }
+                };
+
+                GameWatcher.getInstance().submitTask(task);
             }
         }
     }
@@ -110,27 +125,34 @@ public class SteamLocalScraper {
 
         String id = null;
         for (String line : output) {
-            if(line.contains(regFolder)){
-                id = LauncherGameScraper.getValue(regFolder,line);
+            if (line.contains(regFolder)) {
+                id = LauncherGameScraper.getValue(regFolder, line);
             }
-            if(id != null && line.contains(installedPrefix)){
-                String installed = LauncherGameScraper.getValue(installedPrefix,line);
-                if(installed.equals("0x1")){
+            if (id != null && line.contains(installedPrefix)) {
+                String installed = LauncherGameScraper.getValue(installedPrefix, line);
+                if (installed.equals("0x1")) {
                     steamIds.add(id);
                 }
                 id = null;
             }
         }
-        for(String steamId : steamIds){
-            try {
-                GameEntry entry = SteamOnlineScraper.getEntryForSteamId(Integer.parseInt(steamId));
-                if(entry!=null){
-                    entry.setNotInstalled(false);
-                    scanner.checkAndAdd(entry);
+        for (String steamId : steamIds) {
+            Callable task = new Callable() {
+                @Override
+                public Object call() throws Exception {
+                    try {
+                        GameEntry entry = SteamOnlineScraper.getEntryForSteamId(Integer.parseInt(steamId));
+                        if (entry != null) {
+                            entry.setNotInstalled(false);
+                            scanner.checkAndAdd(entry);
+                        }
+                    } catch (ConnectTimeoutException | UnirestException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
                 }
-            } catch (ConnectTimeoutException | UnirestException e) {
-                e.printStackTrace();
-            }
+            };
+            GameWatcher.getInstance().submitTask(task);
         }
     }
 
@@ -260,7 +282,7 @@ public class SteamLocalScraper {
         if (ignoredEntries == null || ignoredEntries.length == 0) {
             return false;
         }
-        if(!entry.isSteamGame()){
+        if (!entry.isSteamGame()) {
             return false;
         }
         boolean ignored = false;

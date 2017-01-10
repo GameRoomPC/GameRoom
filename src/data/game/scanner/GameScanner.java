@@ -6,15 +6,22 @@ import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.GeneralToast;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 19/08/2016.
  */
 public abstract class GameScanner {
-    protected ScannerProfile profile = null;
+    ScannerProfile profile = null;
     private volatile boolean scanDone = false;
     GameWatcher parentLooker;
+
 
     GameScanner(GameWatcher parentLooker) {
         this.parentLooker = parentLooker;
@@ -22,11 +29,14 @@ public abstract class GameScanner {
 
     public final void startScanning() {
         scanDone = false;
-        scanForGames();
+        if (profile == null || profile.isEnabled()) {
+            displayStartToast();
+            scanAndAddGames();
+        }
         scanDone = true;
     }
 
-    protected abstract void scanForGames();
+    protected abstract void scanAndAddGames();
 
     public boolean isScanDone() {
         return scanDone;

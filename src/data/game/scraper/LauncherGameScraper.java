@@ -1,5 +1,6 @@
 package data.game.scraper;
 
+import data.game.GameWatcher;
 import data.game.entry.GameEntry;
 import data.game.scanner.FolderGameScanner;
 import data.game.scanner.GameScanner;
@@ -7,8 +8,7 @@ import system.os.Terminal;
 
 import java.io.File;
 import java.io.IOException;
-
-import static ui.Main.LOGGER;
+import java.util.concurrent.Callable;
 
 /**
  * Created by LM on 29/08/2016.
@@ -22,25 +22,24 @@ public class LauncherGameScraper {
         switch (scanner.getScannerProfile()) {
             case GOG:
                 scanGOGGames(scanner);
-                break;
+                return;
             case UPLAY:
                 scanUplayGames(scanner);
-                break;
+                return;
             case ORIGIN:
                 scanOriginGames(scanner);
-                break;
+                return;
             case BATTLE_NET:
                 scanBattleNetGames(scanner);
-                break;
+                return;
             case STEAM:
                 scanSteamGames(scanner);
-                break;
+                return;
             case STEAM_ONLINE:
                 scanSteamOnlineGames(scanner);
-                break;
+                return;
             default:
-                break;
-
+                return;
         }
     }
 
@@ -59,63 +58,72 @@ public class LauncherGameScraper {
             output = terminal.execute("reg", "query", '"' + regFolder + '"');
             for (String s : output) {
                 if (s.contains(regFolder)) {
-                    int index = s.indexOf(regFolder) + regFolder.length() + 1;
-                    String subFolder = s.substring(index);
+                    Callable task = new Callable() {
+                        @Override
+                        public Object call() throws Exception {
+                            int index = s.indexOf(regFolder) + regFolder.length() + 1;
+                            String subFolder = s.substring(index);
 
-                    String[] subOutPut = terminal.execute("reg", "query", '"' + regFolder + "\\" + subFolder + '"');
-                    String installDir = null;
-                    String name = null;
+                            String[] subOutPut = terminal.execute("reg", "query", '"' + regFolder + "\\" + subFolder + '"');
+                            String installDir = null;
+                            String name = null;
 
-                    boolean notAGame = false; //this is to detect GOG non games
-                    for (String s2 : subOutPut) {
-                        if (s2.contains(installDirPrefix)) {
-                            int index2 = s2.indexOf(installDirPrefix) + installDirPrefix.length();
-                            installDir = s2.substring(index2).replace("/", "\\").replace("\"","");;
-                        } else if (namePrefix != null && s2.contains(namePrefix)) {
-                            int index2 = s2.indexOf(namePrefix) + namePrefix.length();
-                            name = s2.substring(index2).replace("®", "").replace("™", "");
-                        } else if (s2.contains("DEPENDSON    REG_SZ    ")) {
-                            notAGame = !s2.equals("    DEPENDSON    REG_SZ    ");
-                        }
-                    }
-                    if (installDir != null && !notAGame) {
-                        File file = new File(installDir);
-                        if (file.exists()) {
-                            if (name == null) {
-                                name = file.isDirectory() ? file.getName() : new File(file.getParent()).getName();
-                            }
-                            GameEntry potentialEntry = new GameEntry(name);
-                            potentialEntry.setPath(file.getAbsolutePath());
-                            potentialEntry.setNotInstalled(false);
-
-                            int id = 0;
-                            try {
-                                id = Integer.parseInt(subFolder);
-                                if (id == -1) {
-                                    id = 0;
+                            boolean notAGame = false; //this is to detect GOG non games
+                            for (String s2 : subOutPut) {
+                                if (s2.contains(installDirPrefix)) {
+                                    int index2 = s2.indexOf(installDirPrefix) + installDirPrefix.length();
+                                    installDir = s2.substring(index2).replace("/", "\\").replace("\"", "");
+                                    ;
+                                } else if (namePrefix != null && s2.contains(namePrefix)) {
+                                    int index2 = s2.indexOf(namePrefix) + namePrefix.length();
+                                    name = s2.substring(index2).replace("®", "").replace("™", "");
+                                } else if (s2.contains("DEPENDSON    REG_SZ    ")) {
+                                    notAGame = !s2.equals("    DEPENDSON    REG_SZ    ");
                                 }
-                            } catch (NumberFormatException nfe) {
-                                //no id to scrap!
                             }
-                            switch (scanner.getScannerProfile()) {
-                                case GOG:
-                                    potentialEntry.setGog_id(id);
-                                    break;
-                                case UPLAY:
-                                    potentialEntry.setUplay_id(id);
-                                    break;
-                                case BATTLE_NET:
-                                    potentialEntry.setBattlenet_id(id);
-                                    break;
-                                case ORIGIN:
-                                    potentialEntry.setOrigin_id(id);
-                                    break;
-                                default:
-                                    break;
+                            if (installDir != null && !notAGame) {
+                                File file = new File(installDir);
+                                if (file.exists()) {
+                                    if (name == null) {
+                                        name = file.isDirectory() ? file.getName() : new File(file.getParent()).getName();
+                                    }
+                                    GameEntry potentialEntry = new GameEntry(name);
+                                    potentialEntry.setPath(file.getAbsolutePath());
+                                    potentialEntry.setNotInstalled(false);
+
+                                    int id = 0;
+                                    try {
+                                        id = Integer.parseInt(subFolder);
+                                        if (id == -1) {
+                                            id = 0;
+                                        }
+                                    } catch (NumberFormatException nfe) {
+                                        //no id to scrap!
+                                    }
+                                    switch (scanner.getScannerProfile()) {
+                                        case GOG:
+                                            potentialEntry.setGog_id(id);
+                                            break;
+                                        case UPLAY:
+                                            potentialEntry.setUplay_id(id);
+                                            break;
+                                        case BATTLE_NET:
+                                            potentialEntry.setBattlenet_id(id);
+                                            break;
+                                        case ORIGIN:
+                                            potentialEntry.setOrigin_id(id);
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    scanner.checkAndAdd(potentialEntry);
+                                }
                             }
-                            scanner.checkAndAdd(potentialEntry);
+                            return null;
                         }
-                    }
+                    };
+                    GameWatcher.getInstance().submitTask(task);
+
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException ignored) {
@@ -159,37 +167,45 @@ public class LauncherGameScraper {
             String[] output = terminal.execute("reg", "query", regFolder);
             for (String line : output) {
                 if (line.startsWith(regFolder)) {
-                    String[] gameRegOutput = terminal.execute("reg", "query", line);
+                    Callable task = new Callable() {
+                        @Override
+                        public Object call() throws Exception {
+                            String[] gameRegOutput = terminal.execute("reg", "query", line);
 
-                    String name = null;
-                    String path = null;
-                    String root = null;
-                    for (String propLine : gameRegOutput) {
-                        if (propLine.contains(pathPrefix)) {
-                            path = getValue(pathPrefix,propLine).replace("\"","");;
+                            String name = null;
+                            String path = null;
+                            String root = null;
+                            for (String propLine : gameRegOutput) {
+                                if (propLine.contains(pathPrefix)) {
+                                    path = getValue(pathPrefix, propLine).replace("\"", "");
+                                    ;
+                                }
+                                if (propLine.contains(namePrefix)) {
+                                    name = getValue(namePrefix, propLine);
+                                }
+                                if (propLine.contains(rootPrefix)) {
+                                    root = getValue(rootPrefix, propLine).replace("\"", "");
+                                    ;
+                                }
+                            }
+                            if (name != null && path != null) {
+                                GameEntry entry = new GameEntry(name);
+                                entry.setPath(path);
+                                if (gameIsOrigin(root)) {
+                                    entry.setOrigin_id(0);
+                                    scanner.checkAndAdd(entry);
+                                }
+                            }
+                            return null;
                         }
-                        if (propLine.contains(namePrefix)) {
-                            name = getValue(namePrefix,propLine);
-                        }
-                        if (propLine.contains(rootPrefix)) {
-                            root = getValue(rootPrefix,propLine).replace("\"","");;
-                        }
-                    }
-                    if (name != null && path != null) {
-                        GameEntry entry = new GameEntry(name);
-                        entry.setPath(path);
-                        if (gameIsOrigin(root)) {
-                            entry.setOrigin_id(0);
-                            scanner.checkAndAdd(entry);
-                        }
-                    }
+                    };
+                    GameWatcher.getInstance().submitTask(task);
                 }
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     /**
@@ -222,74 +238,82 @@ public class LauncherGameScraper {
     private static void scanUninstallReg(GameScanner scanner, String keyWord, String[] excludedNames) {
         String regFolder = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
         Terminal terminal = new Terminal(false);
-
         try {
             String[] output = terminal.execute("reg", "query", '"' + regFolder + '"', "/s", "/f", '"' + keyWord + '"');
             for (String line : output) {
                 if (line.startsWith(regFolder)) {
-                    String appCode = line.substring(regFolder.length() + 1); //+1 for the \
+                    Callable task = new Callable() {
+                        @Override
+                        public Object call() throws Exception {
+                            String appCode = line.substring(regFolder.length() + 1); //+1 for the \
 
-                    boolean excluded = false;
-                    for (String excludedName : excludedNames) {
-                        excluded = appCode.equals(excludedName);
-                        if (excluded) {
-                            break;
-                        }
-                    }
-                    if (!excluded) {
-                        String[] gameRegOutput = terminal.execute("reg", "query", '"' + regFolder + '\\' + appCode + '"', "/v", "DisplayIcon");
-                        String pathPrefix = "DisplayIcon    REG_SZ";
-                        String rootPrefix = "InstallLocation    REG_SZ";
-                        String namePrefix = "DisplayName    REG_SZ";
-                        String path = null;
-                        String name = appCode;
-
-                        for (String s : gameRegOutput) {
-                            if (s.contains(pathPrefix)) {
-                                String tempPath = getValue(pathPrefix,s).replace("\"","");
-                                if (FolderGameScanner.fileHasValidExtension(new File(tempPath))) {
-                                    path = tempPath;;
-                                }
-                                break;
-                            }
-                            if (s.contains(rootPrefix)) {
-                                if (path == null) {
-                                    path = getValue(rootPrefix,s).replace("\"","");
+                            boolean excluded = false;
+                            for (String excludedName : excludedNames) {
+                                excluded = appCode.equals(excludedName);
+                                if (excluded) {
+                                    break;
                                 }
                             }
-                            if (s.contains(namePrefix)){
-                                name = getValue(namePrefix,s);
-                            }
-                        }
-                        if (path != null && FolderGameScanner.isPotentiallyAGame(new File(path))) {
-                            GameEntry entry = new GameEntry(name);
-                            entry.setPath(path);
+                            if (!excluded) {
+                                String[] gameRegOutput = terminal.execute("reg", "query", '"' + regFolder + '\\' + appCode + '"');
+                                String pathPrefix = "DisplayIcon    REG_SZ";
+                                String rootPrefix = "InstallLocation    REG_SZ";
+                                String namePrefix = "DisplayName    REG_SZ";
+                                String path = null;
+                                String name = appCode;
 
-                            switch (scanner.getScannerProfile()) {
-                                case GOG:
-                                    entry.setGog_id(0);
-                                    break;
-                                case UPLAY:
-                                    entry.setUplay_id(0);
-                                    break;
-                                case BATTLE_NET:
-                                    entry.setBattlenet_id(0);
-                                    break;
-                                case ORIGIN:
-                                    entry.setOrigin_id(0);
-                                    break;
-                                default:
-                                    break;
-                            }
+                                for (String s : gameRegOutput) {
+                                    if (s.contains(pathPrefix)) {
+                                        String tempPath = getValue(pathPrefix, s).replace("\"", "");
+                                        if (FolderGameScanner.fileHasValidExtension(new File(tempPath))) {
+                                            path = tempPath;
+                                            ;
+                                        }
+                                        break;
+                                    }
+                                    if (s.contains(rootPrefix)) {
+                                        if (path == null) {
+                                            path = getValue(rootPrefix, s).replace("\"", "");
+                                        }
+                                    }
+                                    if (s.contains(namePrefix)) {
+                                        name = getValue(namePrefix, s);
+                                    }
+                                }
+                                if (path != null && FolderGameScanner.isPotentiallyAGame(new File(path))) {
+                                    GameEntry entry = new GameEntry(name);
+                                    entry.setPath(path);
 
-                            entry.setNotInstalled(false);
-                            scanner.checkAndAdd(entry);
+                                    switch (scanner.getScannerProfile()) {
+                                        case GOG:
+                                            entry.setGog_id(0);
+                                            break;
+                                        case UPLAY:
+                                            entry.setUplay_id(0);
+                                            break;
+                                        case BATTLE_NET:
+                                            entry.setBattlenet_id(0);
+                                            break;
+                                        case ORIGIN:
+                                            entry.setOrigin_id(0);
+                                            break;
+                                        default:
+                                            break;
+                                    }
+
+                                    entry.setNotInstalled(false);
+                                    scanner.checkAndAdd(entry);
+                                }
+                                try {
+                                    Thread.sleep(100);
+                                } catch (InterruptedException ignored) {
+                                }
+                            }
+                            return null;
                         }
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException ignored) {
-                        }
-                    }
+                    };
+                    GameWatcher.getInstance().submitTask(task);
+
                 }
             }
         } catch (IOException e) {

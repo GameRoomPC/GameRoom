@@ -7,6 +7,7 @@ import data.game.entry.GameEntry;
 import data.game.scanner.*;
 import data.game.scraper.*;
 import data.http.key.KeyChecker;
+import javafx.concurrent.Task;
 import org.json.JSONArray;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
@@ -18,10 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.*;
 
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
 import static ui.Main.*;
@@ -48,6 +47,9 @@ public class GameWatcher {
     private volatile static boolean KEEP_LOOPING = true;
     private volatile static boolean WAIT_FULL_PERIOD = false;
 
+    private final static int NTHREADS = 4;
+    private static ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(NTHREADS);
+
     private volatile boolean awaitingStart = false;
 
     public static GameWatcher getInstance() {
@@ -62,10 +64,10 @@ public class GameWatcher {
     }
 
     private GameWatcher() {
+        localGameScanners.add(new LauncherScanner(this, ScannerProfile.BATTLE_NET));
         localGameScanners.add(new LauncherScanner(this, ScannerProfile.GOG));
         localGameScanners.add(new LauncherScanner(this, ScannerProfile.ORIGIN));
         localGameScanners.add(new LauncherScanner(this, ScannerProfile.UPLAY));
-        localGameScanners.add(new LauncherScanner(this, ScannerProfile.BATTLE_NET));
         localGameScanners.add(new LauncherScanner(this, ScannerProfile.STEAM));
         localGameScanners.add(new FolderGameScanner(this));
         onlineGameScanners.add(new LauncherScanner(this, ScannerProfile.STEAM_ONLINE));
@@ -91,30 +93,9 @@ public class GameWatcher {
                             LOGGER.info("Forced start of GameWatcher");
                         }
                     }
-                    for (Runnable onSearchStarted : onSearchStartedListeners) {
-                        if (onSearchStarted != null) {
-                            onSearchStarted.run();
-                        }
-                    }
-                    LOGGER.info("GameWatcher started");
-                    if (MAIN_SCENE != null) {
-                        GeneralToast.displayToast(Main.getString("search_started"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
-                    }
-                    //validateKey();
-                    scanNewGamesRoutine();
-                    scanNewOnlineGamesRoutine();
-                    if (MAIN_SCENE != null) {
-                        GeneralToast.displayToast(Main.getString("search_done"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
-                    }
 
-                    tryScrapToAddEntries();
+                    routine();
 
-                    LOGGER.info("GameWatcher ended");
-                    for (Runnable onSeachDone : onSearchDoneListeners) {
-                        if (onSeachDone != null) {
-                            onSeachDone.run();
-                        }
-                    }
                     long elapsedTime = System.currentTimeMillis() - start;
                     if (!awaitingStart) {
                         if (elapsedTime < SCAN_PERIOD.toMillis()) {
@@ -137,12 +118,60 @@ public class GameWatcher {
         serviceThread.setDaemon(true);
     }
 
+    private void routine(){
+        for (Runnable onSearchStarted : onSearchStartedListeners) {
+            if (onSearchStarted != null) {
+                onSearchStarted.run();
+            }
+        }
+
+        if(EXECUTOR_SERVICE.isShutdown()){
+            EXECUTOR_SERVICE = Executors.newFixedThreadPool(NTHREADS);
+        }
+
+        LOGGER.info("GameWatcher started");
+        if (MAIN_SCENE != null) {
+            GeneralToast.displayToast(Main.getString("search_started"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
+        }
+        //validateKey();
+        scanNewGamesRoutine();
+        scanNewOnlineGamesRoutine();
+
+        EXECUTOR_SERVICE.shutdown();
+        try {
+            EXECUTOR_SERVICE.awaitTermination(1,TimeUnit.HOURS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (MAIN_SCENE != null) {
+            GeneralToast.displayToast(Main.getString("search_done"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
+        }
+
+        if (entriesToAdd.size() > originalGameFoundNumber) {
+            int numberFound = entriesToAdd.size() - originalGameFoundNumber;
+            Main.LOGGER.info("GameWatcher : found " + numberFound + " new games!");
+            if (MAIN_SCENE != null) {
+                String end = numberFound > 1 ? Main.getString("new_games") : Main.getString("new_game");
+                GeneralToast.displayToast(Main.getString("gameroom_has_found") + " " + numberFound + " " + end, MAIN_SCENE.getParentStage(), GeneralToast.DURATION_LONG);
+            }
+            onGameFoundHandler.onAllGamesFound(numberFound);
+        }
+
+
+        tryScrapToAddEntries();
+
+        LOGGER.info("GameWatcher ended");
+        for (Runnable onSeachDone : onSearchDoneListeners) {
+            if (onSeachDone != null) {
+                onSeachDone.run();
+            }
+        }
+    }
+
     public void start() {
         if (serviceThread == null) {
             initService();
-        } else {
-            awaitingStart = true;
-            serviceThread.interrupt();
         }
         if (serviceThread.getState().equals(Thread.State.NEW)) {
             serviceThread.start();
@@ -364,16 +393,6 @@ public class GameWatcher {
                 e.printStackTrace();
             }
         }
-
-        if (entriesToAdd.size() > originalGameFoundNumber) {
-            int numberFound = entriesToAdd.size() - originalGameFoundNumber;
-            Main.LOGGER.info("GameWatcher : found " + numberFound + " new games!");
-            if (MAIN_SCENE != null) {
-                String end = numberFound > 1 ? Main.getString("new_games") : Main.getString("new_game");
-                GeneralToast.displayToast(Main.getString("gameroom_has_found") + " " + numberFound + " " + end, MAIN_SCENE.getParentStage(), GeneralToast.DURATION_LONG);
-            }
-            onGameFoundHandler.onAllGamesFound(numberFound);
-        }
     }
 
     private void scanNewGamesRoutine() {
@@ -396,6 +415,10 @@ public class GameWatcher {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void submitTask(Callable task){
+        EXECUTOR_SERVICE.submit(task);
     }
 
     public ArrayList<GameEntry> getEntriesToAdd() {
