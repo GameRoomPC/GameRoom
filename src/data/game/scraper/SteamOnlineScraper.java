@@ -30,7 +30,7 @@ public class SteamOnlineScraper {
     private final static SimpleDateFormat STEAM_DATE_FORMAT = new SimpleDateFormat("dd MMM, yyyy", Locale.US);
 
     static void scanSteamOnlineGames(GameScanner scanner) {
-        scanOwnedSteamGames(entry -> {
+        scanNonInstalledSteamGames(entry -> {
             Callable task = new Callable() {
                 @Override
                 public Object call() throws Exception {
@@ -44,27 +44,28 @@ public class SteamOnlineScraper {
         });
     }
 
-    private static void scanOwnedSteamGames(OnGameFound handler) {
+    private static void scanNonInstalledSteamGames(OnGameFound handler) {
         try {
             JSONArray ownedArray = askGamesOwned(SteamLocalScraper.getSteamUserId());
             for (int i = 0; i < ownedArray.length(); i++) {
                 SteamPreEntry preEntry = new SteamPreEntry(ownedArray.getJSONObject(i).getString("name"), ownedArray.getJSONObject(i).getInt("appID"));
                 GameEntry entry = preEntry.toGameEntry();
-                try {
-                    GameEntry scrapedEntry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
-                    if (scrapedEntry != null) {
-                        entry = scrapedEntry;
+                GameEntry scrapedEntry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
+                if (scrapedEntry != null) {
+                    entry = scrapedEntry;
+                    try {
+                        double playTimeHours = ownedArray.getJSONObject(i).getDouble("hoursOnRecord");
+                        entry.setPlayTimeSeconds((long) (playTimeHours * 3600));
+                    } catch (JSONException jse) {
+                        if (jse.toString().contains("not found")) {
+                            //System.out.println(entry.getName() + " was never played");
+                        } else {
+                            jse.printStackTrace();
+                        }
                     }
-                    double playTimeHours = ownedArray.getJSONObject(i).getDouble("hoursOnRecord");
-                    entry.setPlayTimeSeconds((long) (playTimeHours * 3600));
-                } catch (JSONException jse) {
-                    if (jse.toString().contains("not found")) {
-                        //System.out.println(entry.getName() + " was never played");
-                    } else {
-                        jse.printStackTrace();
-                    }
+                    handler.handle(entry);
                 }
-                handler.handle(entry);
+
             }
         } catch (UnirestException | IOException e) {
             Main.LOGGER.error("Error connectiong to steamcommunity.com");
@@ -74,7 +75,7 @@ public class SteamOnlineScraper {
 
     public static ArrayList<GameEntry> getOwnedSteamGames() throws IOException {
         ArrayList<GameEntry> entries = new ArrayList<>();
-        scanOwnedSteamGames(entry -> {
+        scanNonInstalledSteamGames(entry -> {
             try {
                 long playTime = entry.getPlayTimeSeconds();
                 entry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
