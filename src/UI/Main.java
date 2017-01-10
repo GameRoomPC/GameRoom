@@ -175,8 +175,7 @@ public class Main {
     public static void startUpdater() {
         GameRoomUpdater updater = GameRoomUpdater.getInstance();
         updater.setOnUpdatePressedListener((observable, oldValue, newValue) -> {
-            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION,Main.RESSOURCE_BUNDLE.getString("update_downloaded_in_background"));
-            alert.showAndWait();
+            GameRoomAlert.info(Main.getString("update_downloaded_in_background"));
         });
         GameRoomUpdater.getInstance().start();
     }

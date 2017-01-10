@@ -156,6 +156,9 @@ public class SupportService {
         long elapsed = System.currentTimeMillis() - lastCheck.getTime();
         if(elapsed >= UPDATE_CHECK_FREQ){
             if(!GameRoomUpdater.getInstance().isStarted()){
+                GameRoomUpdater.getInstance().setOnUpdatePressedListener((observable, oldValue, newValue) -> {
+                    GameRoomAlert.info(Main.getString("update_downloaded_in_background"));
+                });
                 GameRoomUpdater.getInstance().start();
             }
         }
