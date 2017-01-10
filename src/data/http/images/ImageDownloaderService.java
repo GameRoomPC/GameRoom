@@ -14,7 +14,7 @@ public class ImageDownloaderService {
     private static ImageDownloaderService service;
 
     private ImageDownloaderService(){
-        executorService =Executors.newFixedThreadPool(MAX_THREADS);
+        executorService =Executors.newCachedThreadPool();
     }
     public static ImageDownloaderService getInstance(){
         if(service == null){

@@ -1,17 +1,17 @@
 package data.game;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
-import data.http.images.ImageUtils;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scanner.*;
-import data.game.scraper.*;
+import data.game.scraper.IGDBScraper;
+import data.game.scraper.OnDLDoneHandler;
+import data.http.images.ImageUtils;
 import data.http.key.KeyChecker;
-import javafx.concurrent.Task;
 import org.json.JSONArray;
+import ui.GeneralToast;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
-import ui.GeneralToast;
 import ui.dialog.GameRoomAlert;
 import ui.scene.GameEditScene;
 
@@ -19,7 +19,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.*;
 
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
@@ -47,8 +50,7 @@ public class GameWatcher {
     private volatile static boolean KEEP_LOOPING = true;
     private volatile static boolean WAIT_FULL_PERIOD = false;
 
-    private final static int NTHREADS = 4;
-    private static ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(NTHREADS);
+    private static ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
 
     private volatile boolean awaitingStart = false;
 
@@ -118,15 +120,15 @@ public class GameWatcher {
         serviceThread.setDaemon(true);
     }
 
-    private void routine(){
+    private void routine() {
         for (Runnable onSearchStarted : onSearchStartedListeners) {
             if (onSearchStarted != null) {
                 onSearchStarted.run();
             }
         }
 
-        if(EXECUTOR_SERVICE.isShutdown()){
-            EXECUTOR_SERVICE = Executors.newFixedThreadPool(NTHREADS);
+        if (EXECUTOR_SERVICE.isShutdown()) {
+            EXECUTOR_SERVICE = Executors.newCachedThreadPool();
         }
 
         LOGGER.info("GameWatcher started");
@@ -139,7 +141,7 @@ public class GameWatcher {
 
         EXECUTOR_SERVICE.shutdown();
         try {
-            EXECUTOR_SERVICE.awaitTermination(1,TimeUnit.HOURS);
+            EXECUTOR_SERVICE.awaitTermination(1, TimeUnit.HOURS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -172,6 +174,9 @@ public class GameWatcher {
     public void start() {
         if (serviceThread == null) {
             initService();
+        }
+        if(serviceThread.getState().equals(Thread.State.TIMED_WAITING)){
+            serviceThread.interrupt();
         }
         if (serviceThread.getState().equals(Thread.State.NEW)) {
             serviceThread.start();
@@ -417,7 +422,7 @@ public class GameWatcher {
         }
     }
 
-    public void submitTask(Callable task){
+    public void submitTask(Callable task) {
         EXECUTOR_SERVICE.submit(task);
     }
 
