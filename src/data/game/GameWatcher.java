@@ -37,7 +37,7 @@ public class GameWatcher {
 
     private OnScannerResultHandler onGameFoundHandler;
 
-    private final ArrayList<GameEntry> entriesToAdd = new ArrayList<>();
+    private final CopyOnWriteArrayList<GameEntry> entriesToAdd = new CopyOnWriteArrayList<>();
 
     private ArrayList<GameScanner> localGameScanners = new ArrayList<>();
     private ArrayList<GameScanner> onlineGameScanners = new ArrayList<>();
@@ -175,7 +175,7 @@ public class GameWatcher {
         if (serviceThread == null) {
             initService();
         }
-        if(serviceThread.getState().equals(Thread.State.TIMED_WAITING)){
+        if (serviceThread.getState().equals(Thread.State.TIMED_WAITING)) {
             serviceThread.interrupt();
         }
         if (serviceThread.getState().equals(Thread.State.NEW)) {
@@ -426,21 +426,19 @@ public class GameWatcher {
         EXECUTOR_SERVICE.submit(task);
     }
 
-    public ArrayList<GameEntry> getEntriesToAdd() {
+    public CopyOnWriteArrayList<GameEntry> getEntriesToAdd() {
         return entriesToAdd;
     }
 
     public GameButton onGameFound(GameEntry foundEntry) {
-        synchronized (entriesToAdd) {
-            if (!FolderGameScanner.gameAlreadyIn(foundEntry, entriesToAdd)) {
-                foundEntry.setAddedDate(new Date());
-                foundEntry.setToAdd(true);
-                foundEntry.setSavedLocaly(true);
+        if (!FolderGameScanner.gameAlreadyIn(foundEntry, entriesToAdd)) {
+            foundEntry.setAddedDate(new Date());
+            foundEntry.setToAdd(true);
+            foundEntry.setSavedLocaly(true);
 
-                Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
-                entriesToAdd.add(foundEntry);
-                return onGameFoundHandler.gameToAddFound(foundEntry);
-            }
+            Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
+            entriesToAdd.add(foundEntry);
+            return onGameFoundHandler.gameToAddFound(foundEntry);
         }
         return null;
     }
