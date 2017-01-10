@@ -50,6 +50,11 @@ public class GameStarter {
         String cmdBefore = entry.getCmd(GameEntry.CMD_BEFORE_START);
         String commandsBeforeString = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_BEFORE_START] + (cmdBefore != null ? "\n" + cmdBefore : "");
         String[] commandsBefore = commandsBeforeString.split("\n");
+
+        entry.setSavedLocaly(true);
+        entry.setLastPlayedDate(new Date());
+        entry.setSavedLocaly(false);
+
         if (entry.isSteamGame() || entry.getPath().startsWith(STEAM_PREFIX)) {
             terminal.execute(commandsBefore, preLog);
             try {
@@ -69,10 +74,6 @@ public class GameStarter {
             gameProcessBuilder.redirectOutput(gameLog);
             gameProcessBuilder.redirectError(gameLog);
             gameProcessBuilder.directory(new File(new File(entry.getPath()).getParent()));
-
-            entry.setSavedLocaly(true);
-            entry.setLastPlayedDate(new Date());
-            entry.setSavedLocaly(false);
 
             if(entry.getOnGameLaunched() != null){
                 entry.getOnGameLaunched().run();
@@ -153,9 +154,13 @@ public class GameStarter {
         th.start();
     }
 
-    public void onStop() {
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE))
+    void onStop() {
+        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE)){
             originalPowerMode.activate();
+        }
+        if(MAIN_SCENE != null){
+            MAIN_SCENE.updateGame(entry);
+        }
     }
 
     public GameEntry getGameEntry() {
