@@ -946,7 +946,7 @@ public class GameEditScene extends BaseScene {
 
     private HashMap<String, Boolean> createDoNotUpdateFielsMap() {
         HashMap<String, Boolean> map = new HashMap<>();
-        map.put("game_name", false);
+        /*map.put("game_name", false);
         map.put("serie", entry.getSerie() != null && !entry.getSerie().equals(""));
         map.put("release_date", entry.getReleaseDate() != null);
         map.put("developer", entry.getDeveloper() != null && !entry.getDeveloper().equals(""));
@@ -954,7 +954,7 @@ public class GameEditScene extends BaseScene {
         map.put("publisher", entry.getPublisher() != null && !entry.getPublisher().equals(""));
         map.put("genre", entry.getGenres() != null);
         map.put("theme", entry.getThemes() != null);
-        map.put("cover", mode != MODE_ADD && entry.getImagePath(0) != null);
+        map.put("cover", mode != MODE_ADD && entry.getImagePath(0) != null);*/
         return map;
     }
 

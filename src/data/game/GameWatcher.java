@@ -1,6 +1,7 @@
 package data.game;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
+import data.LevenshteinDistance;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scanner.*;
@@ -256,7 +257,7 @@ public class GameWatcher {
                             entry.setBeingScrapped(true);
                             entry.setSavedLocaly(false);
                             JSONArray search_results = IGDBScraper.searchGame(entry.getName());
-                            searchIGDBIDs.add(search_results.getJSONObject(0).getInt("id"));
+                            searchIGDBIDs.add(LevenshteinDistance.closestName(entry.getName(),search_results));
                             toScrapEntries.add(entry);
                             Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
 

@@ -1,11 +1,12 @@
 package ui.dialog;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
-import data.http.images.ImageUtils;
+import data.LevenshteinDistance;
 import data.game.entry.GameEntry;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.SimpleImageInfo;
+import data.http.images.ImageUtils;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.value.ChangeListener;
@@ -41,10 +42,10 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 import static ui.Main.LOGGER;
 import static ui.Main.SCREEN_WIDTH;
@@ -95,7 +96,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         //Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
         //ImageButton searchButton = new ImageButton(searchImage);
         double imgSize = SCREEN_WIDTH / 28;
-        ImageButton searchButton = new ImageButton("search-button",imgSize,imgSize);
+        ImageButton searchButton = new ImageButton("search-button", imgSize, imgSize);
 
         mainPane.getStyleClass().add("container");
 
@@ -122,7 +123,6 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 });
                 try {
                     JSONArray resultArray = IGDBScraper.searchGame(searchField.getText());
-                    ArrayList<Integer> ids = new ArrayList<Integer>();
                     if (resultArray == null) {
                         Platform.runLater(new Runnable() {
                             @Override
@@ -131,10 +131,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                             }
                         });
                     } else {
-                        for (Object obj : resultArray) {
-                            JSONObject jsob = ((JSONObject) obj);
-                            ids.add(jsob.getInt("id"));
-                        }
+                        List<Integer> ids = LevenshteinDistance.getSortedIds(gameName, resultArray);
                         if (ids.size() == 0) {
                             Platform.runLater(new Runnable() {
                                 @Override
@@ -153,7 +150,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                                 @Override
                                 protected String call() throws Exception {
                                     gamesDataArray = IGDBScraper.getGamesData(ids);
-                                    if(gamesDataArray == null){
+                                    if (gamesDataArray == null) {
                                         GameRoomAlert.errorIGDB();
                                         return null;
                                     }
@@ -277,7 +274,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 String coverHash = IGDBScraper.getEntry(searchListPane.getSelectedValue()).getIgdb_imageHash(0);
             }
         });
-        if(gameName!=null){
+        if (gameName != null) {
             searchButton.fireEvent(new ActionEvent());
         }
     }
