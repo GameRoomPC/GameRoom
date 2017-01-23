@@ -128,7 +128,12 @@ public class GameStarter {
                     String[] commandsAfter = commandsAfterString.split("\n");
                     File postLog = new File(logFolder + "post_" + entry.getProcessName() + ".log");
                     try {
-                        terminal.execute(commandsAfter, postLog, new File(new File(entry.getPath()).getParent()));
+                        File dir = new File(new File(entry.getPath()).getParent());
+                        if(dir.exists() && dir.isDirectory()){
+                            terminal.execute(commandsAfter, postLog, dir);
+                        }else{
+                            terminal.execute(commandsAfter, postLog);
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
