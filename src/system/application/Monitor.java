@@ -5,6 +5,7 @@ import data.game.scraper.SteamLocalScraper;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.ButtonType;
+import system.application.settings.PredefinedSetting;
 import system.os.Terminal;
 import ui.Main;
 import ui.GeneralToast;
@@ -19,6 +20,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
+import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.KEEP_THREADS_RUNNING;
 import static ui.Main.MAIN_SCENE;
 
@@ -90,7 +92,7 @@ public class Monitor {
                 e.printStackTrace();
             }
         }
-        if(!KEEP_THREADS_RUNNING){
+        if (!KEEP_THREADS_RUNNING) {
             return 0;
         }
         Main.LOGGER.info("Monitoring " + getGameEntry().getProcessName());
@@ -116,7 +118,7 @@ public class Monitor {
                 e.printStackTrace();
             }
         }
-        if(!KEEP_THREADS_RUNNING){
+        if (!KEEP_THREADS_RUNNING) {
             return 0;
         }
         Main.LOGGER.info(getGameEntry().getProcessName() + " killed");
@@ -126,7 +128,7 @@ public class Monitor {
 
         if (result < MIN_MONITOR_TIME) {
             String time = GameEntry.getPlayTimeFormatted(Math.round(result / 1000.0), GameEntry.TIME_FORMAT_ROUNDED_HMS);
-            String text  = Main.getString("monitor_wait_dialog",getGameEntry().getName(),time);
+            String text = Main.getString("monitor_wait_dialog", getGameEntry().getName(), time);
             final FutureTask<Long> query = new FutureTask(new Callable() {
                 @Override
                 public Long call() throws Exception {
@@ -255,7 +257,7 @@ public class Monitor {
         errors.close();
 
 
-        if (isSteamGame() ||!KEEP_THREADS_RUNNING) {
+        if (isSteamGame() || !KEEP_THREADS_RUNNING) {
             result = timer;
         }
 
@@ -281,7 +283,9 @@ public class Monitor {
                 String dateString = line.substring(TIME_TAG.length(), line.indexOf('.'));
                 try {
                     resultDate = DATE_FORMAT.parse(dateString);
-                    Main.LOGGER.debug("Found creation date of process : " + DEBUG_DATE_FORMAT.format(resultDate));
+                    if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
+                        Main.LOGGER.debug("Found creation date of process : " + DEBUG_DATE_FORMAT.format(resultDate));
+                    }
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
@@ -339,7 +343,7 @@ public class Monitor {
         }
     }
 
-    private GameEntry getGameEntry(){
+    private GameEntry getGameEntry() {
         return gameStarter.getGameEntry();
     }
 }

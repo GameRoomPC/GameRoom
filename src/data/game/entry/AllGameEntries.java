@@ -72,7 +72,7 @@ public class AllGameEntries {
             for(GameEntry entryInList : ENTRIES_LIST){
                 validToAdd = !entryInList.getUuid().equals(entry.getUuid());
                 if(!validToAdd){
-                    Main.LOGGER.debug("Matching uuids for games : "+entryInList.getName()+", "+entry.getName());
+                    Main.LOGGER.debug("Matching uuids for games : "+entryInList.getName());
                     break;
                 }
             }

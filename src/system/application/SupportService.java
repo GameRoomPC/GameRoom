@@ -29,7 +29,7 @@ public class SupportService {
     private final static long RUN_FREQ = TimeUnit.MINUTES.toMillis(DEV_MODE ? 2 : 15);
 
     private final static long UPDATE_CHECK_FREQ = TimeUnit.MINUTES.toMillis(DEV_MODE ? 2 : 60);
-    private final static long SUPPORT_ALERT_FREQ = TimeUnit.DAYS.toMillis(30);
+    private final static long SUPPORT_ALERT_FREQ = TimeUnit.DAYS.toMillis(15);
 
     private Thread thread;
     private static volatile boolean DISPLAYING_SUPPORT_ALERT = false;
