@@ -158,7 +158,7 @@ public class GameInfoScene extends BaseScene {
         propertiesPane.getColumnConstraints().add(cc2);
 
         propertiesPane.setAlignment(Pos.TOP_LEFT);
-        addProperty("play_time", entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS)).setId("basic-info-label");
+        addProperty("play_time", entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS)).setStyle("-fx-font-size: 1.79em;");
 
         /***************************PATH******************************************/
         addProperty("game_path", entry.getPath());
