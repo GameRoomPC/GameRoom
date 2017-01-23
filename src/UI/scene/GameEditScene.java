@@ -993,7 +993,7 @@ public class GameEditScene extends BaseScene {
         entry.setAggregated_rating(gameEntry.getAggregated_rating());
 
         /*****************COVER DOWNLOAD***************************/
-        if (!doNotUpdateFieldsMap.get("cover")) {
+        if (!doNotUpdateFieldsMap.containsKey("cover") || !doNotUpdateFieldsMap.get("cover")) {
             GeneralToast.displayToast(Main.getString("downloading_images"), getParentStage(), GeneralToast.DURATION_SHORT);
             ImageUtils.downloadIGDBImageToCache(gameEntry.getIgdb_id()
                     , gameEntry.getIgdb_imageHash(0)

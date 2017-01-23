@@ -284,6 +284,9 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
     }
 
     public HashMap<String, Boolean> getDoNotUpdateFieldsMap() {
+        if(doNotUpdateFieldsMap == null){
+            return new HashMap<>();
+        }
         return doNotUpdateFieldsMap;
     }
 
