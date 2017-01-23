@@ -1,6 +1,7 @@
 package data;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class LevenshteinDistance {
         return costs[b.length()];
     }
 
-    public static int closestName(String searchedName, JSONArray searchResult){
+    public static int closestName(String searchedName, JSONArray searchResult) throws JSONException{
         int closestId = -1;
         int minDistance = -1;
         for (int i = 0; i < searchResult.length(); i++) {
@@ -51,7 +52,7 @@ public class LevenshteinDistance {
         return closestId;
     }
 
-    public static List<Integer> getSortedIds(String searchedName, JSONArray resultArray){
+    public static List<Integer> getSortedIds(String searchedName, JSONArray resultArray) throws JSONException{
         ArrayList<SortingItem> items = new ArrayList<>();
         for (Object obj : resultArray) {
             JSONObject jsob = ((JSONObject) obj);

@@ -131,46 +131,50 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                             }
                         });
                     } else {
-                        List<Integer> ids = LevenshteinDistance.getSortedIds(gameName, resultArray);
-                        if (ids.size() == 0) {
-                            Platform.runLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    statusLabel.setText(Main.getString("no_result"));
-                                }
-                            });
-                        } else {
-                            Platform.runLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    statusLabel.setText(Main.getString("loading") + "...");
-                                }
-                            });
-                            Task<String> scrapping = new Task<String>() {
-                                @Override
-                                protected String call() throws Exception {
-                                    gamesDataArray = IGDBScraper.getGamesData(ids);
-                                    if (gamesDataArray == null) {
-                                        GameRoomAlert.errorIGDB();
+                        try {
+                            List<Integer> ids = LevenshteinDistance.getSortedIds(gameName, resultArray);
+                            if (ids.size() == 0) {
+                                Platform.runLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        statusLabel.setText(Main.getString("no_result"));
+                                    }
+                                });
+                            } else {
+                                Platform.runLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        statusLabel.setText(Main.getString("loading") + "...");
+                                    }
+                                });
+                                Task<String> scrapping = new Task<String>() {
+                                    @Override
+                                    protected String call() throws Exception {
+                                        gamesDataArray = IGDBScraper.getGamesData(ids);
+                                        if (gamesDataArray == null) {
+                                            GameRoomAlert.errorIGDB();
+                                            return null;
+                                        }
+                                        String gameList = "SearchResult : ";
+                                        searchListPane.setGamesDataArray(gamesDataArray);
+                                        Platform.runLater(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                statusLabel.setText("");
+                                            }
+                                        });
+                                        Platform.runLater(() -> searchListPane.addItems(gamesDataArray.iterator()));
+
+                                        Main.LOGGER.debug(gameList.substring(0, gameList.length() - 3));
                                         return null;
                                     }
-                                    String gameList = "SearchResult : ";
-                                    searchListPane.setGamesDataArray(gamesDataArray);
-                                    Platform.runLater(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            statusLabel.setText("");
-                                        }
-                                    });
-                                    Platform.runLater(() -> searchListPane.addItems(gamesDataArray.iterator()));
-
-                                    Main.LOGGER.debug(gameList.substring(0, gameList.length() - 3));
-                                    return null;
-                                }
-                            };
-                            Thread th = new Thread(scrapping);
-                            th.setDaemon(true);
-                            th.start();
+                                };
+                                Thread th = new Thread(scrapping);
+                                th.setDaemon(true);
+                                th.start();
+                            }
+                        }catch (JSONException e){
+                            GameRoomAlert.errorIGDB();
                         }
                     }
                 } catch (ConnectTimeoutException cte) {
