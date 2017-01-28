@@ -108,6 +108,10 @@ public class SteamOnlineScraper {
             }
             entry.setSteam_id(steamId);
             entry.setNotInstalled(!SteamLocalScraper.isSteamGameInstalled(entry.getSteam_id()));
+
+            if(entry.getName() == null || entry.getName().isEmpty()){
+                return null;
+            }
             return entry;
         }
         return null;
