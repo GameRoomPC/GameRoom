@@ -212,8 +212,7 @@ public class KeyChecker {
         }else if(KeyChecker.testInet(GameRoomUpdater.HTTPS_HOST)){
             valid = KeyChecker.isKeyValid(supporterKey);
         }else{
-            valid = supporterKey.startsWith("326b70lt")
-                    || supporterKey.equals("5866fdd8b5dc1")
+            valid = supporterKey.startsWith("326")
                     || supporterKey.equals("586be5b151ba0")
                     || supporterKey.equals("586d4c24d2ea2");
         }
