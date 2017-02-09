@@ -1,9 +1,11 @@
 package ui.control.drawer;
 
 import javafx.animation.Timeline;
+import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import ui.Main;
 
 /**
  * Created by LM on 09/02/2017.
@@ -19,14 +21,23 @@ public class SubMenu extends BorderPane {
 
     public SubMenu(String menuId){
         super();
-        titleLabel  = new Label(menuId);
         this.menuId = menuId;
-        setTop(titleLabel);
+        initTitleLabel(menuId);
 
         getStyleClass().add("drawer-submenu");
         setFocusTraversable(false);
         setManaged(false);
         setVisible(false);
+    }
+
+    public void initTitleLabel(String text){
+        titleLabel  = new Label(menuId);
+        titleLabel.getStyleClass().add("title");
+        titleLabel.setPadding(new Insets(20* Main.SCREEN_HEIGHT/1080
+                , 10* Main.SCREEN_HEIGHT/1080
+                ,20* Main.SCREEN_HEIGHT/1080
+                ,10* Main.SCREEN_HEIGHT/1080));
+        setTop(titleLabel);
     }
 
     public void addOption(String option){

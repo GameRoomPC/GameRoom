@@ -17,6 +17,7 @@ public class ScanButton extends DrawerButton {
 
     public ScanButton(DrawerMenu menu) {
         super(CSS_ID, menu);
+        setStyle("-fx-background-color: transparent;");
         setFocusTraversable(false);
         setOnAction(event -> {
             GameWatcher.getInstance().start();

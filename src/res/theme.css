@@ -18,6 +18,11 @@
     -fx-border-width: 2px;
 }
 
+.base-scene-root{
+    -fx-border-color: transparent;
+    -fx-border-width: 0.0;
+}
+
 .mnemonic-underline {
     -fx-stroke: transparent;
 }
@@ -44,10 +49,6 @@
     -fx-font-size: 16.0;
 }
 
-.base-scene-root{
-    -fx-border-color: transparent;
-    -fx-border-width: 0.0;
-}
 /*******************************************************************************
  *                                                                             *
  * Label                                                                       *
@@ -77,7 +78,7 @@
  ******************************************************************************/
 .image-button{
 	-fx-padding: 5 15 5 15;
-
+    -fx-background-color: transparent;
     -fx-background-radius: 0;
 }
 
@@ -840,7 +841,33 @@
 	-fx-image: url("icons/backgroundMask.png");
 }
 
+/************* MENU DRAWER *****************/
 #menu-bar{
 	-fx-background-color: -dark;
 	-fx-effect: innershadow( three-pass-box, black, 10, 0, 0, 0 );
+}
+
+#menu-button-bar{
+
+}
+
+.drawer-button:submenu-opened {
+   -fx-background-color: derive(-dark, 10.0%);
+}
+
+.drawer-button,
+.drawer-button:default,{
+   -fx-background-color: transparent;
+}
+
+.drawer-submenu{
+   -fx-background-color: derive(-dark, 10.0%);
+   -fx-border-width: 0 0 0 0;
+   -fx-border-color: -flatter-red;
+   -fx-border-insets: 50 0 350 0;
+}
+
+.drawer-submenu > .title{
+    -fx-font-size: 1.15em;
+    -fx-font-weight: bold;
 }

@@ -4,12 +4,13 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.geometry.Bounds;
+import javafx.event.ActionEvent;
+import javafx.event.EventType;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
@@ -26,10 +27,13 @@ import ui.scene.MainScene;
 import ui.scene.SettingsScene;
 
 import java.io.File;
-import java.sql.Time;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Optional;
 
-import static ui.Main.*;
+import static ui.Main.GENERAL_SETTINGS;
+import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 09/02/2017.
@@ -72,13 +76,14 @@ public class DrawerMenu extends BorderPane {
         init(mainScene);
     }
 
-    /**Opens the menu drawer
+    /**
+     * Opens the menu drawer
      *
      * @param mainScene the mainscene containing this drawer
      */
-    public void open(MainScene mainScene){
+    public void open(MainScene mainScene) {
         setManaged(true);
-        if(closeAnim != null) {
+        if (closeAnim != null) {
             closeAnim.stop();
         }
         openAnim = new Timeline(
@@ -94,12 +99,13 @@ public class DrawerMenu extends BorderPane {
         openAnim.play();
     }
 
-    /**Closes the menu drawer
+    /**
+     * Closes the menu drawer
      *
      * @param mainScene the mainScene containing this menu drawer
      */
-    public void close(MainScene mainScene){
-        if(openAnim != null){
+    public void close(MainScene mainScene) {
+        if (openAnim != null) {
             openAnim.stop();
         }
         closeAnim = new Timeline(
@@ -129,11 +135,14 @@ public class DrawerMenu extends BorderPane {
         //initScaleSlider();
         initSettingsButton(mainScene);
 
-        AnchorPane.setTopAnchor(topButtonsBox,20.0 * Main.SCREEN_HEIGHT / 1080);
-        AnchorPane.setBottomAnchor(bottomButtonsBox,20.0 * Main.SCREEN_HEIGHT / 1080);
+        AnchorPane.setTopAnchor(topButtonsBox, 20.0 * Main.SCREEN_HEIGHT / 1080);
+        AnchorPane.setBottomAnchor(bottomButtonsBox, 20.0 * Main.SCREEN_HEIGHT / 1080);
 
-        topMenuPane.getChildren().addAll(topButtonsBox,bottomButtonsBox);
+        topMenuPane.getChildren().addAll(topButtonsBox, bottomButtonsBox);
+        topMenuPane.setId("menu-button-bar");
         setCenter(topMenuPane);
+
+        initButtonSelectListeners();
     }
 
     private void initAddButton(MainScene mainScene) {
@@ -205,6 +214,7 @@ public class DrawerMenu extends BorderPane {
     private void initSortButton(MainScene mainScene) {
         DrawerButton sortButton = new DrawerButton("main-sort-button", this);
         sortButton.setFocusTraversable(false);
+        sortButton.setSelectionable(true);
 
         final ContextMenu sortMenu = new ContextMenu();
         MenuItem sortByNameItem = new MenuItem(Main.getString("sort_by_name"));
@@ -226,10 +236,10 @@ public class DrawerMenu extends BorderPane {
         sortMenu.getItems().addAll(sortByNameItem, sortByRatingItem, sortByTimePlayedItem, sortByReleaseDateItem);
 
         sortButton.setOnAction(event -> {
-            if(isMenuActive("sortBy")){
+            if (isMenuActive("sortBy")) {
                 closeSubMenu(mainScene);
-            }else{
-                openSubMenu(mainScene,"sortBy");
+            } else {
+                openSubMenu(mainScene, "sortBy");
             }
             /*if (sortMenu.isShowing()) {
                 sortMenu.hide();
@@ -243,21 +253,22 @@ public class DrawerMenu extends BorderPane {
             }*/
         });
 
-        subMenus.put("sortBy",new SubMenu("sortBy"));
+        subMenus.put("sortBy", new SubMenu("sortBy"));
 
         topButtonsBox.getChildren().add(sortButton);
     }
+
     private void openSubMenu(MainScene mainScene, String subMenuId) {
-        openSubMenu(mainScene,getSubMenu(subMenuId));
+        openSubMenu(mainScene, getSubMenu(subMenuId));
     }
 
-    private void openSubMenu(MainScene mainScene, SubMenu subMenu){
-        if(subMenu == null){
+    private void openSubMenu(MainScene mainScene, SubMenu subMenu) {
+        if (subMenu == null) {
             throw new IllegalArgumentException("SubMenu is null");
         }
         currentSubMenu = subMenu;
 
-        if(currentSubMenu.getCloseAnim() != null){
+        if (currentSubMenu.getCloseAnim() != null) {
             currentSubMenu.getCloseAnim().stop();
         }
 
@@ -265,11 +276,13 @@ public class DrawerMenu extends BorderPane {
 
         Timeline openAnim = new Timeline(
                 new KeyFrame(Duration.seconds(0),
-                        new KeyValue(currentSubMenu.translateXProperty(), - currentSubMenu.getWidth(), Interpolator.LINEAR),
+                        new KeyValue(currentSubMenu.translateXProperty(), -currentSubMenu.getWidth(), Interpolator.LINEAR),
+                        new KeyValue(currentSubMenu.opacityProperty(), currentSubMenu.opacityProperty().doubleValue(), Interpolator.LINEAR),
                         //new KeyValue(mainScene.getScrollPane().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR),
                         new KeyValue(mainScene.getBackgroundView().translateXProperty(), topMenuPane.getWidth(), Interpolator.LINEAR)),
                 new KeyFrame(Duration.seconds(ANIMATION_TIME),
                         new KeyValue(currentSubMenu.translateXProperty(), 0, Interpolator.LINEAR),
+                        new KeyValue(currentSubMenu.opacityProperty(), 1.0, Interpolator.EASE_IN),
                         //new KeyValue(mainScene.getScrollPane().translateXProperty(), 0, Interpolator.LINEAR),
                         new KeyValue(mainScene.getBackgroundView().translateXProperty(), topMenuPane.getWidth() + subMenu.getWidth(), Interpolator.LINEAR)
                 ));
@@ -285,19 +298,21 @@ public class DrawerMenu extends BorderPane {
         currentSubMenu.setVisible(true);
     }
 
-    private void closeSubMenu(MainScene mainScene){
-        if(currentSubMenu != null){
-            if(currentSubMenu.getOpenAnim() != null){
+    private void closeSubMenu(MainScene mainScene) {
+        if (currentSubMenu != null) {
+            if (currentSubMenu.getOpenAnim() != null) {
                 currentSubMenu.getOpenAnim().stop();
             }
 
             Timeline closeAnim = new Timeline(
                     new KeyFrame(Duration.seconds(0),
                             new KeyValue(currentSubMenu.translateXProperty(), currentSubMenu.translateXProperty().getValue(), Interpolator.LINEAR),
+                            new KeyValue(currentSubMenu.opacityProperty(), currentSubMenu.opacityProperty().getValue(), Interpolator.LINEAR),
                             //new KeyValue(mainScene.getScrollPane().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR),
                             new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
                     new KeyFrame(Duration.seconds(ANIMATION_TIME),
                             new KeyValue(currentSubMenu.translateXProperty(), -currentSubMenu.getWidth(), Interpolator.LINEAR),
+                            new KeyValue(currentSubMenu.opacityProperty(), 0, Interpolator.EASE_IN),
                             //new KeyValue(mainScene.getScrollPane().translateXProperty(), 0, Interpolator.LINEAR),
                             new KeyValue(mainScene.getBackgroundView().translateXProperty(), getWidth() - currentSubMenu.getWidth(), Interpolator.LINEAR)
                     ));
@@ -316,6 +331,7 @@ public class DrawerMenu extends BorderPane {
     private void initGroupButton(MainScene mainScene) {
         DrawerButton groupButton = new DrawerButton("main-group-button", this);
         groupButton.setFocusTraversable(false);
+        groupButton.setSelectionable(true);
 
         final ContextMenu groupMenu = new ContextMenu();
         MenuItem groupByAll = new MenuItem(Main.getString("group_by_all"));
@@ -344,10 +360,10 @@ public class DrawerMenu extends BorderPane {
         groupMenu.getItems().addAll(groupByAll, groupByGenre, groupByTheme, groupBySerie, groupByLauncher);
 
         groupButton.setOnAction(event -> {
-            if(isMenuActive("groupBy")){
+            if (isMenuActive("groupBy")) {
                 closeSubMenu(mainScene);
-            }else{
-                openSubMenu(mainScene,"groupBy");
+            } else {
+                openSubMenu(mainScene, "groupBy");
             }
             /*if (groupMenu.isShowing()) {
                 groupMenu.hide();
@@ -361,7 +377,7 @@ public class DrawerMenu extends BorderPane {
             }*/
         });
 
-        subMenus.put("groupBy",new SubMenu("groupBy"));
+        subMenus.put("groupBy", new SubMenu("groupBy"));
 
         topButtonsBox.getChildren().add(groupButton);
     }
@@ -379,18 +395,61 @@ public class DrawerMenu extends BorderPane {
         bottomButtonsBox.getChildren().add(settingsButton);
     }
 
-    private boolean isMenuActive(String id){
-        if(currentSubMenu == null || id == null || currentSubMenu.getMenuId() == null){
+    private boolean isMenuActive(String id) {
+        if (currentSubMenu == null || id == null || currentSubMenu.getMenuId() == null) {
             return false;
         }
         return currentSubMenu.getMenuId().equals(id) && currentSubMenu.isActive();
     }
 
-    private SubMenu getSubMenu(String id){
-        if(subMenus == null || subMenus.isEmpty()){
+    private SubMenu getSubMenu(String id) {
+        if (subMenus == null || subMenus.isEmpty()) {
             return null;
         }
         return subMenus.get(id);
+    }
+
+    private void initButtonSelectListeners() {
+        for (Node n : topButtonsBox.getChildren()) {
+            if (n instanceof DrawerButton) {
+                DrawerButton b = (DrawerButton) n;
+                b.addEventHandler(ActionEvent.ACTION, event -> {
+                    if (b.isSelectionable()) {
+                        unselectAllButtons();
+                        LOGGER.debug("kuntz");
+                        b.setSelected(true);
+                    }
+                });
+            }
+        }
+
+        for (Node n : bottomButtonsBox.getChildren()) {
+            if (n instanceof DrawerButton) {
+                DrawerButton b = (DrawerButton) n;
+                b.addEventHandler(ActionEvent.ACTION,event -> {
+                    if (b.isSelectionable()) {
+                        unselectAllButtons();
+                        LOGGER.debug("kuntz");
+                        b.setSelected(true);
+                    }
+                });
+            }
+        }
+    }
+
+    private void unselectAllButtons() {
+        for (Node n : topButtonsBox.getChildren()) {
+            if (n instanceof DrawerButton) {
+                DrawerButton b = (DrawerButton) n;
+                b.setSelected(false);
+            }
+        }
+        for (Node n : bottomButtonsBox.getChildren()) {
+            if (n instanceof DrawerButton) {
+                DrawerButton b = (DrawerButton) n;
+                b.setSelected(false);
+            }
+        }
     }
 
 
