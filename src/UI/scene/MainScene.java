@@ -940,7 +940,7 @@ public class MainScene extends BaseScene {
 
         tilesPaneWrapper.getChildren().removeAll(groupRowList);
         groupRowList.clear();
-        
+
         switch (sortType){
             case NAME:
                 tilePane.sortByName();

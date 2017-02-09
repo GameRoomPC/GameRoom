@@ -9,7 +9,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
@@ -24,23 +26,27 @@ import ui.scene.MainScene;
 import ui.scene.SettingsScene;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Optional;
+import java.sql.Time;
+import java.util.*;
 
 import static ui.Main.*;
 
 /**
  * Created by LM on 09/02/2017.
  */
-public class DrawerMenu extends AnchorPane {
+public class DrawerMenu extends BorderPane {
     public static double ANIMATION_TIME = 0.04;
     public static final double WIDTH_RATIO = 0.025;
+
     private Timeline openAnim;
     private Timeline closeAnim;
+    private AnchorPane topMenuPane = new AnchorPane();
     private VBox topButtonsBox = new VBox();
     private VBox bottomButtonsBox = new VBox();
 
+    private SubMenu currentSubMenu;
+
+    private HashMap<String, SubMenu> subMenus = new HashMap<>();
 
     public DrawerMenu(MainScene mainScene) {
         super();
@@ -66,6 +72,10 @@ public class DrawerMenu extends AnchorPane {
         init(mainScene);
     }
 
+    /**Opens the menu drawer
+     *
+     * @param mainScene the mainscene containing this drawer
+     */
     public void open(MainScene mainScene){
         setManaged(true);
         if(closeAnim != null) {
@@ -84,6 +94,10 @@ public class DrawerMenu extends AnchorPane {
         openAnim.play();
     }
 
+    /**Closes the menu drawer
+     *
+     * @param mainScene the mainScene containing this menu drawer
+     */
     public void close(MainScene mainScene){
         if(openAnim != null){
             openAnim.stop();
@@ -115,10 +129,11 @@ public class DrawerMenu extends AnchorPane {
         //initScaleSlider();
         initSettingsButton(mainScene);
 
-        setTopAnchor(topButtonsBox,20.0 * Main.SCREEN_HEIGHT / 1080);
-        setBottomAnchor(bottomButtonsBox,20.0 * Main.SCREEN_HEIGHT / 1080);
+        AnchorPane.setTopAnchor(topButtonsBox,20.0 * Main.SCREEN_HEIGHT / 1080);
+        AnchorPane.setBottomAnchor(bottomButtonsBox,20.0 * Main.SCREEN_HEIGHT / 1080);
 
-        getChildren().addAll(topButtonsBox,bottomButtonsBox);
+        topMenuPane.getChildren().addAll(topButtonsBox,bottomButtonsBox);
+        setCenter(topMenuPane);
     }
 
     private void initAddButton(MainScene mainScene) {
@@ -211,7 +226,12 @@ public class DrawerMenu extends AnchorPane {
         sortMenu.getItems().addAll(sortByNameItem, sortByRatingItem, sortByTimePlayedItem, sortByReleaseDateItem);
 
         sortButton.setOnAction(event -> {
-            if (sortMenu.isShowing()) {
+            if(isMenuActive("sortBy")){
+                closeSubMenu(mainScene);
+            }else{
+                openSubMenu(mainScene,"sortBy");
+            }
+            /*if (sortMenu.isShowing()) {
                 sortMenu.hide();
             } else {
                 Bounds bounds = sortButton.getBoundsInLocal();
@@ -220,10 +240,77 @@ public class DrawerMenu extends AnchorPane {
                 int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
 
                 sortMenu.show(sortButton, x, y);
-            }
+            }*/
         });
 
+        subMenus.put("sortBy",new SubMenu("sortBy"));
+
         topButtonsBox.getChildren().add(sortButton);
+    }
+    private void openSubMenu(MainScene mainScene, String subMenuId) {
+        openSubMenu(mainScene,getSubMenu(subMenuId));
+    }
+
+    private void openSubMenu(MainScene mainScene, SubMenu subMenu){
+        if(subMenu == null){
+            throw new IllegalArgumentException("SubMenu is null");
+        }
+        currentSubMenu = subMenu;
+
+        if(currentSubMenu.getCloseAnim() != null){
+            currentSubMenu.getCloseAnim().stop();
+        }
+
+        setRight(currentSubMenu);
+
+        Timeline openAnim = new Timeline(
+                new KeyFrame(Duration.seconds(0),
+                        new KeyValue(currentSubMenu.translateXProperty(), - currentSubMenu.getWidth(), Interpolator.LINEAR),
+                        //new KeyValue(mainScene.getScrollPane().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR),
+                        new KeyValue(mainScene.getBackgroundView().translateXProperty(), topMenuPane.getWidth(), Interpolator.LINEAR)),
+                new KeyFrame(Duration.seconds(ANIMATION_TIME),
+                        new KeyValue(currentSubMenu.translateXProperty(), 0, Interpolator.LINEAR),
+                        //new KeyValue(mainScene.getScrollPane().translateXProperty(), 0, Interpolator.LINEAR),
+                        new KeyValue(mainScene.getBackgroundView().translateXProperty(), topMenuPane.getWidth() + subMenu.getWidth(), Interpolator.LINEAR)
+                ));
+        openAnim.setCycleCount(1);
+        openAnim.setAutoReverse(false);
+        openAnim.setOnFinished(event -> {
+            subMenu.setActive(true);
+        });
+        currentSubMenu.setOpenAnim(openAnim);
+        openAnim.play();
+
+        currentSubMenu.setManaged(true);
+        currentSubMenu.setVisible(true);
+    }
+
+    private void closeSubMenu(MainScene mainScene){
+        if(currentSubMenu != null){
+            if(currentSubMenu.getOpenAnim() != null){
+                currentSubMenu.getOpenAnim().stop();
+            }
+
+            Timeline closeAnim = new Timeline(
+                    new KeyFrame(Duration.seconds(0),
+                            new KeyValue(currentSubMenu.translateXProperty(), currentSubMenu.translateXProperty().getValue(), Interpolator.LINEAR),
+                            //new KeyValue(mainScene.getScrollPane().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR),
+                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
+                    new KeyFrame(Duration.seconds(ANIMATION_TIME),
+                            new KeyValue(currentSubMenu.translateXProperty(), -currentSubMenu.getWidth(), Interpolator.LINEAR),
+                            //new KeyValue(mainScene.getScrollPane().translateXProperty(), 0, Interpolator.LINEAR),
+                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), getWidth() - currentSubMenu.getWidth(), Interpolator.LINEAR)
+                    ));
+            closeAnim.setCycleCount(1);
+            closeAnim.setAutoReverse(false);
+            closeAnim.setOnFinished(event -> {
+                currentSubMenu.setManaged(false);
+                currentSubMenu.setVisible(false);
+                currentSubMenu.setActive(false);
+            });
+            currentSubMenu.setCloseAnim(closeAnim);
+            closeAnim.play();
+        }
     }
 
     private void initGroupButton(MainScene mainScene) {
@@ -257,7 +344,12 @@ public class DrawerMenu extends AnchorPane {
         groupMenu.getItems().addAll(groupByAll, groupByGenre, groupByTheme, groupBySerie, groupByLauncher);
 
         groupButton.setOnAction(event -> {
-            if (groupMenu.isShowing()) {
+            if(isMenuActive("groupBy")){
+                closeSubMenu(mainScene);
+            }else{
+                openSubMenu(mainScene,"groupBy");
+            }
+            /*if (groupMenu.isShowing()) {
                 groupMenu.hide();
             } else {
                 Bounds bounds = groupButton.getBoundsInLocal();
@@ -266,8 +358,10 @@ public class DrawerMenu extends AnchorPane {
                 int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
 
                 groupMenu.show(groupButton, x, y);
-            }
+            }*/
         });
+
+        subMenus.put("groupBy",new SubMenu("groupBy"));
 
         topButtonsBox.getChildren().add(groupButton);
     }
@@ -283,6 +377,20 @@ public class DrawerMenu extends AnchorPane {
         });
 
         bottomButtonsBox.getChildren().add(settingsButton);
+    }
+
+    private boolean isMenuActive(String id){
+        if(currentSubMenu == null || id == null || currentSubMenu.getMenuId() == null){
+            return false;
+        }
+        return currentSubMenu.getMenuId().equals(id) && currentSubMenu.isActive();
+    }
+
+    private SubMenu getSubMenu(String id){
+        if(subMenus == null || subMenus.isEmpty()){
+            return null;
+        }
+        return subMenus.get(id);
     }
 
 
