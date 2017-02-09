@@ -2,27 +2,29 @@ package system.application;
 
 import data.game.entry.GameEntry;
 import data.game.scraper.SteamLocalScraper;
+import data.io.FileUtils;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.ButtonType;
 import system.application.settings.PredefinedSetting;
 import system.os.Terminal;
-import ui.Main;
 import ui.GeneralToast;
+import ui.Main;
 import ui.dialog.GameRoomAlert;
 
 import java.io.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.KEEP_THREADS_RUNNING;
-import static ui.Main.MAIN_SCENE;
+import static ui.Main.*;
 
 /**
  * Created by LM on 24/07/2016.
@@ -54,7 +56,7 @@ public class Monitor {
         if (!isSteamGame()) {
             DATE_FORMAT.setTimeZone(Calendar.getInstance().getTimeZone());
 
-            vbsWatcher = File.createTempFile(getGameEntry().getProcessName() + "_watcher", ".vbs");
+            vbsWatcher = FileUtils.newTempFile(getGameEntry().getProcessName() + "_watcher.vbs");
             vbsWatcher.deleteOnExit();
             FileWriter fw = new java.io.FileWriter(vbsWatcher);
 

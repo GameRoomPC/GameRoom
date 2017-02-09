@@ -155,6 +155,7 @@ public class Launcher extends Application {
         /*****************INIT FILES AND FOLDER***********************/
         Main.FILES_MAP.put("working_dir", gameRoomFolder);
         Main.FILES_MAP.put("cache", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "cache"));
+        Main.FILES_MAP.put("temp", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "temp"));
         Main.FILES_MAP.put("to_add", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "ToAdd"));
         //Main.FILES_MAP.put("libs",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"libs"));
         Main.FILES_MAP.put("games", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "Games"));
@@ -352,6 +353,7 @@ public class Launcher extends Application {
             });
         }
         FileUtils.clearFolder(Main.FILES_MAP.get("cache"));
+        FileUtils.clearFolder(Main.FILES_MAP.get("temp"));
         GENERAL_SETTINGS.saveSettings();
 
         System.exit(0);

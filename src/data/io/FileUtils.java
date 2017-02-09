@@ -36,6 +36,19 @@ public class FileUtils {
         return f;
     }
 
+    public static File newTempFile(String fileName) {
+        if(Main.FILES_MAP == null ||Main.FILES_MAP.isEmpty()){
+            throw new IllegalStateException("Cannot create tempfile : FILE_MAP is not initialized");
+        }
+        File tempFolder = Main.FILES_MAP.get("temp");
+        if(tempFolder == null || !tempFolder.exists()){
+            throw new IllegalStateException("Temp folder does not exist");
+        }
+
+        return initOrCreateFile(tempFolder.getAbsolutePath() + File.separator + fileName);
+    }
+
+
     public static File initOrCreateFile(String f) {
         return initOrCreateFile(new File(f));
     }
