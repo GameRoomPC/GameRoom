@@ -81,6 +81,8 @@ public class MainScene extends BaseScene {
     private BorderPane wrappingPane;
     private StackPane topPane;
 
+    private DrawerMenu drawerMenu;
+
     private Slider sizeSlider = new Slider();
 
     private GamesTilePane tilePane;
@@ -167,9 +169,6 @@ public class MainScene extends BaseScene {
             }
             sizeSlider.setValue(sizeSliderValue);
 
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
-                forceHideToolbar(true);
-            }
             if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS)) {
                 forceHideTilesRows(true);
             }
@@ -324,16 +323,13 @@ public class MainScene extends BaseScene {
         topTilesPaneGridPane.add(lastPlayedTilePane, 0, 0);
         topTilesPaneGridPane.add(recentlyAddedTilePane, 1, 0);
         topTilesPaneGridPane.setHgap(50 * Main.SCREEN_WIDTH / 1920);
-        /*HBox topTilesPanes = new HBox();
-        topTilesPanes.setAlignment(Pos.CENTER_LEFT);
-        topTilesPanes.setSpacing(50*Main.SCREEN_WIDTH/1920);
-        topTilesPanes.getChildren().addAll(lastPlayedTilePane,recentlyAddedTilePane);*/
 
         tilesPaneWrapper.getChildren().addAll(toAddTilePane, topTilesPaneGridPane, tilePane);
         scrollPane.setContent(tilesPaneWrapper);
         scrollPane.setStyle("-fx-background-color: transparent;");
         wrappingPane.setCenter(scrollPane);
-        wrappingPane.setLeft(new DrawerMenu(this));
+        drawerMenu = new DrawerMenu(this);
+        wrappingPane.setLeft(drawerMenu);
         wrappingPane.setStyle("-fx-background-color: transparent;");
 
     }
@@ -473,7 +469,7 @@ public class MainScene extends BaseScene {
         searchButton.setFocusTraversable(false);
 
         HBox searchBox = new HBox();
-        searchBox.setAlignment(Pos.CENTER_RIGHT);
+        searchBox.setAlignment(Pos.TOP_RIGHT);
         searchBox.getChildren().addAll(searchField, searchButton);
         searchField.setFocusTraversable(false);
         searchField.textProperty().addListener(new ChangeListener<String>() {
@@ -504,13 +500,13 @@ public class MainScene extends BaseScene {
             }
         });
         StackPane.setAlignment(homeButton, Pos.BOTTOM_CENTER);
-        topPane.getChildren().add(homeButton);
+        //topPane.getChildren().add(homeButton);
         /*StackPane.setMargin(titleView, new Insets(55 * Main.SCREEN_HEIGHT / 1080
                 , 12 * Main.SCREEN_WIDTH / 1920
                 , 15 * Main.SCREEN_HEIGHT / 1080
                 , 15 * Main.SCREEN_WIDTH / 1920));*/
         topPane.getChildren().add(searchBox);
-        topPane.getChildren().add(hbox);
+        //topPane.getChildren().add(hbox);
         topPane.getStyleClass().add("header");
 
         StackPane.setAlignment(hbox, Pos.CENTER_LEFT);
@@ -519,20 +515,11 @@ public class MainScene extends BaseScene {
         hbox.setPickOnBounds(false);
         searchBox.setPickOnBounds(false);
         homeButton.setPickOnBounds(false);
-        //wrappingPane.setTop(topPane);
-    }
-
-    private void forceHideToolbar(boolean hide){
-        if (topPane != null) {
-            topPane.setVisible(!hide);
-            topPane.setManaged(!hide);
-        }
-    }
-
-    public void toggleToolBar() {
-            boolean wasHidden = GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR);
-            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TOOLBAR, !wasHidden);
-            forceHideToolbar(!wasHidden);
+        topPane.setManaged(false);
+        topPane.setVisible(false);
+        topPane.setPickOnBounds(false);
+        StackPane.setAlignment(topPane,Pos.TOP_RIGHT);
+        getRootStackPane().getChildren().add(topPane);
     }
 
     private void forceHideTilesRows(boolean hide){
@@ -898,6 +885,17 @@ public class MainScene extends BaseScene {
         }
     }
 
+    public void showSearchField(){
+        topPane.setManaged(true);
+        topPane.setVisible(true);
+        searchField.requestFocus();
+    }
+
+    public void hideSearchField(){
+        topPane.setManaged(false);
+        topPane.setVisible(false);
+    }
+
     public void groupBy(GroupType groupType){
         showTilesPaneAgainAfterCancelSearch = false;
 
@@ -929,6 +927,7 @@ public class MainScene extends BaseScene {
         tilesPaneWrapper.getChildren().addAll(groupRowList);
 
         scrollPane.setVvalue(scrollPane.getVmin());
+        drawerMenu.close(this);
     }
 
     public void sortBy(SortType sortType){
@@ -939,6 +938,9 @@ public class MainScene extends BaseScene {
         recentlyAddedTilePane.setForcedHidden(true);
         toAddTilePane.setForcedHidden(true);
 
+        tilesPaneWrapper.getChildren().removeAll(groupRowList);
+        groupRowList.clear();
+        
         switch (sortType){
             case NAME:
                 tilePane.sortByName();
@@ -966,7 +968,9 @@ public class MainScene extends BaseScene {
                 break;
 
         }
+
         tilePane.setForcedHidden(false);
         scrollPane.setVvalue(scrollPane.getVmin());
+        drawerMenu.close(this);
     }
 }
