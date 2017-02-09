@@ -28,6 +28,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
@@ -336,7 +337,7 @@ public class MainScene extends BaseScene {
         scrollPane.setContent(tilesPaneWrapper);
         scrollPane.setStyle("-fx-background-color: transparent;");
         wrappingPane.setCenter(scrollPane);
-        wrappingPane.setLeft(new DrawerMenu());
+        wrappingPane.setLeft(new DrawerMenu(this));
         wrappingPane.setStyle("-fx-background-color: transparent;");
 
     }
@@ -721,7 +722,7 @@ public class MainScene extends BaseScene {
         HBox hbox = new HBox();
         hbox.setPadding(new Insets(15, 12, 15, 10));
         hbox.setSpacing(0);
-        hbox.getChildren().addAll(addButton, new ScanButton(SCREEN_WIDTH / 38.0, SCREEN_WIDTH / 38.0), sortButton, groupButton, settingsButton, sizeSlider);
+        hbox.getChildren().addAll(addButton, /*new ScanButton(SCREEN_WIDTH / 38.0, SCREEN_WIDTH / 38.0),*/ sortButton, groupButton, settingsButton, sizeSlider);
         hbox.setAlignment(Pos.CENTER_LEFT);
 
         searchField = new TextField();
@@ -1157,8 +1158,7 @@ public class MainScene extends BaseScene {
         }
     }
 
-    public void setTranslateBackgroundView(double x, double y){
-        backgroundView.setTranslateX(x);
-        backgroundView.setTranslateY(y);
+    public ScrollPane getScrollPane() {
+        return scrollPane;
     }
 }

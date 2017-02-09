@@ -12,12 +12,12 @@ import static ui.control.button.gamebutton.AddIgnoreGameButton.ROTATION_TIME;
 /**
  * Created by LM on 07/01/2017.
  */
-public class ScanButton extends ImageButton {
+public class ScanButton extends DrawerButton {
     private final static String CSS_ID = "scan-button";
     private Timeline rotateAnim;
 
-    public ScanButton(double width, double height) {
-        super(CSS_ID, width, height);
+    public ScanButton(DrawerMenu menu) {
+        super(CSS_ID, menu);
         setFocusTraversable(false);
         setOnAction(event -> {
             GameWatcher.getInstance().start();

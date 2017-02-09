@@ -220,7 +220,7 @@ public abstract class BaseScene extends Scene {
         backButton.setVisible(false);
     }
 
-    private ImageView getBackgroundView() {
+    public ImageView getBackgroundView() {
         return backgroundView;
     }
 }
