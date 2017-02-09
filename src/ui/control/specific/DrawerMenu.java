@@ -69,9 +69,11 @@ public class DrawerMenu extends AnchorPane {
         }
         openAnim = new Timeline(
                 new KeyFrame(Duration.seconds(0),
-                        new KeyValue(translateXProperty(), translateXProperty().getValue(), Interpolator.EASE_OUT)),
+                        new KeyValue(translateXProperty(), translateXProperty().getValue(), Interpolator.LINEAR),
+                        new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
                 new KeyFrame(Duration.seconds(ANIMATION_TIME),
-                        new KeyValue(translateXProperty(), 0, Interpolator.EASE_OUT)
+                        new KeyValue(translateXProperty(), 0, Interpolator.LINEAR),
+                        new KeyValue(mainScene.getBackgroundView().translateXProperty(), getWidth(), Interpolator.LINEAR)
                 ));
         openAnim.setCycleCount(1);
         openAnim.setAutoReverse(false);
@@ -84,13 +86,13 @@ public class DrawerMenu extends AnchorPane {
         }
         closeAnim = new Timeline(
                 new KeyFrame(Duration.seconds(0),
-                        new KeyValue(translateXProperty(), translateXProperty().getValue(), Interpolator.EASE_OUT),
-                        new KeyValue(mainScene.getScrollPane().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.EASE_OUT),
-                        new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.EASE_OUT)),
+                        new KeyValue(translateXProperty(), translateXProperty().getValue(), Interpolator.LINEAR),
+                        //new KeyValue(mainScene.getScrollPane().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR),
+                        new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
                 new KeyFrame(Duration.seconds(ANIMATION_TIME),
-                        new KeyValue(translateXProperty(), -getWidth() + 2, Interpolator.EASE_OUT),
-                        new KeyValue(mainScene.getScrollPane().translateXProperty(), 0, Interpolator.EASE_OUT),
-                        new KeyValue(mainScene.getBackgroundView().translateXProperty(), 0, Interpolator.EASE_OUT)
+                        new KeyValue(translateXProperty(), -getWidth() + 2, Interpolator.LINEAR),
+                        //new KeyValue(mainScene.getScrollPane().translateXProperty(), 0, Interpolator.LINEAR),
+                        new KeyValue(mainScene.getBackgroundView().translateXProperty(), 0, Interpolator.LINEAR)
                 ));
         closeAnim.setCycleCount(1);
         closeAnim.setAutoReverse(false);
