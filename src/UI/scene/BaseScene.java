@@ -107,7 +107,7 @@ public abstract class BaseScene extends Scene {
         fadeTransitionTo(scene2, stage, false);
     }
 
-    void fadeTransitionTo(BaseScene scene2, Stage stage, boolean backgroundViewToo) {
+    public void fadeTransitionTo(BaseScene scene2, Stage stage, boolean backgroundViewToo) {
         if (scene2 instanceof MainScene) {
 
             ((MainScene) scene2).setChangeBackgroundNextTime(true);

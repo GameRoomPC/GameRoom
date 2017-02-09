@@ -40,6 +40,7 @@ import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
+import ui.control.specific.DrawerMenu;
 import ui.control.specific.ScanButton;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ChoiceDialog;
@@ -335,6 +336,7 @@ public class MainScene extends BaseScene {
         scrollPane.setContent(tilesPaneWrapper);
         scrollPane.setStyle("-fx-background-color: transparent;");
         wrappingPane.setCenter(scrollPane);
+        wrappingPane.setLeft(new DrawerMenu());
         wrappingPane.setStyle("-fx-background-color: transparent;");
 
     }
@@ -776,7 +778,7 @@ public class MainScene extends BaseScene {
         hbox.setPickOnBounds(false);
         searchBox.setPickOnBounds(false);
         homeButton.setPickOnBounds(false);
-        wrappingPane.setTop(topPane);
+        //wrappingPane.setTop(topPane);
     }
 
     private void forceHideToolbar(boolean hide){
@@ -959,7 +961,7 @@ public class MainScene extends BaseScene {
         }
     }
 
-    private ExitAction batchAddFolderEntries(ArrayList<File> files, int fileCount) {
+    public ExitAction batchAddFolderEntries(ArrayList<File> files, int fileCount) {
         if (fileCount < files.size()) {
             File currentFile = files.get(fileCount);
             if (FolderGameScanner.isPotentiallyAGame(currentFile)) {
@@ -1153,5 +1155,10 @@ public class MainScene extends BaseScene {
                 maskView.setVisible(false);
             }
         }
+    }
+
+    public void setTranslateBackgroundView(double x, double y){
+        backgroundView.setTranslateX(x);
+        backgroundView.setTranslateY(y);
     }
 }

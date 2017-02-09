@@ -835,3 +835,8 @@
 #background-mask{
 	-fx-image: url("icons/backgroundMask.png");
 }
+
+#menu-bar{
+	-fx-background-color: derive(-dark, 10%);
+	-fx-effect: innershadow( three-pass-box, black, 10, 0, 0, 0 );
+}
