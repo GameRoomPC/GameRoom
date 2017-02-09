@@ -44,6 +44,10 @@
     -fx-font-size: 16.0;
 }
 
+.base-scene-root{
+    -fx-border-color: transparent;
+    -fx-border-width: 0.0;
+}
 /*******************************************************************************
  *                                                                             *
  * Label                                                                       *
