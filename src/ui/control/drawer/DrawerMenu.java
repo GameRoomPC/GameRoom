@@ -1,11 +1,14 @@
-package ui.control.specific;
+package ui.control.drawer;
 
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.geometry.Bounds;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -13,6 +16,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import ui.Main;
+import ui.control.specific.ScanButton;
 import ui.dialog.ChoiceDialog;
 import ui.dialog.GameRoomAlert;
 import ui.scene.GameEditScene;
@@ -23,7 +27,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.concurrent.Executor;
 
 import static ui.Main.*;
 
@@ -41,6 +44,7 @@ public class DrawerMenu extends AnchorPane {
 
     public DrawerMenu(MainScene mainScene) {
         super();
+        setFocusTraversable(false);
         setMaxWidth(GENERAL_SETTINGS.getWindowWidth() * WIDTH_RATIO);
         setPrefWidth(GENERAL_SETTINGS.getWindowWidth() * WIDTH_RATIO);
         setFocusTraversable(false);
@@ -187,12 +191,83 @@ public class DrawerMenu extends AnchorPane {
         DrawerButton sortButton = new DrawerButton("main-sort-button", this);
         sortButton.setFocusTraversable(false);
 
+        final ContextMenu sortMenu = new ContextMenu();
+        MenuItem sortByNameItem = new MenuItem(Main.getString("sort_by_name"));
+        MenuItem sortByRatingItem = new MenuItem(Main.getString("sort_by_rating"));
+        MenuItem sortByTimePlayedItem = new MenuItem(Main.getString("sort_by_playtime"));
+        MenuItem sortByReleaseDateItem = new MenuItem(Main.getString("sort_by_release_date"));
+        sortByNameItem.setOnAction(event -> {
+            mainScene.sortBy(SortType.NAME);
+        });
+        sortByRatingItem.setOnAction(event -> {
+            mainScene.sortBy(SortType.RATING);
+        });
+        sortByTimePlayedItem.setOnAction(event -> {
+            mainScene.sortBy(SortType.PLAY_TIME);
+        });
+        sortByReleaseDateItem.setOnAction(event -> {
+            mainScene.sortBy(SortType.RELEASE_DATE);
+        });
+        sortMenu.getItems().addAll(sortByNameItem, sortByRatingItem, sortByTimePlayedItem, sortByReleaseDateItem);
+
+        sortButton.setOnAction(event -> {
+            if (sortMenu.isShowing()) {
+                sortMenu.hide();
+            } else {
+                Bounds bounds = sortButton.getBoundsInLocal();
+                Bounds screenBounds = sortButton.localToScreen(bounds);
+                int x = (int) (screenBounds.getMinX() + 0.25 * bounds.getWidth());
+                int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
+
+                sortMenu.show(sortButton, x, y);
+            }
+        });
+
         topButtonsBox.getChildren().add(sortButton);
     }
 
     private void initGroupButton(MainScene mainScene) {
         DrawerButton groupButton = new DrawerButton("main-group-button", this);
         groupButton.setFocusTraversable(false);
+
+        final ContextMenu groupMenu = new ContextMenu();
+        MenuItem groupByAll = new MenuItem(Main.getString("group_by_all"));
+        groupByAll.setOnAction(event -> {
+            mainScene.groupBy(GroupType.ALL);
+        });
+
+        MenuItem groupByTheme = new MenuItem(Main.getString("group_by_theme"));
+        groupByTheme.setOnAction(event -> {
+            mainScene.groupBy(GroupType.THEME);
+        });
+        MenuItem groupByGenre = new MenuItem(Main.getString("group_by_genre"));
+        groupByGenre.setOnAction(event -> {
+            mainScene.groupBy(GroupType.GENRE);
+        });
+        MenuItem groupBySerie = new MenuItem(Main.getString("group_by_serie"));
+        groupBySerie.setOnAction(event -> {
+            mainScene.groupBy(GroupType.SERIE);
+        });
+
+        MenuItem groupByLauncher = new MenuItem(Main.getString("group_by_launcher"));
+        groupByLauncher.setOnAction(event -> {
+            mainScene.groupBy(GroupType.LAUNCHER);
+        });
+
+        groupMenu.getItems().addAll(groupByAll, groupByGenre, groupByTheme, groupBySerie, groupByLauncher);
+
+        groupButton.setOnAction(event -> {
+            if (groupMenu.isShowing()) {
+                groupMenu.hide();
+            } else {
+                Bounds bounds = groupButton.getBoundsInLocal();
+                Bounds screenBounds = groupButton.localToScreen(bounds);
+                int x = (int) (screenBounds.getMinX() + 0.25 * bounds.getWidth());
+                int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
+
+                groupMenu.show(groupButton, x, y);
+            }
+        });
 
         topButtonsBox.getChildren().add(groupButton);
     }

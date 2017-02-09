@@ -2,10 +2,9 @@ package ui.control.specific;
 
 import data.game.GameWatcher;
 import javafx.animation.*;
-import javafx.event.EventHandler;
-import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
-import ui.control.button.ImageButton;
+import ui.control.drawer.DrawerButton;
+import ui.control.drawer.DrawerMenu;
 
 import static ui.control.button.gamebutton.AddIgnoreGameButton.ROTATION_TIME;
 
