@@ -293,7 +293,6 @@ public class DrawerMenu extends BorderPane {
                 b.addEventHandler(ActionEvent.ACTION, event -> {
                     if (b.isSelectionable()) {
                         unselectAllButtons();
-                        LOGGER.debug("kuntz");
                         b.setSelected(true);
                     }
                 });
@@ -306,7 +305,6 @@ public class DrawerMenu extends BorderPane {
                 b.addEventHandler(ActionEvent.ACTION, event -> {
                     if (b.isSelectionable()) {
                         unselectAllButtons();
-                        LOGGER.debug("kuntz");
                         b.setSelected(true);
                     }
                 });
