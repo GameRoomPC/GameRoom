@@ -18,7 +18,6 @@ import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.drawer.submenu.SubMenu;
-import ui.control.drawer.submenu.TextItem;
 import ui.control.specific.ScanButton;
 import ui.dialog.ChoiceDialog;
 import ui.dialog.GameRoomAlert;
@@ -34,9 +33,7 @@ import java.util.Optional;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.LOGGER;
-import static ui.control.drawer.submenu.SubMenuFactory.createEditSubMenu;
-import static ui.control.drawer.submenu.SubMenuFactory.createGroupBySubMenu;
-import static ui.control.drawer.submenu.SubMenuFactory.createSortBySubMenu;
+import static ui.control.drawer.submenu.SubMenuFactory.*;
 
 /**
  * Created by LM on 09/02/2017.
@@ -155,60 +152,20 @@ public class DrawerMenu extends BorderPane {
 
     private void initAddButton(MainScene mainScene) {
         DrawerButton addButton = new DrawerButton("main-add-button", this);
-        addButton.setFocusTraversable(false);
+        addButton.setSelectionable(true);
+
+        SubMenu addMenu = createAddGameSubMenu(mainScene);
 
         addButton.setOnAction(event -> {
-            mainScene.getRootStackPane().setMouseTransparent(true);
-            ChoiceDialog choiceDialog = new ChoiceDialog(
-                    new ChoiceDialog.ChoiceDialogButton(Main.getString("Add_exe"), Main.getString("add_exe_long")),
-                    new ChoiceDialog.ChoiceDialogButton(Main.getString("Add_folder"), Main.getString("add_symlink_long"))
-            );
-            choiceDialog.setTitle(Main.getString("add_a_game"));
-            choiceDialog.setHeader(Main.getString("choose_action"));
-
-            Optional<ButtonType> result = choiceDialog.showAndWait();
-            result.ifPresent(letter -> {
-                if (letter.getText().equals(Main.getString("Add_exe"))) {
-                    FileChooser fileChooser = new FileChooser();
-                    fileChooser.setTitle(Main.getString("select_program"));
-                    fileChooser.setInitialDirectory(
-                            new File(System.getProperty("user.home"))
-                    );
-                    //TODO fix internet shorcuts problem (bug submitted)
-                    fileChooser.getExtensionFilters().addAll(
-                            new FileChooser.ExtensionFilter("EXE", "*.exe"),
-                            new FileChooser.ExtensionFilter("JAR", "*.jar")
-                    );
-                    try {
-                        File selectedFile = fileChooser.showOpenDialog(mainScene.getParentStage());
-                        if (selectedFile != null) {
-                            mainScene.fadeTransitionTo(new GameEditScene(mainScene, selectedFile), mainScene.getParentStage());
-                        }
-                    } catch (NullPointerException ne) {
-                        ne.printStackTrace();
-                        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
-                        alert.setContentText(Main.getString("warning_internet_shortcut"));
-                        alert.showAndWait();
-                    }
-                } else if (letter.getText().equals(Main.getString("Add_folder"))) {
-                    DirectoryChooser directoryChooser = new DirectoryChooser();
-                    directoryChooser.setTitle(Main.getString("Select_folder_ink"));
-                    directoryChooser.setInitialDirectory(
-                            new File(System.getProperty("user.home"))
-                    );
-                    File selectedFolder = directoryChooser.showDialog(mainScene.getParentStage());
-                    if (selectedFolder != null) {
-                        ArrayList<File> files = new ArrayList<File>();
-                        files.addAll(Arrays.asList(selectedFolder.listFiles()));
-                        if (files.size() != 0) {
-                            mainScene.batchAddFolderEntries(files, 0).run();
-                            //startMultiAddScenes(files);
-                        }
-                    }
-                }
-            });
-            mainScene.getRootStackPane().setMouseTransparent(false);
+            if (isMenuActive(addMenu.getMenuId())) {
+                closeSubMenu(mainScene);
+                addButton.setSelected(false);
+            } else {
+                openSubMenu(mainScene, addMenu.getMenuId());
+            }
         });
+
+        subMenus.put(addMenu.getMenuId(), addMenu);
 
         topButtonsBox.getChildren().add(addButton);
     }
@@ -221,7 +178,6 @@ public class DrawerMenu extends BorderPane {
 
     private void initSortButton(MainScene mainScene) {
         DrawerButton sortButton = new DrawerButton("main-sort-button", this);
-        sortButton.setFocusTraversable(false);
         sortButton.setSelectionable(true);
 
         SubMenu sortMenu = createSortBySubMenu(mainScene);

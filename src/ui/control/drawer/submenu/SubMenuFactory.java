@@ -3,22 +3,26 @@ package ui.control.drawer.submenu;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
-import javafx.scene.control.Label;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Slider;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.drawer.GroupType;
 import ui.control.drawer.SortType;
+import ui.dialog.GameRoomAlert;
+import ui.scene.GameEditScene;
 import ui.scene.MainScene;
 
 import java.awt.*;
-
-import static ui.Main.GENERAL_SETTINGS;
-import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by LM on 10/02/2017.
@@ -26,6 +30,65 @@ import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
 public final class SubMenuFactory {
     private final static double MAX_TILE_ZOOM = 0.675;
     private final static double MIN_TILE_ZOOM = 0.10;
+
+    public static SubMenu createAddGameSubMenu(MainScene mainScene){
+        SubMenu addMenu = new SubMenu("addGames");
+        TextItem singleAppItem = new TextItem("add_single_app");
+        singleAppItem.setTooltip(new Tooltip(Main.getString("add_single_app_long")));
+        singleAppItem.setOnAction(event -> {
+            mainScene.getRootStackPane().setMouseTransparent(true);
+
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle(Main.getString("select_program"));
+            fileChooser.setInitialDirectory(
+                    new File(System.getProperty("user.home"))
+            );
+            //TODO fix internet shorcuts problem (bug submitted)
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("EXE", "*.exe"),
+                    new FileChooser.ExtensionFilter("JAR", "*.jar")
+            );
+            try {
+                File selectedFile = fileChooser.showOpenDialog(mainScene.getParentStage());
+                if (selectedFile != null) {
+                    mainScene.fadeTransitionTo(new GameEditScene(mainScene, selectedFile), mainScene.getParentStage());
+                }
+            } catch (NullPointerException ne) {
+                ne.printStackTrace();
+                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
+                alert.setContentText(Main.getString("warning_internet_shortcut"));
+                alert.showAndWait();
+            }
+            mainScene.getRootStackPane().setMouseTransparent(false);
+        });
+        addMenu.addItem(singleAppItem);
+
+        TextItem folderItem = new TextItem("add_folder_app");
+        folderItem.setTooltip(new Tooltip(Main.getString("add_folder_app_long")));
+        folderItem.setOnAction(event -> {
+            mainScene.getRootStackPane().setMouseTransparent(true);
+
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle(Main.getString("Select_folder_ink"));
+            directoryChooser.setInitialDirectory(
+                    new File(System.getProperty("user.home"))
+            );
+            File selectedFolder = directoryChooser.showDialog(mainScene.getParentStage());
+            if (selectedFolder != null) {
+                ArrayList<File> files = new ArrayList<File>();
+                files.addAll(Arrays.asList(selectedFolder.listFiles()));
+                if (files.size() != 0) {
+                    mainScene.batchAddFolderEntries(files, 0).run();
+                    //startMultiAddScenes(files);
+                }
+            }
+            mainScene.getRootStackPane().setMouseTransparent(false);
+        });
+
+        addMenu.addItem(folderItem);
+
+        return addMenu;
+    }
 
     public static SubMenu createGroupBySubMenu(MainScene mainScene){
         SubMenu groupMenu = new SubMenu("groupBy");
@@ -145,8 +208,8 @@ public final class SubMenuFactory {
         sizeSlider.setValue(sizeSliderValue);
 
         HBox sizeBox = new HBox();
+        sizeBox.getChildren().add(new TextItem("zoom"));
         sizeBox.getChildren().add(sizeSlider);
-        sizeBox.getChildren().add(new TextItem("tile_size"));
 
         editMenu.addItem(sizeBox);
 
