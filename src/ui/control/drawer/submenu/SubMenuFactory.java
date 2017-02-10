@@ -25,8 +25,13 @@ import ui.scene.MainScene;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import static ui.scene.BaseScene.BACKGROUND_IMAGE_LOAD_RATIO;
 
 /**
  * Created by LM on 10/02/2017.
@@ -234,12 +239,20 @@ public final class SubMenuFactory {
             try {
                 File selectedFile = imageChooser.showOpenDialog(mainScene.getParentStage());
                 if (selectedFile != null) {
-                    File movedFile = FileUtils.moveToFolder(selectedFile,Main.FILES_MAP.get("working_dir"));
-                    String renamedFile = Main.FILES_MAP.get("working_dir") + File.separator + "wallpaper." + FileUtils.getExtension(movedFile);
-                    movedFile.renameTo(new File(renamedFile));
-                    mainScene.setImageBackground(new Image("file:///"+movedFile.getAbsolutePath()));
+                    String copiedPath = Main.FILES_MAP.get("working_dir") + File.separator + "wallpaper." + FileUtils.getExtension(selectedFile);
+                    File copiedFile = new File(copiedPath);
+
+                    Files.copy(selectedFile.toPath().toAbsolutePath()
+                            , copiedFile.toPath().toAbsolutePath()
+                            , StandardCopyOption.REPLACE_EXISTING);
+
+                    mainScene.setChangeBackgroundNextTime(false);
+                    mainScene.setImageBackground(new Image("file:///"+copiedPath,
+                            Main.GENERAL_SETTINGS.getWindowWidth(),
+                            Main.GENERAL_SETTINGS.getWindowHeight()
+                            , false, true),true);
                 }
-            } catch (NullPointerException ne) {
+            } catch (NullPointerException | IOException ne) {
                 ne.printStackTrace();
             }
         });
@@ -249,6 +262,7 @@ public final class SubMenuFactory {
             browseButton.setManaged(newValue);
             browseButton.setVisible(newValue);
             browseButton.setMouseTransparent(!newValue);
+            mainScene.setImageBackground(null,true);
         });
         backgroundImageCheckBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER));
         editMenu.addItem(backgroundImageCheckBox);

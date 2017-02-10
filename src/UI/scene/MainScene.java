@@ -158,6 +158,18 @@ public class MainScene extends BaseScene {
                 //TODO maybe try to hide the drawer menu ?
                 //drawerMenu.setVisible(false);
             }
+            if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER)){
+                File workingDir = FILES_MAP.get("working_dir");
+                if(workingDir!= null && workingDir.listFiles() != null){
+                    for(File file : workingDir.listFiles()){
+                        if(file.isFile() && file.getName().startsWith("wallpaper")){
+                            setChangeBackgroundNextTime(false);
+                            setImageBackground(new Image("file:///"+file.getAbsolutePath()),true);
+                            break;
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -781,15 +793,6 @@ public class MainScene extends BaseScene {
     public void setImageBackground(Image img, boolean isStatic) {
         if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && !isStatic){
             return;
-        }else if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && isStatic){
-            if(backgroundView.getImage() == null){
-                File workingDir = FILES_MAP.get("working_dir");
-                for(File file : workingDir.listFiles()){
-                    if(file.isFile() && file.getName().startsWith("wallpaper")){
-                        img = new Image(file.getAbsolutePath());
-                    }
-                }
-            }
         }
         if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
             if (!backgroundView.isVisible()) {
