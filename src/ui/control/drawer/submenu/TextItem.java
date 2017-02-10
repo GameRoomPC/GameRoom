@@ -1,4 +1,4 @@
-package ui.control.drawer;
+package ui.control.drawer.submenu;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;

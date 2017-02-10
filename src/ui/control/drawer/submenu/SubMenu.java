@@ -1,4 +1,4 @@
-package ui.control.drawer;
+package ui.control.drawer.submenu;
 
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -12,6 +12,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import ui.Main;
+import ui.control.drawer.DrawerMenu;
 import ui.scene.MainScene;
 
 import static ui.control.drawer.DrawerMenu.ANIMATION_TIME;
