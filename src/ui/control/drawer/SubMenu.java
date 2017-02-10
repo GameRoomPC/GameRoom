@@ -2,6 +2,7 @@ package ui.control.drawer;
 
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -38,6 +39,7 @@ public class SubMenu extends BorderPane {
 
     public void initTitleLabel(String text){
         titleLabel  = new Label(Main.getString(text));
+        BorderPane.setAlignment(titleLabel, Pos.CENTER);
         titleLabel.getStyleClass().add("title");
         titleLabel.setPadding(new Insets(20* Main.SCREEN_HEIGHT/1080
                 , 20* Main.SCREEN_HEIGHT/1080

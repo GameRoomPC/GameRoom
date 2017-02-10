@@ -44,8 +44,8 @@ public class DrawerMenu extends BorderPane {
     private Timeline openAnim;
     private Timeline closeAnim;
     private AnchorPane topMenuPane = new AnchorPane();
-    private VBox topButtonsBox = new VBox();
-    private VBox bottomButtonsBox = new VBox();
+    private VBox topButtonsBox = new VBox(10);
+    private VBox bottomButtonsBox = new VBox(10);
 
     private SubMenu currentSubMenu;
 
@@ -333,31 +333,16 @@ public class DrawerMenu extends BorderPane {
         groupButton.setFocusTraversable(false);
         groupButton.setSelectionable(true);
 
-        final ContextMenu groupMenu = new ContextMenu();
-        MenuItem groupByAll = new MenuItem(Main.getString("group_by_all"));
-        groupByAll.setOnAction(event -> {
-            mainScene.groupBy(GroupType.ALL);
-        });
-
-        MenuItem groupByTheme = new MenuItem(Main.getString("group_by_theme"));
-        groupByTheme.setOnAction(event -> {
-            mainScene.groupBy(GroupType.THEME);
-        });
-        MenuItem groupByGenre = new MenuItem(Main.getString("group_by_genre"));
-        groupByGenre.setOnAction(event -> {
-            mainScene.groupBy(GroupType.GENRE);
-        });
-        MenuItem groupBySerie = new MenuItem(Main.getString("group_by_serie"));
-        groupBySerie.setOnAction(event -> {
-            mainScene.groupBy(GroupType.SERIE);
-        });
-
-        MenuItem groupByLauncher = new MenuItem(Main.getString("group_by_launcher"));
-        groupByLauncher.setOnAction(event -> {
-            mainScene.groupBy(GroupType.LAUNCHER);
-        });
-
-        groupMenu.getItems().addAll(groupByAll, groupByGenre, groupByTheme, groupBySerie, groupByLauncher);
+        SubMenu groupMenu = new SubMenu("groupBy");
+        for (GroupType g : GroupType.values()) {
+            TextItem item = new TextItem(g.getId());
+            item.setOnAction(event -> {
+                mainScene.groupBy(g);
+                groupMenu.unselectAllItems();
+                item.setSelected(true);
+            });
+            groupMenu.addItem(item);
+        }
 
         groupButton.setOnAction(event -> {
             if (isMenuActive("groupBy")) {
@@ -366,19 +351,9 @@ public class DrawerMenu extends BorderPane {
             } else {
                 openSubMenu(mainScene, "groupBy");
             }
-            /*if (groupMenu.isShowing()) {
-                groupMenu.hide();
-            } else {
-                Bounds bounds = groupButton.getBoundsInLocal();
-                Bounds screenBounds = groupButton.localToScreen(bounds);
-                int x = (int) (screenBounds.getMinX() + 0.25 * bounds.getWidth());
-                int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
-
-                groupMenu.show(groupButton, x, y);
-            }*/
         });
 
-        subMenus.put("groupBy", new SubMenu("groupBy"));
+        subMenus.put("groupBy", groupMenu);
 
         topButtonsBox.getChildren().add(groupButton);
     }
