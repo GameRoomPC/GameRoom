@@ -247,84 +247,16 @@ public class DrawerMenu extends BorderPane {
         if (subMenu == null) {
             throw new IllegalArgumentException("SubMenu is null");
         }
-        boolean changingMenu = currentSubMenu != null && currentSubMenu.isActive();
-
-        subMenu.setOpacity(0);
-        subMenu.setMouseTransparent(true);
         if (currentSubMenu != null) {
             currentSubMenu.setOpacity(0);
         }
 
-        currentSubMenu = subMenu;
-
-        if (currentSubMenu.getCloseAnim() != null) {
-            currentSubMenu.getCloseAnim().stop();
-        }
-
-        setRight(currentSubMenu);
-
-        Timeline openAnim;
-        if (changingMenu) {
-            openAnim = new Timeline(
-                    new KeyFrame(Duration.seconds(0),
-                            new KeyValue(currentSubMenu.opacityProperty(), currentSubMenu.opacityProperty().doubleValue(), Interpolator.EASE_IN),
-                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
-                    new KeyFrame(Duration.seconds(ANIMATION_TIME),
-                            new KeyValue(currentSubMenu.opacityProperty(), 1.0, Interpolator.EASE_IN),
-                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), topMenuPane.getWidth() + subMenu.getWidth(), Interpolator.LINEAR)
-                    ));
-        } else {
-            openAnim = new Timeline(
-                    new KeyFrame(Duration.seconds(0),
-                            new KeyValue(currentSubMenu.translateXProperty(), -currentSubMenu.getWidth(), Interpolator.LINEAR),
-                            new KeyValue(currentSubMenu.opacityProperty(), currentSubMenu.opacityProperty().doubleValue(), Interpolator.EASE_IN),
-                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), topMenuPane.getWidth(), Interpolator.LINEAR)),
-                    new KeyFrame(Duration.seconds(ANIMATION_TIME),
-                            new KeyValue(currentSubMenu.translateXProperty(), 0, Interpolator.LINEAR),
-                            new KeyValue(currentSubMenu.opacityProperty(), 1.0, Interpolator.EASE_IN),
-                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), topMenuPane.getWidth() + subMenu.getWidth(), Interpolator.LINEAR)
-                    ));
-        }
-        openAnim.setCycleCount(1);
-        openAnim.setAutoReverse(false);
-        openAnim.setOnFinished(event -> {
-            subMenu.setActive(true);
-            subMenu.setMouseTransparent(false);
-        });
-        currentSubMenu.setOpenAnim(openAnim);
-        openAnim.play();
-
-        currentSubMenu.setManaged(true);
-        currentSubMenu.setVisible(true);
+        subMenu.open(mainScene,this);
     }
 
     private void closeSubMenu(MainScene mainScene) {
         if (currentSubMenu != null) {
-            if (currentSubMenu.getOpenAnim() != null) {
-                currentSubMenu.getOpenAnim().stop();
-            }
-            currentSubMenu.setMouseTransparent(true);
-            Timeline closeAnim = new Timeline(
-                    new KeyFrame(Duration.seconds(0),
-                            new KeyValue(currentSubMenu.translateXProperty(), currentSubMenu.translateXProperty().getValue(), Interpolator.LINEAR),
-                            new KeyValue(currentSubMenu.opacityProperty(), currentSubMenu.opacityProperty().getValue(), Interpolator.EASE_IN),
-                            //new KeyValue(mainScene.getScrollPane().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR),
-                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
-                    new KeyFrame(Duration.seconds(ANIMATION_TIME),
-                            new KeyValue(currentSubMenu.translateXProperty(), -currentSubMenu.getWidth(), Interpolator.LINEAR),
-                            new KeyValue(currentSubMenu.opacityProperty(), 0, Interpolator.EASE_IN),
-                            //new KeyValue(mainScene.getScrollPane().translateXProperty(), 0, Interpolator.LINEAR),
-                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), getWidth() - currentSubMenu.getWidth(), Interpolator.LINEAR)
-                    ));
-            closeAnim.setCycleCount(1);
-            closeAnim.setAutoReverse(false);
-            closeAnim.setOnFinished(event -> {
-                currentSubMenu.setManaged(false);
-                currentSubMenu.setVisible(false);
-                currentSubMenu.setActive(false);
-            });
-            currentSubMenu.setCloseAnim(closeAnim);
-            closeAnim.play();
+            currentSubMenu.close(mainScene,this);
         }
     }
 
@@ -429,4 +361,16 @@ public class DrawerMenu extends BorderPane {
     }
 
 
+    public SubMenu getCurrentSubMenu() {
+        return currentSubMenu;
+    }
+
+    public void setCurrentSubMenu(SubMenu currentSubMenu) {
+        this.currentSubMenu = currentSubMenu;
+        setRight(currentSubMenu);
+    }
+
+    public double getButtonsPaneWidth(){
+        return topMenuPane.getWidth();
+    }
 }

@@ -1,5 +1,8 @@
 package ui.control.drawer;
 
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -7,7 +10,11 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import ui.Main;
+import ui.scene.MainScene;
+
+import static ui.control.drawer.DrawerMenu.ANIMATION_TIME;
 
 /**
  * Created by LM on 09/02/2017.
@@ -86,5 +93,83 @@ public class SubMenu extends BorderPane {
                 ((TextItem) n).setSelected(false);
             }
         }
+    }
+
+    /**Closes the given submenu
+     *
+     * @param mainScene the mainScene to draw in
+     * @param drawerMenu the parent drawerMenu
+     */
+    public void close(MainScene mainScene, DrawerMenu drawerMenu){
+            if (getOpenAnim() != null) {
+                getOpenAnim().stop();
+            }
+            setMouseTransparent(true);
+            Timeline closeAnim = new Timeline(
+                    new KeyFrame(Duration.seconds(0),
+                            new KeyValue(translateXProperty(), translateXProperty().getValue(), Interpolator.LINEAR),
+                            new KeyValue(opacityProperty(), opacityProperty().getValue(), Interpolator.EASE_IN),
+                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
+                    new KeyFrame(Duration.seconds(ANIMATION_TIME),
+                            new KeyValue(translateXProperty(), -getWidth(), Interpolator.LINEAR),
+                            new KeyValue(opacityProperty(), 0, Interpolator.EASE_IN),
+                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), drawerMenu.getWidth() - getWidth(), Interpolator.LINEAR)
+                    ));
+            closeAnim.setCycleCount(1);
+            closeAnim.setAutoReverse(false);
+            closeAnim.setOnFinished(event -> {
+                setManaged(false);
+                setVisible(false);
+                setActive(false);
+            });
+            setCloseAnim(closeAnim);
+            closeAnim.play();
+    }
+
+    public void open(MainScene mainScene, DrawerMenu drawerMenu){
+        boolean changingMenu = drawerMenu.getCurrentSubMenu() != null && drawerMenu.getCurrentSubMenu().isActive();
+
+        setOpacity(0);
+        setMouseTransparent(true);
+
+        drawerMenu.setCurrentSubMenu(this);
+
+        if (getCloseAnim() != null) {
+            getCloseAnim().stop();
+        }
+
+        Timeline openAnim;
+        if (changingMenu) {
+            openAnim = new Timeline(
+                    new KeyFrame(Duration.seconds(0),
+                            new KeyValue(opacityProperty(), opacityProperty().doubleValue(), Interpolator.EASE_IN),
+                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
+                    new KeyFrame(Duration.seconds(ANIMATION_TIME),
+                            new KeyValue(opacityProperty(), 1.0, Interpolator.EASE_IN),
+                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), drawerMenu.getButtonsPaneWidth() + getWidth(), Interpolator.LINEAR)
+                    ));
+        } else {
+            openAnim = new Timeline(
+                    new KeyFrame(Duration.seconds(0),
+                            new KeyValue(translateXProperty(), -getWidth(), Interpolator.LINEAR),
+                            new KeyValue(opacityProperty(), opacityProperty().doubleValue(), Interpolator.EASE_IN),
+                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), drawerMenu.getButtonsPaneWidth(), Interpolator.LINEAR)),
+                    new KeyFrame(Duration.seconds(ANIMATION_TIME),
+                            new KeyValue(translateXProperty(), 0, Interpolator.LINEAR),
+                            new KeyValue(opacityProperty(), 1.0, Interpolator.EASE_IN),
+                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), drawerMenu.getButtonsPaneWidth() + getWidth(), Interpolator.LINEAR)
+                    ));
+        }
+        openAnim.setCycleCount(1);
+        openAnim.setAutoReverse(false);
+        openAnim.setOnFinished(event -> {
+            setActive(true);
+            setMouseTransparent(false);
+        });
+        setOpenAnim(openAnim);
+        openAnim.play();
+
+        setManaged(true);
+        setVisible(true);
     }
 }
