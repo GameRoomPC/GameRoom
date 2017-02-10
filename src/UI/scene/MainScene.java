@@ -71,9 +71,6 @@ public class MainScene extends BaseScene {
     public final static int INPUT_MODE_MOUSE = 0;
     public final static int INPUT_MODE_KEYBOARD = 1;
 
-    private final static double MAX_TILE_ZOOM = 0.675;
-    private final static double MIN_TILE_ZOOM = 0.10;
-
     private static boolean GARBAGE_COLLECTED_RECENTLY = false;
 
     private VBox tilesPaneWrapper = new VBox();
@@ -82,8 +79,6 @@ public class MainScene extends BaseScene {
     private StackPane topPane;
 
     private DrawerMenu drawerMenu;
-
-    private Slider sizeSlider = new Slider();
 
     private GamesTilePane tilePane;
     private RowCoverTilePane lastPlayedTilePane;
@@ -133,19 +128,6 @@ public class MainScene extends BaseScene {
         for (GroupRowTilePane g : groupRowList) {
             g.setCacheGameButtons(true);
         }
-        /*getParentStage().focusedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                tilePane.setCacheGameButtons(newValue);
-                recentlyAddedTilePane.setCacheGameButtons(newValue);
-                toAddTilePane.setCacheGameButtons(newValue);
-                lastPlayedTilePane.setCacheGameButtons(newValue);
-
-                for (GroupRowTilePane g : groupRowList) {
-                    g.setCacheGameButtons(newValue);
-                }
-            }
-        });*/
     }
 
     private void loadPreviousUIValues() {
@@ -167,14 +149,6 @@ public class MainScene extends BaseScene {
             }
             double scrollBarVValue = GENERAL_SETTINGS.getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
             scrollPane.setVvalue(scrollBarVValue);
-
-            double sizeSliderValue = Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.TILE_ZOOM);
-            if (sizeSliderValue <= MIN_TILE_ZOOM) {
-                sizeSliderValue = MIN_TILE_ZOOM + 0.00001; //extreme values of the slider are buggy
-            } else if (sizeSliderValue >= MAX_TILE_ZOOM) {
-                sizeSliderValue = MAX_TILE_ZOOM + 0.00001; //extreme values of the slider are buggy
-            }
-            sizeSlider.setValue(sizeSliderValue);
 
             if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS)) {
                 forceHideTilesRows(true);
@@ -430,50 +404,6 @@ public class MainScene extends BaseScene {
     }
 
     private void initTop() {
-        sizeSlider.setMin(MIN_TILE_ZOOM);
-        sizeSlider.setMax(MAX_TILE_ZOOM);
-        sizeSlider.setBlockIncrement(0.1);
-        sizeSlider.setFocusTraversable(false);
-
-        sizeSlider.valueProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                tilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 4 * newValue.doubleValue());
-                tilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 4 * COVER_HEIGHT_WIDTH_RATIO * newValue.doubleValue());
-
-                lastPlayedTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * newValue.doubleValue());
-                lastPlayedTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * newValue.doubleValue());
-
-
-                recentlyAddedTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * newValue.doubleValue());
-                recentlyAddedTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * newValue.doubleValue());
-
-                toAddTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * newValue.doubleValue());
-                toAddTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * newValue.doubleValue());
-            }
-        });
-        sizeSlider.setOnMouseReleased(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
-            }
-        });
-        sizeSlider.setOnMouseDragExited(new EventHandler<MouseDragEvent>() {
-            @Override
-            public void handle(MouseDragEvent event) {
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
-            }
-        });
-        sizeSlider.setPrefWidth(Main.SCREEN_WIDTH / 12);
-        sizeSlider.setMaxWidth(Main.SCREEN_WIDTH / 12);
-        sizeSlider.setPrefHeight(Main.SCREEN_WIDTH / 160);
-        sizeSlider.setMaxHeight(Main.SCREEN_WIDTH / 160);
-
-        HBox hbox = new HBox();
-        hbox.setPadding(new Insets(15, 12, 15, 10));
-        hbox.setSpacing(0);
-        hbox.getChildren().addAll(sizeSlider);
-        hbox.setAlignment(Pos.CENTER_LEFT);
 
         searchField = new TextField();
 
@@ -523,10 +453,6 @@ public class MainScene extends BaseScene {
         //topPane.getChildren().add(hbox);
         topPane.getStyleClass().add("header");
 
-        StackPane.setAlignment(hbox, Pos.CENTER_LEFT);
-
-
-        hbox.setPickOnBounds(false);
         searchBox.setPickOnBounds(false);
         homeButton.setPickOnBounds(false);
         topPane.setManaged(false);
@@ -986,5 +912,20 @@ public class MainScene extends BaseScene {
         tilePane.setForcedHidden(false);
         scrollPane.setVvalue(scrollPane.getVmin());
         //drawerMenu.close(this);
+    }
+
+    public void newTileZoom(double value){
+        tilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 4 * value);
+        tilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 4 * COVER_HEIGHT_WIDTH_RATIO * value);
+
+        lastPlayedTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * value);
+        lastPlayedTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * value);
+
+
+        recentlyAddedTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * value);
+        recentlyAddedTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * value);
+
+        toAddTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * value);
+        toAddTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * value);
     }
 }

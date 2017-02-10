@@ -20,7 +20,7 @@ import static system.application.settings.SettingValue.*;
  */
 public enum PredefinedSetting {
     LOCALE("locale", new SettingValue(Locale.getDefault(),Locale.class,CATEGORY_GENERAL))
-    ,TILE_ZOOM("tileZoom", new SettingValue(0.45, Double.class, CATEGORY_NONE))
+    ,TILE_ZOOM("tileZoom", new SettingValue(0.365, Double.class, CATEGORY_NONE))
     ,ON_GAME_LAUNCH_ACTION("onGameLaunchAction", new SettingValue<OnLaunchAction>(OnLaunchAction.DO_NOTHING,OnLaunchAction.class,CATEGORY_ON_GAME_START))
     ,FULL_SCREEN("fullScreen", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,WINDOW_WIDTH("windowWidth", new SettingValue(1366,Integer.class,CATEGORY_NONE))

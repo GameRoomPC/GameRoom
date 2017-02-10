@@ -38,6 +38,7 @@ public class SubMenu extends BorderPane {
 
         itemsBox.getStyleClass().add("items-box");
         itemsBox.setPadding(new Insets(0,20*Main.SCREEN_WIDTH/1920,0,20*Main.SCREEN_WIDTH/1920));
+        itemsBox.setSpacing(20*Main.SCREEN_HEIGHT/1080);
 
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);

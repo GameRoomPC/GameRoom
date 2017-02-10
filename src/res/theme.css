@@ -874,58 +874,56 @@
     -fx-font-weight: bold;
 }
 
-.items-box > .text-item{
+.text-drawer-item{
     -fx-background-color: transparent;
-    -fx-padding: 0.5em;
-    -fx-insets: 0 5.5 0 0.5;
     -fx-font-size: 0.9em;
     -fx-text-fill: -fx-text-base-color;
     -fx-alignment: CENTER;
     -fx-content-display: LEFT;
 }
 
-.items-box > .text-item:hover{
+.text-drawer-item:hover{
     -fx-text-fill: -flatter-red
 }
 
-.items-box > .text-item:selected,
-.items-box > .text-item:armed{
+.text-drawer-item:selected,
+.text-drawer-item:armed{
     -fx-text-fill: -flatter-red
 }
 
-.items-box > .checkbox-item {
+.checkbox-drawer-item {
     -fx-text-fill: -fx-text-base-color;
     -fx-font-size: 0.9em;
 }
 
-.items-box > .checkbox-item:hover{
+checkbox-drawer-item:hover{
     -fx-text-fill: -flatter-red
 }
 
-.items-box > .checkbox-item > .box,
-.items-box > .checkbox-item > .box.unfocused,
-.items-box > .checkbox-item:disabled > .box,
-.items-box > .checkbox-item:selected > .box,
-.items-box > .checkbox-item:indeterminate > .box {
+.checkbox-drawer-item > .box,
+.checkbox-drawer-item > .box.unfocused,
+.checkbox-drawer-item:disabled > .box,
+.checkbox-drawer-item:selected > .box,
+.checkbox-drawer-item:indeterminate > .box {
     -fx-background-radius: 2.0;
     -fx-background-color: -fx-text-base-color;
 }
 
-.items-box > .checkbox-item:focused > .box {
+.checkbox-drawer-item:focused > .box {
     -fx-background-color: -flatter-red, derive(rgb(94.0, 203.0, 234.0), 80.0%);
     -fx-background-insets: 0.0, 0.15em;
 }
 
-.items-box > .checkbox-item:focused:armed > .box {
+.checkbox-drawer-item:focused:armed > .box {
     -fx-background-color: -flatter-red, derive(-fx-text-base-color, 80.0%);
     -fx-background-insets: 0.0, 0.15em;
 }
 
-.items-box > .checkbox-item:selected > .box > .mark,
-.items-box > .checkbox-item:indeterminate > .box > .mark {
+.checkbox-drawer-item:selected > .box > .mark,
+.checkbox-drawer-item:indeterminate > .box > .mark {
     -fx-background-color: -dark;
 }
 
-.items-box > .checkbox-item:indeterminate > .box > .mark {
+.checkbox-drawer-item:indeterminate > .box > .mark {
     -fx-background-insets: -0.06em -0.17em -0.07em -0.17em;
 }

@@ -16,7 +16,7 @@ public class TextItem extends Button implements SelectableItem {
     public TextItem(String textId){
         super(Main.getString(textId));
         getStyleClass().remove("button");
-        getStyleClass().add("text-item");
+        getStyleClass().add("text-drawer-item");
         setFocusTraversable(false);
         selected.addListener(e -> pseudoClassStateChanged(SELECTED_PSEUDO_CLASS, selected.get()));
     }
