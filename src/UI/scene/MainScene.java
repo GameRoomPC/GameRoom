@@ -518,7 +518,7 @@ public class MainScene extends BaseScene {
 
     }
 
-    private void home() {
+    public void home() {
         tilePane.sortByName();
         tilePane.setForcedHidden(false);
         tilePane.show();
@@ -867,7 +867,6 @@ public class MainScene extends BaseScene {
         tilesPaneWrapper.getChildren().addAll(groupRowList);
 
         scrollPane.setVvalue(scrollPane.getVmin());
-        drawerMenu.close(this);
     }
 
     public void sortBy(SortType sortType){
@@ -911,7 +910,6 @@ public class MainScene extends BaseScene {
 
         tilePane.setForcedHidden(false);
         scrollPane.setVvalue(scrollPane.getVmin());
-        //drawerMenu.close(this);
     }
 
     public void newTileZoom(double value){

@@ -29,6 +29,15 @@ public final class SubMenuFactory {
 
     public static SubMenu createGroupBySubMenu(MainScene mainScene){
         SubMenu groupMenu = new SubMenu("groupBy");
+        TextItem defaultItem = new TextItem("default");
+        defaultItem.setOnAction(event -> {
+            mainScene.home();
+            groupMenu.unselectAllItems();
+            defaultItem.setSelected(true);
+        });
+        defaultItem.setSelected(true);
+        groupMenu.addItem(defaultItem);
+
         for (GroupType g : GroupType.values()) {
             TextItem item = new TextItem(g.getId());
             item.setOnAction(event -> {
@@ -38,11 +47,21 @@ public final class SubMenuFactory {
             });
             groupMenu.addItem(item);
         }
+
         return groupMenu;
     }
 
     public static SubMenu createSortBySubMenu(MainScene mainScene){
         SubMenu sortMenu = new SubMenu("sortBy");
+
+        TextItem defaultItem = new TextItem("default");
+        defaultItem.setOnAction(event -> {
+            mainScene.home();
+            sortMenu.unselectAllItems();
+            defaultItem.setSelected(true);
+        });
+        defaultItem.setSelected(true);
+        sortMenu.addItem(defaultItem);
         for (SortType s : SortType.values()) {
             TextItem item = new TextItem(s.getId());
             item.setOnAction(event -> {
