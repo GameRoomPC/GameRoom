@@ -61,14 +61,19 @@ public class SubMenu extends BorderPane {
                 , 20* Main.SCREEN_HEIGHT/1080
                 ,20* Main.SCREEN_HEIGHT/1080
                 ,20* Main.SCREEN_HEIGHT/1080));
+        titleLabel.setPickOnBounds(false);
 
-        ImageButton closeButton = new ImageButton("toaddtile-ignore-button", Main.SCREEN_HEIGHT/45,Main.SCREEN_HEIGHT/45);
+        ImageButton closeButton = new ImageButton("toaddtile-ignore-button", Main.SCREEN_HEIGHT/45.0,Main.SCREEN_HEIGHT/45.0);
         closeButton.setFocusTraversable(false);
         closeButton.setOnAction(event -> {
             close(mainScene,drawerMenu);
             drawerMenu.unselectAllButtons();
         });
         closeButton.setFocusTraversable(false);
+        closeButton.setPadding(new Insets(10* Main.SCREEN_HEIGHT/1080
+                , 10* Main.SCREEN_HEIGHT/1080
+                ,10* Main.SCREEN_HEIGHT/1080
+                ,10* Main.SCREEN_HEIGHT/1080));
 
         StackPane pane = new StackPane();
         pane.getChildren().addAll(closeButton,titleLabel);
