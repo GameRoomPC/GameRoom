@@ -94,6 +94,8 @@ public class MainScene extends BaseScene {
 
     private boolean changeBackgroundNextTime = false;
 
+    private Task<Void> loadGamesTask;
+
     public MainScene(Stage parentStage) {
         super(new StackPane(), parentStage);
         setCursor(Cursor.DEFAULT);
@@ -157,18 +159,6 @@ public class MainScene extends BaseScene {
             if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)){
                 //TODO maybe try to hide the drawer menu ?
                 //drawerMenu.setVisible(false);
-            }
-            if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && SUPPORTER_MODE){
-                File workingDir = FILES_MAP.get("working_dir");
-                if(workingDir!= null && workingDir.listFiles() != null){
-                    for(File file : workingDir.listFiles()){
-                        if(file.isFile() && file.getName().startsWith("wallpaper")){
-                            setChangeBackgroundNextTime(false);
-                            setImageBackground(new Image("file:///"+file.getAbsolutePath()),true);
-                            break;
-                        }
-                    }
-                }
             }
         });
     }
@@ -337,7 +327,7 @@ public class MainScene extends BaseScene {
     private void loadGames() {
         backgroundView.setVisible(false);
         maskView.setVisible(false);
-        Task<Void> task = new Task<Void>() {
+        loadGamesTask = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
                 tilePane.setAutomaticSort(false);
@@ -362,7 +352,7 @@ public class MainScene extends BaseScene {
                 return null;
             }
         };
-        task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+        loadGamesTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent event) {
                 tilePane.setAutomaticSort(true);
@@ -384,9 +374,22 @@ public class MainScene extends BaseScene {
 
                 double scrollBarVValue = GENERAL_SETTINGS.getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
                 scrollPane.setVvalue(scrollBarVValue);
+
+                if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && SUPPORTER_MODE){
+                    File workingDir = FILES_MAP.get("working_dir");
+                    if(workingDir!= null && workingDir.listFiles() != null){
+                        for(File file : workingDir.listFiles()){
+                            if(file.isFile() && file.getName().startsWith("wallpaper")){
+                                setChangeBackgroundNextTime(false);
+                                setImageBackground(new Image("file:///"+file.getAbsolutePath()),true);
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         });
-        task.progressProperty().addListener(new ChangeListener<Number>() {
+        loadGamesTask.progressProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 Platform.runLater(() -> {
@@ -400,7 +403,7 @@ public class MainScene extends BaseScene {
         });
         //dialog.activateProgressBar(task);
 
-        Thread th = new Thread(task);
+        Thread th = new Thread(loadGamesTask);
         th.setDaemon(true);
         th.start();
     }

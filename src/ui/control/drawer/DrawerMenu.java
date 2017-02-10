@@ -6,30 +6,19 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.drawer.submenu.SubMenu;
 import ui.control.specific.ScanButton;
-import ui.dialog.ChoiceDialog;
-import ui.dialog.GameRoomAlert;
-import ui.scene.GameEditScene;
 import ui.scene.MainScene;
 import ui.scene.SettingsScene;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Optional;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.LOGGER;
@@ -76,6 +65,13 @@ public class DrawerMenu extends BorderPane {
         });
         setCache(true);
         init(mainScene);
+
+        widthProperty().addListener((observable, oldValue, newValue) -> {
+            mainScene.getBackgroundView().setTranslateX(newValue.doubleValue() + getTranslateX());
+        });
+        translateXProperty().addListener((observable, oldValue, newValue) -> {
+            mainScene.getBackgroundView().setTranslateX(getWidth() + newValue.doubleValue());
+        });
     }
 
     /**
@@ -91,11 +87,9 @@ public class DrawerMenu extends BorderPane {
         }
         openAnim = new Timeline(
                 new KeyFrame(Duration.seconds(0),
-                        new KeyValue(translateXProperty(), translateXProperty().getValue(), Interpolator.LINEAR),
-                        new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
+                        new KeyValue(translateXProperty(), translateXProperty().getValue(), Interpolator.LINEAR)),
                 new KeyFrame(Duration.seconds(ANIMATION_TIME),
-                        new KeyValue(translateXProperty(), 0, Interpolator.LINEAR),
-                        new KeyValue(mainScene.getBackgroundView().translateXProperty(), getWidth(), Interpolator.LINEAR)
+                        new KeyValue(translateXProperty(), 0, Interpolator.LINEAR)
                 ));
         openAnim.setCycleCount(1);
         openAnim.setAutoReverse(false);
@@ -113,13 +107,9 @@ public class DrawerMenu extends BorderPane {
         }
         closeAnim = new Timeline(
                 new KeyFrame(Duration.seconds(0),
-                        new KeyValue(translateXProperty(), translateXProperty().getValue(), Interpolator.LINEAR),
-                        //new KeyValue(mainScene.getScrollPane().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR),
-                        new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
+                        new KeyValue(translateXProperty(), translateXProperty().getValue(), Interpolator.LINEAR)),
                 new KeyFrame(Duration.seconds(ANIMATION_TIME),
-                        new KeyValue(translateXProperty(), -getWidth() + 2, Interpolator.LINEAR),
-                        //new KeyValue(mainScene.getScrollPane().translateXProperty(), 0, Interpolator.LINEAR),
-                        new KeyValue(mainScene.getBackgroundView().translateXProperty(), 0, Interpolator.LINEAR)
+                        new KeyValue(translateXProperty(), -getWidth() + 2, Interpolator.LINEAR)
                 ));
         closeAnim.setCycleCount(1);
         closeAnim.setAutoReverse(false);

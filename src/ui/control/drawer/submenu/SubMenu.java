@@ -131,12 +131,10 @@ public class SubMenu extends BorderPane {
             Timeline closeAnim = new Timeline(
                     new KeyFrame(Duration.seconds(0),
                             new KeyValue(translateXProperty(), translateXProperty().getValue(), Interpolator.LINEAR),
-                            new KeyValue(opacityProperty(), opacityProperty().getValue(), Interpolator.EASE_IN),
-                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
+                            new KeyValue(opacityProperty(), opacityProperty().getValue(), Interpolator.EASE_IN)),
                     new KeyFrame(Duration.seconds(ANIMATION_TIME),
                             new KeyValue(translateXProperty(), -getWidth(), Interpolator.LINEAR),
-                            new KeyValue(opacityProperty(), 0, Interpolator.EASE_IN),
-                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), drawerMenu.getWidth() - getWidth(), Interpolator.LINEAR)
+                            new KeyValue(opacityProperty(), 0, Interpolator.EASE_IN)
                     ));
             closeAnim.setCycleCount(1);
             closeAnim.setAutoReverse(false);
@@ -165,22 +163,18 @@ public class SubMenu extends BorderPane {
         if (changingMenu) {
             openAnim = new Timeline(
                     new KeyFrame(Duration.seconds(0),
-                            new KeyValue(opacityProperty(), opacityProperty().doubleValue(), Interpolator.EASE_IN),
-                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
+                            new KeyValue(opacityProperty(), opacityProperty().doubleValue(), Interpolator.EASE_IN)),
                     new KeyFrame(Duration.seconds(ANIMATION_TIME),
-                            new KeyValue(opacityProperty(), 1.0, Interpolator.EASE_IN),
-                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), drawerMenu.getButtonsPaneWidth() + getWidth(), Interpolator.LINEAR)
+                            new KeyValue(opacityProperty(), 1.0, Interpolator.EASE_IN)
                     ));
         } else {
             openAnim = new Timeline(
                     new KeyFrame(Duration.seconds(0),
                             new KeyValue(translateXProperty(), -getWidth(), Interpolator.LINEAR),
-                            new KeyValue(opacityProperty(), opacityProperty().doubleValue(), Interpolator.EASE_IN),
-                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), drawerMenu.getButtonsPaneWidth(), Interpolator.LINEAR)),
+                            new KeyValue(opacityProperty(), opacityProperty().doubleValue(), Interpolator.EASE_IN)),
                     new KeyFrame(Duration.seconds(ANIMATION_TIME),
                             new KeyValue(translateXProperty(), 0, Interpolator.LINEAR),
-                            new KeyValue(opacityProperty(), 1.0, Interpolator.EASE_IN),
-                            new KeyValue(mainScene.getBackgroundView().translateXProperty(), drawerMenu.getButtonsPaneWidth() + getWidth(), Interpolator.LINEAR)
+                            new KeyValue(opacityProperty(), 1.0, Interpolator.EASE_IN)
                     ));
         }
         openAnim.setCycleCount(1);
