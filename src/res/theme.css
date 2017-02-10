@@ -741,6 +741,10 @@
 	-fx-image: url("icons/main/add.png");
 }
 
+#main-edit-button{
+    -fx-image: url("icons/main/edit.png");
+}
+
 #scan-button{
 	-fx-image: url("icons/main/scan.png");
 }
@@ -870,7 +874,7 @@
     -fx-font-weight: bold;
 }
 
-.drawer-submenu > .items > .text-item{
+.items-box > .text-item{
     -fx-background-color: transparent;
     -fx-padding: 0.5em;
     -fx-insets: 0 5.5 0 0.5;
@@ -880,11 +884,48 @@
     -fx-content-display: LEFT;
 }
 
-.drawer-submenu > .items > .text-item:hover{
+.items-box > .text-item:hover{
     -fx-text-fill: -flatter-red
 }
 
-.drawer-submenu > .items > .text-item:selected,
-.drawer-submenu > .items > .text-item:armed{
+.items-box > .text-item:selected,
+.items-box > .text-item:armed{
     -fx-text-fill: -flatter-red
+}
+
+.items-box > .checkbox-item {
+    -fx-text-fill: -fx-text-base-color;
+    -fx-font-size: 0.9em;
+}
+
+.items-box > .checkbox-item:hover{
+    -fx-text-fill: -flatter-red
+}
+
+.items-box > .checkbox-item > .box,
+.items-box > .checkbox-item > .box.unfocused,
+.items-box > .checkbox-item:disabled > .box,
+.items-box > .checkbox-item:selected > .box,
+.items-box > .checkbox-item:indeterminate > .box {
+    -fx-background-radius: 2.0;
+    -fx-background-color: -fx-text-base-color;
+}
+
+.items-box > .checkbox-item:focused > .box {
+    -fx-background-color: -flatter-red, derive(rgb(94.0, 203.0, 234.0), 80.0%);
+    -fx-background-insets: 0.0, 0.15em;
+}
+
+.items-box > .checkbox-item:focused:armed > .box {
+    -fx-background-color: -flatter-red, derive(-fx-text-base-color, 80.0%);
+    -fx-background-insets: 0.0, 0.15em;
+}
+
+.items-box > .checkbox-item:selected > .box > .mark,
+.items-box > .checkbox-item:indeterminate > .box > .mark {
+    -fx-background-color: -dark;
+}
+
+.items-box > .checkbox-item:indeterminate > .box > .mark {
+    -fx-background-insets: -0.06em -0.17em -0.07em -0.17em;
 }

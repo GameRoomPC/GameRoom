@@ -4,13 +4,12 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import ui.Main;
 
 /**
  * Created by LM on 10/02/2017.
  */
-public class TextItem extends Button {
+public class TextItem extends Button implements SelectableItem {
     private static PseudoClass SELECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("selected");
     private BooleanProperty selected = new SimpleBooleanProperty(false);
 

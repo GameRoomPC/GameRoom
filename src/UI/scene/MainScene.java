@@ -330,6 +330,10 @@ public class MainScene extends BaseScene {
         wrappingPane.setCenter(scrollPane);
         drawerMenu = new DrawerMenu(this);
         drawerMenu.setFocusTraversable(false);
+        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)){
+            drawerMenu.close(this);
+        }
+
         wrappingPane.setLeft(drawerMenu);
         wrappingPane.setStyle("-fx-background-color: transparent;");
 

@@ -8,6 +8,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -34,10 +35,17 @@ public class SubMenu extends BorderPane {
         super();
         this.menuId = menuId;
         initTitleLabel(menuId);
-        setCenter(itemsBox);
-        itemsBox.getStyleClass().add("items");
 
-        itemsBox.setMinWidth(MIN_WIDTH_RATIO * Main.SCREEN_WIDTH);
+        itemsBox.getStyleClass().add("items-box");
+        itemsBox.setPadding(new Insets(0,20*Main.SCREEN_WIDTH/1920,0,20*Main.SCREEN_WIDTH/1920));
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setContent(itemsBox);
+        scrollPane.setMinWidth(MIN_WIDTH_RATIO * Main.SCREEN_WIDTH);
+
+        setCenter(scrollPane);
 
         getStyleClass().add("drawer-submenu");
         setFocusTraversable(false);
@@ -90,8 +98,8 @@ public class SubMenu extends BorderPane {
 
     public void unselectAllItems(){
         for(Node n : itemsBox.getChildren()){
-            if(n instanceof TextItem){
-                ((TextItem) n).setSelected(false);
+            if(n instanceof SelectableItem){
+                ((SelectableItem) n).setSelected(false);
             }
         }
     }

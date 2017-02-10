@@ -1,5 +1,7 @@
 package ui.control.drawer.submenu;
 
+import system.application.settings.PredefinedSetting;
+import ui.Main;
 import ui.control.drawer.GroupType;
 import ui.control.drawer.SortType;
 import ui.scene.MainScene;
@@ -34,5 +36,17 @@ public final class SubMenuFactory {
             sortMenu.addItem(item);
         }
         return sortMenu;
+    }
+
+    public static SubMenu createEditSubMenu(MainScene mainScene){
+        SubMenu editMenu = new SubMenu("editMenu");
+        CheckBoxItem keepDrawerCheckBox = new CheckBoxItem("keep_drawer_opened");
+        keepDrawerCheckBox.setSelected(!Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR));
+        keepDrawerCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TOOLBAR,!newValue);
+        });
+        editMenu.addItem(keepDrawerCheckBox);
+
+        return editMenu;
     }
 }

@@ -8,8 +8,6 @@ import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
@@ -17,7 +15,10 @@ import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
+import system.application.settings.PredefinedSetting;
 import ui.Main;
+import ui.control.drawer.submenu.SubMenu;
+import ui.control.drawer.submenu.TextItem;
 import ui.control.specific.ScanButton;
 import ui.dialog.ChoiceDialog;
 import ui.dialog.GameRoomAlert;
@@ -33,6 +34,9 @@ import java.util.Optional;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.LOGGER;
+import static ui.control.drawer.submenu.SubMenuFactory.createEditSubMenu;
+import static ui.control.drawer.submenu.SubMenuFactory.createGroupBySubMenu;
+import static ui.control.drawer.submenu.SubMenuFactory.createSortBySubMenu;
 
 /**
  * Created by LM on 09/02/2017.
@@ -67,8 +71,10 @@ public class DrawerMenu extends BorderPane {
         });
 
         setOnMouseExited(event -> {
-            if (event.getX() > getWidth()) {
-                close(mainScene);
+            if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)){
+                if (event.getX() > getWidth()) {
+                    close(mainScene);
+                }
             }
         });
         setCache(true);
@@ -132,6 +138,8 @@ public class DrawerMenu extends BorderPane {
 
         initGroupButton(mainScene);
         //initScaleSlider();
+
+        initEditButton(mainScene);
         initSettingsButton(mainScene);
 
         AnchorPane.setTopAnchor(topButtonsBox, 20.0 * Main.SCREEN_HEIGHT / 1080);
@@ -215,26 +223,18 @@ public class DrawerMenu extends BorderPane {
         sortButton.setFocusTraversable(false);
         sortButton.setSelectionable(true);
 
-        SubMenu sortMenu = new SubMenu("sortBy");
-        for (SortType s : SortType.values()) {
-            TextItem item = new TextItem(s.getId());
-            item.setOnAction(event -> {
-                mainScene.sortBy(s);
-                sortMenu.unselectAllItems();
-                item.setSelected(true);
-            });
-            sortMenu.addItem(item);
-        }
+        SubMenu sortMenu = createSortBySubMenu(mainScene);
+
         sortButton.setOnAction(event -> {
-            if (isMenuActive("sortBy")) {
+            if (isMenuActive(sortMenu.getMenuId())) {
                 closeSubMenu(mainScene);
                 sortButton.setSelected(false);
             } else {
-                openSubMenu(mainScene, "sortBy");
+                openSubMenu(mainScene, sortMenu.getMenuId());
             }
         });
 
-        subMenus.put("sortBy", sortMenu);
+        subMenus.put(sortMenu.getMenuId(), sortMenu);
 
         topButtonsBox.getChildren().add(sortButton);
     }
@@ -265,29 +265,41 @@ public class DrawerMenu extends BorderPane {
         groupButton.setFocusTraversable(false);
         groupButton.setSelectionable(true);
 
-        SubMenu groupMenu = new SubMenu("groupBy");
-        for (GroupType g : GroupType.values()) {
-            TextItem item = new TextItem(g.getId());
-            item.setOnAction(event -> {
-                mainScene.groupBy(g);
-                groupMenu.unselectAllItems();
-                item.setSelected(true);
-            });
-            groupMenu.addItem(item);
-        }
+        SubMenu groupMenu = createGroupBySubMenu(mainScene);
 
         groupButton.setOnAction(event -> {
-            if (isMenuActive("groupBy")) {
+            if (isMenuActive(groupMenu.getMenuId())) {
                 closeSubMenu(mainScene);
                 groupButton.setSelected(false);
             } else {
-                openSubMenu(mainScene, "groupBy");
+                openSubMenu(mainScene, groupMenu.getMenuId());
             }
         });
 
-        subMenus.put("groupBy", groupMenu);
+        subMenus.put(groupMenu.getMenuId(), groupMenu);
 
         topButtonsBox.getChildren().add(groupButton);
+    }
+
+    private void initEditButton(MainScene mainScene) {
+        DrawerButton editButton = new DrawerButton("main-edit-button", this);
+        editButton.setFocusTraversable(false);
+        editButton.setSelectionable(true);
+
+        SubMenu editSubMenu = createEditSubMenu(mainScene);
+
+        editButton.setOnAction(event -> {
+            if (isMenuActive(editSubMenu.getMenuId())) {
+                closeSubMenu(mainScene);
+                editButton.setSelected(false);
+            } else {
+                openSubMenu(mainScene, editSubMenu.getMenuId());
+            }
+        });
+
+        subMenus.put(editSubMenu.getMenuId(), editSubMenu);
+
+        bottomButtonsBox.getChildren().add(editButton);
     }
 
     private void initSettingsButton(MainScene mainScene) {
