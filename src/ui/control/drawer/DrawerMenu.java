@@ -250,6 +250,7 @@ public class DrawerMenu extends BorderPane {
         boolean changingMenu = currentSubMenu != null && currentSubMenu.isActive();
 
         subMenu.setOpacity(0);
+        subMenu.setMouseTransparent(true);
         if (currentSubMenu != null) {
             currentSubMenu.setOpacity(0);
         }
@@ -266,7 +267,7 @@ public class DrawerMenu extends BorderPane {
         if (changingMenu) {
             openAnim = new Timeline(
                     new KeyFrame(Duration.seconds(0),
-                            new KeyValue(currentSubMenu.opacityProperty(), currentSubMenu.opacityProperty().doubleValue(), Interpolator.LINEAR),
+                            new KeyValue(currentSubMenu.opacityProperty(), currentSubMenu.opacityProperty().doubleValue(), Interpolator.EASE_IN),
                             new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
                     new KeyFrame(Duration.seconds(ANIMATION_TIME),
                             new KeyValue(currentSubMenu.opacityProperty(), 1.0, Interpolator.EASE_IN),
@@ -276,7 +277,7 @@ public class DrawerMenu extends BorderPane {
             openAnim = new Timeline(
                     new KeyFrame(Duration.seconds(0),
                             new KeyValue(currentSubMenu.translateXProperty(), -currentSubMenu.getWidth(), Interpolator.LINEAR),
-                            new KeyValue(currentSubMenu.opacityProperty(), currentSubMenu.opacityProperty().doubleValue(), Interpolator.LINEAR),
+                            new KeyValue(currentSubMenu.opacityProperty(), currentSubMenu.opacityProperty().doubleValue(), Interpolator.EASE_IN),
                             new KeyValue(mainScene.getBackgroundView().translateXProperty(), topMenuPane.getWidth(), Interpolator.LINEAR)),
                     new KeyFrame(Duration.seconds(ANIMATION_TIME),
                             new KeyValue(currentSubMenu.translateXProperty(), 0, Interpolator.LINEAR),
@@ -288,6 +289,7 @@ public class DrawerMenu extends BorderPane {
         openAnim.setAutoReverse(false);
         openAnim.setOnFinished(event -> {
             subMenu.setActive(true);
+            subMenu.setMouseTransparent(false);
         });
         currentSubMenu.setOpenAnim(openAnim);
         openAnim.play();
@@ -301,11 +303,11 @@ public class DrawerMenu extends BorderPane {
             if (currentSubMenu.getOpenAnim() != null) {
                 currentSubMenu.getOpenAnim().stop();
             }
-
+            currentSubMenu.setMouseTransparent(true);
             Timeline closeAnim = new Timeline(
                     new KeyFrame(Duration.seconds(0),
                             new KeyValue(currentSubMenu.translateXProperty(), currentSubMenu.translateXProperty().getValue(), Interpolator.LINEAR),
-                            new KeyValue(currentSubMenu.opacityProperty(), currentSubMenu.opacityProperty().getValue(), Interpolator.LINEAR),
+                            new KeyValue(currentSubMenu.opacityProperty(), currentSubMenu.opacityProperty().getValue(), Interpolator.EASE_IN),
                             //new KeyValue(mainScene.getScrollPane().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR),
                             new KeyValue(mainScene.getBackgroundView().translateXProperty(), mainScene.getBackgroundView().getTranslateX(), Interpolator.LINEAR)),
                     new KeyFrame(Duration.seconds(ANIMATION_TIME),
