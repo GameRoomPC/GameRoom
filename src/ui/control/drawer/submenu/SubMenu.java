@@ -161,6 +161,8 @@ public class SubMenu extends BorderPane {
 
         Timeline openAnim;
         if (changingMenu) {
+            setTranslateX(0);
+            //here we do not re-translate but just play with opacity instead for a smoother effect
             openAnim = new Timeline(
                     new KeyFrame(Duration.seconds(0),
                             new KeyValue(opacityProperty(), opacityProperty().doubleValue(), Interpolator.EASE_IN)),
