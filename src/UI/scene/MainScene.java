@@ -329,6 +329,7 @@ public class MainScene extends BaseScene {
         scrollPane.setStyle("-fx-background-color: transparent;");
         wrappingPane.setCenter(scrollPane);
         drawerMenu = new DrawerMenu(this);
+        drawerMenu.setFocusTraversable(false);
         wrappingPane.setLeft(drawerMenu);
         wrappingPane.setStyle("-fx-background-color: transparent;");
 
@@ -971,6 +972,6 @@ public class MainScene extends BaseScene {
 
         tilePane.setForcedHidden(false);
         scrollPane.setVvalue(scrollPane.getVmin());
-        drawerMenu.close(this);
+        //drawerMenu.close(this);
     }
 }

@@ -868,6 +868,24 @@
 }
 
 .drawer-submenu > .title{
-    -fx-font-size: 1.15em;
     -fx-font-weight: bold;
+}
+
+.drawer-submenu > .items > .text-item{
+    -fx-background-color: transparent;
+    -fx-padding: 0.5em;
+    -fx-insets: 0 5.5 0 0.5;
+    -fx-font-size: 0.9em;
+    -fx-text-fill: -fx-text-base-color;
+    -fx-alignment: CENTER;
+    -fx-content-display: LEFT;
+}
+
+.drawer-submenu > .items > .text-item:hover{
+    -fx-text-fill: -flatter-red
+}
+
+.drawer-submenu > .items > .text-item:selected,
+.drawer-submenu > .items > .text-item:armed{
+    -fx-text-fill: -flatter-red
 }

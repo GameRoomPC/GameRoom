@@ -5,7 +5,6 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
-import javafx.event.EventType;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -216,44 +215,26 @@ public class DrawerMenu extends BorderPane {
         sortButton.setFocusTraversable(false);
         sortButton.setSelectionable(true);
 
-        final ContextMenu sortMenu = new ContextMenu();
-        MenuItem sortByNameItem = new MenuItem(Main.getString("sort_by_name"));
-        MenuItem sortByRatingItem = new MenuItem(Main.getString("sort_by_rating"));
-        MenuItem sortByTimePlayedItem = new MenuItem(Main.getString("sort_by_playtime"));
-        MenuItem sortByReleaseDateItem = new MenuItem(Main.getString("sort_by_release_date"));
-        sortByNameItem.setOnAction(event -> {
-            mainScene.sortBy(SortType.NAME);
-        });
-        sortByRatingItem.setOnAction(event -> {
-            mainScene.sortBy(SortType.RATING);
-        });
-        sortByTimePlayedItem.setOnAction(event -> {
-            mainScene.sortBy(SortType.PLAY_TIME);
-        });
-        sortByReleaseDateItem.setOnAction(event -> {
-            mainScene.sortBy(SortType.RELEASE_DATE);
-        });
-        sortMenu.getItems().addAll(sortByNameItem, sortByRatingItem, sortByTimePlayedItem, sortByReleaseDateItem);
-
+        SubMenu sortMenu = new SubMenu("sortBy");
+        for(SortType s : SortType.values()){
+            TextItem item = new TextItem(s.getId());
+            item.setOnAction(event -> {
+                mainScene.sortBy(s);
+                sortMenu.unselectAllItems();
+                item.setSelected(true);
+            });
+            sortMenu.addItem(item);
+        }
         sortButton.setOnAction(event -> {
             if (isMenuActive("sortBy")) {
                 closeSubMenu(mainScene);
+                sortButton.setSelected(false);
             } else {
                 openSubMenu(mainScene, "sortBy");
             }
-            /*if (sortMenu.isShowing()) {
-                sortMenu.hide();
-            } else {
-                Bounds bounds = sortButton.getBoundsInLocal();
-                Bounds screenBounds = sortButton.localToScreen(bounds);
-                int x = (int) (screenBounds.getMinX() + 0.25 * bounds.getWidth());
-                int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
-
-                sortMenu.show(sortButton, x, y);
-            }*/
         });
 
-        subMenus.put("sortBy", new SubMenu("sortBy"));
+        subMenus.put("sortBy", sortMenu);
 
         topButtonsBox.getChildren().add(sortButton);
     }
@@ -362,6 +343,7 @@ public class DrawerMenu extends BorderPane {
         groupButton.setOnAction(event -> {
             if (isMenuActive("groupBy")) {
                 closeSubMenu(mainScene);
+                groupButton.setSelected(false);
             } else {
                 openSubMenu(mainScene, "groupBy");
             }
