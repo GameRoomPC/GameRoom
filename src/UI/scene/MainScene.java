@@ -462,7 +462,7 @@ public class MainScene extends BaseScene {
         getRootStackPane().getChildren().add(topPane);
     }
 
-    private void forceHideTilesRows(boolean hide){
+    public void forceHideTilesRows(boolean hide){
         if (toAddTilePane != null) {
             toAddTilePane.setForcedHidden(hide);
         }

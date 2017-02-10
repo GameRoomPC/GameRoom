@@ -5,6 +5,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
@@ -14,6 +15,9 @@ import ui.control.drawer.GroupType;
 import ui.control.drawer.SortType;
 import ui.scene.MainScene;
 
+import java.awt.*;
+
+import static ui.Main.GENERAL_SETTINGS;
 import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
 
 /**
@@ -59,6 +63,30 @@ public final class SubMenuFactory {
             Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TOOLBAR,!newValue);
         });
         editMenu.addItem(keepDrawerCheckBox);
+
+        CheckBoxItem hidePanesCheckBox = new CheckBoxItem("show_hide_top_panes");
+        hidePanesCheckBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS));
+        hidePanesCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TILES_ROWS,newValue);
+            mainScene.forceHideTilesRows(newValue);
+        });
+        editMenu.addItem(hidePanesCheckBox);
+
+        CheckBoxItem fullScreenCheckBox = new CheckBoxItem("fullscreen");
+        fullScreenCheckBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN));
+        fullScreenCheckBox.setOnAction(event -> {
+            try {
+                Robot r = new Robot();
+                r.keyPress(java.awt.event.KeyEvent.VK_F11);
+            } catch (AWTException e) {
+                e.printStackTrace();
+            }
+        });
+        mainScene.getParentStage().fullScreenProperty().addListener((observable, oldValue, newValue) -> {
+            fullScreenCheckBox.setSelected(newValue);
+        });
+        //TODO fix F11 and this checkbox sync
+        //editMenu.addItem(fullScreenCheckBox);
 
         Slider sizeSlider = new Slider();
         sizeSlider.setMin(MIN_TILE_ZOOM);

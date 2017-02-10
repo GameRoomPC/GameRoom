@@ -231,11 +231,6 @@ public class Launcher extends Application {
                 if(event.getCode() == KeyCode.F && event.isControlDown()){
                     MAIN_SCENE.showSearchField();
                 }
-                if (event.getCode() == KeyCode.F9) {
-                    if (Main.MAIN_SCENE != null) {
-                        Main.MAIN_SCENE.toggleTilesRows();
-                    }
-                }
             }
         });
         maximizedListener = (observable, oldValue, newValue) -> {
