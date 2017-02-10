@@ -15,6 +15,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import net.lingala.zip4j.exception.ZipException;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.drawer.DrawerMenu;
@@ -23,6 +24,8 @@ import ui.control.drawer.SortType;
 import ui.dialog.GameRoomAlert;
 import ui.scene.GameEditScene;
 import ui.scene.MainScene;
+import ui.scene.SettingsScene;
+import ui.theme.Theme;
 
 import java.awt.*;
 import java.io.File;
@@ -258,12 +261,16 @@ public final class SubMenuFactory {
             }
         });
         CheckBoxItem backgroundImageCheckBox = new CheckBoxItem("use_a_static_wallpaper");
+
         backgroundImageCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLE_STATIC_WALLPAPER, newValue);
-            browseButton.setManaged(newValue);
-            browseButton.setVisible(newValue);
-            browseButton.setMouseTransparent(!newValue);
-            mainScene.setImageBackground(null,true);
+            boolean registered = SettingsScene.checkAndDisplayRegisterDialog();
+            if (registered) {
+                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLE_STATIC_WALLPAPER, newValue);
+                browseButton.setManaged(newValue);
+                browseButton.setVisible(newValue);
+                browseButton.setMouseTransparent(!newValue);
+                mainScene.setImageBackground(null,true);
+            }
         });
         backgroundImageCheckBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER));
         editMenu.addItem(backgroundImageCheckBox);

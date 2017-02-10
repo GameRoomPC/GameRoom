@@ -158,7 +158,7 @@ public class MainScene extends BaseScene {
                 //TODO maybe try to hide the drawer menu ?
                 //drawerMenu.setVisible(false);
             }
-            if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER)){
+            if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && SUPPORTER_MODE){
                 File workingDir = FILES_MAP.get("working_dir");
                 if(workingDir!= null && workingDir.listFiles() != null){
                     for(File file : workingDir.listFiles()){

@@ -861,7 +861,7 @@ public class SettingsScene extends BaseScene {
         getRootStackPane().getChildren().add(wrappingPane);
     }
 
-    private static boolean checkAndDisplayRegisterDialog() {
+    public static boolean checkAndDisplayRegisterDialog() {
         if (!SUPPORTER_MODE) {
             displayRegisterDialog(null, null);
             return false;
