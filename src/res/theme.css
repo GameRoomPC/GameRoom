@@ -874,6 +874,10 @@
     -fx-font-weight: bold;
 }
 
+.button-drawer-item{
+    -fx-font-size: 0.9em;
+}
+
 .text-drawer-item{
     -fx-background-color: transparent;
     -fx-font-size: 0.9em;

@@ -775,7 +775,22 @@ public class MainScene extends BaseScene {
         tilePane.getOnKeyPressed().handle(keyPressed);
     }
 
-    public void setImageBackground(Image img) {
+    public void setImageBackground(Image img){
+        setImageBackground(img,false);
+    }
+    public void setImageBackground(Image img, boolean isStatic) {
+        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && !isStatic){
+            return;
+        }else if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && isStatic){
+            if(backgroundView.getImage() == null){
+                File workingDir = FILES_MAP.get("working_dir");
+                for(File file : workingDir.listFiles()){
+                    if(file.isFile() && file.getName().startsWith("wallpaper")){
+                        img = new Image(file.getAbsolutePath());
+                    }
+                }
+            }
+        }
         if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
             if (!backgroundView.isVisible()) {
                 backgroundView.setVisible(true);

@@ -33,6 +33,7 @@ public enum PredefinedSetting {
     ,WINDOW_MAXIMIZED("windowMaximized", new SettingValue(true,Boolean.class,CATEGORY_NONE))
     ,HIDE_TOOLBAR("hideToolBar", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,HIDE_TILES_ROWS("hideTilesRows", new SettingValue(false,Boolean.class,CATEGORY_NONE))
+    ,ENABLE_STATIC_WALLPAPER("enableStaticWallpaper", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,START_WITH_WINDOWS("startWithWindows", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     ,NO_MORE_ICON_TRAY_WARNING("noMoreIconTrayWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,ENABLE_XBOX_CONTROLLER_SUPPORT("enableXboxControllerSupport", new SettingValue(false,Boolean.class,CATEGORY_UI))

@@ -1,14 +1,18 @@
 package ui.control.drawer.submenu;
 
+import data.io.FileUtils;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.*;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import system.application.settings.PredefinedSetting;
@@ -31,7 +35,7 @@ public final class SubMenuFactory {
     private final static double MAX_TILE_ZOOM = 0.675;
     private final static double MIN_TILE_ZOOM = 0.10;
 
-    public static SubMenu createAddGameSubMenu(MainScene mainScene){
+    public static SubMenu createAddGameSubMenu(MainScene mainScene) {
         SubMenu addMenu = new SubMenu("addGames");
         TextItem singleAppItem = new TextItem("add_single_app");
         singleAppItem.setTooltip(new Tooltip(Main.getString("add_single_app_long")));
@@ -90,7 +94,7 @@ public final class SubMenuFactory {
         return addMenu;
     }
 
-    public static SubMenu createGroupBySubMenu(MainScene mainScene){
+    public static SubMenu createGroupBySubMenu(MainScene mainScene) {
         SubMenu groupMenu = new SubMenu("groupBy");
         TextItem defaultItem = new TextItem("default");
         defaultItem.setOnAction(event -> {
@@ -114,7 +118,7 @@ public final class SubMenuFactory {
         return groupMenu;
     }
 
-    public static SubMenu createSortBySubMenu(MainScene mainScene){
+    public static SubMenu createSortBySubMenu(MainScene mainScene) {
         SubMenu sortMenu = new SubMenu("sortBy");
 
         TextItem defaultItem = new TextItem("default");
@@ -137,19 +141,19 @@ public final class SubMenuFactory {
         return sortMenu;
     }
 
-    public static SubMenu createEditSubMenu(MainScene mainScene){
+    public static SubMenu createEditSubMenu(MainScene mainScene) {
         SubMenu editMenu = new SubMenu("editMenu");
         CheckBoxItem keepDrawerCheckBox = new CheckBoxItem("keep_drawer_opened");
         keepDrawerCheckBox.setSelected(!Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR));
         keepDrawerCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TOOLBAR,!newValue);
+            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TOOLBAR, !newValue);
         });
         editMenu.addItem(keepDrawerCheckBox);
 
         CheckBoxItem hidePanesCheckBox = new CheckBoxItem("show_hide_top_panes");
         hidePanesCheckBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS));
         hidePanesCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TILES_ROWS,newValue);
+            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TILES_ROWS, newValue);
             mainScene.forceHideTilesRows(newValue);
         });
         editMenu.addItem(hidePanesCheckBox);
@@ -212,6 +216,43 @@ public final class SubMenuFactory {
         sizeBox.getChildren().add(sizeSlider);
 
         editMenu.addItem(sizeBox);
+
+        ButtonItem browseButton = new ButtonItem("browse");
+        browseButton.setManaged(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER));
+        browseButton.setVisible(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER));
+        browseButton.setMouseTransparent(!Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER));
+        browseButton.setOnAction(event -> {
+            FileChooser imageChooser = new FileChooser();
+            imageChooser.setTitle(Main.getString("select_picture"));
+            imageChooser.setInitialDirectory(
+                    new File(System.getProperty("user.home"))
+            );
+            imageChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("JPEG (*.jpg, *.jpeg)", "*.jpg","*.jpeg"),
+                    new FileChooser.ExtensionFilter("PNG (*.png)", "*.png")
+            );
+            try {
+                File selectedFile = imageChooser.showOpenDialog(mainScene.getParentStage());
+                if (selectedFile != null) {
+                    File movedFile = FileUtils.moveToFolder(selectedFile,Main.FILES_MAP.get("working_dir"));
+                    String renamedFile = Main.FILES_MAP.get("working_dir") + File.separator + "wallpaper." + FileUtils.getExtension(movedFile);
+                    movedFile.renameTo(new File(renamedFile));
+                    mainScene.setImageBackground(new Image("file:///"+movedFile.getAbsolutePath()));
+                }
+            } catch (NullPointerException ne) {
+                ne.printStackTrace();
+            }
+        });
+        CheckBoxItem backgroundImageCheckBox = new CheckBoxItem("use_a_static_wallpaper");
+        backgroundImageCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLE_STATIC_WALLPAPER, newValue);
+            browseButton.setManaged(newValue);
+            browseButton.setVisible(newValue);
+            browseButton.setMouseTransparent(!newValue);
+        });
+        backgroundImageCheckBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER));
+        editMenu.addItem(backgroundImageCheckBox);
+        editMenu.addItem(browseButton);
 
         return editMenu;
     }

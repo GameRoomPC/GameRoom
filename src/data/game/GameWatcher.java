@@ -9,6 +9,7 @@ import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.images.ImageUtils;
 import data.http.key.KeyChecker;
+import data.io.FileUtils;
 import javafx.application.Platform;
 import org.json.JSONArray;
 import ui.GeneralToast;
@@ -339,7 +340,7 @@ public class GameWatcher {
                                             @Override
                                             public void run(File outputfile) {
                                                 try {
-                                                    File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + GameEditScene.getExtension(outputfile));
+                                                    File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + FileUtils.getExtension(outputfile));
                                                     Files.copy(outputfile.getAbsoluteFile().toPath()
                                                             , localCoverFile.getAbsoluteFile().toPath()
                                                             , StandardCopyOption.REPLACE_EXISTING);
@@ -365,7 +366,7 @@ public class GameWatcher {
                                                             @Override
                                                             public void run(File outputfile) {
                                                                 try {
-                                                                    File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + GameEditScene.getExtension(outputfile));
+                                                                    File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + FileUtils.getExtension(outputfile));
                                                                     Files.copy(outputfile.getAbsoluteFile().toPath()
                                                                             , localCoverFile.getAbsoluteFile().toPath()
                                                                             , StandardCopyOption.REPLACE_EXISTING);
