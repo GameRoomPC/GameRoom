@@ -17,6 +17,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
+import ui.control.drawer.DrawerMenu;
 import ui.control.drawer.GroupType;
 import ui.control.drawer.SortType;
 import ui.dialog.GameRoomAlert;
@@ -40,8 +41,8 @@ public final class SubMenuFactory {
     private final static double MAX_TILE_ZOOM = 0.675;
     private final static double MIN_TILE_ZOOM = 0.10;
 
-    public static SubMenu createAddGameSubMenu(MainScene mainScene) {
-        SubMenu addMenu = new SubMenu("addGames");
+    public static SubMenu createAddGameSubMenu(MainScene mainScene, DrawerMenu drawerMenu) {
+        SubMenu addMenu = new SubMenu("addGames",mainScene,drawerMenu);
         TextItem singleAppItem = new TextItem("add_single_app");
         singleAppItem.setTooltip(new Tooltip(Main.getString("add_single_app_long")));
         singleAppItem.setOnAction(event -> {
@@ -99,8 +100,8 @@ public final class SubMenuFactory {
         return addMenu;
     }
 
-    public static SubMenu createGroupBySubMenu(MainScene mainScene) {
-        SubMenu groupMenu = new SubMenu("groupBy");
+    public static SubMenu createGroupBySubMenu(MainScene mainScene, DrawerMenu drawerMenu) {
+        SubMenu groupMenu = new SubMenu("groupBy", mainScene, drawerMenu);
         TextItem defaultItem = new TextItem("default");
         defaultItem.setOnAction(event -> {
             mainScene.home();
@@ -123,8 +124,8 @@ public final class SubMenuFactory {
         return groupMenu;
     }
 
-    public static SubMenu createSortBySubMenu(MainScene mainScene) {
-        SubMenu sortMenu = new SubMenu("sortBy");
+    public static SubMenu createSortBySubMenu(MainScene mainScene, DrawerMenu drawerMenu) {
+        SubMenu sortMenu = new SubMenu("sortBy", mainScene, drawerMenu);
 
         TextItem defaultItem = new TextItem("default");
         defaultItem.setOnAction(event -> {
@@ -146,8 +147,8 @@ public final class SubMenuFactory {
         return sortMenu;
     }
 
-    public static SubMenu createEditSubMenu(MainScene mainScene) {
-        SubMenu editMenu = new SubMenu("editMenu");
+    public static SubMenu createEditSubMenu(MainScene mainScene, DrawerMenu drawerMenu) {
+        SubMenu editMenu = new SubMenu("editMenu", mainScene, drawerMenu);
         CheckBoxItem keepDrawerCheckBox = new CheckBoxItem("keep_drawer_opened");
         keepDrawerCheckBox.setSelected(!Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR));
         keepDrawerCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {

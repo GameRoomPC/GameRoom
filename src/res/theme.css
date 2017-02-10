@@ -867,10 +867,10 @@
    -fx-background-color: derive(-dark, 10.0%);
    -fx-border-width: 0 0 0 0;
    -fx-border-color: -flatter-red;
-   -fx-border-insets: 50 0 350 0;
+   -fx-border-insets: 20 0 0 0;
 }
 
-.drawer-submenu > .title{
+.drawer-submenu-title{
     -fx-font-weight: bold;
 }
 

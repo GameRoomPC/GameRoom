@@ -9,10 +9,10 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.util.Duration;
 import ui.Main;
+import ui.control.button.ImageButton;
 import ui.control.drawer.DrawerMenu;
 import ui.scene.MainScene;
 
@@ -31,10 +31,10 @@ public class SubMenu extends BorderPane {
     private Timeline closeAnim;
 
 
-    public SubMenu(String menuId){
+    public SubMenu(String menuId, MainScene mainScene, DrawerMenu drawerMenu){
         super();
         this.menuId = menuId;
-        initTitleLabel(menuId);
+        initTop(menuId,mainScene,drawerMenu);
 
         itemsBox.getStyleClass().add("items-box");
         itemsBox.setPadding(new Insets(0,20*Main.SCREEN_WIDTH/1920,0,20*Main.SCREEN_WIDTH/1920));
@@ -54,15 +54,28 @@ public class SubMenu extends BorderPane {
         setVisible(false);
     }
 
-    public void initTitleLabel(String text){
+    public void initTop(String text, MainScene mainScene, DrawerMenu drawerMenu){
         titleLabel  = new Label(Main.getString(text));
-        BorderPane.setAlignment(titleLabel, Pos.CENTER);
-        titleLabel.getStyleClass().add("title");
-        titleLabel.setPadding(new Insets(20* Main.SCREEN_HEIGHT/1080
+        titleLabel.getStyleClass().add("drawer-submenu-title");
+        titleLabel.setPadding(new Insets(50* Main.SCREEN_HEIGHT/1080
                 , 20* Main.SCREEN_HEIGHT/1080
                 ,20* Main.SCREEN_HEIGHT/1080
                 ,20* Main.SCREEN_HEIGHT/1080));
-        setTop(titleLabel);
+
+        ImageButton closeButton = new ImageButton("toaddtile-ignore-button", Main.SCREEN_HEIGHT/45,Main.SCREEN_HEIGHT/45);
+        closeButton.setFocusTraversable(false);
+        closeButton.setOnAction(event -> {
+            close(mainScene,drawerMenu);
+            drawerMenu.unselectAllButtons();
+        });
+        closeButton.setFocusTraversable(false);
+
+        StackPane pane = new StackPane();
+        pane.getChildren().addAll(closeButton,titleLabel);
+        StackPane.setAlignment(closeButton,Pos.TOP_RIGHT);
+        StackPane.setAlignment(titleLabel,Pos.BOTTOM_CENTER);
+
+        setTop(pane);
     }
 
     public void addItem(Node item){

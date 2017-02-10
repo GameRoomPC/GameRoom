@@ -154,7 +154,7 @@ public class DrawerMenu extends BorderPane {
         DrawerButton addButton = new DrawerButton("main-add-button", this);
         addButton.setSelectionable(true);
 
-        SubMenu addMenu = createAddGameSubMenu(mainScene);
+        SubMenu addMenu = createAddGameSubMenu(mainScene,this);
 
         addButton.setOnAction(event -> {
             if (isMenuActive(addMenu.getMenuId())) {
@@ -180,7 +180,7 @@ public class DrawerMenu extends BorderPane {
         DrawerButton sortButton = new DrawerButton("main-sort-button", this);
         sortButton.setSelectionable(true);
 
-        SubMenu sortMenu = createSortBySubMenu(mainScene);
+        SubMenu sortMenu = createSortBySubMenu(mainScene,this);
 
         sortButton.setOnAction(event -> {
             if (isMenuActive(sortMenu.getMenuId())) {
@@ -222,7 +222,7 @@ public class DrawerMenu extends BorderPane {
         groupButton.setFocusTraversable(false);
         groupButton.setSelectionable(true);
 
-        SubMenu groupMenu = createGroupBySubMenu(mainScene);
+        SubMenu groupMenu = createGroupBySubMenu(mainScene,this);
 
         groupButton.setOnAction(event -> {
             if (isMenuActive(groupMenu.getMenuId())) {
@@ -243,7 +243,7 @@ public class DrawerMenu extends BorderPane {
         editButton.setFocusTraversable(false);
         editButton.setSelectionable(true);
 
-        SubMenu editSubMenu = createEditSubMenu(mainScene);
+        SubMenu editSubMenu = createEditSubMenu(mainScene,this);
 
         editButton.setOnAction(event -> {
             if (isMenuActive(editSubMenu.getMenuId())) {
@@ -314,7 +314,7 @@ public class DrawerMenu extends BorderPane {
         }
     }
 
-    private void unselectAllButtons() {
+    public void unselectAllButtons() {
         for (Node n : topButtonsBox.getChildren()) {
             if (n instanceof DrawerButton) {
                 DrawerButton b = (DrawerButton) n;
