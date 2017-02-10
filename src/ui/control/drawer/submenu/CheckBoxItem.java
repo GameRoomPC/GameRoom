@@ -12,5 +12,6 @@ public class CheckBoxItem extends CheckBox{
         super(Main.getString(textId));
         //getStyleClass().remove("check-box");
         getStyleClass().add("checkbox-item");
+        setFocusTraversable(false);
     }
 }

@@ -18,6 +18,7 @@ public class DrawerButton extends ImageButton {
     public DrawerButton(String cssId, DrawerMenu parentMenu) {
         super(cssId, parentMenu.getPrefWidth(), parentMenu.getPrefWidth());
         getStyleClass().add("drawer-button");
+        setFocusTraversable(false);
         selected.addListener(e -> pseudoClassStateChanged(SELECTED_PSEUDO_CLASS, selected.get()));
     }
 

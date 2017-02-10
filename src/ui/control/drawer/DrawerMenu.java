@@ -88,6 +88,7 @@ public class DrawerMenu extends BorderPane {
      */
     public void open(MainScene mainScene) {
         setManaged(true);
+        setVisible(true);
         if (closeAnim != null) {
             closeAnim.stop();
         }

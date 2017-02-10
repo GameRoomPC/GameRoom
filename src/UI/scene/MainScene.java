@@ -119,14 +119,21 @@ public class MainScene extends BaseScene {
         initTop();
         displayWelcomeMessage();
         loadGames();
-        loadPreviousUIValues();
         configureAutomaticCaching();
+        loadPreviousUIValues();
         SupportService.start();
     }
 
     private void configureAutomaticCaching() {
         //to empty ram usage
-        getParentStage().focusedProperty().addListener(new ChangeListener<Boolean>() {
+        tilePane.setCacheGameButtons(true);
+        recentlyAddedTilePane.setCacheGameButtons(true);
+        toAddTilePane.setCacheGameButtons(true);
+        lastPlayedTilePane.setCacheGameButtons(true);
+        for (GroupRowTilePane g : groupRowList) {
+            g.setCacheGameButtons(true);
+        }
+        /*getParentStage().focusedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 tilePane.setCacheGameButtons(newValue);
@@ -138,7 +145,7 @@ public class MainScene extends BaseScene {
                     g.setCacheGameButtons(newValue);
                 }
             }
-        });
+        });*/
     }
 
     private void loadPreviousUIValues() {
@@ -171,6 +178,11 @@ public class MainScene extends BaseScene {
 
             if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS)) {
                 forceHideTilesRows(true);
+            }
+
+            if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)){
+                //TODO maybe try to hide the drawer menu ?
+                //drawerMenu.setVisible(false);
             }
         });
     }
@@ -330,9 +342,6 @@ public class MainScene extends BaseScene {
         wrappingPane.setCenter(scrollPane);
         drawerMenu = new DrawerMenu(this);
         drawerMenu.setFocusTraversable(false);
-        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)){
-            drawerMenu.close(this);
-        }
 
         wrappingPane.setLeft(drawerMenu);
         wrappingPane.setStyle("-fx-background-color: transparent;");
