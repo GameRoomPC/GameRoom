@@ -931,3 +931,9 @@ checkbox-drawer-item:hover{
 .checkbox-drawer-item:indeterminate > .box > .mark {
     -fx-background-insets: -0.06em -0.17em -0.07em -0.17em;
 }
+
+/************SEARCH BAR ******************/
+#search-bar{
+    -fx-background-color: -dark;
+    -fx-effect: dropshadow( gaussian , black , 10,0,0,0 );
+}

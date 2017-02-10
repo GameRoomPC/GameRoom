@@ -41,6 +41,7 @@ import ui.control.button.gamebutton.GameButton;
 import ui.control.drawer.DrawerMenu;
 import ui.control.drawer.GroupType;
 import ui.control.drawer.SortType;
+import ui.control.specific.SearchBar;
 import ui.control.textfield.PathTextField;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.GameRoomCustomAlert;
@@ -76,7 +77,6 @@ public class MainScene extends BaseScene {
     private VBox tilesPaneWrapper = new VBox();
     private ScrollPane scrollPane;
     private BorderPane wrappingPane;
-    private StackPane topPane;
 
     private DrawerMenu drawerMenu;
 
@@ -87,7 +87,7 @@ public class MainScene extends BaseScene {
 
     private ArrayList<GroupRowTilePane> groupRowList = new ArrayList<>();
 
-    private TextField searchField;
+    private SearchBar searchBar;
     private boolean showTilesPaneAgainAfterCancelSearch = false;
 
     private Label statusLabel;
@@ -417,61 +417,27 @@ public class MainScene extends BaseScene {
 
     private void initTop() {
 
-        searchField = new TextField();
-
-        double imgSize = SCREEN_WIDTH / 28;
-        //Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
-        ImageButton searchButton = new ImageButton("search-button", imgSize, imgSize);
-        searchButton.setFocusTraversable(false);
-
-        HBox searchBox = new HBox();
-        searchBox.setAlignment(Pos.TOP_RIGHT);
-        searchBox.getChildren().addAll(searchField, searchButton);
-        searchField.setFocusTraversable(false);
-        searchField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if (newValue != null && !newValue.equals("")) {
-                    searchGame(newValue);
-                } else if (newValue != null && newValue.equals("")) {
-                    cancelSearch();
-                }
+        searchBar = new SearchBar((observable, oldValue, newValue) -> {
+            if (newValue != null && !newValue.equals("")) {
+                searchGame(newValue);
+            } else if (newValue != null && newValue.equals("")) {
+                cancelSearch();
             }
         });
+        searchBar.hide();
 
-        //hbox.getChildren().add(searchBox);
-
-        //HBox.setMargin(sizeSlider, new Insets(15, 12, 15, 12));
-        topPane = new StackPane();
-        //topPane.setFocusTraversable(false);
-        double width = 500 * SCREEN_WIDTH / 1920;
-        double height = 94 * SCREEN_HEIGHT / 1080;
-        //Image logoImage = new Image("res/ui/title-medium.png", , , true, true);
-        ImageButton homeButton = new ImageButton("home-button", width, height);
-        homeButton.setFocusTraversable(false);
-        homeButton.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
-            @Override
-            public void handle(javafx.event.ActionEvent event) {
-                home();
-            }
+        AnchorPane pane = new AnchorPane();
+        pane.getChildren().add(searchBar);
+        drawerMenu.translateXProperty().addListener((observable, oldValue, newValue) -> {
+            pane.setTranslateX(drawerMenu.getWidth()+newValue.doubleValue());
         });
-        StackPane.setAlignment(homeButton, Pos.BOTTOM_CENTER);
-        //topPane.getChildren().add(homeButton);
-        /*StackPane.setMargin(titleView, new Insets(55 * Main.SCREEN_HEIGHT / 1080
-                , 12 * Main.SCREEN_WIDTH / 1920
-                , 15 * Main.SCREEN_HEIGHT / 1080
-                , 15 * Main.SCREEN_WIDTH / 1920));*/
-        topPane.getChildren().add(searchBox);
-        //topPane.getChildren().add(hbox);
-        topPane.getStyleClass().add("header");
-
-        searchBox.setPickOnBounds(false);
-        homeButton.setPickOnBounds(false);
-        topPane.setManaged(false);
-        topPane.setVisible(false);
-        topPane.setPickOnBounds(false);
-        StackPane.setAlignment(topPane,Pos.TOP_RIGHT);
-        getRootStackPane().getChildren().add(topPane);
+        drawerMenu.widthProperty().addListener((observable, oldValue, newValue) -> {
+            pane.setTranslateX(newValue.doubleValue()+drawerMenu.getTranslateX());
+        });
+        AnchorPane.setLeftAnchor(searchBar,0.0);
+        AnchorPane.setBottomAnchor(searchBar, 0.0);
+        pane.setPickOnBounds(false);
+        getRootStackPane().getChildren().add(pane);
     }
 
     public void forceHideTilesRows(boolean hide){
@@ -535,7 +501,7 @@ public class MainScene extends BaseScene {
         tilePane.setForcedHidden(false);
         tilePane.show();
         if (tilePane.isSearching()) {
-            searchField.clear();
+            searchBar.clearSearchField();
         }
         lastPlayedTilePane.setForcedHidden(false);
         recentlyAddedTilePane.setForcedHidden(false);
@@ -844,14 +810,12 @@ public class MainScene extends BaseScene {
     }
 
     public void showSearchField(){
-        topPane.setManaged(true);
-        topPane.setVisible(true);
-        searchField.requestFocus();
+        searchBar.show();
+        searchBar.getSearchField().requestFocus();
     }
 
     public void hideSearchField(){
-        topPane.setManaged(false);
-        topPane.setVisible(false);
+        searchBar.hide();
     }
 
     public void groupBy(GroupType groupType){
