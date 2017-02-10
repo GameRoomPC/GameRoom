@@ -855,8 +855,7 @@
    -fx-background-color: derive(-dark, 10.0%);
 }
 
-.drawer-button,
-.drawer-button:default,{
+.drawer-button{
    -fx-background-color: transparent;
 }
 
