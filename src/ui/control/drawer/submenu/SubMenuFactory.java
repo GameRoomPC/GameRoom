@@ -186,23 +186,29 @@ public final class SubMenuFactory {
         sizeSlider.setBlockIncrement(0.1);
         sizeSlider.setFocusTraversable(false);
 
-        sizeSlider.valueProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                mainScene.newTileZoom(newValue.doubleValue());
+        sizeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            mainScene.newTileZoom(newValue.doubleValue());
+        });
+        sizeSlider.setOnMouseReleased(event -> {
+            editMenu.setManaged(true);
+            editMenu.setOpacity(1.0);
+            if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)){
+                drawerMenu.setManaged(true);
+                drawerMenu.setOpacity(1.0);
+            }
+            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
+        });
+        sizeSlider.setOnMousePressed(event -> {
+            editMenu.setManaged(false);
+            editMenu.setOpacity(0.5);
+            if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)){
+                drawerMenu.setManaged(false);
+                drawerMenu.setOpacity(0.5);
             }
         });
-        sizeSlider.setOnMouseReleased(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
-            }
-        });
-        sizeSlider.setOnMouseDragExited(new EventHandler<MouseDragEvent>() {
-            @Override
-            public void handle(MouseDragEvent event) {
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
-            }
+
+        sizeSlider.setOnMouseDragExited(event -> {
+            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
         });
         sizeSlider.setPrefWidth(Main.SCREEN_WIDTH / 12);
         sizeSlider.setMaxWidth(Main.SCREEN_WIDTH / 12);

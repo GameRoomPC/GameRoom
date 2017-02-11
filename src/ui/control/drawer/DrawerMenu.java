@@ -66,20 +66,31 @@ public class DrawerMenu extends BorderPane {
         setCache(true);
         init(mainScene);
 
-        /*widthProperty().addListener((observable, oldValue, newValue) -> {
-            double newTranslateX = newValue.doubleValue() + getTranslateX() - getButtonsPaneWidth();
+        widthProperty().addListener((observable, oldValue, newValue) -> {
+            double newOpacity = 3 * getButtonsPaneWidth()/newValue.doubleValue();
+            if(getTranslateX() < 0){
+                newOpacity = 1;
+            }
+            mainScene.getScrollPane().setOpacity(newOpacity);
+
+            /*double newTranslateX = newValue.doubleValue() + getTranslateX() - getButtonsPaneWidth();
             if(newTranslateX <0 ){
                 newTranslateX = 0;
             }
-            mainScene.getBackgroundView().setTranslateX(newTranslateX);
+            mainScene.getBackgroundView().setTranslateX(newTranslateX);*/
         });
         translateXProperty().addListener((observable, oldValue, newValue) -> {
-            double newTranslateX = getWidth() + newValue.doubleValue() - getButtonsPaneWidth();
+            double newOpacity = 3 * getButtonsPaneWidth()/getWidth();
+            if(newValue.doubleValue() < 0){
+                newOpacity = 1;
+            }
+            mainScene.getScrollPane().setOpacity(newOpacity);
+            /*double newTranslateX = getWidth() + newValue.doubleValue() - getButtonsPaneWidth();
             if(newTranslateX <0 ){
                 newTranslateX = 0;
             }
-            mainScene.getBackgroundView().setTranslateX(newTranslateX);
-        });*/
+            mainScene.getBackgroundView().setTranslateX(newTranslateX);*/
+        });
     }
 
     /**

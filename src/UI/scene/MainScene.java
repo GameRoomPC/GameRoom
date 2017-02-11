@@ -911,4 +911,8 @@ public class MainScene extends BaseScene {
         toAddTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * value);
         toAddTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * value);
     }
+
+    public ScrollPane getScrollPane() {
+        return scrollPane;
+    }
 }
