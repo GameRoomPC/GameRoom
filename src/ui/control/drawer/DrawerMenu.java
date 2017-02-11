@@ -66,12 +66,20 @@ public class DrawerMenu extends BorderPane {
         setCache(true);
         init(mainScene);
 
-        widthProperty().addListener((observable, oldValue, newValue) -> {
-            mainScene.getBackgroundView().setTranslateX(newValue.doubleValue() + getTranslateX());
+        /*widthProperty().addListener((observable, oldValue, newValue) -> {
+            double newTranslateX = newValue.doubleValue() + getTranslateX() - getButtonsPaneWidth();
+            if(newTranslateX <0 ){
+                newTranslateX = 0;
+            }
+            mainScene.getBackgroundView().setTranslateX(newTranslateX);
         });
         translateXProperty().addListener((observable, oldValue, newValue) -> {
-            mainScene.getBackgroundView().setTranslateX(getWidth() + newValue.doubleValue());
-        });
+            double newTranslateX = getWidth() + newValue.doubleValue() - getButtonsPaneWidth();
+            if(newTranslateX <0 ){
+                newTranslateX = 0;
+            }
+            mainScene.getBackgroundView().setTranslateX(newTranslateX);
+        });*/
     }
 
     /**
