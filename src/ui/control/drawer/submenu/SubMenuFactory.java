@@ -7,15 +7,12 @@ import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
-import net.lingala.zip4j.exception.ZipException;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.drawer.DrawerMenu;
@@ -25,7 +22,6 @@ import ui.dialog.GameRoomAlert;
 import ui.scene.GameEditScene;
 import ui.scene.MainScene;
 import ui.scene.SettingsScene;
-import ui.theme.Theme;
 
 import java.awt.*;
 import java.io.File;
@@ -34,8 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import static ui.scene.BaseScene.BACKGROUND_IMAGE_LOAD_RATIO;
 
 /**
  * Created by LM on 10/02/2017.
@@ -49,6 +43,7 @@ public final class SubMenuFactory {
         TextItem singleAppItem = new TextItem("add_single_app");
         singleAppItem.setTooltip(new Tooltip(Main.getString("add_single_app_long")));
         singleAppItem.setOnAction(event -> {
+            GameRoomAlert.info(Main.getString("add_single_app_long"));
             mainScene.getRootStackPane().setMouseTransparent(true);
 
             FileChooser fileChooser = new FileChooser();
@@ -79,6 +74,8 @@ public final class SubMenuFactory {
         TextItem folderItem = new TextItem("add_folder_app");
         folderItem.setTooltip(new Tooltip(Main.getString("add_folder_app_long")));
         folderItem.setOnAction(event -> {
+            GameRoomAlert.info(Main.getString("add_folder_app_long"));
+
             mainScene.getRootStackPane().setMouseTransparent(true);
 
             DirectoryChooser directoryChooser = new DirectoryChooser();
