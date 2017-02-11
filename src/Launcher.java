@@ -55,26 +55,28 @@ public class Launcher extends Application {
     public static void main(String[] args) throws URISyntaxException {
         setCurrentProcessExplicitAppUserModelID("GameRoom");
 
-        System.setErr(new PrintStream(System.err) {
-            public void print(final String string) {
-                LOGGER.error(string);
-                if (DEV_MODE || GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
-                    Platform.runLater(() -> {
-                        if (console[0] == null) {
-                            console[0] = new ConsoleOutputDialog();
-                        }
-                        console[0].appendLine(string);
-                        console[0].showConsole();
-                    });
+        if(!DEV_MODE){
+            System.setErr(new PrintStream(System.err) {
+                public void print(final String string) {
+                    LOGGER.error(string);
+                    if (DEV_MODE || GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
+                        Platform.runLater(() -> {
+                            if (console[0] == null) {
+                                console[0] = new ConsoleOutputDialog();
+                            }
+                            console[0].appendLine(string);
+                            console[0].showConsole();
+                        });
+                    }
                 }
-            }
-        });
-        System.setOut(new PrintStream(System.out) {
-            public void print(final String string) {
-                //System.out.print(string);
-                LOGGER.debug(string);
-            }
-        });
+            });
+            System.setOut(new PrintStream(System.out) {
+                public void print(final String string) {
+                    //System.out.print(string);
+                    LOGGER.debug(string);
+                }
+            });
+        }
 
         System.out.println("\n\n==========================================NEW START============================================");
 

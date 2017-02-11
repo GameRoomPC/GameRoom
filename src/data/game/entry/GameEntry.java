@@ -76,6 +76,7 @@ public class GameEntry {
     private int uplay_id = -1;
     private int origin_id = -1;
     private int battlenet_id = -1;
+    private Platform platform = Platform.WINDOWS;
 
     private boolean toAdd = false;
     private boolean beingScrapped;
@@ -830,5 +831,9 @@ public class GameEntry {
 
     public void setOnGameStopped(Runnable onGameStopped) {
         this.onGameStopped = onGameStopped;
+    }
+
+    public Platform getPlatform() {
+        return platform;
     }
 }

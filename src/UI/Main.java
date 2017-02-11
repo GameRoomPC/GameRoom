@@ -1,5 +1,6 @@
 package ui;
 
+import data.game.entry.Emulator;
 import data.http.images.ImageDownloaderService;
 import data.http.key.KeyChecker;
 import javafx.application.Platform;
@@ -53,6 +54,8 @@ public class Main {
     private static ResourceBundle SETTINGS_BUNDLE;
     public static ResourceBundle GAME_GENRES_BUNDLE;
     public static ResourceBundle GAME_THEMES_BUNDLE;
+    public static ResourceBundle PLATFORM_BUNDLE;
+
 
     private final static String MANUAL_TAG= "\\$string\\$";
     private final static char AUTO_TAG_CHAR = '%';
@@ -95,12 +98,19 @@ public class Main {
 
         GENERAL_SETTINGS = new GeneralSettings();
 
+        //TODO implement UI setter of Emulator association
+        /*HashMap<data.game.entry.Platform, Emulator> emulatorMapping = new HashMap<>();
+        emulatorMapping.put(data.game.entry.Platform.WII, Emulator.DOLPHIN);
+        emulatorMapping.put(data.game.entry.Platform.GAMECUBE, Emulator.DOLPHIN);
+        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.EMULATOR_MAPPING, emulatorMapping);*/
+
         SUPPORTER_MODE = !GENERAL_SETTINGS.getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(SUPPORTER_KEY));
         LOGGER.info("Supporter mode : "+ SUPPORTER_MODE);
         RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
+        PLATFORM_BUNDLE = ResourceBundle.getBundle("platforms", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         initNetworkManager();
         //if(!DEV_MODE){
         //startUpdater();

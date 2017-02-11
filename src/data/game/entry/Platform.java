@@ -37,7 +37,7 @@ public enum Platform {
     }
 
     public String getDisplayName() {
-        return Main.GAME_GENRES_BUNDLE.getString(key);
+        return Main.PLATFORM_BUNDLE.getString(key);
     }
 
     public static Platform getGenreFromIGDB(int IGDBPlatformId) {

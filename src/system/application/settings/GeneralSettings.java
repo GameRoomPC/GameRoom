@@ -1,5 +1,6 @@
 package system.application.settings;
 
+import data.game.entry.Emulator;
 import data.game.scanner.ScanPeriod;
 import data.game.scanner.ScannerProfile;
 import data.game.scraper.SteamPreEntry;
@@ -167,6 +168,11 @@ public class GeneralSettings {
         SettingValue<Theme> settingValue = settingsMap.get(PredefinedSetting.THEME.getKey());
         return settingValue.getSettingValue();
     }
+
+    /*public HashMap<data.game.entry.Platform,Emulator> getEmulatorMapping() {
+        SettingValue<HashMap<data.game.entry.Platform,Emulator>> settingValue = settingsMap.get(PredefinedSetting.EMULATOR_MAPPING.getKey());
+        return settingValue.getSettingValue();
+    }*/
 
     public boolean isGameScannerEnabled(ScannerProfile profile) {
         ScannerProfile[] enabledValues = (ScannerProfile[]) settingsMap.get(PredefinedSetting.ENABLED_GAME_SCANNERS.getKey()).getSettingValue();

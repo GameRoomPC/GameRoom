@@ -1,5 +1,6 @@
 package system.application;
 
+import data.game.entry.Emulator;
 import data.io.FileUtils;
 import data.game.entry.GameEntry;
 import javafx.application.Platform;
@@ -11,6 +12,7 @@ import system.os.PowerMode;
 import system.os.Terminal;
 import ui.Main;
 import ui.GeneralToast;
+import ui.dialog.GameRoomAlert;
 
 import java.awt.*;
 import java.io.File;
@@ -20,6 +22,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 
 import static ui.Main.*;
 
@@ -65,11 +68,28 @@ public class GameStarter {
             }
         } else {
             terminal.execute(commandsBefore, preLog, new File(new File(entry.getPath()).getParent()));
+
             String[] args = entry.getArgs().split(" ");
             ArrayList<String> commands = new ArrayList<>();
-            commands.add('"' + entry.getPath() + '"');
+
+            if(entry.getPlatform().equals(data.game.entry.Platform.WINDOWS)){
+                commands.add('"' + entry.getPath() + '"');
+            }else{
+                /*HashMap<data.game.entry.Platform, Emulator> emulatorMapping = GENERAL_SETTINGS.getEmulatorMapping();
+                Emulator e = emulatorMapping.get(entry.getPlatform());
+                if(e == null){
+                    //TODO replace hardcoded text
+                    GameRoomAlert.error("There is no emulator configured for platform "+entry.getPlatform());
+                }else{
+                    commands.addAll(e.getCommandsToExecute(entry));
+                }*/
+            }
             Collections.addAll(commands, args);
+
+
+
             File gameLog = new File(logFolder + entry.getProcessName() + ".log");
+
             ProcessBuilder gameProcessBuilder = new ProcessBuilder(commands).inheritIO();
             gameProcessBuilder.redirectOutput(gameLog);
             gameProcessBuilder.redirectError(gameLog);
