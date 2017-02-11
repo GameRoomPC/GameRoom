@@ -8,8 +8,8 @@ import ui.Main;
  */
 public class CheckBoxItem extends CheckBox{
 
-    public CheckBoxItem(String textId){
-        super(Main.getString(textId));
+    public CheckBoxItem(String text, boolean isStringId){
+        super(isStringId ? Main.getString(text) : text);
         //getStyleClass().remove("check-box");
         getStyleClass().add("checkbox-drawer-item");
         setFocusTraversable(false);

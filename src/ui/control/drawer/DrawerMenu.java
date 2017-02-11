@@ -57,7 +57,7 @@ public class DrawerMenu extends BorderPane {
         });
 
         setOnMouseExited(event -> {
-            if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)){
+            if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
                 if (event.getX() > getWidth()) {
                     close(mainScene);
                 }
@@ -67,12 +67,13 @@ public class DrawerMenu extends BorderPane {
         init(mainScene);
 
         widthProperty().addListener((observable, oldValue, newValue) -> {
-            double newOpacity = 3 * getButtonsPaneWidth()/newValue.doubleValue();
-            if(getTranslateX() < 0){
-                newOpacity = 1;
+            if (getButtonsPaneWidth() > 0) {
+                double newOpacity = 3 * getButtonsPaneWidth() / newValue.doubleValue();
+                if (getTranslateX() < 0) {
+                    newOpacity = 1;
+                }
+                mainScene.getScrollPane().setOpacity(newOpacity);
             }
-            mainScene.getScrollPane().setOpacity(newOpacity);
-
             /*double newTranslateX = newValue.doubleValue() + getTranslateX() - getButtonsPaneWidth();
             if(newTranslateX <0 ){
                 newTranslateX = 0;
@@ -80,11 +81,13 @@ public class DrawerMenu extends BorderPane {
             mainScene.getBackgroundView().setTranslateX(newTranslateX);*/
         });
         translateXProperty().addListener((observable, oldValue, newValue) -> {
-            double newOpacity = 3 * getButtonsPaneWidth()/getWidth();
-            if(newValue.doubleValue() < 0){
-                newOpacity = 1;
+            if (getButtonsPaneWidth() > 0) {
+                double newOpacity = 3 * getButtonsPaneWidth() / getWidth();
+                if (newValue.doubleValue() < 0) {
+                    newOpacity = 1;
+                }
+                mainScene.getScrollPane().setOpacity(newOpacity);
             }
-            mainScene.getScrollPane().setOpacity(newOpacity);
             /*double newTranslateX = getWidth() + newValue.doubleValue() - getButtonsPaneWidth();
             if(newTranslateX <0 ){
                 newTranslateX = 0;
@@ -163,7 +166,7 @@ public class DrawerMenu extends BorderPane {
         DrawerButton addButton = new DrawerButton("main-add-button", this);
         addButton.setSelectionable(true);
 
-        SubMenu addMenu = createAddGameSubMenu(mainScene,this);
+        SubMenu addMenu = createAddGameSubMenu(mainScene, this);
 
         addButton.setOnAction(event -> {
             if (isMenuActive(addMenu.getMenuId())) {
@@ -189,7 +192,7 @@ public class DrawerMenu extends BorderPane {
         DrawerButton sortButton = new DrawerButton("main-sort-button", this);
         sortButton.setSelectionable(true);
 
-        SubMenu sortMenu = createSortBySubMenu(mainScene,this);
+        SubMenu sortMenu = createSortBySubMenu(mainScene, this);
 
         sortButton.setOnAction(event -> {
             if (isMenuActive(sortMenu.getMenuId())) {
@@ -217,12 +220,12 @@ public class DrawerMenu extends BorderPane {
             currentSubMenu.setOpacity(0);
         }
 
-        subMenu.open(mainScene,this);
+        subMenu.open(mainScene, this);
     }
 
     private void closeSubMenu(MainScene mainScene) {
         if (currentSubMenu != null) {
-            currentSubMenu.close(mainScene,this);
+            currentSubMenu.close(mainScene, this);
         }
     }
 
@@ -231,7 +234,7 @@ public class DrawerMenu extends BorderPane {
         groupButton.setFocusTraversable(false);
         groupButton.setSelectionable(true);
 
-        SubMenu groupMenu = createGroupBySubMenu(mainScene,this);
+        SubMenu groupMenu = createGroupBySubMenu(mainScene, this);
 
         groupButton.setOnAction(event -> {
             if (isMenuActive(groupMenu.getMenuId())) {
@@ -252,7 +255,7 @@ public class DrawerMenu extends BorderPane {
         editButton.setFocusTraversable(false);
         editButton.setSelectionable(true);
 
-        SubMenu editSubMenu = createEditSubMenu(mainScene,this);
+        SubMenu editSubMenu = createEditSubMenu(mainScene, this);
 
         editButton.setOnAction(event -> {
             if (isMenuActive(editSubMenu.getMenuId())) {
@@ -346,7 +349,7 @@ public class DrawerMenu extends BorderPane {
         setRight(currentSubMenu);
     }
 
-    public double getButtonsPaneWidth(){
+    public double getButtonsPaneWidth() {
         return topMenuPane.getWidth();
     }
 }

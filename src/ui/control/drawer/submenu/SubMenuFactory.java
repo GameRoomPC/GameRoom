@@ -39,7 +39,7 @@ public final class SubMenuFactory {
     private final static double MIN_TILE_ZOOM = 0.10;
 
     public static SubMenu createAddGameSubMenu(MainScene mainScene, DrawerMenu drawerMenu) {
-        SubMenu addMenu = new SubMenu("addGames",mainScene,drawerMenu);
+        SubMenu addMenu = new SubMenu("addGames", mainScene, drawerMenu);
         TextItem singleAppItem = new TextItem("add_single_app");
         singleAppItem.setTooltip(new Tooltip(Main.getString("add_single_app_long")));
         singleAppItem.setOnAction(event -> {
@@ -149,14 +149,14 @@ public final class SubMenuFactory {
 
     public static SubMenu createEditSubMenu(MainScene mainScene, DrawerMenu drawerMenu) {
         SubMenu editMenu = new SubMenu("editMenu", mainScene, drawerMenu);
-        CheckBoxItem keepDrawerCheckBox = new CheckBoxItem("keep_drawer_opened");
+        CheckBoxItem keepDrawerCheckBox = new CheckBoxItem("keep_drawer_opened", true);
         keepDrawerCheckBox.setSelected(!Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR));
         keepDrawerCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TOOLBAR, !newValue);
         });
         editMenu.addItem(keepDrawerCheckBox);
 
-        CheckBoxItem hidePanesCheckBox = new CheckBoxItem("show_hide_top_panes");
+        CheckBoxItem hidePanesCheckBox = new CheckBoxItem("show_hide_top_panes", true);
         hidePanesCheckBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS));
         hidePanesCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TILES_ROWS, newValue);
@@ -164,7 +164,7 @@ public final class SubMenuFactory {
         });
         editMenu.addItem(hidePanesCheckBox);
 
-        CheckBoxItem fullScreenCheckBox = new CheckBoxItem("fullscreen");
+        CheckBoxItem fullScreenCheckBox = new CheckBoxItem("fullscreen", true);
         fullScreenCheckBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN));
         fullScreenCheckBox.setOnAction(event -> {
             try {
@@ -192,7 +192,7 @@ public final class SubMenuFactory {
         sizeSlider.setOnMouseReleased(event -> {
             editMenu.setManaged(true);
             editMenu.setOpacity(1.0);
-            if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)){
+            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
                 drawerMenu.setManaged(true);
                 drawerMenu.setOpacity(1.0);
             }
@@ -200,10 +200,10 @@ public final class SubMenuFactory {
         });
         sizeSlider.setOnMousePressed(event -> {
             editMenu.setManaged(false);
-            editMenu.setOpacity(0.5);
-            if(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)){
+            editMenu.setOpacity(0.7);
+            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
                 drawerMenu.setManaged(false);
-                drawerMenu.setOpacity(0.5);
+                drawerMenu.setOpacity(0.7);
             }
         });
 
@@ -240,7 +240,7 @@ public final class SubMenuFactory {
                     new File(System.getProperty("user.home"))
             );
             imageChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("JPEG (*.jpg, *.jpeg)", "*.jpg","*.jpeg"),
+                    new FileChooser.ExtensionFilter("JPEG (*.jpg, *.jpeg)", "*.jpg", "*.jpeg"),
                     new FileChooser.ExtensionFilter("PNG (*.png)", "*.png")
             );
             try {
@@ -254,16 +254,33 @@ public final class SubMenuFactory {
                             , StandardCopyOption.REPLACE_EXISTING);
 
                     mainScene.setChangeBackgroundNextTime(false);
-                    mainScene.setImageBackground(new Image("file:///"+copiedPath,
+                    mainScene.setImageBackground(new Image("file:///" + copiedPath,
                             Main.GENERAL_SETTINGS.getWindowWidth(),
                             Main.GENERAL_SETTINGS.getWindowHeight()
-                            , false, true),true);
+                            , false, true), true);
                 }
             } catch (NullPointerException | IOException ne) {
                 ne.printStackTrace();
             }
         });
-        CheckBoxItem backgroundImageCheckBox = new CheckBoxItem("use_a_static_wallpaper");
+        boolean staticWallPaper = Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER);
+        boolean disabledWallpaper = Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER);
+
+        CheckBoxItem noWallPaperCheckBox = new CheckBoxItem(Main.getSettingsString("disableMainSceneWallpaper_label"), false);
+        noWallPaperCheckBox.setTooltip(new Tooltip(Main.getSettingsString("disableMainSceneWallpaper_tooltip")));
+        noWallPaperCheckBox.setSelected(disabledWallpaper && ! staticWallPaper);
+        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER,disabledWallpaper && ! staticWallPaper);
+        noWallPaperCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER, newValue);
+            if (newValue) {
+                mainScene.setChangeBackgroundNextTime(false);
+                mainScene.setImageBackground(null);
+            }
+        });
+        noWallPaperCheckBox.setDisable(staticWallPaper);
+        editMenu.addItem(noWallPaperCheckBox);
+
+        CheckBoxItem backgroundImageCheckBox = new CheckBoxItem("use_a_static_wallpaper", true);
 
         backgroundImageCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             boolean registered = SettingsScene.checkAndDisplayRegisterDialog();
@@ -272,10 +289,14 @@ public final class SubMenuFactory {
                 browseButton.setManaged(newValue);
                 browseButton.setVisible(newValue);
                 browseButton.setMouseTransparent(!newValue);
-                mainScene.setImageBackground(null,true);
+                mainScene.setImageBackground(null, true);
+                noWallPaperCheckBox.setDisable(newValue);
+                if (newValue) {
+                    noWallPaperCheckBox.setSelected(false);
+                }
             }
         });
-        backgroundImageCheckBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER));
+        backgroundImageCheckBox.setSelected(staticWallPaper);
         editMenu.addItem(backgroundImageCheckBox);
         editMenu.addItem(browseButton);
 
