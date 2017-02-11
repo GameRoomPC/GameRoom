@@ -55,14 +55,13 @@ public class Monitor {
         if(getGameEntry().getPlatform().equals(data.game.entry.Platform.WINDOWS)){
             processName = getGameEntry().getProcessName();
         }else{
-            /*HashMap<data.game.entry.Platform, Emulator> emulatorMapping = GENERAL_SETTINGS.getEmulatorMapping();
-            Emulator e = emulatorMapping.get(getGameEntry().getPlatform());
+            Emulator e = Emulator.EMULATOR_MAPPING.get(getGameEntry().getPlatform());
             if(e == null){
                 //TODO replace hardcoded text
                 GameRoomAlert.error("There is no emulator configured for platform "+getGameEntry().getPlatform());
             }else{
                 processName = e.getProcessName();
-            }*/
+            }
         }
         if (!isSteamGame()) {
             DATE_FORMAT.setTimeZone(Calendar.getInstance().getTimeZone());

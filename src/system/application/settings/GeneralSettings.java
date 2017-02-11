@@ -169,11 +169,6 @@ public class GeneralSettings {
         return settingValue.getSettingValue();
     }
 
-    /*public HashMap<data.game.entry.Platform,Emulator> getEmulatorMapping() {
-        SettingValue<HashMap<data.game.entry.Platform,Emulator>> settingValue = settingsMap.get(PredefinedSetting.EMULATOR_MAPPING.getKey());
-        return settingValue.getSettingValue();
-    }*/
-
     public boolean isGameScannerEnabled(ScannerProfile profile) {
         ScannerProfile[] enabledValues = (ScannerProfile[]) settingsMap.get(PredefinedSetting.ENABLED_GAME_SCANNERS.getKey()).getSettingValue();
 

@@ -163,6 +163,7 @@ public class GameEntry {
                 prop.setProperty("toAdd", Boolean.toString(toAdd));
                 prop.setProperty("args", args);
                 prop.setProperty("youtubeSoundtrackHash", youtubeSoundtrackHash);
+                prop.setProperty("platform", platform.getKey());
 
 
                 // save properties to project root folder
@@ -299,6 +300,10 @@ public class GameEntry {
         }
         if (prop.getProperty("args") != null) {
             args = prop.getProperty("args");
+        }
+
+        if (prop.getProperty("platform") != null) {
+            platform = Platform.fromString(prop.getProperty("platform"));
         }
         saveEntry();
 

@@ -4,6 +4,7 @@ import ui.Main;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
@@ -16,6 +17,8 @@ public enum Emulator {
     private String key;
     private ArrayList<Platform> platforms;
     private File path;
+
+    public final static HashMap<Platform, Emulator> EMULATOR_MAPPING = new HashMap<>();
 
     Emulator(String key, Platform platform, Platform... platforms) {
         this.key = key;

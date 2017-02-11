@@ -59,7 +59,6 @@ public enum PredefinedSetting {
     , ENABLED_GAME_SCANNERS("enabledGameScanners",new SettingValue(ScannerProfile.values(),ScannerProfile[].class,CATEGORY_GENERAL))
     , LAST_SUPPORT_MESSAGE("lastSupportMessage", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , LAST_UPDATE_CHECK("lastUpdateCheck", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
-    //, EMULATOR_MAPPING("emulatorMapping", new SettingValue(new HashMap<>(),HashMap.class,CATEGORY_GENERAL))
     ;
 
 

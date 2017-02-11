@@ -75,14 +75,13 @@ public class GameStarter {
             if(entry.getPlatform().equals(data.game.entry.Platform.WINDOWS)){
                 commands.add('"' + entry.getPath() + '"');
             }else{
-                /*HashMap<data.game.entry.Platform, Emulator> emulatorMapping = GENERAL_SETTINGS.getEmulatorMapping();
-                Emulator e = emulatorMapping.get(entry.getPlatform());
+                Emulator e = Emulator.EMULATOR_MAPPING.get(entry.getPlatform());
                 if(e == null){
                     //TODO replace hardcoded text
                     GameRoomAlert.error("There is no emulator configured for platform "+entry.getPlatform());
                 }else{
                     commands.addAll(e.getCommandsToExecute(entry));
-                }*/
+                }
             }
             Collections.addAll(commands, args);
 

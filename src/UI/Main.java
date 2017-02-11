@@ -98,11 +98,10 @@ public class Main {
 
         GENERAL_SETTINGS = new GeneralSettings();
 
-        //TODO implement UI setter of Emulator association
-        /*HashMap<data.game.entry.Platform, Emulator> emulatorMapping = new HashMap<>();
-        emulatorMapping.put(data.game.entry.Platform.WII, Emulator.DOLPHIN);
-        emulatorMapping.put(data.game.entry.Platform.GAMECUBE, Emulator.DOLPHIN);
-        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.EMULATOR_MAPPING, emulatorMapping);*/
+        //TODO implement UI setter of Emulator association, and save it physically (seriously, switch to sqlite)
+        Emulator.EMULATOR_MAPPING.put(data.game.entry.Platform.WII,Emulator.DOLPHIN);
+        Emulator.EMULATOR_MAPPING.put(data.game.entry.Platform.GAMECUBE,Emulator.DOLPHIN);
+        Emulator.DOLPHIN.setPath(new File("C:\\Program Files\\Dolphin\\Dolphin.exe"));
 
         SUPPORTER_MODE = !GENERAL_SETTINGS.getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(SUPPORTER_KEY));
         LOGGER.info("Supporter mode : "+ SUPPORTER_MODE);

@@ -8,6 +8,7 @@ import data.game.entry.GameTheme;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.YoutubeSoundtrackScrapper;
+import data.io.FileUtils;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -109,9 +110,11 @@ public class GameEditScene extends BaseScene {
         }
         String path = chosenFile.getAbsolutePath();
         try {
-            WindowsShortcut shortcut = new WindowsShortcut(chosenFile);
-            chosenFile = new File(shortcut.getRealFilename());
-            path = chosenFile.getAbsolutePath();
+            if(FileUtils.getExtension(chosenFile).equals("lnk")){
+                WindowsShortcut shortcut = new WindowsShortcut(chosenFile);
+                chosenFile = new File(shortcut.getRealFilename());
+                path = chosenFile.getAbsolutePath();
+            }
 
         } catch (IOException e) {
             e.printStackTrace();

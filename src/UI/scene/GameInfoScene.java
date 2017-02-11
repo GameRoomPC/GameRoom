@@ -280,10 +280,10 @@ public class GameInfoScene extends BaseScene {
         //no need to fade transition here as it is the "right" image and no actual change
         double widthScale = 1;
         double heightScale = 1;
-        if(backgroundImage.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
+        if(backgroundImage!=null && backgroundImage.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
             widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/backgroundImage.getWidth();
         }
-        if(backgroundImage.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
+        if(backgroundImage!=null && backgroundImage.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
             heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/backgroundImage.getHeight();
         }
         backgroundView.setScaleX(widthScale);

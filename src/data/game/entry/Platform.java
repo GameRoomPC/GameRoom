@@ -53,4 +53,16 @@ public enum Platform {
         PLATFORM_MAP.put(2, GAMECUBE);
     }
 
+    public String getKey() {
+        return key;
+    }
+
+    public static Platform fromString(String s){
+        for(Platform p : Platform.values()){
+            if(p.getKey().equals(s)){
+                return p;
+            }
+        }
+        return WINDOWS;
+    }
 }
