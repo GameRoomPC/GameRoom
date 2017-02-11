@@ -1,11 +1,11 @@
 package ui.scene;
 
-import data.http.images.ImageUtils;
 import data.game.GameWatcher;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scanner.FolderGameScanner;
 import data.game.scanner.OnScannerResultHandler;
+import data.http.images.ImageUtils;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -16,28 +16,23 @@ import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import org.apache.commons.lang.math.RandomUtils;
+import system.application.SupportService;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
-import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.drawer.DrawerMenu;
 import ui.control.drawer.GroupType;
@@ -46,7 +41,6 @@ import ui.control.specific.SearchBar;
 import ui.control.textfield.PathTextField;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.GameRoomCustomAlert;
-import system.application.SupportService;
 import ui.dialog.selector.GameScannerSelector;
 import ui.pane.gamestilepane.*;
 import ui.scene.exitaction.ClassicExitAction;
@@ -60,7 +54,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Optional;
-import java.util.Random;
 
 import static ui.Main.*;
 import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
@@ -340,7 +333,7 @@ public class MainScene extends BaseScene {
                 int i = 0;
 
                 long refreshWPTime = 800;
-                long lastWallpaperUpdate = System.currentTimeMillis() - (long)(RandomUtils.nextDouble() * refreshWPTime);
+                long lastWallpaperUpdate = 0;
 
                 for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
                     int finalI = i;
@@ -353,7 +346,9 @@ public class MainScene extends BaseScene {
                         }
                     });
                     long currentTime = System.currentTimeMillis();
-
+                    if (lastWallpaperUpdate == 0) {
+                        lastWallpaperUpdate = currentTime - (long) (Math.random() * refreshWPTime);
+                    }
                     if (currentTime - lastWallpaperUpdate > refreshWPTime) {
                         lastWallpaperUpdate = currentTime;
                         setChangeBackgroundNextTime(false);
