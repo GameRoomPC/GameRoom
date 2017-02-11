@@ -16,6 +16,7 @@ public class SettingValue<T> {
     public final static String CATEGORY_NONE = "none";
     public final static String CATEGORY_UI = "ui";
     public final static String CATEGORY_ON_GAME_START = "onGameStart";
+    public final static String CATEGORY_SCAN= "scan";
 
 
     private final static Gson GSON = new Gson();

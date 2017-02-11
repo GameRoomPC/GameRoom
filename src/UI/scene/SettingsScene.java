@@ -81,6 +81,7 @@ public class SettingsScene extends BaseScene {
 
     private void initCenter() {
         String[] categoriesToDisplay = new String[]{SettingValue.CATEGORY_GENERAL
+                , SettingValue.CATEGORY_SCAN
                 , SettingValue.CATEGORY_ON_GAME_START
                 , SettingValue.CATEGORY_UI
         };
