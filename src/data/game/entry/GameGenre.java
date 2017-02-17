@@ -84,4 +84,12 @@ public enum GameGenre {
         IGDB_GENRE_MAP.put(32,INDIE);
         IGDB_GENRE_MAP.put(33,ARCADE);
     }
+
+    public static HashMap<Integer, GameGenre> getIgdbGenreMap() {
+        return IGDB_GENRE_MAP;
+    }
+
+    public String getKey() {
+        return key;
+    }
 }

@@ -88,4 +88,12 @@ public enum GameTheme {
         IGDB_THEME_MAP.put(42, EROTIC);
         IGDB_THEME_MAP.put(43, MYSTERY);
     }
+
+    public static HashMap<Integer, GameTheme> getIgdbThemeMap() {
+        return IGDB_THEME_MAP;
+    }
+
+    public String getKey() {
+        return key;
+    }
 }
