@@ -3,6 +3,7 @@ package system.application.settings;
 import data.game.scanner.ScanPeriod;
 import data.game.scanner.ScannerProfile;
 import data.game.scraper.SteamPreEntry;
+import javafx.beans.property.SimpleBooleanProperty;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
@@ -23,7 +24,7 @@ public enum PredefinedSetting {
     LOCALE("locale", new SettingValue(Locale.getDefault(),Locale.class,CATEGORY_GENERAL))
     ,TILE_ZOOM("tileZoom", new SettingValue(0.365, Double.class, CATEGORY_NONE))
     ,ON_GAME_LAUNCH_ACTION("onGameLaunchAction", new SettingValue<OnLaunchAction>(OnLaunchAction.DO_NOTHING,OnLaunchAction.class,CATEGORY_ON_GAME_START))
-    ,FULL_SCREEN("fullScreen", new SettingValue(false,Boolean.class,CATEGORY_NONE))
+    ,FULL_SCREEN("fullScreen", new SettingValue(new SimpleBooleanProperty(false),Boolean.class,CATEGORY_NONE))
     ,WINDOW_WIDTH("windowWidth", new SettingValue(1366,Integer.class,CATEGORY_NONE))
     ,WINDOW_HEIGHT("windowHeight", new SettingValue(768,Integer.class,CATEGORY_NONE))
     ,GAMING_POWER_MODE("gamingPowerMode", new SettingValue(PowerMode.getActivePowerMode(),PowerMode.class,CATEGORY_ON_GAME_START))
