@@ -29,7 +29,7 @@ import static ui.control.drawer.submenu.SubMenuFactory.*;
  */
 public class DrawerMenu extends BorderPane {
     public static double ANIMATION_TIME = 0.04;
-    public static final double WIDTH_RATIO = 0.025;
+    public static final double WIDTH_RATIO = 0.02;
 
     private Timeline openAnim;
     private Timeline closeAnim;
