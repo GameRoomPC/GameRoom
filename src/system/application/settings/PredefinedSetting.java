@@ -6,6 +6,7 @@ import data.game.scraper.SteamPreEntry;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
+import ui.control.drawer.DrawerMenu;
 import ui.theme.Theme;
 import ui.theme.UIScale;
 
@@ -58,6 +59,7 @@ public enum PredefinedSetting {
     , ENABLED_GAME_SCANNERS("enabledGameScanners",new SettingValue(ScannerProfile.values(),ScannerProfile[].class,CATEGORY_GENERAL))
     , LAST_SUPPORT_MESSAGE("lastSupportMessage", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , LAST_UPDATE_CHECK("lastUpdateCheck", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
+    , DRAWER_MENU_WIDTH("drawerMenuWidth", new SettingValue(DrawerMenu.WIDTH_RATIO,Double.class,CATEGORY_NONE))
     ;
 
 

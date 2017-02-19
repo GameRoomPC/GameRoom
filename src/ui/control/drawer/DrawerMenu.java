@@ -49,8 +49,10 @@ public class DrawerMenu extends BorderPane {
     public DrawerMenu(MainScene mainScene) {
         super();
         setFocusTraversable(false);
-        setMaxWidth(GENERAL_SETTINGS.getWindowWidth() * WIDTH_RATIO);
-        setPrefWidth(GENERAL_SETTINGS.getWindowWidth() * WIDTH_RATIO);
+
+        double widthRatio = Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.DRAWER_MENU_WIDTH);
+        setMaxWidth(GENERAL_SETTINGS.getWindowWidth() * widthRatio);
+        setPrefWidth(GENERAL_SETTINGS.getWindowWidth() * widthRatio);
         setFocusTraversable(false);
         //setEffect(new InnerShadow());
         setId("menu-bar");
@@ -80,6 +82,7 @@ public class DrawerMenu extends BorderPane {
                 if(newRatio >= MIN_WIDTH_RATIO && newRatio <= MAX_WIDTH_RATIO){
                     setPrefWidth(newWidth);
                     setMaxWidth(newWidth);
+                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DRAWER_MENU_WIDTH,newRatio);
                 }
             }
         });
