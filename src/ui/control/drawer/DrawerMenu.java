@@ -5,11 +5,10 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
@@ -22,6 +21,7 @@ import java.util.HashMap;
 
 import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.LOGGER;
+import static ui.Main.SCREEN_WIDTH;
 import static ui.control.drawer.submenu.SubMenuFactory.*;
 
 /**
@@ -30,12 +30,17 @@ import static ui.control.drawer.submenu.SubMenuFactory.*;
 public class DrawerMenu extends BorderPane {
     public static double ANIMATION_TIME = 0.04;
     public static final double WIDTH_RATIO = 0.02;
+    private static final double MIN_WIDTH_RATIO = 0.01;
+    private static final double MAX_WIDTH_RATIO = 0.03;
 
     private Timeline openAnim;
     private Timeline closeAnim;
     private AnchorPane topMenuPane = new AnchorPane();
     private VBox topButtonsBox = new VBox(10);
     private VBox bottomButtonsBox = new VBox(10);
+    private VBox resizePane = new VBox();
+
+    private boolean resizing = false;
 
     private SubMenu currentSubMenu;
 
@@ -62,7 +67,36 @@ public class DrawerMenu extends BorderPane {
                     close(mainScene);
                 }
             }
+            setCursor(Cursor.DEFAULT);
         });
+
+        setOnMouseDragged(event -> {
+            if(resizing || (getCursor() != null && getCursor().equals(Cursor.E_RESIZE))){
+                resizing = true;
+                double newWidth = event.getX() - 30;
+
+                double newRatio = newWidth /SCREEN_WIDTH;
+
+                if(newRatio >= MIN_WIDTH_RATIO && newRatio <= MAX_WIDTH_RATIO){
+                    setPrefWidth(newWidth);
+                    setMaxWidth(newWidth);
+                }
+            }
+        });
+        setOnMouseDragExited(event -> {
+            setCursor(Cursor.DEFAULT);
+            resizing = false;
+        });
+
+        resizePane.setOnMouseEntered(event -> {
+            setCursor(Cursor.E_RESIZE);
+        });
+        resizePane.setOnMouseExited(event -> {
+            if(resizing){
+                setCursor(Cursor.DEFAULT);
+            }
+        });
+
         setCache(true);
         init(mainScene);
 
@@ -116,6 +150,7 @@ public class DrawerMenu extends BorderPane {
         openAnim.setCycleCount(1);
         openAnim.setAutoReverse(false);
         openAnim.play();
+        resizePane.setManaged(true);
     }
 
     /**
@@ -137,6 +172,7 @@ public class DrawerMenu extends BorderPane {
         closeAnim.setAutoReverse(false);
         closeAnim.setOnFinished(event -> {
             setManaged(false);
+            resizePane.setManaged(false);
         });
         closeAnim.play();
     }
@@ -152,12 +188,22 @@ public class DrawerMenu extends BorderPane {
         initEditButton(mainScene);
         initSettingsButton(mainScene);
 
+        Rectangle r = new Rectangle(2.0, getHeight());
+        r.heightProperty().bind(heightProperty());
+        resizePane.getChildren().add(r);
+        resizePane.setOpacity(0);
+
         AnchorPane.setTopAnchor(topButtonsBox, 20.0 * Main.SCREEN_HEIGHT / 1080);
         AnchorPane.setBottomAnchor(bottomButtonsBox, 20.0 * Main.SCREEN_HEIGHT / 1080);
 
         topMenuPane.getChildren().addAll(topButtonsBox, bottomButtonsBox);
         topMenuPane.setId("menu-button-bar");
-        setCenter(topMenuPane);
+
+        BorderPane p = new BorderPane();
+        p.setFocusTraversable(false);
+        p.setCenter(topMenuPane);
+        p.setRight(resizePane);
+        setCenter(p);
 
         initButtonSelectListeners();
     }
@@ -219,6 +265,7 @@ public class DrawerMenu extends BorderPane {
         if (currentSubMenu != null) {
             currentSubMenu.setOpacity(0);
         }
+        resizePane.setManaged(false);
 
         subMenu.open(mainScene, this);
     }
@@ -227,6 +274,7 @@ public class DrawerMenu extends BorderPane {
         if (currentSubMenu != null) {
             currentSubMenu.close(mainScene, this);
         }
+        resizePane.setManaged(true);
     }
 
     private void initGroupButton(MainScene mainScene) {

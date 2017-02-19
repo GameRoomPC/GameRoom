@@ -20,6 +20,11 @@ public class DrawerButton extends ImageButton {
         getStyleClass().add("drawer-button");
         setFocusTraversable(false);
         selected.addListener(e -> pseudoClassStateChanged(SELECTED_PSEUDO_CLASS, selected.get()));
+
+        parentMenu.prefWidthProperty().addListener((observable, oldValue, newValue) -> {
+            setFitWidth(newValue.doubleValue());
+            setFitHeight(newValue.doubleValue());
+        });
     }
 
     public boolean isSelected() {
