@@ -226,10 +226,14 @@ public class Launcher extends Application {
                     setFullScreen(primaryStage, !GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN), false);
                 }
                 if (event.getCode() == KeyCode.F10) {
-                    //TODO toggle drawerMenu of MainScene
+                    if (Main.MAIN_SCENE != null) {
+                        Main.MAIN_SCENE.toggleToolBar();
+                    }
                 }
-                if(event.getCode() == KeyCode.F && event.isControlDown()){
-                    MAIN_SCENE.showSearchField();
+                if (event.getCode() == KeyCode.F9) {
+                    if (Main.MAIN_SCENE != null) {
+                        Main.MAIN_SCENE.toggleTilesRows();
+                    }
                 }
             }
         });

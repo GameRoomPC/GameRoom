@@ -3,11 +3,9 @@ package system.application.settings;
 import data.game.scanner.ScanPeriod;
 import data.game.scanner.ScannerProfile;
 import data.game.scraper.SteamPreEntry;
-import javafx.application.Platform;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
-import ui.scene.SettingsScene;
 import ui.theme.Theme;
 import ui.theme.UIScale;
 
@@ -221,10 +219,5 @@ public class GeneralSettings {
 
     public void onSupporterModeDeactivated() {
         Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.THEME, Theme.DEFAULT_THEME);
-        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLE_STATIC_WALLPAPER, false);
-        Platform.runLater(() -> {
-            SettingsScene.displayRestartDialog();
-            Main.restart(Main.MAIN_SCENE.getParentStage(), "Not in supporter mode anymore");
-        });
     }
 }
