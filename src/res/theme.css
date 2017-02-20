@@ -18,11 +18,6 @@
     -fx-border-width: 2px;
 }
 
-.base-scene-root{
-    -fx-border-color: transparent;
-    -fx-border-width: 0.0;
-}
-
 .mnemonic-underline {
     -fx-stroke: transparent;
 }
@@ -78,7 +73,7 @@
  ******************************************************************************/
 .image-button{
 	-fx-padding: 5 15 5 15;
-    -fx-background-color: transparent;
+
     -fx-background-radius: 0;
 }
 
@@ -741,10 +736,6 @@
 	-fx-image: url("icons/main/add.png");
 }
 
-#main-edit-button{
-    -fx-image: url("icons/main/edit.png");
-}
-
 #scan-button{
 	-fx-image: url("icons/main/scan.png");
 }
@@ -843,97 +834,4 @@
 
 #background-mask{
 	-fx-image: url("icons/backgroundMask.png");
-}
-
-/************* MENU DRAWER *****************/
-#menu-bar{
-	-fx-background-color: -dark;
-	-fx-effect: innershadow( three-pass-box, black, 10, 0, 0, 0 );
-}
-
-#menu-button-bar{
-
-}
-
-.drawer-button:submenu-opened {
-   -fx-background-color: derive(-dark, 10.0%);
-}
-
-.drawer-button{
-   -fx-background-color: transparent;
-}
-
-.drawer-submenu{
-   -fx-background-color: derive(-dark, 10.0%);
-   -fx-border-width: 0 0 0 0;
-   -fx-border-color: -flatter-red;
-   -fx-border-insets: 20 0 0 0;
-}
-
-.drawer-submenu-title{
-    -fx-font-weight: bold;
-}
-
-.button-drawer-item{
-    -fx-font-size: 0.9em;
-}
-
-.text-drawer-item{
-    -fx-background-color: transparent;
-    -fx-font-size: 0.9em;
-    -fx-text-fill: -fx-text-base-color;
-    -fx-alignment: CENTER;
-    -fx-content-display: LEFT;
-}
-
-.text-drawer-item:hover{
-    -fx-text-fill: -flatter-red
-}
-
-.text-drawer-item:selected,
-.text-drawer-item:armed{
-    -fx-text-fill: -flatter-red
-}
-
-.checkbox-drawer-item {
-    -fx-text-fill: -fx-text-base-color;
-    -fx-font-size: 0.9em;
-}
-
-checkbox-drawer-item:hover{
-    -fx-text-fill: -flatter-red
-}
-
-.checkbox-drawer-item > .box,
-.checkbox-drawer-item > .box.unfocused,
-.checkbox-drawer-item:disabled > .box,
-.checkbox-drawer-item:selected > .box,
-.checkbox-drawer-item:indeterminate > .box {
-    -fx-background-radius: 2.0;
-    -fx-background-color: -fx-text-base-color;
-}
-
-.checkbox-drawer-item:focused > .box {
-    -fx-background-color: -flatter-red, derive(rgb(94.0, 203.0, 234.0), 80.0%);
-    -fx-background-insets: 0.0, 0.15em;
-}
-
-.checkbox-drawer-item:focused:armed > .box {
-    -fx-background-color: -flatter-red, derive(-fx-text-base-color, 80.0%);
-    -fx-background-insets: 0.0, 0.15em;
-}
-
-.checkbox-drawer-item:selected > .box > .mark,
-.checkbox-drawer-item:indeterminate > .box > .mark {
-    -fx-background-color: -dark;
-}
-
-.checkbox-drawer-item:indeterminate > .box > .mark {
-    -fx-background-insets: -0.06em -0.17em -0.07em -0.17em;
-}
-
-/************SEARCH BAR ******************/
-#search-bar{
-    -fx-background-color: -dark;
-    -fx-effect: dropshadow( gaussian , black , 10,0,0,0 );
 }

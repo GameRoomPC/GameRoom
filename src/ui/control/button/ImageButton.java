@@ -59,6 +59,7 @@ public class ImageButton extends Button {
         view.setVisible(true);
 
         setGraphic(view);
+        setStyle("-fx-background-color: transparent;");
         getStyleClass().remove("button");
         getStyleClass().add("image-button");
         addEffectsToButton(view);
