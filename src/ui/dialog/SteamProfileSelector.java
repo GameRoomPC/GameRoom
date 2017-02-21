@@ -55,7 +55,11 @@ public class SteamProfileSelector extends GameRoomDialog<ButtonType> {
                 return null;
             }
         });
-        if(profiles.size() > 1){
+
+        SteamProfile selectedProfile = GENERAL_SETTINGS.getSteamProfileToScan();
+        if(selectedProfile != null && profiles.contains(selectedProfile)){
+            comboBox.setValue(selectedProfile);
+        }else if(profiles.size() > 1){
             comboBox.setValue(profiles.get(0));
             GENERAL_SETTINGS.setSettingValue(PredefinedSetting.STEAM_PROFILE,profiles.get(0));
         }

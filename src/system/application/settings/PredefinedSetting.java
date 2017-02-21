@@ -44,6 +44,7 @@ public enum PredefinedSetting {
     , SUPPORTER_KEY("supporterKey", new SettingValue("",String.class,CATEGORY_GENERAL))
     ,DISABLE_MAINSCENE_WALLPAPER("disableMainSceneWallpaper", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,DISABLE_SCROLLBAR_IN_FULLSCREEN("disableScrollbarFullScreen", new SettingValue(true,Boolean.class,CATEGORY_UI))
+    , STEAM_PROFILE("steamProfile", new SettingValue(null, SteamProfile.class,CATEGORY_SCAN))
     ,IGNORED_STEAM_APPS("ignoredSteamApps",new SettingValue(new SteamPreEntry[]{},SteamPreEntry[].class,CATEGORY_SCAN))
     ,IGNORED_GAME_FOLDERS("ignoredGameFolders",new SettingValue(new File[]{},File[].class,CATEGORY_SCAN))
     , SCAN_PERIOD("scanPeriod", new SettingValue(ScanPeriod.HALF_HOUR,ScanPeriod.class,CATEGORY_SCAN))
@@ -62,7 +63,6 @@ public enum PredefinedSetting {
     , LAST_SUPPORT_MESSAGE("lastSupportMessage", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , LAST_UPDATE_CHECK("lastUpdateCheck", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , DRAWER_MENU_WIDTH("drawerMenuWidth", new SettingValue(DrawerMenu.WIDTH_RATIO,Double.class,CATEGORY_NONE))
-    , STEAM_PROFILE("steamProfile", new SettingValue(null, SteamProfile.class,CATEGORY_NONE))
     ;
 
 

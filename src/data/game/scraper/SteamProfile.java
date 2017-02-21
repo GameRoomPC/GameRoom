@@ -13,7 +13,6 @@ public class SteamProfile {
     public SteamProfile(String accountName, String accountId) {
         this.accountName = accountName;
         this.accountId = accountId;
-
         SCANNED_PROFILES.put(accountName,this);
     }
 
@@ -27,5 +26,10 @@ public class SteamProfile {
 
     public static SteamProfile fromAccountName(String accountName){
         return SCANNED_PROFILES.get(accountName);
+    }
+
+    @Override
+    public int hashCode(){
+        return accountId.hashCode();
     }
 }

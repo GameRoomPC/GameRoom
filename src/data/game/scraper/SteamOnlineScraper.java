@@ -82,16 +82,15 @@ public class SteamOnlineScraper {
         }
     }
 
-    static void checkIfCanScanSteam() {
+    public static void checkIfCanScanSteam(boolean forceModify) {
         SteamProfile selectedProfile = GENERAL_SETTINGS.getSteamProfileToScan();
-        if (selectedProfile != null) {
+        if (selectedProfile != null && !forceModify) {
             return;
         }
 
         List<SteamProfile> profiles = SteamLocalScraper.getSteamProfiles();
         if (profiles.isEmpty()) {
-            //TODO replace by localized string
-            GameRoomAlert.error("No steam account found on this computer!");
+            GameRoomAlert.error(Main.getString("no_steam_profile_error"));
             return;
         }
 
@@ -99,13 +98,12 @@ public class SteamOnlineScraper {
             LOGGER.info("Found a Steam profile : \""+p.getAccountName()+"\", with ID : \""+p.getAccountId()+"\"");
         }
 
-        if (profiles.size() == 1) {
+        if (!forceModify && profiles.size() == 1) {
             GENERAL_SETTINGS.setSettingValue(PredefinedSetting.STEAM_PROFILE, profiles.get(0));
         } else {
             Main.runAndWait(() -> {
                 SteamProfileSelector selector = new SteamProfileSelector(profiles);
                 selector.showAndWait();
-                //TODO display dialog to select profile to scan for new games
             });
         }
     }

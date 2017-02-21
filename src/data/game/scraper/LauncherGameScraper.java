@@ -36,7 +36,7 @@ public class LauncherGameScraper {
                 scanSteamGames(scanner);
                 return;
             case STEAM_ONLINE:
-                SteamOnlineScraper.checkIfCanScanSteam();
+                SteamOnlineScraper.checkIfCanScanSteam(false);
                 scanSteamOnlineGames(scanner);
                 return;
             default:
