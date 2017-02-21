@@ -83,6 +83,8 @@ public class GameEntry {
     private transient Runnable onGameLaunched;
     private transient Runnable onGameStopped;
 
+    private transient boolean deleted = false;
+
     public GameEntry(String name) {
         uuid = UUID.randomUUID();
         this.name = name;
@@ -119,7 +121,7 @@ public class GameEntry {
     }
 
     private void saveEntry() {
-        if (savedLocaly) {
+        if (savedLocaly && !deleted) {
             Properties prop = new Properties();
             OutputStream output = null;
             try {
@@ -630,9 +632,10 @@ public class GameEntry {
         saveEntry();
     }
 
-    public void deleteFiles() {
+    public void delete() {
         File file = new File((isToAdd() ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + getUuid().toString());
         FileUtils.deleteFolder(file);
+        deleted = true;
     }
 
     public String getProcessName() {

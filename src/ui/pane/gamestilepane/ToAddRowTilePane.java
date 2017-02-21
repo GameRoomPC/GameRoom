@@ -57,7 +57,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
 
 
                         if (entry.isToAdd()) {
-                            entry.deleteFiles();
+                            entry.delete();
                             entry.setToAdd(false);
                         }
                         entry.setSavedLocaly(true);

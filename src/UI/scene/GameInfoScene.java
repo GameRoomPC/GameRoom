@@ -88,7 +88,7 @@ public class GameInfoScene extends BaseScene {
 
                 Optional<ButtonType> result = alert.showAndWait();
                 if (result.get() == ButtonType.OK) {
-                    entry.deleteFiles();
+                    entry.delete();
                     MAIN_SCENE.removeGame(entry);
                     GeneralToast.displayToast(entry.getName()+Main.getString("removed_from_your_lib"),getParentStage());
                     fadeTransitionTo(previousScene, getParentStage());

@@ -35,7 +35,7 @@ public class SteamProfileSelector extends GameRoomDialog<ButtonType> {
 
     private Node createTopPane() {
         //TODO replace by a localized string
-        Label titleLabel = new Label("Select a Steam account to scan :");
+        Label titleLabel = new Label(Main.getString("select_steam_profile"));
         titleLabel.setPadding(new Insets(20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
         return titleLabel;
     }
