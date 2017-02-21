@@ -57,7 +57,7 @@ public enum PredefinedSetting {
     , SCROLLBAR_VVALUE("scrollbarVValue", new SettingValue(0.0,Double.class,CATEGORY_NONE))
     , UI_SCALE("uiscale", new SettingValue(UIScale.NORMAL,UIScale.class,CATEGORY_UI))
     , THEME("theme", new SettingValue(Theme.DEFAULT_THEME,Theme.class,CATEGORY_UI))
-    , ENABLED_GAME_SCANNERS("enabledGameScanners",new SettingValue(ScannerProfile.values(),ScannerProfile[].class,CATEGORY_GENERAL))
+    , ENABLED_GAME_SCANNERS("enabledGameScanners",new SettingValue(ScannerProfile.values(),ScannerProfile[].class,CATEGORY_SCAN))
     , LAST_SUPPORT_MESSAGE("lastSupportMessage", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , LAST_UPDATE_CHECK("lastUpdateCheck", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , DRAWER_MENU_WIDTH("drawerMenuWidth", new SettingValue(DrawerMenu.WIDTH_RATIO,Double.class,CATEGORY_NONE))
