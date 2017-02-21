@@ -53,7 +53,7 @@ public class FileUtils {
         return initOrCreateFile(new File(f));
     }
 
-    public static File moveToFolder(File src, File target) {
+    public static void moveToFolder(File src, File target) {
         File movedFile = new File(target.getAbsolutePath() + File.separator + src.getName());
         if (src.exists() && !movedFile.exists()) {
             if (target.isDirectory()) {
@@ -96,7 +96,6 @@ public class FileUtils {
                 }
             }
         }
-        return movedFile;
     }
 
     public static void clearFolder(File folder) {
@@ -174,27 +173,6 @@ public class FileUtils {
 
         return new File(relative);
 
-    }
-
-    public static String getExtension(File file) {
-        return getExtension(file.getAbsolutePath());
-    }
-
-    //does not include the .
-    public static String getExtension(String filename) {
-        if (filename == null) {
-            return null;
-        }
-        int extensionPos = filename.lastIndexOf('.');
-        int lastUnixPos = filename.lastIndexOf('/');
-        int lastWindowsPos = filename.lastIndexOf('\\');
-        int lastSeparator = Math.max(lastUnixPos, lastWindowsPos);
-        int index = lastSeparator > extensionPos ? -1 : extensionPos;
-        if (index == -1) {
-            return "";
-        } else {
-            return filename.substring(index + 1);
-        }
     }
 
 }

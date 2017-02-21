@@ -1,11 +1,11 @@
 package ui.scene;
 
+import data.http.images.ImageUtils;
 import data.game.GameWatcher;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scanner.FolderGameScanner;
 import data.game.scanner.OnScannerResultHandler;
-import data.http.images.ImageUtils;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -16,31 +16,36 @@ import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
+import javafx.scene.control.*;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import system.application.SupportService;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
+import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
-import ui.control.drawer.DrawerMenu;
-import ui.control.drawer.GroupType;
-import ui.control.drawer.SortType;
-import ui.control.specific.SearchBar;
+import ui.control.specific.ScanButton;
 import ui.control.textfield.PathTextField;
+import ui.dialog.ChoiceDialog;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.GameRoomCustomAlert;
+import system.application.SupportService;
 import ui.dialog.selector.GameScannerSelector;
 import ui.pane.gamestilepane.*;
 import ui.scene.exitaction.ClassicExitAction;
@@ -52,6 +57,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Optional;
 
@@ -67,13 +73,17 @@ public class MainScene extends BaseScene {
     public final static int INPUT_MODE_MOUSE = 0;
     public final static int INPUT_MODE_KEYBOARD = 1;
 
+    private final static double MAX_TILE_ZOOM = 0.675;
+    private final static double MIN_TILE_ZOOM = 0.10;
+
     private static boolean GARBAGE_COLLECTED_RECENTLY = false;
 
     private VBox tilesPaneWrapper = new VBox();
     private ScrollPane scrollPane;
     private BorderPane wrappingPane;
+    private StackPane topPane;
 
-    private DrawerMenu drawerMenu;
+    private Slider sizeSlider = new Slider();
 
     private GamesTilePane tilePane;
     private RowCoverTilePane lastPlayedTilePane;
@@ -82,14 +92,12 @@ public class MainScene extends BaseScene {
 
     private ArrayList<GroupRowTilePane> groupRowList = new ArrayList<>();
 
-    private SearchBar searchBar;
+    private TextField searchField;
     private boolean showTilesPaneAgainAfterCancelSearch = false;
 
     private Label statusLabel;
 
     private boolean changeBackgroundNextTime = false;
-
-    private Task<Void> loadGamesTask;
 
     public MainScene(Stage parentStage) {
         super(new StackPane(), parentStage);
@@ -111,20 +119,26 @@ public class MainScene extends BaseScene {
         initTop();
         displayWelcomeMessage();
         loadGames();
-        configureAutomaticCaching();
         loadPreviousUIValues();
+        configureAutomaticCaching();
         SupportService.start();
     }
 
     private void configureAutomaticCaching() {
         //to empty ram usage
-        tilePane.setCacheGameButtons(true);
-        recentlyAddedTilePane.setCacheGameButtons(true);
-        toAddTilePane.setCacheGameButtons(true);
-        lastPlayedTilePane.setCacheGameButtons(true);
-        for (GroupRowTilePane g : groupRowList) {
-            g.setCacheGameButtons(true);
-        }
+        getParentStage().focusedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                tilePane.setCacheGameButtons(newValue);
+                recentlyAddedTilePane.setCacheGameButtons(newValue);
+                toAddTilePane.setCacheGameButtons(newValue);
+                lastPlayedTilePane.setCacheGameButtons(newValue);
+
+                for (GroupRowTilePane g : groupRowList) {
+                    g.setCacheGameButtons(newValue);
+                }
+            }
+        });
     }
 
     private void loadPreviousUIValues() {
@@ -147,13 +161,19 @@ public class MainScene extends BaseScene {
             double scrollBarVValue = GENERAL_SETTINGS.getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
             scrollPane.setVvalue(scrollBarVValue);
 
+            double sizeSliderValue = Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.TILE_ZOOM);
+            if (sizeSliderValue <= MIN_TILE_ZOOM) {
+                sizeSliderValue = MIN_TILE_ZOOM + 0.00001; //extreme values of the slider are buggy
+            } else if (sizeSliderValue >= MAX_TILE_ZOOM) {
+                sizeSliderValue = MAX_TILE_ZOOM + 0.00001; //extreme values of the slider are buggy
+            }
+            sizeSlider.setValue(sizeSliderValue);
+
+            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
+                forceHideToolbar(true);
+            }
             if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS)) {
                 forceHideTilesRows(true);
-            }
-
-            if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
-                //TODO maybe try to hide the drawer menu ?
-                //drawerMenu.setVisible(false);
             }
         });
     }
@@ -306,15 +326,15 @@ public class MainScene extends BaseScene {
         topTilesPaneGridPane.add(lastPlayedTilePane, 0, 0);
         topTilesPaneGridPane.add(recentlyAddedTilePane, 1, 0);
         topTilesPaneGridPane.setHgap(50 * Main.SCREEN_WIDTH / 1920);
+        /*HBox topTilesPanes = new HBox();
+        topTilesPanes.setAlignment(Pos.CENTER_LEFT);
+        topTilesPanes.setSpacing(50*Main.SCREEN_WIDTH/1920);
+        topTilesPanes.getChildren().addAll(lastPlayedTilePane,recentlyAddedTilePane);*/
 
         tilesPaneWrapper.getChildren().addAll(toAddTilePane, topTilesPaneGridPane, tilePane);
         scrollPane.setContent(tilesPaneWrapper);
         scrollPane.setStyle("-fx-background-color: transparent;");
         wrappingPane.setCenter(scrollPane);
-        drawerMenu = new DrawerMenu(this);
-        drawerMenu.setFocusTraversable(false);
-
-        wrappingPane.setLeft(drawerMenu);
         wrappingPane.setStyle("-fx-background-color: transparent;");
 
     }
@@ -322,7 +342,7 @@ public class MainScene extends BaseScene {
     private void loadGames() {
         backgroundView.setVisible(false);
         maskView.setVisible(false);
-        loadGamesTask = new Task<Void>() {
+        Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
                 tilePane.setAutomaticSort(false);
@@ -331,10 +351,6 @@ public class MainScene extends BaseScene {
                 toAddTilePane.setAutomaticSort(false);
 
                 int i = 0;
-
-                long refreshWPTime = 800;
-                long lastWallpaperUpdate = 0;
-
                 for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
                     int finalI = i;
 
@@ -345,29 +361,13 @@ public class MainScene extends BaseScene {
                             addGame(entry);
                         }
                     });
-                    long currentTime = System.currentTimeMillis();
-                    if (lastWallpaperUpdate == 0) {
-                        lastWallpaperUpdate = currentTime - (long) (Math.random() * refreshWPTime);
-                    }
-                    if (currentTime - lastWallpaperUpdate > refreshWPTime) {
-                        lastWallpaperUpdate = currentTime;
-                        setChangeBackgroundNextTime(false);
-
-                        Platform.runLater(() -> {
-                            Image screenshotImage = entry.getImage(1,
-                                    Main.GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
-                                    Main.GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
-                                    , false, true);
-                            setImageBackground(screenshotImage);
-                        });
-                    }
                     updateProgress(finalI, AllGameEntries.ENTRIES_LIST.size() - 1);
                     i++;
                 }
                 return null;
             }
         };
-        loadGamesTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+        task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent event) {
                 tilePane.setAutomaticSort(true);
@@ -389,22 +389,9 @@ public class MainScene extends BaseScene {
 
                 double scrollBarVValue = GENERAL_SETTINGS.getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
                 scrollPane.setVvalue(scrollBarVValue);
-
-                if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && SUPPORTER_MODE) {
-                    File workingDir = FILES_MAP.get("working_dir");
-                    if (workingDir != null && workingDir.listFiles() != null) {
-                        for (File file : workingDir.listFiles()) {
-                            if (file.isFile() && file.getName().startsWith("wallpaper")) {
-                                setChangeBackgroundNextTime(false);
-                                setImageBackground(new Image("file:///" + file.getAbsolutePath()), true);
-                                break;
-                            }
-                        }
-                    }
-                }
             }
         });
-        loadGamesTask.progressProperty().addListener(new ChangeListener<Number>() {
+        task.progressProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 Platform.runLater(() -> {
@@ -418,7 +405,7 @@ public class MainScene extends BaseScene {
         });
         //dialog.activateProgressBar(task);
 
-        Thread th = new Thread(loadGamesTask);
+        Thread th = new Thread(task);
         th.setDaemon(true);
         th.start();
     }
@@ -434,31 +421,378 @@ public class MainScene extends BaseScene {
     }
 
     private void initTop() {
+        sizeSlider.setMin(MIN_TILE_ZOOM);
+        sizeSlider.setMax(MAX_TILE_ZOOM);
+        sizeSlider.setBlockIncrement(0.1);
+        sizeSlider.setFocusTraversable(false);
 
-        searchBar = new SearchBar((observable, oldValue, newValue) -> {
-            if (newValue != null && !newValue.equals("")) {
-                searchGame(newValue);
-            } else if (newValue != null && newValue.equals("")) {
-                cancelSearch();
+        sizeSlider.valueProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                tilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 4 * newValue.doubleValue());
+                tilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 4 * COVER_HEIGHT_WIDTH_RATIO * newValue.doubleValue());
+
+                lastPlayedTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * newValue.doubleValue());
+                lastPlayedTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * newValue.doubleValue());
+
+
+                recentlyAddedTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * newValue.doubleValue());
+                recentlyAddedTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * newValue.doubleValue());
+
+                toAddTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * newValue.doubleValue());
+                toAddTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * newValue.doubleValue());
             }
         });
-        searchBar.hide();
+        sizeSlider.setOnMouseReleased(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
+            }
+        });
+        sizeSlider.setOnMouseDragExited(new EventHandler<MouseDragEvent>() {
+            @Override
+            public void handle(MouseDragEvent event) {
+                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
+            }
+        });
+        sizeSlider.setPrefWidth(Main.SCREEN_WIDTH / 12);
+        sizeSlider.setMaxWidth(Main.SCREEN_WIDTH / 12);
+        sizeSlider.setPrefHeight(Main.SCREEN_WIDTH / 160);
+        sizeSlider.setMaxHeight(Main.SCREEN_WIDTH / 160);
 
-        AnchorPane pane = new AnchorPane();
-        pane.getChildren().add(searchBar);
-        drawerMenu.translateXProperty().addListener((observable, oldValue, newValue) -> {
-            pane.setTranslateX(drawerMenu.getWidth() + newValue.doubleValue());
+        //Image settingsImage = new Image("res/ui/settingsButton.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
+        //ImageButton settingsButton = new ImageButton(settingsImage);
+        ImageButton settingsButton = new ImageButton("main-settings-button", SCREEN_WIDTH / 35.0, SCREEN_WIDTH / 35.0);
+        settingsButton.setFocusTraversable(false);
+        settingsButton.setOnAction(event -> {
+            long start = System.currentTimeMillis();
+            SettingsScene settingsScene = new SettingsScene(new StackPane(), getParentStage(), MainScene.this);
+            LOGGER.debug("SettingsScene : init = "+(System.currentTimeMillis() - start)+ "ms");
+            fadeTransitionTo(settingsScene, getParentStage(), true);
         });
-        drawerMenu.widthProperty().addListener((observable, oldValue, newValue) -> {
-            pane.setTranslateX(newValue.doubleValue() + drawerMenu.getTranslateX());
+
+        //Image sortImage = new Image("res/ui/sortIcon.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
+        //ImageButton sortButton = new ImageButton(sortImage);
+
+        ImageButton sortButton = new ImageButton("main-sort-button", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35);
+        sortButton.setFocusTraversable(false);
+        final ContextMenu sortMenu = new ContextMenu();
+        MenuItem sortByNameItem = new MenuItem(Main.getString("sort_by_name"));
+        MenuItem sortByRatingItem = new MenuItem(Main.getString("sort_by_rating"));
+        MenuItem sortByTimePlayedItem = new MenuItem(Main.getString("sort_by_playtime"));
+        MenuItem sortByReleaseDateItem = new MenuItem(Main.getString("sort_by_release_date"));
+        sortByNameItem.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.sortByName();
+            tilePane.setForcedHidden(false);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
+            toAddTilePane.setForcedHidden(true);
+
+            for (GroupRowTilePane groupPane : groupRowList) {
+                groupPane.sortByName();
+            }
+
+            scrollPane.setVvalue(scrollPane.getVmin());
         });
-        AnchorPane.setLeftAnchor(searchBar, 0.0);
-        AnchorPane.setBottomAnchor(searchBar, 0.0);
-        pane.setPickOnBounds(false);
-        getRootStackPane().getChildren().add(pane);
+        sortByRatingItem.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.sortByRating();
+            tilePane.setForcedHidden(false);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
+            toAddTilePane.setForcedHidden(true);
+
+            for (GroupRowTilePane groupPane : groupRowList) {
+                groupPane.sortByRating();
+            }
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        sortByTimePlayedItem.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.sortByTimePlayed();
+            tilePane.setForcedHidden(false);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
+            toAddTilePane.setForcedHidden(true);
+
+            for (GroupRowTilePane groupPane : groupRowList) {
+                groupPane.sortByTimePlayed();
+            }
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        sortByReleaseDateItem.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.sortByReleaseDate();
+            tilePane.setForcedHidden(false);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
+            toAddTilePane.setForcedHidden(true);
+
+            for (GroupRowTilePane groupPane : groupRowList) {
+                groupPane.sortByReleaseDate();
+            }
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        sortMenu.getItems().addAll(sortByNameItem, sortByRatingItem, sortByTimePlayedItem, sortByReleaseDateItem);
+
+        sortButton.setOnAction(event -> {
+            if (sortMenu.isShowing()) {
+                sortMenu.hide();
+            } else {
+                Bounds bounds = sortButton.getBoundsInLocal();
+                Bounds screenBounds = sortButton.localToScreen(bounds);
+                int x = (int) (screenBounds.getMinX() + 0.25 * bounds.getWidth());
+                int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
+
+                sortMenu.show(sortButton, x, y);
+            }
+        });
+
+
+        //Image groupImage = new Image("res/ui/groupbyIcon.png", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35, true, true);
+        //ImageButton groupButton = new ImageButton(groupImage);
+        ImageButton groupButton = new ImageButton("main-group-button", SCREEN_WIDTH / 35, SCREEN_WIDTH / 35);
+        groupButton.setFocusTraversable(false);
+        final ContextMenu groupMenu = new ContextMenu();
+        MenuItem groupByAll = new MenuItem(Main.getString("group_by_all"));
+        groupByAll.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.setForcedHidden(false);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
+            toAddTilePane.setForcedHidden(true);
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        MenuItem groupByTheme = new MenuItem(Main.getString("group_by_theme"));
+        groupByTheme.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.setForcedHidden(true);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
+            toAddTilePane.setForcedHidden(true);
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+            groupRowList = GroupsFactory.createGroupsByTheme(lastPlayedTilePane, this);
+            tilesPaneWrapper.getChildren().addAll(groupRowList);
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        MenuItem groupByGenre = new MenuItem(Main.getString("group_by_genre"));
+        groupByGenre.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.setForcedHidden(true);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
+            toAddTilePane.setForcedHidden(true);
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+            groupRowList = GroupsFactory.createGroupsByGenre(lastPlayedTilePane, this);
+            tilesPaneWrapper.getChildren().addAll(groupRowList);
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+        MenuItem groupBySerie = new MenuItem(Main.getString("group_by_serie"));
+        groupBySerie.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.setForcedHidden(true);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
+            toAddTilePane.setForcedHidden(true);
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+            groupRowList = GroupsFactory.createGroupsBySerie(lastPlayedTilePane, this);
+            tilesPaneWrapper.getChildren().addAll(groupRowList);
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+
+        MenuItem groupByLauncher = new MenuItem(Main.getString("group_by_launcher"));
+        groupByLauncher.setOnAction(event -> {
+            showTilesPaneAgainAfterCancelSearch = false;
+
+            tilePane.setForcedHidden(true);
+            lastPlayedTilePane.setForcedHidden(true);
+            recentlyAddedTilePane.setForcedHidden(true);
+            toAddTilePane.setForcedHidden(true);
+
+            tilesPaneWrapper.getChildren().removeAll(groupRowList);
+            groupRowList.clear();
+            groupRowList = GroupsFactory.createGroupsByLaunchers(lastPlayedTilePane, this);
+            tilesPaneWrapper.getChildren().addAll(groupRowList);
+
+            scrollPane.setVvalue(scrollPane.getVmin());
+        });
+
+        groupMenu.getItems().addAll(groupByAll, groupByGenre, groupByTheme, groupBySerie, groupByLauncher);
+
+        groupButton.setOnAction(event -> {
+            if (groupMenu.isShowing()) {
+                groupMenu.hide();
+            } else {
+                Bounds bounds = groupButton.getBoundsInLocal();
+                Bounds screenBounds = groupButton.localToScreen(bounds);
+                int x = (int) (screenBounds.getMinX() + 0.25 * bounds.getWidth());
+                int y = (int) (screenBounds.getMaxY() - 0.22 * bounds.getHeight());
+
+                groupMenu.show(groupButton, x, y);
+            }
+        });
+
+
+        //Image addImage = new Image("res/ui/addButton.png", SCREEN_WIDTH / 45, SCREEN_WIDTH / 45, true, true);
+        //ImageButton addButton = new ImageButton(addImage);
+        ImageButton addButton = new ImageButton("main-add-button", SCREEN_WIDTH / 45, SCREEN_WIDTH / 45);
+        addButton.setFocusTraversable(false);
+
+        addButton.setOnAction(event -> {
+            getRootStackPane().setMouseTransparent(true);
+            ChoiceDialog choiceDialog = new ChoiceDialog(
+                    new ChoiceDialog.ChoiceDialogButton(Main.getString("Add_exe"), Main.getString("add_exe_long")),
+                    new ChoiceDialog.ChoiceDialogButton(Main.getString("Add_folder"), Main.getString("add_symlink_long"))
+            );
+            choiceDialog.setTitle(Main.getString("add_a_game"));
+            choiceDialog.setHeader(Main.getString("choose_action"));
+
+            Optional<ButtonType> result = choiceDialog.showAndWait();
+            result.ifPresent(letter -> {
+                if (letter.getText().equals(Main.getString("Add_exe"))) {
+                    FileChooser fileChooser = new FileChooser();
+                    fileChooser.setTitle(Main.getString("select_program"));
+                    fileChooser.setInitialDirectory(
+                            new File(System.getProperty("user.home"))
+                    );
+                    //TODO fix internet shorcuts problem (bug submitted)
+                    fileChooser.getExtensionFilters().addAll(
+                            new FileChooser.ExtensionFilter("EXE", "*.exe"),
+                            new FileChooser.ExtensionFilter("JAR", "*.jar")
+                    );
+                    try {
+                        File selectedFile = fileChooser.showOpenDialog(getParentStage());
+                        if (selectedFile != null) {
+                            fadeTransitionTo(new GameEditScene(MainScene.this, selectedFile), getParentStage());
+                        }
+                    } catch (NullPointerException ne) {
+                        ne.printStackTrace();
+                        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
+                        alert.setContentText(Main.getString("warning_internet_shortcut"));
+                        alert.showAndWait();
+                    }
+                } else if (letter.getText().equals(Main.getString("Add_folder"))) {
+                    DirectoryChooser directoryChooser = new DirectoryChooser();
+                    directoryChooser.setTitle(Main.getString("Select_folder_ink"));
+                    directoryChooser.setInitialDirectory(
+                            new File(System.getProperty("user.home"))
+                    );
+                    File selectedFolder = directoryChooser.showDialog(getParentStage());
+                    if (selectedFolder != null) {
+                        ArrayList<File> files = new ArrayList<File>();
+                        files.addAll(Arrays.asList(selectedFolder.listFiles()));
+                        if (files.size() != 0) {
+                            batchAddFolderEntries(files, 0).run();
+                            //startMultiAddScenes(files);
+                        }
+                    }
+                }
+            });
+            getRootStackPane().setMouseTransparent(false);
+        });
+
+        HBox hbox = new HBox();
+        hbox.setPadding(new Insets(15, 12, 15, 10));
+        hbox.setSpacing(0);
+        hbox.getChildren().addAll(addButton, new ScanButton(SCREEN_WIDTH / 38.0, SCREEN_WIDTH / 38.0), sortButton, groupButton, settingsButton, sizeSlider);
+        hbox.setAlignment(Pos.CENTER_LEFT);
+
+        searchField = new TextField();
+
+        double imgSize = SCREEN_WIDTH / 28;
+        //Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
+        ImageButton searchButton = new ImageButton("search-button", imgSize, imgSize);
+        searchButton.setFocusTraversable(false);
+
+        HBox searchBox = new HBox();
+        searchBox.setAlignment(Pos.CENTER_RIGHT);
+        searchBox.getChildren().addAll(searchField, searchButton);
+        searchField.setFocusTraversable(false);
+        searchField.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if (newValue != null && !newValue.equals("")) {
+                    searchGame(newValue);
+                } else if (newValue != null && newValue.equals("")) {
+                    cancelSearch();
+                }
+            }
+        });
+
+        //hbox.getChildren().add(searchBox);
+
+        //HBox.setMargin(sizeSlider, new Insets(15, 12, 15, 12));
+        topPane = new StackPane();
+        //topPane.setFocusTraversable(false);
+        double width = 500 * SCREEN_WIDTH / 1920;
+        double height = 94 * SCREEN_HEIGHT / 1080;
+        //Image logoImage = new Image("res/ui/title-medium.png", , , true, true);
+        ImageButton homeButton = new ImageButton("home-button", width, height);
+        homeButton.setFocusTraversable(false);
+        homeButton.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
+            @Override
+            public void handle(javafx.event.ActionEvent event) {
+                home();
+            }
+        });
+        StackPane.setAlignment(homeButton, Pos.BOTTOM_CENTER);
+        topPane.getChildren().add(homeButton);
+        /*StackPane.setMargin(titleView, new Insets(55 * Main.SCREEN_HEIGHT / 1080
+                , 12 * Main.SCREEN_WIDTH / 1920
+                , 15 * Main.SCREEN_HEIGHT / 1080
+                , 15 * Main.SCREEN_WIDTH / 1920));*/
+        topPane.getChildren().add(searchBox);
+        topPane.getChildren().add(hbox);
+        topPane.getStyleClass().add("header");
+
+        StackPane.setAlignment(hbox, Pos.CENTER_LEFT);
+
+
+        hbox.setPickOnBounds(false);
+        searchBox.setPickOnBounds(false);
+        homeButton.setPickOnBounds(false);
+        wrappingPane.setTop(topPane);
     }
 
-    public void forceHideTilesRows(boolean hide) {
+    private void forceHideToolbar(boolean hide){
+        if (topPane != null) {
+            topPane.setVisible(!hide);
+            topPane.setManaged(!hide);
+        }
+    }
+
+    public void toggleToolBar() {
+            boolean wasHidden = GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR);
+            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TOOLBAR, !wasHidden);
+            forceHideToolbar(!wasHidden);
+    }
+
+    private void forceHideTilesRows(boolean hide){
         if (toAddTilePane != null) {
             toAddTilePane.setForcedHidden(hide);
         }
@@ -470,7 +804,6 @@ public class MainScene extends BaseScene {
 
         }
     }
-
     public void toggleTilesRows() {
         boolean wasHidden = GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS);
         GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TILES_ROWS, !wasHidden);
@@ -515,12 +848,12 @@ public class MainScene extends BaseScene {
 
     }
 
-    public void home() {
+    private void home() {
         tilePane.sortByName();
         tilePane.setForcedHidden(false);
         tilePane.show();
         if (tilePane.isSearching()) {
-            searchBar.clearSearchField();
+            searchField.clear();
         }
         lastPlayedTilePane.setForcedHidden(false);
         recentlyAddedTilePane.setForcedHidden(false);
@@ -626,7 +959,7 @@ public class MainScene extends BaseScene {
         }
     }
 
-    public ExitAction batchAddFolderEntries(ArrayList<File> files, int fileCount) {
+    private ExitAction batchAddFolderEntries(ArrayList<File> files, int fileCount) {
         if (fileCount < files.size()) {
             File currentFile = files.get(fileCount);
             if (FolderGameScanner.isPotentiallyAGame(currentFile)) {
@@ -773,13 +1106,6 @@ public class MainScene extends BaseScene {
     }
 
     public void setImageBackground(Image img) {
-        setImageBackground(img, false);
-    }
-
-    public void setImageBackground(Image img, boolean isStatic) {
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && !isStatic) {
-            return;
-        }
         if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
             if (!backgroundView.isVisible()) {
                 backgroundView.setVisible(true);
@@ -827,109 +1153,5 @@ public class MainScene extends BaseScene {
                 maskView.setVisible(false);
             }
         }
-    }
-
-    public void showSearchField() {
-        searchBar.show();
-        searchBar.getSearchField().requestFocus();
-    }
-
-    public void hideSearchField() {
-        searchBar.hide();
-    }
-
-    public void groupBy(GroupType groupType) {
-        showTilesPaneAgainAfterCancelSearch = false;
-
-        tilePane.setForcedHidden(true);
-        lastPlayedTilePane.setForcedHidden(true);
-        recentlyAddedTilePane.setForcedHidden(true);
-        toAddTilePane.setForcedHidden(true);
-
-        tilesPaneWrapper.getChildren().removeAll(groupRowList);
-        groupRowList.clear();
-
-        switch (groupType) {
-            case ALL:
-                tilePane.setForcedHidden(false);
-                break;
-            case THEME:
-                groupRowList = GroupsFactory.createGroupsByTheme(lastPlayedTilePane, this);
-                break;
-            case GENRE:
-                groupRowList = GroupsFactory.createGroupsByGenre(lastPlayedTilePane, this);
-                break;
-            case SERIE:
-                groupRowList = GroupsFactory.createGroupsBySerie(lastPlayedTilePane, this);
-                break;
-            case LAUNCHER:
-                groupRowList = GroupsFactory.createGroupsByLaunchers(lastPlayedTilePane, this);
-                break;
-        }
-        tilesPaneWrapper.getChildren().addAll(groupRowList);
-
-        scrollPane.setVvalue(scrollPane.getVmin());
-    }
-
-    public void sortBy(SortType sortType) {
-        showTilesPaneAgainAfterCancelSearch = false;
-
-
-        lastPlayedTilePane.setForcedHidden(true);
-        recentlyAddedTilePane.setForcedHidden(true);
-        toAddTilePane.setForcedHidden(true);
-
-        tilesPaneWrapper.getChildren().removeAll(groupRowList);
-        groupRowList.clear();
-
-        switch (sortType) {
-            case NAME:
-                tilePane.sortByName();
-                for (GroupRowTilePane groupPane : groupRowList) {
-                    groupPane.sortByName();
-                }
-                break;
-            case PLAY_TIME:
-                tilePane.sortByTimePlayed();
-                for (GroupRowTilePane groupPane : groupRowList) {
-                    groupPane.sortByTimePlayed();
-                }
-                break;
-            case RELEASE_DATE:
-                tilePane.sortByReleaseDate();
-                for (GroupRowTilePane groupPane : groupRowList) {
-                    groupPane.sortByReleaseDate();
-                }
-                break;
-            case RATING:
-                tilePane.sortByRating();
-                for (GroupRowTilePane groupPane : groupRowList) {
-                    groupPane.sortByRating();
-                }
-                break;
-
-        }
-
-        tilePane.setForcedHidden(false);
-        scrollPane.setVvalue(scrollPane.getVmin());
-    }
-
-    public void newTileZoom(double value) {
-        tilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 4 * value);
-        tilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 4 * COVER_HEIGHT_WIDTH_RATIO * value);
-
-        lastPlayedTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * value);
-        lastPlayedTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * value);
-
-
-        recentlyAddedTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * value);
-        recentlyAddedTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * value);
-
-        toAddTilePane.setPrefTileWidth(Main.SCREEN_WIDTH / 7 * value);
-        toAddTilePane.setPrefTileHeight(Main.SCREEN_WIDTH / 7 * COVER_HEIGHT_WIDTH_RATIO * value);
-    }
-
-    public ScrollPane getScrollPane() {
-        return scrollPane;
     }
 }

@@ -65,7 +65,6 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static data.io.FileUtils.getExtension;
 import static ui.Main.*;
 
 /**
@@ -957,6 +956,27 @@ public class GameEditScene extends BaseScene {
         map.put("theme", entry.getThemes() != null);
         map.put("cover", mode != MODE_ADD && entry.getImagePath(0) != null);*/
         return map;
+    }
+
+    public static String getExtension(File file) {
+        return getExtension(file.getAbsolutePath());
+    }
+
+    //does not include the .
+    private static String getExtension(String filename) {
+        if (filename == null) {
+            return null;
+        }
+        int extensionPos = filename.lastIndexOf('.');
+        int lastUnixPos = filename.lastIndexOf('/');
+        int lastWindowsPos = filename.lastIndexOf('\\');
+        int lastSeparator = Math.max(lastUnixPos, lastWindowsPos);
+        int index = lastSeparator > extensionPos ? -1 : extensionPos;
+        if (index == -1) {
+            return "";
+        } else {
+            return filename.substring(index + 1);
+        }
     }
 
     //called when user selected a igdb game or when a steam game is added
