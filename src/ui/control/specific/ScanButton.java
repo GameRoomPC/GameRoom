@@ -2,22 +2,22 @@ package ui.control.specific;
 
 import data.game.GameWatcher;
 import javafx.animation.*;
-import javafx.event.EventHandler;
-import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
-import ui.control.button.ImageButton;
+import ui.control.drawer.DrawerButton;
+import ui.control.drawer.DrawerMenu;
 
 import static ui.control.button.gamebutton.AddIgnoreGameButton.ROTATION_TIME;
 
 /**
  * Created by LM on 07/01/2017.
  */
-public class ScanButton extends ImageButton {
+public class ScanButton extends DrawerButton {
     private final static String CSS_ID = "scan-button";
     private Timeline rotateAnim;
 
-    public ScanButton(double width, double height) {
-        super(CSS_ID, width, height);
+    public ScanButton(DrawerMenu menu) {
+        super(CSS_ID, menu);
+        setStyle("-fx-background-color: transparent;");
         setFocusTraversable(false);
         setOnAction(event -> {
             GameWatcher.getInstance().start();

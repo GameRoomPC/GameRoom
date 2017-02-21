@@ -50,6 +50,7 @@ public abstract class BaseScene extends Scene {
     BaseScene(StackPane stackPane, Stage parentStage) {
         super(stackPane, Main.GENERAL_SETTINGS.getWindowWidth(), Main.GENERAL_SETTINGS.getWindowHeight());
         this.rootStackPane = stackPane;
+        rootStackPane.getStyleClass().add("base-scene-root");
         setParentStage(parentStage);
         ThemeUtils.applyCurrentTheme(this);
         getRoot().setStyle("-fx-font-size: " + Double.toString(GENERAL_SETTINGS.getUIScale().getFontSize()) + "px;");
@@ -107,7 +108,7 @@ public abstract class BaseScene extends Scene {
         fadeTransitionTo(scene2, stage, false);
     }
 
-    void fadeTransitionTo(BaseScene scene2, Stage stage, boolean backgroundViewToo) {
+    public void fadeTransitionTo(BaseScene scene2, Stage stage, boolean backgroundViewToo) {
         if (scene2 instanceof MainScene) {
 
             ((MainScene) scene2).setChangeBackgroundNextTime(true);
@@ -220,7 +221,7 @@ public abstract class BaseScene extends Scene {
         backButton.setVisible(false);
     }
 
-    private ImageView getBackgroundView() {
+    public ImageView getBackgroundView() {
         return backgroundView;
     }
 }

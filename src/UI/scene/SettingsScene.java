@@ -81,6 +81,7 @@ public class SettingsScene extends BaseScene {
 
     private void initCenter() {
         String[] categoriesToDisplay = new String[]{SettingValue.CATEGORY_GENERAL
+                , SettingValue.CATEGORY_SCAN
                 , SettingValue.CATEGORY_ON_GAME_START
                 , SettingValue.CATEGORY_UI
         };
@@ -169,7 +170,7 @@ public class SettingsScene extends BaseScene {
                 }
             }
         });
-        addPropertyLine(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER, true, new ChangeListener<Boolean>() {
+        /*addPropertyLine(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER, true, new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue observable, Boolean oldValue, Boolean newValue) {
                 if (newValue) {
@@ -177,7 +178,7 @@ public class SettingsScene extends BaseScene {
                     MAIN_SCENE.setImageBackground(null);
                 }
             }
-        });
+        });*/
         addPropertyLine(PredefinedSetting.DISABLE_SCROLLBAR_IN_FULLSCREEN, true);
 
             addPropertyLine(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT, true, new ChangeListener<Boolean>() {
@@ -861,7 +862,7 @@ public class SettingsScene extends BaseScene {
         getRootStackPane().getChildren().add(wrappingPane);
     }
 
-    private static boolean checkAndDisplayRegisterDialog() {
+    public static boolean checkAndDisplayRegisterDialog() {
         if (!SUPPORTER_MODE) {
             displayRegisterDialog(null, null);
             return false;
