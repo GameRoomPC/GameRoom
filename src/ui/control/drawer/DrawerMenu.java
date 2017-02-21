@@ -7,7 +7,10 @@ import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.layout.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
@@ -19,9 +22,7 @@ import ui.scene.SettingsScene;
 
 import java.util.HashMap;
 
-import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.LOGGER;
-import static ui.Main.SCREEN_WIDTH;
+import static ui.Main.*;
 import static ui.control.drawer.submenu.SubMenuFactory.*;
 
 /**
@@ -73,16 +74,19 @@ public class DrawerMenu extends BorderPane {
         });
 
         setOnMouseDragged(event -> {
-            if(resizing || (getCursor() != null && getCursor().equals(Cursor.E_RESIZE))){
+            if (resizing || (getCursor() != null && getCursor().equals(Cursor.E_RESIZE))) {
                 resizing = true;
                 double newWidth = event.getX() - 30;
+                if(getCursor() != null && !getCursor().equals(Cursor.E_RESIZE)){
+                    setCursor(Cursor.E_RESIZE);
+                }
 
-                double newRatio = newWidth /SCREEN_WIDTH;
+                double newRatio = newWidth / SCREEN_WIDTH;
 
-                if(newRatio >= MIN_WIDTH_RATIO && newRatio <= MAX_WIDTH_RATIO){
+                if (newRatio >= MIN_WIDTH_RATIO && newRatio <= MAX_WIDTH_RATIO) {
                     setPrefWidth(newWidth);
                     setMaxWidth(newWidth);
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DRAWER_MENU_WIDTH,newRatio);
+                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DRAWER_MENU_WIDTH, newRatio);
                 }
             }
         });
@@ -95,9 +99,7 @@ public class DrawerMenu extends BorderPane {
             setCursor(Cursor.E_RESIZE);
         });
         resizePane.setOnMouseExited(event -> {
-            if(resizing){
                 setCursor(Cursor.DEFAULT);
-            }
         });
 
         setCache(true);
