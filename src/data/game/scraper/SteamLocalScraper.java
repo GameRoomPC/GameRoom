@@ -13,7 +13,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static ui.Main.LOGGER;
 
@@ -28,29 +31,52 @@ public class SteamLocalScraper {
     private static boolean STEAM_PATH_ALREADY_DISPLAYED = false;
     private static boolean STEAM_DRIVE_LETTER_ALREADY_DISPLAYED = false;
 
-    static String getSteamUserId() throws IOException {
-        File vdfFile = new File(getSteamPath() + "\\config\\config.vdf");
-        String returnValue = null;
-        String fileString = new String(Files.readAllBytes(vdfFile.toPath()));
+    private final static Pattern STEAM_ACCOUNT_PATTERN = Pattern.compile("(?:\\s*\\\"(.*)\\\"\\s*\\{\\s*\\\"SteamID\\\"\\s*\\\"(\\d*)\\\"\\s*\\})");
 
-        String prefix = "\"SteamID\"";
-        for (String line : fileString.split("\n")) {
-            if (line.contains(prefix)) {
-                int indexPrefix = line.indexOf(prefix) + prefix.length();
-                String temp = line.substring(indexPrefix);
-                temp = temp.replace(" ", "").replace("\"", "").trim();
-                returnValue = temp;
+    static List<SteamProfile> getSteamProfiles(){
+        ArrayList<SteamProfile> profiles = new ArrayList<>();
+        try {
+            File vdfFile = new File(getSteamPath() + "\\config\\config.vdf");
+
+            String fileString = new String(Files.readAllBytes(vdfFile.toPath()));
+            String accountsLines = "";
+
+            int bracketCount = 1;
+            boolean firstBracketEncountered = false;
+            boolean capturingAccounts = false;
+
+            for (String line : fileString.split("\n")) {
+                if (line.contains("\"Accounts\"")) {
+                    capturingAccounts = true;
+                }
+                if(capturingAccounts){
+                    if(line.contains("{")){
+                        if(firstBracketEncountered) {
+                            bracketCount++;
+                        }else{
+                            firstBracketEncountered = true; //we start bracketCount at 1, thus including the first bracket
+                        }
+                    }
+                    if(line.contains("}")){
+                        bracketCount--;
+                    }
+                    accountsLines += line +"\n";
+                }
+
+                if(bracketCount == 0 && capturingAccounts){
+                    break;
+                }
             }
+
+            Matcher matcher = STEAM_ACCOUNT_PATTERN.matcher(accountsLines);
+            while (matcher.find()){
+                SteamProfile profile = new SteamProfile(matcher.group(1),matcher.group(2));
+                profiles.add(profile);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        if (returnValue == null) {
-            LOGGER.error("Could not retrieve user's steam id, here is config.vdf : ");
-            LOGGER.error(fileString);
-        }
-        if (!STEAM_ID_ALREADY_DISPLAYED) {
-            LOGGER.info("Retrieved user steam id : " + returnValue);
-            STEAM_ID_ALREADY_DISPLAYED = true;
-        }
-        return returnValue;
+        return profiles;
     }
 
     static void scanSteamGames(GameScanner scanner) {
@@ -295,9 +321,5 @@ public class SteamLocalScraper {
         }
 
         return ignored;
-    }
-
-    public static void main(String[] args) throws IOException {
-        System.out.println(getSteamUserId());
     }
 }

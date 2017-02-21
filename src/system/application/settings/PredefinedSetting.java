@@ -3,6 +3,7 @@ package system.application.settings;
 import data.game.scanner.ScanPeriod;
 import data.game.scanner.ScannerProfile;
 import data.game.scraper.SteamPreEntry;
+import data.game.scraper.SteamProfile;
 import javafx.beans.property.SimpleBooleanProperty;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
@@ -61,6 +62,7 @@ public enum PredefinedSetting {
     , LAST_SUPPORT_MESSAGE("lastSupportMessage", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , LAST_UPDATE_CHECK("lastUpdateCheck", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , DRAWER_MENU_WIDTH("drawerMenuWidth", new SettingValue(DrawerMenu.WIDTH_RATIO,Double.class,CATEGORY_NONE))
+    , STEAM_PROFILE("steamProfile", new SettingValue(null, SteamProfile.class,CATEGORY_NONE))
     ;
 
 
