@@ -49,6 +49,8 @@ public class GameStarter {
         entry.setLastPlayedDate(new Date());
         entry.setSavedLocaly(false);
 
+        startGame();
+
         Task<Long> monitor = new Task() {
             @Override
             protected Object call() throws Exception {

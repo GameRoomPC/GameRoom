@@ -4,6 +4,8 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.GameWatcher;
 import data.game.entry.GameEntry;
 import data.game.scanner.ScanPeriod;
+import data.game.scraper.SteamOnlineScraper;
+import data.game.scraper.SteamProfile;
 import data.http.key.KeyChecker;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -34,6 +36,7 @@ import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ActivationKeyDialog;
 import ui.dialog.GameRoomAlert;
+import ui.dialog.SteamProfileSelector;
 import ui.dialog.WebBrowser;
 import ui.dialog.selector.GameFoldersIgnoredSelector;
 import ui.dialog.selector.GameScannerSelector;
@@ -230,6 +233,8 @@ public class SettingsScene extends BaseScene {
         addPropertyLine(PredefinedSetting.SCAN_PERIOD, false, (observable, oldValue, newValue) -> {
             GameWatcher.setScanPeriod((ScanPeriod) newValue,true);
         });
+
+        addPropertyLine(PredefinedSetting.STEAM_PROFILE);
 
 
         /***********************GAME FOLDER IGNORED****************************/
@@ -585,6 +590,13 @@ public class SettingsScene extends BaseScene {
                     }
                 });
                 node2 = localeComboBox;
+            } else if (setting.isClass(SteamProfile.class)) {
+                /**************** LOCALE **************/
+                Button manageButton = new Button(Main.getString("manage"));
+                manageButton.setOnAction(event -> {
+                    SteamOnlineScraper.checkIfCanScanSteam(true);
+                });
+                node2 = manageButton;
             } else if (setting.isClass(String.class)) {
                 /**************** PATH **************/
                 String p = GENERAL_SETTINGS.getString(setting);
