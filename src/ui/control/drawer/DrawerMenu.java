@@ -108,7 +108,7 @@ public class DrawerMenu extends BorderPane {
 
         widthProperty().addListener((observable, oldValue, newValue) -> {
             if (getButtonsPaneWidth() > 0) {
-                double newOpacity = 3 * getButtonsPaneWidth() / newValue.doubleValue();
+                double newOpacity = 3.5 * getButtonsPaneWidth() / newValue.doubleValue();
                 if (getTranslateX() < 0) {
                     newOpacity = 1;
                 }
