@@ -5,6 +5,7 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.GameWatcher;
 import data.game.entry.GameEntry;
+import data.game.entry.Platform;
 import data.game.scanner.GameScanner;
 import data.game.scanner.OnGameFound;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -13,6 +14,7 @@ import org.jsoup.Jsoup;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
+import ui.dialog.SteamProfileSelector;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -50,8 +52,6 @@ public class SteamOnlineScraper {
 
     private static void scanNonInstalledSteamGames(OnGameFound handler) {
         try {
-            checkIfCanScanSteam();
-
             SteamProfile profile = GENERAL_SETTINGS.getSteamProfileToScan();
             if (profile != null) {
                 JSONArray ownedArray = askGamesOwned(profile.getAccountId());
@@ -82,7 +82,7 @@ public class SteamOnlineScraper {
         }
     }
 
-    private static void checkIfCanScanSteam() {
+    static void checkIfCanScanSteam() {
         SteamProfile selectedProfile = GENERAL_SETTINGS.getSteamProfileToScan();
         if (selectedProfile != null) {
             return;
@@ -102,7 +102,11 @@ public class SteamOnlineScraper {
         if (profiles.size() == 1) {
             GENERAL_SETTINGS.setSettingValue(PredefinedSetting.STEAM_PROFILE, profiles.get(0));
         } else {
-            //TODO display dialog to select profile to scan for new games
+            Main.runAndWait(() -> {
+                SteamProfileSelector selector = new SteamProfileSelector(profiles);
+                selector.showAndWait();
+                //TODO display dialog to select profile to scan for new games
+            });
         }
     }
 
