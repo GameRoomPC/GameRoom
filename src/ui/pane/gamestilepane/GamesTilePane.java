@@ -145,7 +145,7 @@ public abstract class GamesTilePane extends BorderPane {
             @Override
             public void handle(KeyEvent event) {
                 if (quickSearchEnabled) {
-                    if (!event.isShiftDown()) {
+                    if (!event.isShiftDown() && !event.isControlDown()) {
                         if (event.getCode().isLetterKey()
                                 || event.getCode().isDigitKey()) {
                             String s = event.getCode().getName();
