@@ -52,8 +52,8 @@ public class DrawerMenu extends BorderPane {
         setFocusTraversable(false);
 
         double widthRatio = Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.DRAWER_MENU_WIDTH);
-        setMaxWidth(GENERAL_SETTINGS.getWindowWidth() * widthRatio);
-        setPrefWidth(GENERAL_SETTINGS.getWindowWidth() * widthRatio);
+        setMaxWidth( SCREEN_WIDTH * widthRatio);
+        setPrefWidth(SCREEN_WIDTH * widthRatio);
         setFocusTraversable(false);
         //setEffect(new InnerShadow());
         setId("menu-bar");
@@ -76,8 +76,9 @@ public class DrawerMenu extends BorderPane {
         setOnMouseDragged(event -> {
             if (resizing || (getCursor() != null && getCursor().equals(Cursor.E_RESIZE))) {
                 resizing = true;
-                double newWidth = event.getX() - 30;
-                if(getCursor() != null && !getCursor().equals(Cursor.E_RESIZE)){
+                double newWidth = event.getX()- 30; //magic number...
+
+                if(getCursor() == null || !getCursor().equals(Cursor.E_RESIZE)){
                     setCursor(Cursor.E_RESIZE);
                 }
 
@@ -133,6 +134,8 @@ public class DrawerMenu extends BorderPane {
             }
             mainScene.getBackgroundView().setTranslateX(newTranslateX);*/
         });
+
+        prefHeightProperty().bind(mainScene.heightProperty());
     }
 
     /**
