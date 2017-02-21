@@ -3,6 +3,8 @@ package system.application.settings;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import ui.Main;
 
 import java.util.HashMap;
@@ -16,6 +18,7 @@ public class SettingValue<T> {
     public final static String CATEGORY_NONE = "none";
     public final static String CATEGORY_UI = "ui";
     public final static String CATEGORY_ON_GAME_START = "onGameStart";
+    public final static String CATEGORY_SCAN= "scan";
 
 
     private final static Gson GSON = new Gson();
@@ -46,6 +49,9 @@ public class SettingValue<T> {
 
     @Override
     public String toString(){
+        if(getValueClass()!= null && getValueClass().equals(SimpleBooleanProperty.class)){
+            return GSON.toJson(((SimpleBooleanProperty)settingValue).getValue());
+        }
         return GSON.toJson(settingValue);
     }
 
@@ -54,7 +60,13 @@ public class SettingValue<T> {
             try {
                 SettingValue settingValue = null;
                 if(predefinedSetting.getDefaultValue().getValueClass()!=null){
-                    settingValue = new SettingValue(GSON.fromJson(prop.getProperty(predefinedSetting.getKey()), predefinedSetting.getDefaultValue().getValueClass()),predefinedSetting.getDefaultValue().getValueClass(),predefinedSetting.getDefaultValue().category);
+                    if(predefinedSetting.getDefaultValue().getValueClass().equals(SimpleBooleanProperty.class)){
+                        Boolean storedValue = GSON.fromJson(prop.getProperty(predefinedSetting.getKey()), Boolean.class);
+                        BooleanProperty b = new SimpleBooleanProperty(storedValue);
+                        settingValue = new SettingValue(b,predefinedSetting.getDefaultValue().getValueClass(),predefinedSetting.getDefaultValue().category);
+                    }else{
+                        settingValue = new SettingValue(GSON.fromJson(prop.getProperty(predefinedSetting.getKey()), predefinedSetting.getDefaultValue().getValueClass()),predefinedSetting.getDefaultValue().getValueClass(),predefinedSetting.getDefaultValue().category);
+                    }
                 }else{
                     settingValue = new SettingValue(GSON.fromJson(prop.getProperty(predefinedSetting.getKey()), predefinedSetting.getDefaultValue().typeToken.getType()),predefinedSetting.getDefaultValue().typeToken,predefinedSetting.getDefaultValue().category);
                 }
