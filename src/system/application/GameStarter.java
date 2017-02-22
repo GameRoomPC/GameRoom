@@ -42,7 +42,7 @@ public class GameStarter {
     public void start() throws IOException {
         Main.LOGGER.info("Starting game : " + entry.getName());
         originalPowerMode = PowerMode.getActivePowerMode();
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isAlreadyStartedInGameRoom() && !entry.isNotInstalled()) {
+        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isMonitored() && !entry.isNotInstalled()) {
             GENERAL_SETTINGS.getPowerMode(PredefinedSetting.GAMING_POWER_MODE).activate();
         }
         entry.setSavedLocaly(true);
@@ -66,8 +66,8 @@ public class GameStarter {
                     });
                 }
                 //This condition means that some thread is already monitoring and waiting for the game to be restarted, no need to monitor
-                if (!entry.isAlreadyStartedInGameRoom()) {
-                    entry.setAlreadyStartedInGameRoom(true);
+                if (!entry.isMonitored()) {
+                    entry.setMonitored(true);
                     Monitor timeMonitor = new Monitor(GameStarter.this);
                     return timeMonitor.start(null);
                 }
@@ -111,7 +111,7 @@ public class GameStarter {
                         e.printStackTrace();
                     }
 
-                    entry.setAlreadyStartedInGameRoom(false);
+                    entry.setMonitored(false);
                     MAIN_SCENE.updateGame(entry);
                     String notificationText = GameEntry.getPlayTimeFormatted(Math.round(newValue / 1000.0), GameEntry.TIME_FORMAT_HMS_CASUAL) + " "
                             + Main.getString("tray_icon_time_recorded") + " "

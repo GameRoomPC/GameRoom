@@ -49,7 +49,7 @@ public class SettingValue<T> {
 
     @Override
     public String toString(){
-        if(getValueClass()!= null && getValueClass().equals(SimpleBooleanProperty.class)){
+        if(getValueClass()!= null && settingValue instanceof SimpleBooleanProperty){
             return GSON.toJson(((SimpleBooleanProperty)settingValue).getValue());
         }
         return GSON.toJson(settingValue);
@@ -60,9 +60,9 @@ public class SettingValue<T> {
             try {
                 SettingValue settingValue = null;
                 if(predefinedSetting.getDefaultValue().getValueClass()!=null){
-                    if(predefinedSetting.getDefaultValue().getValueClass().equals(SimpleBooleanProperty.class)){
+                    if(predefinedSetting.getDefaultValue().getSettingValue() instanceof SimpleBooleanProperty){
                         Boolean storedValue = GSON.fromJson(prop.getProperty(predefinedSetting.getKey()), Boolean.class);
-                        BooleanProperty b = new SimpleBooleanProperty(storedValue);
+                        SimpleBooleanProperty b = new SimpleBooleanProperty(storedValue);
                         settingValue = new SettingValue(b,predefinedSetting.getDefaultValue().getValueClass(),predefinedSetting.getDefaultValue().category);
                     }else{
                         settingValue = new SettingValue(GSON.fromJson(prop.getProperty(predefinedSetting.getKey()), predefinedSetting.getDefaultValue().getValueClass()),predefinedSetting.getDefaultValue().getValueClass(),predefinedSetting.getDefaultValue().category);

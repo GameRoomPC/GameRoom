@@ -7,6 +7,7 @@ import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
@@ -108,7 +109,7 @@ public class DrawerMenu extends BorderPane {
 
         widthProperty().addListener((observable, oldValue, newValue) -> {
             if (getButtonsPaneWidth() > 0) {
-                double newOpacity = 3 * getButtonsPaneWidth() / newValue.doubleValue();
+                double newOpacity = 3.5 * getButtonsPaneWidth() / newValue.doubleValue();
                 if (getTranslateX() < 0) {
                     newOpacity = 1;
                 }
@@ -230,6 +231,7 @@ public class DrawerMenu extends BorderPane {
                 openSubMenu(mainScene, addMenu.getMenuId());
             }
         });
+        addButton.setTooltip(new Tooltip(Main.getString("add_a_game")));
 
         subMenus.put(addMenu.getMenuId(), addMenu);
 
@@ -238,6 +240,7 @@ public class DrawerMenu extends BorderPane {
 
     private void initScanButton(MainScene mainScene) {
         ScanButton b = new ScanButton(this);
+        b.setTooltip(new Tooltip(Main.getString("scan")));
 
         topButtonsBox.getChildren().add(b);
     }
@@ -245,6 +248,7 @@ public class DrawerMenu extends BorderPane {
     private void initSortButton(MainScene mainScene) {
         DrawerButton sortButton = new DrawerButton("main-sort-button", this);
         sortButton.setSelectionable(true);
+        sortButton.setTooltip(new Tooltip(Main.getString("sortBy")));
 
         SubMenu sortMenu = createSortBySubMenu(mainScene, this);
 
@@ -289,6 +293,7 @@ public class DrawerMenu extends BorderPane {
         DrawerButton groupButton = new DrawerButton("main-group-button", this);
         groupButton.setFocusTraversable(false);
         groupButton.setSelectionable(true);
+        groupButton.setTooltip(new Tooltip(Main.getString("groupBy")));
 
         SubMenu groupMenu = createGroupBySubMenu(mainScene, this);
 
@@ -310,6 +315,7 @@ public class DrawerMenu extends BorderPane {
         DrawerButton editButton = new DrawerButton("main-edit-button", this);
         editButton.setFocusTraversable(false);
         editButton.setSelectionable(true);
+        editButton.setTooltip(new Tooltip(Main.getString("customize")));
 
         SubMenu editSubMenu = createEditSubMenu(mainScene, this);
 
@@ -336,6 +342,7 @@ public class DrawerMenu extends BorderPane {
             LOGGER.debug("SettingsScene : init = " + (System.currentTimeMillis() - start) + "ms");
             mainScene.fadeTransitionTo(settingsScene, mainScene.getParentStage(), true);
         });
+        settingsButton.setTooltip(new Tooltip(Main.getString("Settings")));
 
         bottomButtonsBox.getChildren().add(settingsButton);
     }

@@ -51,6 +51,7 @@ public class Launcher extends Application {
     private static boolean WAS_MAXIMISED = false;
     private static ChangeListener<Boolean> focusListener;
     private static ChangeListener<Boolean> maximizedListener;
+    private static ChangeListener<Boolean> fullScreenListener;
 
     public static void main(String[] args) throws URISyntaxException {
         setCurrentProcessExplicitAppUserModelID("GameRoom");
@@ -174,6 +175,7 @@ public class Launcher extends Application {
         initTrayIcon();
         initXboxController(primaryStage);
         setFullScreen(primaryStage, GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN), true);
+
         if (!DEV_MODE) {
             startUpdater();
         }
@@ -214,6 +216,12 @@ public class Launcher extends Application {
         primaryStage.setScene(initScene);
         primaryStage.setFullScreenExitHint("");
         primaryStage.setFullScreenExitKeyCombination(null);
+
+        fullScreenListener = (observable, oldValue, newValue) -> {
+            setFullScreen(primaryStage, newValue, false);
+        };
+        GENERAL_SETTINGS.getBooleanProperty(PredefinedSetting.FULL_SCREEN).addListener((fullScreenListener));
+
         MAIN_SCENE.setParentStage(primaryStage);
 
         if (initScene instanceof BaseScene) {
@@ -223,7 +231,8 @@ public class Launcher extends Application {
             @Override
             public void handle(javafx.scene.input.KeyEvent event) {
                 if (event.getCode() == KeyCode.F11) {
-                    setFullScreen(primaryStage, !GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN), false);
+                    boolean wasFullScreen = GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN);
+                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FULL_SCREEN,!wasFullScreen);
                 }
                 if (event.getCode() == KeyCode.F10) {
                     //TODO toggle drawerMenu of MainScene
@@ -248,6 +257,9 @@ public class Launcher extends Application {
         }
         if (focusListener != null) {
             stage.focusedProperty().removeListener(focusListener);
+        }
+        if(fullScreenListener != null){
+            GENERAL_SETTINGS.getBooleanProperty(PredefinedSetting.FULL_SCREEN).removeListener(fullScreenListener);
         }
     }
 

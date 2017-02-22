@@ -188,7 +188,7 @@ public class GameEditScene extends BaseScene {
                         }
                     }
                     if (entry.isToAdd()) {
-                        entry.deleteFiles();
+                        entry.delete();
                         entry.setToAdd(false);
                     }
                     entry.setSavedLocaly(true);
