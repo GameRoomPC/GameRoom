@@ -634,10 +634,14 @@ public class GameEntry {
         saveEntry();
     }
 
-    public void delete() {
+    public void deletePermanently(){
+        deleteFiles();
+        deleted = true;
+    }
+
+    public void deleteFiles() {
         File file = new File((isToAdd() ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + getUuid().toString());
         FileUtils.deleteFolder(file);
-        deleted = true;
     }
 
     public String getProcessName() {

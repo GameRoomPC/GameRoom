@@ -22,7 +22,7 @@ class TimeTextField extends TextField {
     public boolean deleteNextChar() {
         boolean success = false;
 
-        // If there's a selection, delete it:
+        // If there's a selection, deleteFiles it:
         final IndexRange selection = getSelection();
         if (selection.getLength() > 0) {
             int selectionEnd = selection.getEnd();
@@ -46,7 +46,7 @@ class TimeTextField extends TextField {
     @Override
     public boolean deletePreviousChar() {
         boolean success = false;
-        // If there's a selection, delete it:
+        // If there's a selection, deleteFiles it:
         final IndexRange selection = getSelection();
         if (selection.getLength() > 0) {
             int selectionStart = selection.getStart();

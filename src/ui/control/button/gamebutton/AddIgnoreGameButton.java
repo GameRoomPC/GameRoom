@@ -64,7 +64,7 @@ public class AddIgnoreGameButton extends GameButton {
                 } else {
                     addToFolderIgnoredList();
                 }
-                entry.delete();
+                entry.deleteFiles();
                 entry.setSavedLocaly(false);
 
                 mainScene.removeGame(entry);

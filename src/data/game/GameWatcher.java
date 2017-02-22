@@ -502,7 +502,7 @@ public class GameWatcher {
             if (delete) {
                 toRemoveEntries.add(n);
                 if (n.isToAdd()) { //check if not added to Games folder
-                    n.delete();
+                    n.deletePermanently();
                 }
                 break;
             }

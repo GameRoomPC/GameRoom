@@ -74,10 +74,10 @@ public class FileUtils {
                     for (File subFile : src.listFiles()) {
                         moveToFolder(subFile, movedFile);
                     }
-                    //delete empty folder afterwards
+                    //deleteFiles empty folder afterwards
                     src.delete();
                 } else if (src.isDirectory() && src.listFiles().length == 0) {
-                    //delete empty folder
+                    //deleteFiles empty folder
                     src.delete();
                 } else {
                     //is a file, we'll try to move it or at least copy it
