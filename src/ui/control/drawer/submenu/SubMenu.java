@@ -55,7 +55,7 @@ public class SubMenu extends BorderPane {
     }
 
     public void initTop(String text, MainScene mainScene, DrawerMenu drawerMenu){
-        titleLabel  = new Label(Main.getString(text));
+        titleLabel  = new Label(Main.getString(text)+" :");
         titleLabel.getStyleClass().add("drawer-submenu-title");
         titleLabel.setPadding(new Insets(50* Main.SCREEN_HEIGHT/1080
                 , 20* Main.SCREEN_HEIGHT/1080

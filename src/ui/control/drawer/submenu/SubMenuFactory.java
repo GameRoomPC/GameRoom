@@ -1,15 +1,10 @@
 package ui.control.drawer.submenu;
 
 import data.io.FileUtils;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
-import javafx.scene.input.MouseDragEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -23,7 +18,6 @@ import ui.scene.GameEditScene;
 import ui.scene.MainScene;
 import ui.scene.SettingsScene;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -148,7 +142,7 @@ public final class SubMenuFactory {
     }
 
     public static SubMenu createEditSubMenu(MainScene mainScene, DrawerMenu drawerMenu) {
-        SubMenu editMenu = new SubMenu("editMenu", mainScene, drawerMenu);
+        SubMenu editMenu = new SubMenu("customize", mainScene, drawerMenu);
         CheckBoxItem keepDrawerCheckBox = new CheckBoxItem("keep_drawer_opened", true);
         keepDrawerCheckBox.setSelected(!Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR));
         keepDrawerCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
