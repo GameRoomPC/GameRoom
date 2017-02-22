@@ -165,20 +165,9 @@ public final class SubMenuFactory {
         editMenu.addItem(hidePanesCheckBox);
 
         CheckBoxItem fullScreenCheckBox = new CheckBoxItem("fullscreen", true);
-        fullScreenCheckBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN));
-        fullScreenCheckBox.setOnAction(event -> {
-            try {
-                Robot r = new Robot();
-                r.keyPress(java.awt.event.KeyEvent.VK_F11);
-            } catch (AWTException e) {
-                e.printStackTrace();
-            }
-        });
-        mainScene.getParentStage().fullScreenProperty().addListener((observable, oldValue, newValue) -> {
-            fullScreenCheckBox.setSelected(newValue);
-        });
-        //TODO fix F11 and this checkbox sync
-        //editMenu.addItem(fullScreenCheckBox);
+        fullScreenCheckBox.selectedProperty().bindBidirectional(Main.GENERAL_SETTINGS.getBooleanProperty(PredefinedSetting.FULL_SCREEN));
+
+        editMenu.addItem(fullScreenCheckBox);
 
         Slider sizeSlider = new Slider();
         sizeSlider.setMin(MIN_TILE_ZOOM);
