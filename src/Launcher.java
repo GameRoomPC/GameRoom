@@ -233,7 +233,6 @@ public class Launcher extends Application {
                 if (event.getCode() == KeyCode.F11) {
                     boolean wasFullScreen = GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN);
                     GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FULL_SCREEN,!wasFullScreen);
-                    //setFullScreen(primaryStage, !GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN), false);
                 }
                 if (event.getCode() == KeyCode.F10) {
                     //TODO toggle drawerMenu of MainScene

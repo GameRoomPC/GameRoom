@@ -1,6 +1,7 @@
 package data.game.entry;
 
 import data.io.FileUtils;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import system.application.GameStarter;
@@ -50,7 +51,6 @@ public class GameEntry {
     private int aggregated_rating;
     private String path = "";
     private UUID uuid;
-    private boolean alreadyStartedInGameRoom = false;
     private String[] cmd = new String[4];
     private String args = "";
     private String youtubeSoundtrackHash = "";
@@ -84,6 +84,8 @@ public class GameEntry {
     private transient Runnable onGameStopped;
 
     private transient boolean deleted = false;
+
+    private transient SimpleBooleanProperty monitored = new SimpleBooleanProperty(false);
 
     public GameEntry(String name) {
         uuid = UUID.randomUUID();
@@ -757,14 +759,6 @@ public class GameEntry {
         igdb_imageHash[index] = hash;
     }
 
-    public boolean isAlreadyStartedInGameRoom() {
-        return alreadyStartedInGameRoom;
-    }
-
-    public void setAlreadyStartedInGameRoom(boolean alreadyStartedInGameRoom) {
-        this.alreadyStartedInGameRoom = alreadyStartedInGameRoom;
-    }
-
     public void startGame() {
         try {
             new GameStarter(this).start();
@@ -833,5 +827,17 @@ public class GameEntry {
 
     public void setOnGameStopped(Runnable onGameStopped) {
         this.onGameStopped = onGameStopped;
+    }
+
+    public void setMonitored(boolean monitored){
+        this.monitored.setValue(monitored);
+    }
+
+    public boolean isMonitored(){
+        return monitored.getValue();
+    }
+
+    public SimpleBooleanProperty monitoredProperty() {
+        return monitored;
     }
 }

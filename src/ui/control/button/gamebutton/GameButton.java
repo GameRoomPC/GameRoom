@@ -94,6 +94,8 @@ public abstract class GameButton extends BorderPane {
     private GameEntry entry;
     private boolean inContextMenu = false;
 
+    private ChangeListener<Boolean> monitoredChangeListener;
+
 
     GameButton(GameEntry entry, BaseScene scene, Pane parent) {
         super();
@@ -119,6 +121,10 @@ public abstract class GameButton extends BorderPane {
     }
 
     public void reloadWith(GameEntry entry) {
+        if(monitoredChangeListener != null){
+            this.entry.monitoredProperty().removeListener(monitoredChangeListener);
+        }
+
         this.entry = entry;
         playTimeLabel.setText(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_ROUNDED_HMS));
         ratingLabel.setText(Integer.toString(entry.getAggregated_rating()));
@@ -127,6 +133,9 @@ public abstract class GameButton extends BorderPane {
 
         titleLabel.setText(entry.getName());
         titleLabel.setTooltip(new Tooltip(entry.getName()));
+        entry.monitoredProperty().addListener(monitoredChangeListener);
+
+
         setLauncherLogo();
 
         double width = getCoverWidth();
@@ -213,6 +222,17 @@ public abstract class GameButton extends BorderPane {
         titleLabel.setScaleY(0.90f);
 
         titleBox.getChildren().addAll(titleLogoView,titleLabel);
+
+        monitoredChangeListener = (observable, oldValue, newValue) -> {
+            if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)){
+                if(!oldValue && newValue){
+                    titleLabel.setId("advanced-setting-label");
+                }else if(!newValue){
+                    titleLabel.setId("");
+                }
+            }
+        };
+        entry.monitoredProperty().addListener(monitoredChangeListener);
     }
 
     private void initContextMenu() {
