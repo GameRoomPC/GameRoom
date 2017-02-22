@@ -502,6 +502,7 @@ public class MainScene extends BaseScene {
             });
             newItems.add(gameItem);
         }
+        
         newItems.sort(new Comparator<java.awt.MenuItem>() {
             @Override
             public int compare(java.awt.MenuItem o1, java.awt.MenuItem o2) {

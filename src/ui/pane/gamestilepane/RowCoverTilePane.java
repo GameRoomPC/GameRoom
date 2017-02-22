@@ -41,6 +41,50 @@ import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
 public class RowCoverTilePane extends CoverTilePane {
     public final static String TYPE_LAST_PLAYED = "last_played";
     public final static String TYPE_RECENTLY_ADDED = "recently_added";
+    public final static Comparator<GameEntry> LAST_PLAYED_COMPARATOR = (o1, o2) -> {
+        int result = 0;
+        Date date1 = o1.getLastPlayedDate();
+        Date date2 = o2.getLastPlayedDate();
+
+        if (date1 == null && date2 != null) {
+            return 1;
+        } else if (date2 == null && date1 != null) {
+            return -1;
+        } else if (date1 == null && date2 == null) {
+            result = 0;
+        } else {
+            result = date2.compareTo(date1);
+        }
+        if (result == 0) {
+            String name1 = o1.getName();
+            String name2 = o2.getName();
+            result = name1.compareToIgnoreCase(name2);
+        }
+        return result;
+    };
+
+    public final static Comparator<GameEntry> RECENTLY_ADDED_COMPARATOR = (o1, o2) -> {
+        int result = 0;
+        Date date1 = o1.getAddedDate();
+        Date date2 = o2.getAddedDate();
+
+        if (date1 == null && date2 != null) {
+            return 1;
+        } else if (date2 == null && date1 != null) {
+            return -1;
+        } else if (date1 == null && date2 == null) {
+            result = 0;
+        } else {
+            result = date2.compareTo(date1);
+        }
+        if (result == 0) {
+            String name1 = o1.getName();
+            String name2 = o2.getName();
+            result = name1.compareToIgnoreCase(name2);
+        }
+
+        return result;
+    };
     final static String TYPE_NAME = "name";
 
     private Comparator<GameEntry> entriesComparator;
@@ -63,57 +107,10 @@ public class RowCoverTilePane extends CoverTilePane {
         this.entriesComparator = null;
         switch (type) {
             case TYPE_LAST_PLAYED:
-                this.entriesComparator = new Comparator<GameEntry>() {
-                    @Override
-                    public int compare(GameEntry o1, GameEntry o2) {
-                        int result = 0;
-                        Date date1 = o1.getLastPlayedDate();
-                        Date date2 = o2.getLastPlayedDate();
-
-                        if (date1 == null && date2 != null) {
-                            return 1;
-                        } else if (date2 == null && date1 != null) {
-                            return -1;
-                        } else if (date1 == null && date2 == null) {
-                            result = 0;
-                        } else {
-                            result = date2.compareTo(date1);
-                        }
-                        if (result == 0) {
-                            String name1 = o1.getName();
-                            String name2 = o2.getName();
-                            result = name1.compareToIgnoreCase(name2);
-                        }
-                        return result;
-                    }
-                };
+                this.entriesComparator = LAST_PLAYED_COMPARATOR;
                 break;
             case TYPE_RECENTLY_ADDED:
-                this.entriesComparator = new Comparator<GameEntry>() {
-                    @Override
-                    public int compare(GameEntry o1, GameEntry o2) {
-                        int result = 0;
-                        Date date1 = o1.getAddedDate();
-                        Date date2 = o2.getAddedDate();
-
-                        if (date1 == null && date2 != null) {
-                            return 1;
-                        } else if (date2 == null && date1 != null) {
-                            return -1;
-                        } else if (date1 == null && date2 == null) {
-                            result = 0;
-                        } else {
-                            result = date2.compareTo(date1);
-                        }
-                        if (result == 0) {
-                            String name1 = o1.getName();
-                            String name2 = o2.getName();
-                            result = name1.compareToIgnoreCase(name2);
-                        }
-
-                        return result;
-                    }
-                };
+                this.entriesComparator = RECENTLY_ADDED_COMPARATOR;
                 break;
             case TYPE_NAME:
                 this.entriesComparator = new Comparator<GameEntry>() {

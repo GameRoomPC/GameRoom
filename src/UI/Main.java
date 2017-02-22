@@ -31,9 +31,6 @@ import java.util.regex.Pattern;
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
 
 public class Main {
-    private final static String TEMP_UPDATER_JAR_NAME=  "Updater.jar.temp";
-    private final static String UPDATER_JAR_NAME=  "Updater.jar";
-
     public final static String ARGS_FLAG_DEV = "-dev";
     public final static String ARGS_FLAG_IGDB_KEY = "-igdb_key";
     public final static String ARGS_FLAG_SHOW = "-show";
