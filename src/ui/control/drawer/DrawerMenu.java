@@ -136,7 +136,7 @@ public class DrawerMenu extends BorderPane {
             mainScene.getBackgroundView().setTranslateX(newTranslateX);*/
         });
 
-        prefHeightProperty().bind(mainScene.heightProperty());
+        topMenuPane.maxHeightProperty().bind(mainScene.heightProperty());
     }
 
     /**
