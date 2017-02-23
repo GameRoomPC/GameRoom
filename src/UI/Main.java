@@ -3,7 +3,6 @@ package ui;
 import data.http.images.ImageDownloaderService;
 import data.http.key.KeyChecker;
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,8 +67,6 @@ public class Main {
 
     public static TrayIcon TRAY_ICON;
 
-    public static InternalAppNetworkManager NETWORK_MANAGER;
-
     public static volatile boolean KEEP_THREADS_RUNNING = true;
 
     private static String[] calling_args;
@@ -98,7 +95,6 @@ public class Main {
         SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
-        //initNetworkManager();
         //if(!DEV_MODE){
         //startUpdater();
         //}
@@ -139,7 +135,6 @@ public class Main {
                 KEEP_THREADS_RUNNING = false;
                 ImageDownloaderService.getInstance().shutDownNow();
                 Platform.setImplicitExit(true);
-                NETWORK_MANAGER.disconnect();
                 stage.close();
                 Platform.exit();
                 //
@@ -175,22 +170,6 @@ public class Main {
             GameRoomAlert.info(Main.getString("update_downloaded_in_background"));
         });
         GameRoomUpdater.getInstance().start();
-    }
-
-    private static void initNetworkManager() {
-        NETWORK_MANAGER = new InternalAppNetworkManager();
-        NETWORK_MANAGER.addMessageListener(new MessageListener() {
-            @Override
-            public void onMessageReceived(MessageTag tag, String payload) {
-                if (tag.equals(MessageTag.CLOSE_APP)) {
-                    forceStop(MAIN_SCENE.getParentStage(),"Network manager, received close app message");
-                }
-            }
-        });
-        NETWORK_MANAGER.connect();
-        NETWORK_MANAGER.sendMessage(MessageTag.CLOSE_APP);
-        //TODO reduce start time by thread with this
-
     }
 
     public static String getVersion() {
