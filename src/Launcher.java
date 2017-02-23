@@ -87,9 +87,9 @@ public class Launcher extends Application {
 
         Main.DEV_MODE = getArg(ARGS_FLAG_DEV, args, false) != null;
 
-        if(!DEV_MODE) {
+        if (!DEV_MODE) {
             DDE.addActivationListener(s -> {
-                if(!MAIN_SCENE.getParentStage().isShowing()){
+                if (!MAIN_SCENE.getParentStage().isShowing()) {
                     open(MAIN_SCENE.getParentStage());
                 }
                 Platform.runLater(() -> {
@@ -246,12 +246,12 @@ public class Launcher extends Application {
             public void handle(javafx.scene.input.KeyEvent event) {
                 if (event.getCode() == KeyCode.F11) {
                     boolean wasFullScreen = GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN);
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FULL_SCREEN,!wasFullScreen);
+                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FULL_SCREEN, !wasFullScreen);
                 }
                 if (event.getCode() == KeyCode.F10) {
                     //TODO toggle drawerMenu of MainScene
                 }
-                if(event.getCode() == KeyCode.F && event.isControlDown()){
+                if (event.getCode() == KeyCode.F && event.isControlDown()) {
                     MAIN_SCENE.showSearchField();
                 }
             }
@@ -272,7 +272,7 @@ public class Launcher extends Application {
         if (focusListener != null) {
             stage.focusedProperty().removeListener(focusListener);
         }
-        if(fullScreenListener != null){
+        if (fullScreenListener != null) {
             GENERAL_SETTINGS.getBooleanProperty(PredefinedSetting.FULL_SCREEN).removeListener(fullScreenListener);
         }
     }
@@ -309,7 +309,7 @@ public class Launcher extends Application {
             clearStage(primaryStage);
             initPrimaryStage(newStage, primaryStage.getScene(), appStart);
         }
-        if(MAIN_SCENE!=null){
+        if (MAIN_SCENE != null) {
             MAIN_SCENE.toggleScrollBar(fullScreen);
         }
         openStage(newStage, appStart);
@@ -395,7 +395,13 @@ public class Launcher extends Application {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    open(MAIN_SCENE.getParentStage());
+                    if (!MAIN_SCENE.getParentStage().isShowing()) {
+                        open(MAIN_SCENE.getParentStage());
+                    } else {
+                        Platform.runLater(() -> {
+                            MAIN_SCENE.getParentStage().toFront();
+                        });
+                    }
                 }
             }
 
@@ -448,7 +454,13 @@ public class Launcher extends Application {
         openItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                open(MAIN_SCENE.getParentStage());
+                if (!MAIN_SCENE.getParentStage().isShowing()) {
+                    open(MAIN_SCENE.getParentStage());
+                } else {
+                    Platform.runLater(() -> {
+                        MAIN_SCENE.getParentStage().toFront();
+                    });
+                }
             }
         });
         MenuItem gameRoomFolderItem = new MenuItem(Main.getString("gameroom_folder"));
