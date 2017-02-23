@@ -17,6 +17,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
+import org.boris.winrun4j.DDE;
 import system.application.Monitor;
 import system.application.settings.PredefinedSetting;
 import system.device.ControllerButtonListener;
@@ -85,6 +86,19 @@ public class Launcher extends Application {
         }
 
         Main.DEV_MODE = getArg(ARGS_FLAG_DEV, args, false) != null;
+
+        if(!DEV_MODE) {
+            DDE.addActivationListener(s -> {
+                if(!MAIN_SCENE.getParentStage().isShowing()){
+                    open(MAIN_SCENE.getParentStage());
+                }
+                Platform.runLater(() -> {
+                    MAIN_SCENE.getParentStage().toFront();
+                });
+            });
+            DDE.ready();
+        }
+
         initFiles();
         AllGameEntries.loadGames();
 
