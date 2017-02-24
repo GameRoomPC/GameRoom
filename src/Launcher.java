@@ -55,8 +55,6 @@ public class Launcher extends Application {
     private static ChangeListener<Boolean> fullScreenListener;
 
     public static void main(String[] args) throws URISyntaxException {
-        setCurrentProcessExplicitAppUserModelID("GameRoom");
-
         System.setErr(new PrintStream(System.err) {
             public void print(final String string) {
                 LOGGER.error(string);
@@ -536,17 +534,6 @@ public class Launcher extends Application {
         for (int i = 32; i < 513; i *= 2) {
             stage.getIcons().add(new Image("res/ui/icon/icon" + i + ".png"));
         }
-    }
-
-    private static void setCurrentProcessExplicitAppUserModelID(final String appID) {
-        if (SetCurrentProcessExplicitAppUserModelID(new WString(appID)).longValue() != 0)
-            throw new RuntimeException("unable to set current process explicit AppUserModelID to: " + appID);
-    }
-
-    private static native NativeLong SetCurrentProcessExplicitAppUserModelID(WString appID);
-
-    static {
-        Native.register("shell32");
     }
 
 }
