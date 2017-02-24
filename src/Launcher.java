@@ -1,7 +1,7 @@
-import data.io.FileUtils;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scraper.IGDBScraper;
+import data.io.FileUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -10,6 +10,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -19,8 +20,8 @@ import system.application.Monitor;
 import system.application.settings.PredefinedSetting;
 import system.device.ControllerButtonListener;
 import system.device.GameController;
-import ui.Main;
 import ui.GeneralToast;
+import ui.Main;
 import ui.dialog.ConsoleOutputDialog;
 import ui.scene.BaseScene;
 import ui.scene.MainScene;
@@ -43,10 +44,7 @@ import static ui.Main.*;
 public class Launcher extends Application {
     private int trayMessageCount = 0;
     private static ConsoleOutputDialog[] console = new ConsoleOutputDialog[1];
-    private double widthBeforeFullScreen = -1;
-    private double heightBeforeFullScreen = -1;
     private static boolean START_MINIMIZED = false;
-    private static boolean WAS_MAXIMISED = false;
     private static ChangeListener<Boolean> focusListener;
     private static ChangeListener<Boolean> maximizedListener;
     private static ChangeListener<Boolean> fullScreenListener;
@@ -180,10 +178,11 @@ public class Launcher extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         MAIN_SCENE = new MainScene(primaryStage);
-        initPrimaryStage(primaryStage, MAIN_SCENE, true);
+        initPrimaryStage(primaryStage, MAIN_SCENE);
         initTrayIcon();
         initXboxController(primaryStage);
-        setFullScreen(primaryStage, GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN), true);
+        setFullScreen(primaryStage, GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN));
+        openStage(primaryStage, true);
 
         if (!DEV_MODE) {
             startUpdater();
@@ -206,9 +205,10 @@ public class Launcher extends Application {
         });
     }
 
-    private void initPrimaryStage(Stage primaryStage, Scene initScene, boolean appStart) {
+    private void initPrimaryStage(Stage primaryStage, Scene initScene) {
         initIcons(primaryStage);
         primaryStage.setTitle("GameRoom");
+        primaryStage.initStyle(StageStyle.DECORATED);
         focusListener = (observable, oldValue, newValue) -> {
             MAIN_SCENE.setChangeBackgroundNextTime(true);
             primaryStage.getScene().getRoot().setMouseTransparent(!newValue);
@@ -224,10 +224,10 @@ public class Launcher extends Application {
 
         primaryStage.setScene(initScene);
         primaryStage.setFullScreenExitHint("");
-        primaryStage.setFullScreenExitKeyCombination(null);
+        primaryStage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
 
         fullScreenListener = (observable, oldValue, newValue) -> {
-            setFullScreen(primaryStage, newValue, false);
+            setFullScreen(primaryStage, newValue);
         };
         GENERAL_SETTINGS.getBooleanProperty(PredefinedSetting.FULL_SCREEN).addListener((fullScreenListener));
 
@@ -259,55 +259,13 @@ public class Launcher extends Application {
         primaryStage.maximizedProperty().addListener(maximizedListener);
     }
 
-    private void clearStage(Stage stage) {
-        GeneralToast.enableToasts(true);
-        if (maximizedListener != null) {
-            stage.maximizedProperty().removeListener(maximizedListener);
-        }
-        if (focusListener != null) {
-            stage.focusedProperty().removeListener(focusListener);
-        }
-        if (fullScreenListener != null) {
-            GENERAL_SETTINGS.getBooleanProperty(PredefinedSetting.FULL_SCREEN).removeListener(fullScreenListener);
-        }
-    }
-
-    private void setFullScreen(Stage primaryStage, boolean fullScreen, boolean appStart) {
-        if (fullScreen) {
-            WAS_MAXIMISED = primaryStage.isMaximized();
-        }
+    private void setFullScreen(Stage primaryStage, boolean fullScreen) {
         GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FULL_SCREEN, fullScreen);
-        if (!appStart) {
-            clearStage(primaryStage);
-            primaryStage.close();
-        }
-        Stage newStage = appStart ? primaryStage : new Stage();
+        primaryStage.setFullScreen(fullScreen);
 
-        newStage.setFullScreen(fullScreen);
-        if (fullScreen) {
-            widthBeforeFullScreen = GENERAL_SETTINGS.getWindowWidth();
-            heightBeforeFullScreen = GENERAL_SETTINGS.getWindowHeight();
-            newStage.setWidth(Main.SCREEN_WIDTH);
-            newStage.setHeight(Main.SCREEN_HEIGHT);
-            newStage.initStyle(StageStyle.UNDECORATED);
-        } else {
-            if (widthBeforeFullScreen != -1) {
-                newStage.setWidth(widthBeforeFullScreen);
-            }
-            if (heightBeforeFullScreen != -1) {
-                newStage.setHeight(heightBeforeFullScreen);
-            }
-            newStage.initStyle(StageStyle.DECORATED);
-            newStage.setMaximized(WAS_MAXIMISED);
-        }
-        if (!appStart) {
-            clearStage(primaryStage);
-            initPrimaryStage(newStage, primaryStage.getScene(), appStart);
-        }
         if (MAIN_SCENE != null) {
             MAIN_SCENE.toggleScrollBar(fullScreen);
         }
-        openStage(newStage, appStart);
     }
 
     private void initXboxController(Stage primaryStage) {
