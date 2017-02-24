@@ -299,6 +299,9 @@ public class Launcher extends Application {
                         case GameController.BUTTON_DPAD_RIGHT:
                             r.keyPress(java.awt.event.KeyEvent.VK_RIGHT);
                             break;
+                        case GameController.BUTTON_SELECT:
+                            r.keyPress(java.awt.event.KeyEvent.VK_F11);
+                            break;
                         default:
                             break;
                     }
