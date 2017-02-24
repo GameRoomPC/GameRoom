@@ -839,7 +839,8 @@ public class SettingsScene extends BaseScene {
             if (currentDir.startsWith("/")) {
                 currentDir = currentDir.substring(1);
             }
-            currentDir.replace("/", "\\");
+            currentDir = currentDir.replace("/", "\\");
+            currentDir = currentDir.replace(".jar",".exe");
 
             String showString = show ? "1" : "0";
             ShellLink sl = ShellLink.createLink(currentDir)
