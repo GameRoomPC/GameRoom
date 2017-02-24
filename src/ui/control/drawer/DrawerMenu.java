@@ -52,9 +52,15 @@ public class DrawerMenu extends BorderPane {
         super();
         setFocusTraversable(false);
 
-        double widthRatio = Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.DRAWER_MENU_WIDTH);
-        setMaxWidth( SCREEN_WIDTH * widthRatio);
-        setPrefWidth(SCREEN_WIDTH * widthRatio);
+        double storedWidth = Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.DRAWER_MENU_WIDTH);
+        if (storedWidth == 0 || storedWidth < SCREEN_WIDTH * MIN_WIDTH_RATIO || storedWidth > SCREEN_WIDTH * MAX_WIDTH_RATIO) {
+            setMaxWidth(SCREEN_WIDTH * WIDTH_RATIO);
+            setPrefWidth(SCREEN_WIDTH * WIDTH_RATIO);
+        } else {
+            setMaxWidth(storedWidth);
+            setPrefWidth(storedWidth);
+        }
+
         setFocusTraversable(false);
         //setEffect(new InnerShadow());
         setId("menu-bar");
@@ -77,9 +83,9 @@ public class DrawerMenu extends BorderPane {
         setOnMouseDragged(event -> {
             if (resizing || (getCursor() != null && getCursor().equals(Cursor.E_RESIZE))) {
                 resizing = true;
-                double newWidth = event.getX()- 30; //magic number...
+                double newWidth = event.getX() - 30; //magic number...
 
-                if(getCursor() == null || !getCursor().equals(Cursor.E_RESIZE)){
+                if (getCursor() == null || !getCursor().equals(Cursor.E_RESIZE)) {
                     setCursor(Cursor.E_RESIZE);
                 }
 
@@ -88,7 +94,7 @@ public class DrawerMenu extends BorderPane {
                 if (newRatio >= MIN_WIDTH_RATIO && newRatio <= MAX_WIDTH_RATIO) {
                     setPrefWidth(newWidth);
                     setMaxWidth(newWidth);
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DRAWER_MENU_WIDTH, newRatio);
+                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DRAWER_MENU_WIDTH, newWidth);
                 }
             }
         });
@@ -101,7 +107,7 @@ public class DrawerMenu extends BorderPane {
             setCursor(Cursor.E_RESIZE);
         });
         resizePane.setOnMouseExited(event -> {
-                setCursor(Cursor.DEFAULT);
+            setCursor(Cursor.DEFAULT);
         });
 
         setCache(true);

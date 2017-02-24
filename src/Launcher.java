@@ -431,7 +431,7 @@ public class Launcher extends Application {
                         MAIN_SCENE.getParentStage().hide();
                         if (trayMessageCount < 2 && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING) && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS)) {
                             TRAY_ICON.displayMessage("GameRoom"
-                                    , Main.getString("tray_icon_still_running"), TrayIcon.MessageType.INFO);
+                                    , Main.getString("tray_icon_still_running"), TrayIcon.MessageType.NONE);
                             trayMessageCount++;
                         } else {
                             if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING)) {

@@ -62,7 +62,7 @@ public enum PredefinedSetting {
     , ENABLED_GAME_SCANNERS("enabledGameScanners",new SettingValue(ScannerProfile.values(),ScannerProfile[].class,CATEGORY_SCAN))
     , LAST_SUPPORT_MESSAGE("lastSupportMessage", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , LAST_UPDATE_CHECK("lastUpdateCheck", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
-    , DRAWER_MENU_WIDTH("drawerMenuWidth", new SettingValue(DrawerMenu.WIDTH_RATIO,Double.class,CATEGORY_NONE))
+    , DRAWER_MENU_WIDTH("drawerMenuWidth", new SettingValue(0,Double.class,CATEGORY_NONE))
     ;
 
 
