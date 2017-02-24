@@ -36,7 +36,6 @@ import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ActivationKeyDialog;
 import ui.dialog.GameRoomAlert;
-import ui.dialog.SteamProfileSelector;
 import ui.dialog.WebBrowser;
 import ui.dialog.selector.GameFoldersIgnoredSelector;
 import ui.dialog.selector.GameScannerSelector;
@@ -184,13 +183,13 @@ public class SettingsScene extends BaseScene {
         });*/
         addPropertyLine(PredefinedSetting.DISABLE_SCROLLBAR_IN_FULLSCREEN, true);
 
-            addPropertyLine(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT, true, new ChangeListener<Boolean>() {
+            addPropertyLine(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT,false, new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 if (newValue) {
-                    Main.xboxController.startThreads();
+                    Main.gameController.startThreads();
                 } else {
-                    Main.xboxController.stopThreads();
+                    Main.gameController.stopThreads();
                 }
             }
         });

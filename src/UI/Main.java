@@ -7,13 +7,10 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import system.application.GameRoomUpdater;
-import system.application.InternalAppNetworkManager;
-import system.application.MessageListener;
-import system.application.MessageTag;
 import system.application.settings.GeneralSettings;
 import system.application.settings.PredefinedSetting;
 import system.application.settings.SettingValue;
-import system.device.XboxController;
+import system.device.GameController;
 import ui.dialog.GameRoomAlert;
 import ui.scene.MainScene;
 
@@ -63,7 +60,7 @@ public class Main {
 
     public static Menu START_TRAY_MENU = new Menu();
 
-    public static XboxController xboxController;
+    public static GameController gameController;
 
     public static TrayIcon TRAY_ICON;
 

@@ -1,6 +1,3 @@
-import com.sun.jna.Native;
-import com.sun.jna.NativeLong;
-import com.sun.jna.WString;
 import data.io.FileUtils;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
@@ -21,7 +18,7 @@ import org.boris.winrun4j.DDE;
 import system.application.Monitor;
 import system.application.settings.PredefinedSetting;
 import system.device.ControllerButtonListener;
-import system.device.XboxController;
+import system.device.GameController;
 import ui.Main;
 import ui.GeneralToast;
 import ui.dialog.ConsoleOutputDialog;
@@ -217,10 +214,10 @@ public class Launcher extends Application {
             primaryStage.getScene().getRoot().setMouseTransparent(!newValue);
             GeneralToast.enableToasts(newValue);
 
-            if (newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)) {
-                xboxController.startThreads();
-            } else if (!newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)) {
-                xboxController.stopThreads();
+            if (newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
+                gameController.startThreads();
+            } else if (!newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
+                gameController.stopThreads();
             }
         };
         primaryStage.focusedProperty().addListener(focusListener);
@@ -316,32 +313,32 @@ public class Launcher extends Application {
     private void initXboxController(Stage primaryStage) {
         try {
             Robot r = new Robot();
-            xboxController = new XboxController(new ControllerButtonListener() {
+            gameController = new GameController(new ControllerButtonListener() {
                 @Override
                 public void onButtonPressed(String buttonId) {
                     switch (buttonId) {
-                        case XboxController.BUTTON_A:
+                        case GameController.BUTTON_A:
                             r.keyPress(java.awt.event.KeyEvent.VK_ENTER);
                             break;
-                        case XboxController.BUTTON_B:
+                        case GameController.BUTTON_B:
                             r.keyPress(java.awt.event.KeyEvent.VK_ESCAPE);
                             break;
-                        case XboxController.BUTTON_X:
+                        case GameController.BUTTON_X:
                             r.keyPress(KeyEvent.VK_SPACE);
                             break;
-                        case XboxController.BUTTON_Y:
+                        case GameController.BUTTON_Y:
                             r.keyPress(java.awt.event.KeyEvent.VK_I);
                             break;
-                        case XboxController.BUTTON_DPAD_UP:
+                        case GameController.BUTTON_DPAD_UP:
                             r.keyPress(java.awt.event.KeyEvent.VK_UP);
                             break;
-                        case XboxController.BUTTON_DPAD_LEFt:
+                        case GameController.BUTTON_DPAD_LEFt:
                             r.keyPress(java.awt.event.KeyEvent.VK_LEFT);
                             break;
-                        case XboxController.BUTTON_DPAD_DOWN:
+                        case GameController.BUTTON_DPAD_DOWN:
                             r.keyPress(java.awt.event.KeyEvent.VK_DOWN);
                             break;
-                        case XboxController.BUTTON_DPAD_RIGHT:
+                        case GameController.BUTTON_DPAD_RIGHT:
                             r.keyPress(java.awt.event.KeyEvent.VK_RIGHT);
                             break;
                         default:
@@ -355,8 +352,8 @@ public class Launcher extends Application {
 
                 }
             });
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)) {
-                xboxController.startThreads();
+            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
+                gameController.startThreads();
             }
 
         } catch (AWTException e) {

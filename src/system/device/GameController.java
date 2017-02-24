@@ -9,7 +9,7 @@ import java.security.PrivilegedAction;
 /**
  * Created by LM on 26/07/2016.
  */
-public class XboxController {
+public class GameController {
     public final static String BUTTON_A = "0";
     public final static String BUTTON_B = "1";
     public final static String BUTTON_X = "2";
@@ -33,7 +33,7 @@ public class XboxController {
 
     private volatile boolean runThreads = false;
 
-    public XboxController(ControllerButtonListener controllerButtonListener) {
+    public GameController(ControllerButtonListener controllerButtonListener) {
         pollingTask = new Runnable() {
             @Override
             public void run() {
