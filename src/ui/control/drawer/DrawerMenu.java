@@ -288,7 +288,7 @@ public class DrawerMenu extends BorderPane {
         subMenu.open(mainScene, this);
     }
 
-    private void closeSubMenu(MainScene mainScene) {
+    public void closeSubMenu(MainScene mainScene) {
         if (currentSubMenu != null) {
             currentSubMenu.close(mainScene, this);
         }
