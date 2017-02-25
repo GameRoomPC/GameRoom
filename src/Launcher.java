@@ -195,6 +195,11 @@ public class Launcher extends Application {
         }
         primaryStage.show();
         if (START_MINIMIZED && appStart) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             primaryStage.hide();
             primaryStage.setOpacity(1);
         }
