@@ -196,7 +196,7 @@ public class GameInfoScene extends BaseScene {
             for(GameGenre genre : entry.getGenres()){
                 genres+=genre.getDisplayName()+", ";
             }
-            addProperty("genre",!genres.equals("") ? genres.substring(0,genres.length()-2):"-");
+            addProperty("genre",genres.length() > 2 && !genres.equals("") ? genres.substring(0,genres.length()-2):"-");
         }else{
             addProperty("genre",null);
         }
@@ -205,7 +205,7 @@ public class GameInfoScene extends BaseScene {
             for(GameTheme theme : entry.getThemes()){
                 themes+=theme.getDisplayName()+", ";
             }
-            addProperty("theme",!themes.equals(", ") ? themes.substring(0,themes.length()-2) : "-");
+            addProperty("theme",themes.length() > 2 && !themes.equals(", ") ? themes.substring(0,themes.length()-2) : "-");
         }else{
             addProperty("theme",null);
         }
@@ -280,10 +280,10 @@ public class GameInfoScene extends BaseScene {
         //no need to fade transition here as it is the "right" image and no actual change
         double widthScale = 1;
         double heightScale = 1;
-        if(backgroundImage.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
+        if(backgroundImage!= null && backgroundImage.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
             widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/backgroundImage.getWidth();
         }
-        if(backgroundImage.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
+        if(backgroundImage!= null && backgroundImage.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
             heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/backgroundImage.getHeight();
         }
         backgroundView.setScaleX(widthScale);
