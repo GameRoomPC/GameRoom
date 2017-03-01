@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS GameEntry (
 	id integer PRIMARY KEY AUTOINCREMENT,
-	name text,
+	name text unique,
 	release_date text,
 	description text,
 	aggregated_rating integer,

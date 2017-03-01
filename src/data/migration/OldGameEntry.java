@@ -11,13 +11,12 @@ import org.apache.commons.lang.StringEscapeUtils;
 import ui.Main;
 
 import java.io.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 import java.util.regex.Pattern;
 
 import static ui.Main.FILES_MAP;
@@ -49,7 +48,7 @@ public class OldGameEntry {
     private String description = "";
     private String developer = "";
     private String publisher = "";
-    private GameGenre[] genres;
+    private OldGenre[] genres;
     private GameTheme[] themes;
     private String serie = "";
     private int aggregated_rating;
@@ -106,39 +105,55 @@ public class OldGameEntry {
             oldEntries.add(entry);
         }
 
-        for(OldGameEntry entry : oldEntries){
+        for (OldGameEntry entry : oldEntries) {
             entry.transferToDB();
         }
 
     }
 
-    public void transferToDB(){
+    public void transferToDB() {
         String sqlQuery = getSQLInitLine();
         try {
             Connection connection = DataBase.getInstance().getConnection();
 
             PreparedStatement statement = connection.prepareStatement(sqlQuery);
             statement.setString(1, name);
-            statement.setString(2, releaseDate==null ? "" : DATE_STORE_FORMAT.format(releaseDate));
-            statement.setString(3,description);
-            statement.setInt(4,aggregated_rating);
-            statement.setString(5,path);
-            statement.setString(6,cmd[0]);
-            statement.setString(7,cmd[1]);
-            statement.setString(8,args);
-            statement.setString(9,youtubeSoundtrackHash);
-            statement.setString(10,(addedDate==null ? "" : DATE_STORE_FORMAT.format(addedDate)));
-            statement.setString(11,(lastPlayedDate==null ? "" : DATE_STORE_FORMAT.format(lastPlayedDate)));
+            statement.setString(2, releaseDate == null ? "" : DATE_STORE_FORMAT.format(releaseDate));
+            statement.setString(3, description);
+            statement.setInt(4, aggregated_rating);
+            statement.setString(5, path);
+            statement.setString(6, cmd[0]);
+            statement.setString(7, cmd[1]);
+            statement.setString(8, args);
+            statement.setString(9, youtubeSoundtrackHash);
+            statement.setString(10, (addedDate == null ? "" : DATE_STORE_FORMAT.format(addedDate)));
+            statement.setString(11, (lastPlayedDate == null ? "" : DATE_STORE_FORMAT.format(lastPlayedDate)));
             statement.setLong(12, playTime);
             statement.setBoolean(13, !notInstalled);
-            statement.setString(14,igdb_imageHash[0]);
-            statement.setString(15,igdb_imageHash[1]);
-            statement.setInt(16,igdb_id);
+            statement.setString(14, igdb_imageHash[0]);
+            statement.setString(15, igdb_imageHash[1]);
+            statement.setInt(16, igdb_id);
             statement.setBoolean(17, waitingToBeScrapped);
-            statement.setBoolean(18,toAdd);
-            statement.setBoolean(19,beingScrapped);
+            statement.setBoolean(18, toAdd);
+            statement.setBoolean(19, beingScrapped);
             statement.execute();
             statement.close();
+
+            PreparedStatement getIdQuery = connection.prepareStatement("SELECT last_insert_rowid()");
+            ResultSet result = getIdQuery.executeQuery();
+            int sqlId = result.getInt(1);
+
+            for (OldGenre genre : genres) {
+                int genreId = GameGenre.getIGDBId(genre.getKey());
+                if(genreId != -1){
+                    PreparedStatement genreStatement = connection.prepareStatement("INSERT INTO has_genre(game_id,genre_id) VALUES (?,?)");
+                    genreStatement.setInt(1,sqlId);
+                    genreStatement.setInt(2,genreId);
+                    genreStatement.execute();
+                    genreStatement.close();
+                }
+
+            }
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -210,7 +225,7 @@ public class OldGameEntry {
                 prop.setProperty("uplay_id", Integer.toString(uplay_id));
                 prop.setProperty("battlenet_id", Integer.toString(battlenet_id));
                 prop.setProperty("igdb_id", Integer.toString(igdb_id));
-                prop.setProperty("genres", GameGenre.toJson(genres));
+                prop.setProperty("genres", OldGenre.toJson(genres));
                 prop.setProperty("themes", GameTheme.toJson(themes));
                 prop.setProperty("aggregated_rating", Integer.toString(aggregated_rating));
                 for (int i = 0; i < cmd.length; i++) {
@@ -298,7 +313,7 @@ public class OldGameEntry {
             igdb_id = Integer.parseInt(prop.getProperty("igdb_id"));
         }
         if (prop.getProperty("genres") != null) {
-            genres = GameGenre.fromJson(prop.getProperty("genres"));
+            genres = OldGenre.fromJson(prop.getProperty("genres"));
         }
         if (prop.getProperty("themes") != null) {
             themes = GameTheme.fromJson(prop.getProperty("themes"));
@@ -726,24 +741,6 @@ public class OldGameEntry {
         saveEntry();
     }
 
-    public GameGenre[] getGenres() {
-        return genres;
-    }
-
-    public void setGenres(GameGenre[] genres) {
-        this.genres = genres;
-        saveEntry();
-    }
-
-    public GameTheme[] getThemes() {
-        return themes;
-    }
-
-    public void setThemes(GameTheme[] themes) {
-        this.themes = themes;
-        saveEntry();
-    }
-
     public String getSerie() {
         return serie;
     }
@@ -825,7 +822,7 @@ public class OldGameEntry {
     }
 
     private static String getSQLInitLine() {
-        String temp = "INSERT INTO GameEntry (name," +
+        String temp = "INSERT OR IGNORE INTO GameEntry (name," +
                 "release_date," +
                 "description," +
                 "aggregated_rating," +
@@ -846,28 +843,28 @@ public class OldGameEntry {
                 "beingScraped" +
                 ") VALUES (?";
         for (int i = 0; i < 18; i++) {
-            temp+= ",?";
+            temp += ",?";
         }
-        return temp +");";
+        return temp + ");";
     }
 
     private String toSQLValue() {
         return "(" +
-                "\""+StringEscapeUtils.escapeSql(name) + "\"," +
-                "\""+(releaseDate==null ? "" : DATE_STORE_FORMAT.format(releaseDate))+ "\"," +
-                "\""+StringEscapeUtils.escapeSql(description) + "\"," +
+                "\"" + StringEscapeUtils.escapeSql(name) + "\"," +
+                "\"" + (releaseDate == null ? "" : DATE_STORE_FORMAT.format(releaseDate)) + "\"," +
+                "\"" + StringEscapeUtils.escapeSql(description) + "\"," +
                 Integer.toString(aggregated_rating) + "," +
-                "\""+StringEscapeUtils.escapeSql(path) + "\"," +
-                "\""+StringEscapeUtils.escapeSql(cmd[0]) + "\"," +
-                "\""+StringEscapeUtils.escapeSql(cmd[1]) + "\"," +
-                "\""+StringEscapeUtils.escapeSql(args) + "\"," +
-                "\""+StringEscapeUtils.escapeSql(youtubeSoundtrackHash) + "\"," +
-                "\""+(addedDate==null ? "" : DATE_STORE_FORMAT.format(addedDate))+ "\"," +
-                "\""+(lastPlayedDate==null ? "" : DATE_STORE_FORMAT.format(lastPlayedDate))+ "\"," +
+                "\"" + StringEscapeUtils.escapeSql(path) + "\"," +
+                "\"" + StringEscapeUtils.escapeSql(cmd[0]) + "\"," +
+                "\"" + StringEscapeUtils.escapeSql(cmd[1]) + "\"," +
+                "\"" + StringEscapeUtils.escapeSql(args) + "\"," +
+                "\"" + StringEscapeUtils.escapeSql(youtubeSoundtrackHash) + "\"," +
+                "\"" + (addedDate == null ? "" : DATE_STORE_FORMAT.format(addedDate)) + "\"," +
+                "\"" + (lastPlayedDate == null ? "" : DATE_STORE_FORMAT.format(lastPlayedDate)) + "\"," +
                 Long.toString(playTime) + "," +
                 (notInstalled ? 0 : 1) + "," +
-                "\""+StringEscapeUtils.escapeSql(igdb_imageHash[0]) + "\"," +
-                "\""+StringEscapeUtils.escapeSql(igdb_imageHash[1]) + "\"," +
+                "\"" + StringEscapeUtils.escapeSql(igdb_imageHash[0]) + "\"," +
+                "\"" + StringEscapeUtils.escapeSql(igdb_imageHash[1]) + "\"," +
                 Integer.toString(igdb_id) + "," +
                 (waitingToBeScrapped ? 1 : 0) + "," +
                 (toAdd ? 1 : 0) + "," +

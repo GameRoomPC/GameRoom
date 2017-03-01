@@ -19,6 +19,7 @@ import static ui.Main.LOGGER;
 public class DataBase {
     private final static String DB_NAME = "library.db";
     private final static DataBase INSTANCE = new DataBase();
+    private static Connection INSTANCE_CONNECTION ;
 
     private DataBase() {
         super();
@@ -38,18 +39,18 @@ public class DataBase {
         File workingDir = Main.FILES_MAP.get("working_dir");
         //File workingDir = new File("D:\\Desktop");
         String dbPath = workingDir.toPath().toAbsolutePath() + File.separator + DB_NAME;
-        LOGGER.info("DBPath : " + dbPath);
         return "jdbc:sqlite:" + dbPath;
     }
 
     private void connect() {
         String url = getDBUrl();
 
-        try (Connection conn = DriverManager.getConnection(url)) {
-            if (conn != null) {
-                DatabaseMetaData meta = conn.getMetaData();
+        try {
+            INSTANCE_CONNECTION = DriverManager.getConnection(url);
+            if (INSTANCE_CONNECTION != null) {
+                DatabaseMetaData meta = INSTANCE_CONNECTION.getMetaData();
                 System.out.println("The driver name is " + meta.getDriverName());
-                System.out.println("A new database has been created.");
+                System.out.println("A new database has been created, path is \""+url+"\"");
             }
 
         } catch (SQLException e) {
@@ -101,8 +102,7 @@ public class DataBase {
     }
 
     public Connection getConnection() throws SQLException {
-        String url = getDBUrl();
-        return DriverManager.getConnection(url);
+        return INSTANCE_CONNECTION;
     }
 
     public static DataBase getInstance() {
