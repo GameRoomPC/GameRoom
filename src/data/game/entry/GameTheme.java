@@ -1,8 +1,13 @@
 package data.game.entry;
 
 import com.google.gson.Gson;
+import data.io.DataBase;
 import ui.Main;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 
 /**
@@ -95,5 +100,28 @@ public enum GameTheme {
 
     public String getKey() {
         return key;
+    }
+
+    public static int getIGDBId(String nameKey) {
+        if (nameKey == null || nameKey.isEmpty()) {
+            return -1;
+        }
+
+        try {
+            Connection connection = DataBase.getInstance().getConnection();
+            PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM GameTheme WHERE name_key = ?");
+            getIdQuery.setString(1, nameKey);
+            ResultSet result = getIdQuery.executeQuery();
+
+            if (result.next()) {
+                int id = result.getInt(1);
+                result.close();
+                return id;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+
     }
 }

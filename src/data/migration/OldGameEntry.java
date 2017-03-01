@@ -1,5 +1,6 @@
 package data.migration;
 
+import com.google.gson.Gson;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
@@ -7,17 +8,20 @@ import data.io.DataBase;
 import data.io.FileUtils;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.image.Image;
-import org.apache.commons.lang.StringEscapeUtils;
 import ui.Main;
 
-import java.io.*;
-import java.sql.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.Date;
-import java.util.regex.Pattern;
 
 import static ui.Main.FILES_MAP;
 import static ui.Main.LOGGER;
@@ -49,7 +53,7 @@ public class OldGameEntry {
     private String developer = "";
     private String publisher = "";
     private OldGenre[] genres;
-    private GameTheme[] themes;
+    private OldTheme[] themes;
     private String serie = "";
     private int aggregated_rating;
     private String path = "";
@@ -142,27 +146,69 @@ public class OldGameEntry {
             PreparedStatement getIdQuery = connection.prepareStatement("SELECT last_insert_rowid()");
             ResultSet result = getIdQuery.executeQuery();
             int sqlId = result.getInt(1);
+            result.close();
 
-            for (OldGenre genre : genres) {
-                int genreId = GameGenre.getIGDBId(genre.getKey());
-                if(genreId != -1){
-                    PreparedStatement genreStatement = connection.prepareStatement("INSERT INTO has_genre(game_id,genre_id) VALUES (?,?)");
-                    genreStatement.setInt(1,sqlId);
-                    genreStatement.setInt(2,genreId);
-                    genreStatement.execute();
-                    genreStatement.close();
+            if(genres != null){
+                for (OldGenre genre : genres) {
+                    int genreId = GameGenre.getIGDBId(genre.getKey());
+                    if (genreId != -1) {
+                        PreparedStatement genreStatement = connection.prepareStatement("INSERT OR IGNORE INTO has_genre(game_id,genre_id) VALUES (?,?)");
+                        genreStatement.setInt(1, sqlId);
+                        genreStatement.setInt(2, genreId);
+                        genreStatement.execute();
+                        genreStatement.close();
+                    }
                 }
-
             }
+
+            if(themes != null){
+                for (OldTheme theme : themes) {
+                    int themeID = GameTheme.getIGDBId(theme.getKey());
+                    if (themeID != -1) {
+                        PreparedStatement genreStatement = connection.prepareStatement("INSERT OR IGNORE INTO has_theme(game_id,theme_id) VALUES (?,?)");
+                        genreStatement.setInt(1, sqlId);
+                        genreStatement.setInt(2, themeID);
+                        genreStatement.execute();
+                        genreStatement.close();
+                    }
+                }
+            }
+            int specificId = 0;
+            int platformId = -1;
+
+            if(steam_id != -1){
+                    specificId = steam_id;
+                if(!notInstalled){
+                    platformId = 1;
+                }else {
+                    platformId = 2;
+                }
+            }else if(origin_id != -1){
+                specificId = origin_id;
+                platformId = 3;
+            }else if(uplay_id != -1){
+                specificId = uplay_id;
+                platformId = 4;
+            }else if(battlenet_id != -1){
+                specificId = battlenet_id;
+                platformId = 5;
+            }else if(gog_id != -1){
+                specificId = gog_id;
+                platformId = 6;
+            }
+            if(platformId != -1){
+                PreparedStatement genreStatement = connection.prepareStatement("INSERT OR IGNORE INTO runs_on(specific_id,platform_id,game_id) VALUES (?,?,?)");
+                genreStatement.setInt(1, specificId);
+                genreStatement.setInt(2, platformId);
+                genreStatement.setInt(3, sqlId);
+                genreStatement.execute();
+                genreStatement.close();
+            }
+
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    public OldGameEntry(String name) {
-        uuid = UUID.randomUUID();
-        this.name = name;
     }
 
     public OldGameEntry(UUID uuid, boolean toAdd) {
@@ -196,61 +242,6 @@ public class OldGameEntry {
         return configFile;
     }
 
-    private void saveEntry() {
-        if (savedLocaly && !deleted) {
-            Properties prop = new Properties();
-            OutputStream output = null;
-            try {
-                output = new FileOutputStream(propertyFile());
-
-                // set the properties value
-                prop.setProperty("name", name);
-                prop.setProperty("releaseDate", releaseDate != null ? DATE_STORE_FORMAT.format(releaseDate) : "");
-                prop.setProperty("description", description);
-                prop.setProperty("developer", developer);
-                prop.setProperty("publisher", publisher);
-                prop.setProperty("serie", serie);
-                prop.setProperty("path", path);
-
-                for (int i = 0; i < IMAGES_NUMBER; i++) {
-                    if (imagesPaths[i] != null) {
-                        File relativeFile = FileUtils.relativizePath(imagesPaths[i], Main.FILES_MAP.get("working_dir"));
-                        prop.setProperty("image" + i, relativeFile.getPath());
-                    }
-                }
-                prop.setProperty("playTime", Long.toString(playTime));
-                prop.setProperty("steam_id", Integer.toString(steam_id));
-                prop.setProperty("gog_id", Integer.toString(gog_id));
-                prop.setProperty("origin_id", Integer.toString(origin_id));
-                prop.setProperty("uplay_id", Integer.toString(uplay_id));
-                prop.setProperty("battlenet_id", Integer.toString(battlenet_id));
-                prop.setProperty("igdb_id", Integer.toString(igdb_id));
-                prop.setProperty("genres", OldGenre.toJson(genres));
-                prop.setProperty("themes", GameTheme.toJson(themes));
-                prop.setProperty("aggregated_rating", Integer.toString(aggregated_rating));
-                for (int i = 0; i < cmd.length; i++) {
-                    if (cmd[i] != null) {
-                        prop.setProperty("cmd" + i, cmd[i]);
-                    }
-                }
-                prop.setProperty("addedDate", addedDate != null ? DATE_STORE_FORMAT.format(addedDate) : "");
-                prop.setProperty("lastPlayedDate", lastPlayedDate != null ? DATE_STORE_FORMAT.format(lastPlayedDate) : "");
-                prop.setProperty("notInstalled", Boolean.toString(notInstalled));
-                prop.setProperty("waitingToBeScrapped", Boolean.toString(waitingToBeScrapped));
-                prop.setProperty("toAdd", Boolean.toString(toAdd));
-                prop.setProperty("args", args);
-                prop.setProperty("youtubeSoundtrackHash", youtubeSoundtrackHash);
-
-
-                // save properties to project root folder
-                prop.store(output, null);
-                output.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     public void loadEntry() throws IOException {
         Properties prop = new Properties();
         InputStream input = null;
@@ -269,7 +260,7 @@ public class OldGameEntry {
                     try {
                         releaseDate = DATE_STORE_FORMAT.parse(prop.getProperty("releaseDate"));
                     } catch (ParseException dtpe) {
-                        setReleaseDate(DATE_OLD_STORE_FORMAT.parse(prop.getProperty("releaseDate")));
+                        releaseDate = (DATE_OLD_STORE_FORMAT.parse(prop.getProperty("releaseDate")));
                     }
                 }
             } catch (ParseException e) {
@@ -313,11 +304,14 @@ public class OldGameEntry {
             igdb_id = Integer.parseInt(prop.getProperty("igdb_id"));
         }
         if (prop.getProperty("genres") != null) {
+            Gson gson = new Gson();
             genres = OldGenre.fromJson(prop.getProperty("genres"));
         }
+
         if (prop.getProperty("themes") != null) {
-            themes = GameTheme.fromJson(prop.getProperty("themes"));
+            themes = OldTheme.fromJson(prop.getProperty("themes"));
         }
+
         if (prop.getProperty("aggregated_rating") != null) {
             aggregated_rating = Integer.parseInt(prop.getProperty("aggregated_rating"));
         }
@@ -337,16 +331,14 @@ public class OldGameEntry {
                     try {
                         addedDate = DATE_STORE_FORMAT.parse(prop.getProperty("addedDate"));
                     } catch (ParseException dtpe) {
-                        setAddedDate(DATE_OLD_STORE_FORMAT.parse(prop.getProperty("addedDate")));
+                        addedDate = DATE_STORE_FORMAT.parse(prop.getProperty("addedDate"));
                     }
                 }
             } catch (ParseException e) {
                 e.printStackTrace();
             }
             if (addedDate == null) {
-                setSavedLocaly(true);
-                setAddedDate(new Date());
-                setSavedLocaly(false);
+                addedDate = new Date();
             }
         }
         if (prop.getProperty("lastPlayedDate") != null) {
@@ -355,7 +347,7 @@ public class OldGameEntry {
                     try {
                         lastPlayedDate = DATE_STORE_FORMAT.parse(prop.getProperty("lastPlayedDate"));
                     } catch (ParseException dtpe) {
-                        setLastPlayedDate(DATE_OLD_STORE_FORMAT.parse(prop.getProperty("lastPlayedDate")));
+                        lastPlayedDate = DATE_OLD_STORE_FORMAT.parse(prop.getProperty("lastPlayedDate"));
                     }
                 }
             } catch (ParseException e) {
@@ -377,336 +369,9 @@ public class OldGameEntry {
         if (prop.getProperty("args") != null) {
             args = prop.getProperty("args");
         }
-        saveEntry();
 
         input.close();
 
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-        saveEntry();
-    }
-
-    public Date getReleaseDate() {
-        return releaseDate;
-    }
-
-    public void setReleaseDate(Date releaseDate) {
-        this.releaseDate = releaseDate;
-        saveEntry();
-    }
-
-    public String getDeveloper() {
-        return developer;
-    }
-
-    public void setDeveloper(String developer) {
-        this.developer = developer != null ? developer : "";
-        saveEntry();
-    }
-
-    public String getPublisher() {
-        return publisher;
-    }
-
-    public void setPublisher(String publisher) {
-        this.publisher = publisher != null ? publisher : "";
-        saveEntry();
-    }
-
-    public UUID getUuid() {
-        return uuid;
-    }
-
-    public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth) {
-        return getImage(index, width, height, preserveRatio, smooth, false);
-    }
-
-    private Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth, boolean backGroundloading) {
-        if (createdImages.get(index) != null && !imageNeedsRefresh[index]) {
-            if (createdImages.get(index).getWidth() == width && createdImages.get(index).getHeight() == height) {
-                return createdImages.get(index);
-            }
-        }
-        File currFile = getImagePath(index);
-        if (currFile == null) {
-            return null;
-        } else if (currFile.exists()) {
-            Image result = new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth, backGroundloading);
-            createdImages.put(index, result);
-            imageNeedsRefresh[index] = false;
-            return result;
-        } else {
-            Image result = new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir") + File.separator + currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
-            createdImages.put(index, result);
-            imageNeedsRefresh[index] = false;
-            return result;
-        }
-    }
-
-    /**
-     * Should not be used to create a new imageView, use getImage instead
-     *
-     * @param index
-     * @return
-     */
-    public File getImagePath(int index) {
-        if (index < imagesPaths.length) {
-            File imagePath = imagesPaths[index];
-            File dir = Main.FILES_MAP.get("working_dir");
-            if (imagePath != null && dir != null) {
-                return FileUtils.relativizePath(imagePath, dir);
-            } else {
-                return null;
-            }
-        }
-        return null;
-    }
-
-    public String getPath() {
-        return path.trim();
-    }
-
-    public void setPath(String path) {
-        this.path = path.trim();
-        saveEntry();
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description != null ? description : "";
-        saveEntry();
-    }
-
-    public int getAggregated_rating() {
-        return aggregated_rating;
-    }
-
-    public void setAggregated_rating(int aggregated_rating) {
-        this.aggregated_rating = aggregated_rating;
-        saveEntry();
-    }
-
-    public void setImagePath(int index, File imagePath) {
-        if (imagesPaths.length > index) {
-            File relativeFile = FileUtils.relativizePath(imagePath, Main.FILES_MAP.get("working_dir"));
-            imagesPaths[index] = relativeFile;
-            imageNeedsRefresh[index] = true;
-        }
-        saveEntry();
-    }
-
-    public int getSteam_id() {
-        return steam_id;
-    }
-
-    private void setSteam_id(int steam_id, boolean updatePath) {
-        this.steam_id = steam_id;
-        if (updatePath) {
-            this.path = "steam://rungameid/" + steam_id;
-        }
-        saveEntry();
-    }
-
-    public void setSteam_id(int steam_id) {
-        setSteam_id(steam_id, steam_id != -1);
-    }
-
-    public boolean isSteamGame() {
-        return steam_id != -1;
-    }
-
-    public boolean isGoGGame() {
-        return gog_id != -1;
-    }
-
-    public boolean isOriginGame() {
-        return origin_id != -1;
-    }
-
-    public boolean isBattlenetGame() {
-        return battlenet_id != -1;
-    }
-
-    public boolean isUplayGame() {
-        return uplay_id != -1;
-    }
-
-
-    public int getBattlenet_id() {
-        return battlenet_id;
-    }
-
-    public void setBattlenet_id(int battlenet_id) {
-        this.battlenet_id = battlenet_id;
-        saveEntry();
-    }
-
-    public int getOrigin_id() {
-        return origin_id;
-    }
-
-    public void setOrigin_id(int origin_id) {
-        this.origin_id = origin_id;
-        saveEntry();
-    }
-
-    public int getUplay_id() {
-        return uplay_id;
-    }
-
-    public void setUplay_id(int uplay_id) {
-        this.uplay_id = uplay_id;
-        saveEntry();
-    }
-
-    public int getGog_id() {
-        return gog_id;
-    }
-
-    public void setGog_id(int gog_id) {
-        this.gog_id = gog_id;
-        saveEntry();
-    }
-
-    public long getPlayTimeSeconds() {
-        return playTime;
-    }
-
-    public void setPlayTimeSeconds(long seconds) {
-        this.playTime = seconds;
-        saveEntry();
-    }
-
-    public static String getPlayTimeFormatted(long playTime, int format) {
-        String result = "";
-        long seconds = playTime, minutes = 0, hours = 0;
-
-        if (seconds > 60) {
-            minutes = seconds / 60;
-            seconds = seconds % 60;
-
-            if (minutes > 60) {
-                hours = minutes / 60;
-                minutes = minutes % 60;
-            }
-        }
-        switch (format) {
-            case TIME_FORMAT_FULL_DOUBLEDOTS:
-                if (hours < 10) {
-                    result += "0";
-                }
-                result += hours + ":";
-                if (minutes < 10) {
-                    result += "0";
-                }
-                result += minutes + ":";
-                if (seconds < 10) {
-                    result += "0";
-                }
-                result += seconds;
-                //Main.LOGGER.debug("TIME computed : "+result);
-                break;
-            case TIME_FORMAT_FULL_HMS:
-                result += hours + "h";
-                result += minutes + "mn";
-                result += seconds + "s";
-                break;
-            case TIME_FORMAT_HALF_FULL_HMS:
-                if (hours > 0) {
-                    result += hours + "h";
-                    result += minutes + "mn";
-                    result += seconds + "s";
-                } else {
-                    if (minutes > 0) {
-                        result += minutes + "mn";
-                        result += seconds + "s";
-                    } else {
-                        result += seconds + "s";
-                    }
-                }
-                break;
-            case TIME_FORMAT_ROUNDED_HMS:
-                if (hours > 0) {
-                    result = hours + "h";
-                } else if (minutes > 0) {
-                    result = minutes + "mn";
-                } else {
-                    result = seconds + "s";
-                }
-                break;
-            case TIME_FORMAT_HMS_CASUAL:
-                if (hours > 0) {
-                    result += hours + "h";
-                    if (minutes > 0) {
-                        if (minutes < 10) {
-                            result += '0';
-                        }
-                        result += minutes;
-                    }
-                } else {
-                    if (minutes > 0) {
-                        result += minutes + "mn";
-                    } else {
-                        result += seconds + "s";
-                    }
-                }
-                break;
-            default:
-                result = getPlayTimeFormatted(playTime, TIME_FORMAT_FULL_HMS);
-                break;
-        }
-        return result;
-
-    }
-
-    public void setPlayTimeFormatted(String time, int format) {
-        switch (format) {
-            case TIME_FORMAT_FULL_DOUBLEDOTS:
-                Pattern timePattern = Pattern.compile("\\d*:\\d\\d:\\d\\d");
-                if (!timePattern.matcher(time).matches()) {
-                    throw new IllegalArgumentException("Invalid time: " + time);
-                }
-                String[] tokens = time.split(":");
-                assert tokens.length == 3;
-                try {
-                    int hours = Integer.parseInt(tokens[0]);
-                    int mins = Integer.parseInt(tokens[1]);
-                    int secs = Integer.parseInt(tokens[2]);
-                    if (hours < 0) {
-                        throw new IllegalArgumentException("Invalid time: " + time);
-                    }
-                    if (mins < 0 || mins > 59) {
-                        throw new IllegalArgumentException("Invalid time: " + time);
-                    }
-                    setPlayTimeSeconds(hours * 3600 + mins * 60 + secs);
-                } catch (NumberFormatException nfe) {
-                    // regex matching should assure we never reach this catch block
-                    assert false;
-                    throw new IllegalArgumentException("Invalid time: " + time);
-                }
-                break;
-            default:
-                break;
-        }
-
-    }
-
-    public String getPlayTimeFormatted(int format) {
-        return getPlayTimeFormatted(playTime, format);
-    }
-
-    public void setSavedLocaly(boolean savedLocaly) {
-        this.savedLocaly = savedLocaly;
-        saveEntry();
     }
 
     public void deletePermanently() {
@@ -715,110 +380,8 @@ public class OldGameEntry {
     }
 
     public void deleteFiles() {
-        File file = new File((toAdd ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + getUuid().toString());
+        File file = new File((toAdd ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + uuid.toString());
         FileUtils.deleteFolder(file);
-    }
-
-    public String getProcessName() {
-        String name = "";
-        for (int i = path.length() - 1; i >= 0; i--) {
-            char c = path.charAt(i);
-            if (c == '\\' || c == '/') {
-                break;
-            } else {
-                name = c + name;
-            }
-        }
-        return name;
-    }
-
-    public int getIgdb_id() {
-        return igdb_id;
-    }
-
-    public void setIgdb_id(int igdb_id) {
-        this.igdb_id = igdb_id;
-        saveEntry();
-    }
-
-    public String getSerie() {
-        return serie;
-    }
-
-    public void setSerie(String serie) {
-        this.serie = serie != null ? serie : "";
-        saveEntry();
-    }
-
-    public void setCmd(int index, String cmd) {
-        this.cmd[index] = cmd;
-    }
-
-    public String getCmd(int index) {
-        return cmd[index];
-    }
-
-    public Date getAddedDate() {
-        return addedDate;
-    }
-
-    public void setAddedDate(Date addedDate) {
-        this.addedDate = addedDate;
-        saveEntry();
-    }
-
-    public boolean isNotInstalled() {
-        return notInstalled;
-    }
-
-    public void setNotInstalled(boolean notInstalled) {
-        this.notInstalled = notInstalled;
-        saveEntry();
-    }
-
-    public Date getLastPlayedDate() {
-        return lastPlayedDate;
-    }
-
-    public void setLastPlayedDate(Date lastPlayedDate) {
-        this.lastPlayedDate = lastPlayedDate;
-        saveEntry();
-    }
-
-    public String getIgdb_imageHash(int index) {
-        return igdb_imageHash[index];
-    }
-
-    public String[] getIgdb_imageHashs() {
-        return igdb_imageHash;
-    }
-
-    public void setIgdb_imageHashs(String[] igdb_imageHashs) {
-        for (int i = 0; i < igdb_imageHashs.length; i++) {
-            setIgdb_imageHash(i, igdb_imageHashs[i]);
-        }
-    }
-
-    public boolean isWaitingToBeScrapped() {
-        return waitingToBeScrapped;
-    }
-
-    public void setWaitingToBeScrapped(boolean waitingToBeScrapped) {
-        this.waitingToBeScrapped = waitingToBeScrapped;
-        saveEntry();
-    }
-
-    public void setIgdb_imageHash(int index, String hash) {
-        if (index >= igdb_imageHash.length) {
-            String[] copy = igdb_imageHash;
-            igdb_imageHash = new String[index + 1];
-            int i = 0;
-            for (String s : copy) {
-                igdb_imageHash[i] = s;
-                i++;
-            }
-        }
-        igdb_imageHash[index] = hash;
     }
 
     private static String getSQLInitLine() {
@@ -846,29 +409,5 @@ public class OldGameEntry {
             temp += ",?";
         }
         return temp + ");";
-    }
-
-    private String toSQLValue() {
-        return "(" +
-                "\"" + StringEscapeUtils.escapeSql(name) + "\"," +
-                "\"" + (releaseDate == null ? "" : DATE_STORE_FORMAT.format(releaseDate)) + "\"," +
-                "\"" + StringEscapeUtils.escapeSql(description) + "\"," +
-                Integer.toString(aggregated_rating) + "," +
-                "\"" + StringEscapeUtils.escapeSql(path) + "\"," +
-                "\"" + StringEscapeUtils.escapeSql(cmd[0]) + "\"," +
-                "\"" + StringEscapeUtils.escapeSql(cmd[1]) + "\"," +
-                "\"" + StringEscapeUtils.escapeSql(args) + "\"," +
-                "\"" + StringEscapeUtils.escapeSql(youtubeSoundtrackHash) + "\"," +
-                "\"" + (addedDate == null ? "" : DATE_STORE_FORMAT.format(addedDate)) + "\"," +
-                "\"" + (lastPlayedDate == null ? "" : DATE_STORE_FORMAT.format(lastPlayedDate)) + "\"," +
-                Long.toString(playTime) + "," +
-                (notInstalled ? 0 : 1) + "," +
-                "\"" + StringEscapeUtils.escapeSql(igdb_imageHash[0]) + "\"," +
-                "\"" + StringEscapeUtils.escapeSql(igdb_imageHash[1]) + "\"," +
-                Integer.toString(igdb_id) + "," +
-                (waitingToBeScrapped ? 1 : 0) + "," +
-                (toAdd ? 1 : 0) + "," +
-                (beingScrapped ? 1 : 0) + ")";
-
     }
 }

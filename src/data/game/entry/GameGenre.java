@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 
+import static ui.Main.LOGGER;
+
 /**
  * Created by LM on 12/08/2016.
  */
@@ -109,7 +111,12 @@ public enum GameGenre {
             PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM GameGenre WHERE name_key = ?");
             getIdQuery.setString(1,nameKey);
             ResultSet result = getIdQuery.executeQuery();
-            return result.getInt(1);
+
+            if(result.next()){
+                int id = result.getInt(1);
+                result.close();
+                return id;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
