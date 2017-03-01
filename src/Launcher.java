@@ -50,7 +50,7 @@ public class Launcher extends Application {
     private static ChangeListener<Boolean> fullScreenListener;
 
     public static void main(String[] args) throws URISyntaxException {
-        System.setErr(new PrintStream(System.err) {
+        /*System.setErr(new PrintStream(System.err) {
             public void print(final String string) {
                 LOGGER.error(string);
                 if (DEV_MODE || GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
@@ -69,7 +69,7 @@ public class Launcher extends Application {
                 //System.out.print(string);
                 LOGGER.debug(string);
             }
-        });
+        });*/
 
         System.out.println("\n\n==========================================NEW START============================================");
 

@@ -3,6 +3,7 @@ package data.io;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
 import ui.Main;
+import ui.dialog.GameRoomAlert;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,30 +11,38 @@ import java.nio.file.Files;
 import java.sql.*;
 import java.util.List;
 
+import static ui.Main.LOGGER;
+
 /**
  * Created by LM on 17/02/2017.
  */
 public class DataBase {
     private final static String DB_NAME = "library.db";
+    private final static DataBase INSTANCE = new DataBase();
 
-    private final static String TABLE_GAMES = "GameEntry";
-    private final static String TABLE_DEVELOPER = "Developer";
-    private final static String TABLE_PUBLISHER = "Publisher";
-    private final static String TABLE_GAME_GENRES = "GAME_GENRES";
-    private final static String TABLE_GAME_THEMES = "GAME_THEMES";
-    private final static String TABLE_SETTINGS = "SETTINGS";
+    private DataBase() {
+        super();
+    }
 
+    public static void initDB() {
+        try {
+            INSTANCE.connect();
+            INSTANCE.readAndExecSQLInit();
+        } catch (IOException e) {
+            //TODO localize
+            GameRoomAlert.error("Error while initiliazing database : " + e.getMessage());
+        }
+    }
 
     private static String getDBUrl() {
-        //TODO uncomment when ready to integrate
-        //File workingDir = Main.FILES_MAP.get("working_dir");
-        File workingDir = new File("D:\\Desktop");
+        File workingDir = Main.FILES_MAP.get("working_dir");
+        //File workingDir = new File("D:\\Desktop");
         String dbPath = workingDir.toPath().toAbsolutePath() + File.separator + DB_NAME;
-        System.out.println(dbPath);
+        LOGGER.info("DBPath : " + dbPath);
         return "jdbc:sqlite:" + dbPath;
     }
 
-    public void connect() {
+    private void connect() {
         String url = getDBUrl();
 
         try (Connection conn = DriverManager.getConnection(url)) {
@@ -48,7 +57,7 @@ public class DataBase {
         }
     }
 
-    public void initDB() throws IOException {
+    private void readAndExecSQLInit() throws IOException {
         String url = getDBUrl();
 
         ClassLoader classLoader = getClass().getClassLoader();
@@ -71,19 +80,36 @@ public class DataBase {
 
             conn.close();
 
-
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            LOGGER.error(e);
         }
     }
 
-    public static void main(String[] args) {
-        DataBase db = new DataBase();
-        db.connect();
-        try {
-            db.initDB();
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static void execute(String sql) {
+        String url = getDBUrl();
+        try (Connection conn = DriverManager.getConnection(url)) {
+
+            Statement stmt = conn.createStatement();
+            stmt.execute(sql);
+            stmt.close();
+            conn.close();
+
+        } catch (SQLException e) {
+            LOGGER.error("Error for query : \"" + sql + "\"");
+            LOGGER.error(e);
         }
+    }
+
+    public Connection getConnection() throws SQLException {
+        String url = getDBUrl();
+        return DriverManager.getConnection(url);
+    }
+
+    public static DataBase getInstance() {
+        return INSTANCE;
+    }
+
+    public static void main(String[] args) {
+        initDB();
     }
 }

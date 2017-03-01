@@ -2,6 +2,8 @@ package ui;
 
 import data.http.images.ImageDownloaderService;
 import data.http.key.KeyChecker;
+import data.io.DataBase;
+import data.migration.OldGameEntry;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
@@ -95,6 +97,9 @@ public class Main {
         //if(!DEV_MODE){
         //startUpdater();
         //}
+
+        DataBase.initDB();
+        OldGameEntry.transferOldGameEntries();
     }
 
     public static String getArg(String flag,String[] args, boolean hasOption){

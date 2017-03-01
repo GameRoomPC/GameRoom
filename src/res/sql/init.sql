@@ -1,16 +1,16 @@
 CREATE TABLE IF NOT EXISTS GameEntry (
 	id integer PRIMARY KEY AUTOINCREMENT,
 	name text,
-	release_date datetime,
+	release_date text,
 	description text,
-	aggregated_rating real,
+	aggregated_rating integer,
 	path text,
 	cmd_before text,
 	cmd_after text,
 	launch_args text,
 	yt_hash text,
-	added_date datetime,
-	last_played_date datetime,
+	added_date text,
+	last_played_date text,
 	initial_playtime integer,
 	installed integer default 1,
 	cover_hash text,
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS Serie (
 
 CREATE TABLE IF NOT EXISTS PlaySession (
 	id integer PRIMARY KEY AUTOINCREMENT,
-	start_date datetime,
+	start_date text,
 	time_played_seconds integer
 );
 
@@ -167,8 +167,8 @@ CREATE TABLE IF NOT EXISTS Settings (
 	scrollbarVValue real default 0.0,
 	uiscale text,
 	theme text,
-	lastSupportMessage datetime,
-	lastUpdateCheck datetime,
+	lastSupportMessage text,
+	lastUpdateCheck text,
 	drawerMenuWidth real default 0.0
 );
 
