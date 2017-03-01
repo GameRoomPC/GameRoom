@@ -312,19 +312,17 @@ public class Monitor {
         try {
             output = terminal.execute("tasklist", "/FI", "\"IMAGENAME eq " + processName + "\"");
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error(e.getMessage());
             return false;
         }
-        boolean found = false;
         if (output != null) {
             for (String outputLine : output) {
-                found = outputLine.contains(processName);
-                if (found) {
-                    return found;
+                if(outputLine.toLowerCase().contains(processName.toLowerCase())){
+                    return true;
                 }
             }
         }
-        return found;
+        return false;
     }
 
     private boolean isSteamGame() {

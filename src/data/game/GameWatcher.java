@@ -16,7 +16,6 @@ import ui.GeneralToast;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.dialog.GameRoomAlert;
-import ui.scene.GameEditScene;
 
 import java.io.File;
 import java.io.IOException;
@@ -503,7 +502,7 @@ public class GameWatcher {
             if (delete) {
                 toRemoveEntries.add(n);
                 if (n.isToAdd()) { //check if not added to Games folder
-                    n.deleteFiles();
+                    n.deletePermanently();
                 }
                 break;
             }

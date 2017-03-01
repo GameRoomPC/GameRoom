@@ -6,6 +6,8 @@ import javafx.scene.control.TextField;
 
 import java.util.regex.Pattern;
 
+import static ui.Main.LOGGER;
+
 /**
  * Creates a timeformat textfield
  */
@@ -13,6 +15,12 @@ class TimeTextField extends TextField {
 
     public TimeTextField(String time) {
         super(time);
+        focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if(!newValue){
+                String currentText = getText();
+                setText(uniToDoubleDecimal(currentText));
+            }
+        });
     }
 
     @Override
@@ -22,7 +30,7 @@ class TimeTextField extends TextField {
     public boolean deleteNextChar() {
         boolean success = false;
 
-        // If there's a selection, delete it:
+        // If there's a selection, deleteFiles it:
         final IndexRange selection = getSelection();
         if (selection.getLength() > 0) {
             int selectionEnd = selection.getEnd();
@@ -46,7 +54,7 @@ class TimeTextField extends TextField {
     @Override
     public boolean deletePreviousChar() {
         boolean success = false;
-        // If there's a selection, delete it:
+        // If there's a selection, deleteFiles it:
         final IndexRange selection = getSelection();
         if (selection.getLength() > 0) {
             int selectionStart = selection.getStart();
@@ -118,15 +126,17 @@ class TimeTextField extends TextField {
             this.insertText(begin, text);
         } else {
             // only handle this if text.length() is equal to the number of characters being replaced, and if the replacement results in a valid string:
-            if (text.length() == end - begin) {
+            //if (text.length() == end - begin) {
                 StringBuilder builder = new StringBuilder(this.getText());
                 builder.replace(begin, end, text);
                 String testText = builder.toString();
                 if (validate(testText)) {
                     this.setText(testText);
                 }
+                LOGGER.info("Typedtext:"+testText);
+
                 this.positionCaret(end);
-            }
+            //}
         }
     }
 
@@ -137,7 +147,7 @@ class TimeTextField extends TextField {
      * @return true if time string valid
      */
     private boolean validate(String time){
-        Pattern doubleDecimalsPattern = Pattern.compile("\\d\\d");
+        Pattern doubleDecimalsPattern = Pattern.compile("\\d{1,2}");
         if(!doubleDecimalsPattern.matcher(time).matches()){
             return false;
         }
@@ -146,6 +156,23 @@ class TimeTextField extends TextField {
             return (value>=0 && value<60);
         }catch (NumberFormatException nfe){
             return false;
+        }
+    }
+
+    private String uniToDoubleDecimal(String text){
+        Pattern doubleDecimalsPattern = Pattern.compile("\\d{1,2}");
+        if(!doubleDecimalsPattern.matcher(text).matches()){
+            return text;
+        }
+        try{
+            int value = Integer.parseInt(text);
+            if(value < 10){
+                return "0"+value;
+            }else{
+                return text;
+            }
+        }catch (NumberFormatException nfe){
+            return text;
         }
     }
 

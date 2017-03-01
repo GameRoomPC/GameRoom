@@ -25,6 +25,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
@@ -282,6 +283,9 @@ public class MainScene extends BaseScene {
         } catch (AWTException e) {
             e.printStackTrace();
         }
+
+        initKeyShortcuts();
+
         GridPane topTilesPaneGridPane = new GridPane();
         ColumnConstraints halfConstraint = new ColumnConstraints();
         halfConstraint.setPercentWidth(50);
@@ -502,6 +506,7 @@ public class MainScene extends BaseScene {
             });
             newItems.add(gameItem);
         }
+        
         newItems.sort(new Comparator<java.awt.MenuItem>() {
             @Override
             public int compare(java.awt.MenuItem o1, java.awt.MenuItem o2) {
@@ -931,5 +936,16 @@ public class MainScene extends BaseScene {
 
     public ScrollPane getScrollPane() {
         return scrollPane;
+    }
+
+    private void initKeyShortcuts() {
+        getParentStage().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, new EventHandler<javafx.scene.input.KeyEvent>() {
+            @Override
+            public void handle(javafx.scene.input.KeyEvent event) {
+                if (event.getCode() == KeyCode.ESCAPE) {
+                    drawerMenu.closeSubMenu(MainScene.this);
+                }
+            }
+        });
     }
 }

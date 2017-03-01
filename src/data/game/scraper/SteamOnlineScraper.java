@@ -5,12 +5,16 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.GameWatcher;
 import data.game.entry.GameEntry;
+import data.game.entry.Platform;
 import data.game.scanner.GameScanner;
 import data.game.scanner.OnGameFound;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.*;
 import org.jsoup.Jsoup;
+import system.application.settings.PredefinedSetting;
 import ui.Main;
+import ui.dialog.GameRoomAlert;
+import ui.dialog.SteamProfileSelector;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,9 +22,11 @@ import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 
+import static ui.Main.GENERAL_SETTINGS;
 import static ui.Main.LOGGER;
 
 /**
@@ -46,30 +52,59 @@ public class SteamOnlineScraper {
 
     private static void scanNonInstalledSteamGames(OnGameFound handler) {
         try {
-            JSONArray ownedArray = askGamesOwned(SteamLocalScraper.getSteamUserId());
-            for (int i = 0; i < ownedArray.length(); i++) {
-                SteamPreEntry preEntry = new SteamPreEntry(ownedArray.getJSONObject(i).getString("name"), ownedArray.getJSONObject(i).getInt("appID"));
-                GameEntry entry = preEntry.toGameEntry();
-                GameEntry scrapedEntry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
-                if (scrapedEntry != null) {
-                    entry = scrapedEntry;
-                    try {
-                        double playTimeHours = ownedArray.getJSONObject(i).getDouble("hoursOnRecord");
-                        entry.setPlayTimeSeconds((long) (playTimeHours * 3600));
-                    } catch (JSONException jse) {
-                        if (jse.toString().contains("not found")) {
-                            //System.out.println(entry.getName() + " was never played");
-                        } else {
-                            jse.printStackTrace();
+            SteamProfile profile = GENERAL_SETTINGS.getSteamProfileToScan();
+            if (profile != null) {
+                JSONArray ownedArray = askGamesOwned(profile.getAccountId());
+                for (int i = 0; i < ownedArray.length(); i++) {
+                    SteamPreEntry preEntry = new SteamPreEntry(ownedArray.getJSONObject(i).getString("name"), ownedArray.getJSONObject(i).getInt("appID"));
+                    GameEntry entry = preEntry.toGameEntry();
+                    GameEntry scrapedEntry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
+                    if (scrapedEntry != null) {
+                        entry = scrapedEntry;
+                        try {
+                            double playTimeHours = ownedArray.getJSONObject(i).getDouble("hoursOnRecord");
+                            entry.setPlayTimeSeconds((long) (playTimeHours * 3600));
+                        } catch (JSONException jse) {
+                            if (jse.toString().contains("not found")) {
+                                //System.out.println(entry.getName() + " was never played");
+                            } else {
+                                jse.printStackTrace();
+                            }
                         }
+                        handler.handle(entry);
                     }
-                    handler.handle(entry);
-                }
 
+                }
             }
         } catch (UnirestException | IOException e) {
             Main.LOGGER.error("Error connectiong to steamcommunity.com");
             Main.LOGGER.error(e.toString().split("\n")[0]);
+        }
+    }
+
+    public static void checkIfCanScanSteam(boolean forceModify) {
+        SteamProfile selectedProfile = GENERAL_SETTINGS.getSteamProfileToScan();
+        if (selectedProfile != null && !forceModify) {
+            return;
+        }
+
+        List<SteamProfile> profiles = SteamLocalScraper.getSteamProfiles();
+        if (profiles.isEmpty()) {
+            GameRoomAlert.error(Main.getString("no_steam_profile_error"));
+            return;
+        }
+
+        for(SteamProfile p : profiles){
+            LOGGER.info("Found a Steam profile : \""+p.getAccountName()+"\", with ID : \""+p.getAccountId()+"\"");
+        }
+
+        if (!forceModify && profiles.size() == 1) {
+            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.STEAM_PROFILE, profiles.get(0));
+        } else {
+            Main.runAndWait(() -> {
+                SteamProfileSelector selector = new SteamProfileSelector(profiles);
+                selector.showAndWait();
+            });
         }
     }
 
@@ -109,7 +144,7 @@ public class SteamOnlineScraper {
             entry.setSteam_id(steamId);
             entry.setNotInstalled(!SteamLocalScraper.isSteamGameInstalled(entry.getSteam_id()));
 
-            if(entry.getName() == null || entry.getName().isEmpty()){
+            if (entry.getName() == null || entry.getName().isEmpty()) {
                 return null;
             }
             return entry;

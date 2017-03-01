@@ -1,10 +1,7 @@
-import com.sun.jna.Native;
-import com.sun.jna.NativeLong;
-import com.sun.jna.WString;
-import data.io.FileUtils;
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scraper.IGDBScraper;
+import data.io.FileUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -13,16 +10,18 @@ import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
+import org.boris.winrun4j.DDE;
 import system.application.Monitor;
 import system.application.settings.PredefinedSetting;
 import system.device.ControllerButtonListener;
-import system.device.XboxController;
-import ui.Main;
+import system.device.GameController;
 import ui.GeneralToast;
+import ui.Main;
 import ui.dialog.ConsoleOutputDialog;
 import ui.scene.BaseScene;
 import ui.scene.MainScene;
@@ -45,16 +44,12 @@ import static ui.Main.*;
 public class Launcher extends Application {
     private int trayMessageCount = 0;
     private static ConsoleOutputDialog[] console = new ConsoleOutputDialog[1];
-    private double widthBeforeFullScreen = -1;
-    private double heightBeforeFullScreen = -1;
     private static boolean START_MINIMIZED = false;
-    private static boolean WAS_MAXIMISED = false;
     private static ChangeListener<Boolean> focusListener;
     private static ChangeListener<Boolean> maximizedListener;
+    private static ChangeListener<Boolean> fullScreenListener;
 
     public static void main(String[] args) throws URISyntaxException {
-        setCurrentProcessExplicitAppUserModelID("GameRoom");
-
         System.setErr(new PrintStream(System.err) {
             public void print(final String string) {
                 LOGGER.error(string);
@@ -84,6 +79,19 @@ public class Launcher extends Application {
         }
 
         Main.DEV_MODE = getArg(ARGS_FLAG_DEV, args, false) != null;
+
+        if (!DEV_MODE) {
+            DDE.addActivationListener(s -> {
+                if (!MAIN_SCENE.getParentStage().isShowing()) {
+                    open(MAIN_SCENE.getParentStage());
+                }
+                Platform.runLater(() -> {
+                    MAIN_SCENE.getParentStage().toFront();
+                });
+            });
+            DDE.ready();
+        }
+
         initFiles();
         AllGameEntries.loadGames();
 
@@ -170,10 +178,12 @@ public class Launcher extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         MAIN_SCENE = new MainScene(primaryStage);
-        initPrimaryStage(primaryStage, MAIN_SCENE, true);
+        initPrimaryStage(primaryStage, MAIN_SCENE);
         initTrayIcon();
         initXboxController(primaryStage);
-        setFullScreen(primaryStage, GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN), true);
+        setFullScreen(primaryStage, GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN));
+        openStage(primaryStage, true);
+
         if (!DEV_MODE) {
             startUpdater();
         }
@@ -185,6 +195,11 @@ public class Launcher extends Application {
         }
         primaryStage.show();
         if (START_MINIMIZED && appStart) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             primaryStage.hide();
             primaryStage.setOpacity(1);
         }
@@ -195,25 +210,32 @@ public class Launcher extends Application {
         });
     }
 
-    private void initPrimaryStage(Stage primaryStage, Scene initScene, boolean appStart) {
+    private void initPrimaryStage(Stage primaryStage, Scene initScene) {
         initIcons(primaryStage);
         primaryStage.setTitle("GameRoom");
+        primaryStage.initStyle(StageStyle.DECORATED);
         focusListener = (observable, oldValue, newValue) -> {
             MAIN_SCENE.setChangeBackgroundNextTime(true);
             primaryStage.getScene().getRoot().setMouseTransparent(!newValue);
             GeneralToast.enableToasts(newValue);
 
-            if (newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)) {
-                xboxController.startThreads();
-            } else if (!newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)) {
-                xboxController.stopThreads();
+            if (newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
+                gameController.startThreads();
+            } else if (!newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
+                gameController.stopThreads();
             }
         };
         primaryStage.focusedProperty().addListener(focusListener);
 
         primaryStage.setScene(initScene);
         primaryStage.setFullScreenExitHint("");
-        primaryStage.setFullScreenExitKeyCombination(null);
+        primaryStage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
+
+        fullScreenListener = (observable, oldValue, newValue) -> {
+            setFullScreen(primaryStage, newValue);
+        };
+        GENERAL_SETTINGS.getBooleanProperty(PredefinedSetting.FULL_SCREEN).addListener((fullScreenListener));
+
         MAIN_SCENE.setParentStage(primaryStage);
 
         if (initScene instanceof BaseScene) {
@@ -223,12 +245,13 @@ public class Launcher extends Application {
             @Override
             public void handle(javafx.scene.input.KeyEvent event) {
                 if (event.getCode() == KeyCode.F11) {
-                    setFullScreen(primaryStage, !GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN), false);
+                    boolean wasFullScreen = GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN);
+                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FULL_SCREEN, !wasFullScreen);
                 }
                 if (event.getCode() == KeyCode.F10) {
                     //TODO toggle drawerMenu of MainScene
                 }
-                if(event.getCode() == KeyCode.F && event.isControlDown()){
+                if (event.getCode() == KeyCode.F && event.isControlDown()) {
                     MAIN_SCENE.showSearchField();
                 }
             }
@@ -241,84 +264,48 @@ public class Launcher extends Application {
         primaryStage.maximizedProperty().addListener(maximizedListener);
     }
 
-    private void clearStage(Stage stage) {
-        GeneralToast.enableToasts(true);
-        if (maximizedListener != null) {
-            stage.maximizedProperty().removeListener(maximizedListener);
-        }
-        if (focusListener != null) {
-            stage.focusedProperty().removeListener(focusListener);
-        }
-    }
-
-    private void setFullScreen(Stage primaryStage, boolean fullScreen, boolean appStart) {
-        if (fullScreen) {
-            WAS_MAXIMISED = primaryStage.isMaximized();
-        }
+    private void setFullScreen(Stage primaryStage, boolean fullScreen) {
         GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FULL_SCREEN, fullScreen);
-        if (!appStart) {
-            clearStage(primaryStage);
-            primaryStage.close();
-        }
-        Stage newStage = appStart ? primaryStage : new Stage();
+        primaryStage.setFullScreen(fullScreen);
 
-        newStage.setFullScreen(fullScreen);
-        if (fullScreen) {
-            widthBeforeFullScreen = GENERAL_SETTINGS.getWindowWidth();
-            heightBeforeFullScreen = GENERAL_SETTINGS.getWindowHeight();
-            newStage.setWidth(Main.SCREEN_WIDTH);
-            newStage.setHeight(Main.SCREEN_HEIGHT);
-            newStage.initStyle(StageStyle.UNDECORATED);
-        } else {
-            if (widthBeforeFullScreen != -1) {
-                newStage.setWidth(widthBeforeFullScreen);
-            }
-            if (heightBeforeFullScreen != -1) {
-                newStage.setHeight(heightBeforeFullScreen);
-            }
-            newStage.initStyle(StageStyle.DECORATED);
-            newStage.setMaximized(WAS_MAXIMISED);
-        }
-        if (!appStart) {
-            clearStage(primaryStage);
-            initPrimaryStage(newStage, primaryStage.getScene(), appStart);
-        }
-        if(MAIN_SCENE!=null){
+        if (MAIN_SCENE != null) {
             MAIN_SCENE.toggleScrollBar(fullScreen);
         }
-        openStage(newStage, appStart);
     }
 
     private void initXboxController(Stage primaryStage) {
         try {
             Robot r = new Robot();
-            xboxController = new XboxController(new ControllerButtonListener() {
+            gameController = new GameController(new ControllerButtonListener() {
                 @Override
                 public void onButtonPressed(String buttonId) {
                     switch (buttonId) {
-                        case XboxController.BUTTON_A:
+                        case GameController.BUTTON_A:
                             r.keyPress(java.awt.event.KeyEvent.VK_ENTER);
                             break;
-                        case XboxController.BUTTON_B:
+                        case GameController.BUTTON_B:
                             r.keyPress(java.awt.event.KeyEvent.VK_ESCAPE);
                             break;
-                        case XboxController.BUTTON_X:
+                        case GameController.BUTTON_X:
                             r.keyPress(KeyEvent.VK_SPACE);
                             break;
-                        case XboxController.BUTTON_Y:
+                        case GameController.BUTTON_Y:
                             r.keyPress(java.awt.event.KeyEvent.VK_I);
                             break;
-                        case XboxController.BUTTON_DPAD_UP:
+                        case GameController.BUTTON_DPAD_UP:
                             r.keyPress(java.awt.event.KeyEvent.VK_UP);
                             break;
-                        case XboxController.BUTTON_DPAD_LEFt:
+                        case GameController.BUTTON_DPAD_LEFt:
                             r.keyPress(java.awt.event.KeyEvent.VK_LEFT);
                             break;
-                        case XboxController.BUTTON_DPAD_DOWN:
+                        case GameController.BUTTON_DPAD_DOWN:
                             r.keyPress(java.awt.event.KeyEvent.VK_DOWN);
                             break;
-                        case XboxController.BUTTON_DPAD_RIGHT:
+                        case GameController.BUTTON_DPAD_RIGHT:
                             r.keyPress(java.awt.event.KeyEvent.VK_RIGHT);
+                            break;
+                        case GameController.BUTTON_SELECT:
+                            r.keyPress(java.awt.event.KeyEvent.VK_F11);
                             break;
                         default:
                             break;
@@ -331,8 +318,8 @@ public class Launcher extends Application {
 
                 }
             });
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT)) {
-                xboxController.startThreads();
+            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
+                gameController.startThreads();
             }
 
         } catch (AWTException e) {
@@ -369,7 +356,13 @@ public class Launcher extends Application {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    open(MAIN_SCENE.getParentStage());
+                    if (!MAIN_SCENE.getParentStage().isShowing()) {
+                        open(MAIN_SCENE.getParentStage());
+                    } else {
+                        Platform.runLater(() -> {
+                            MAIN_SCENE.getParentStage().toFront();
+                        });
+                    }
                 }
             }
 
@@ -404,7 +397,7 @@ public class Launcher extends Application {
                         MAIN_SCENE.getParentStage().hide();
                         if (trayMessageCount < 2 && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING) && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS)) {
                             TRAY_ICON.displayMessage("GameRoom"
-                                    , Main.getString("tray_icon_still_running"), TrayIcon.MessageType.INFO);
+                                    , Main.getString("tray_icon_still_running"), TrayIcon.MessageType.NONE);
                             trayMessageCount++;
                         } else {
                             if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING)) {
@@ -422,7 +415,13 @@ public class Launcher extends Application {
         openItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                open(MAIN_SCENE.getParentStage());
+                if (!MAIN_SCENE.getParentStage().isShowing()) {
+                    open(MAIN_SCENE.getParentStage());
+                } else {
+                    Platform.runLater(() -> {
+                        MAIN_SCENE.getParentStage().toFront();
+                    });
+                }
             }
         });
         MenuItem gameRoomFolderItem = new MenuItem(Main.getString("gameroom_folder"));
@@ -498,17 +497,6 @@ public class Launcher extends Application {
         for (int i = 32; i < 513; i *= 2) {
             stage.getIcons().add(new Image("res/ui/icon/icon" + i + ".png"));
         }
-    }
-
-    private static void setCurrentProcessExplicitAppUserModelID(final String appID) {
-        if (SetCurrentProcessExplicitAppUserModelID(new WString(appID)).longValue() != 0)
-            throw new RuntimeException("unable to set current process explicit AppUserModelID to: " + appID);
-    }
-
-    private static native NativeLong SetCurrentProcessExplicitAppUserModelID(WString appID);
-
-    static {
-        Native.register("shell32");
     }
 
 }

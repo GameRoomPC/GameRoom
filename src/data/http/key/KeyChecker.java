@@ -212,6 +212,7 @@ public class KeyChecker {
         }else if(KeyChecker.testInet(GameRoomUpdater.HTTPS_HOST)){
             valid = KeyChecker.isKeyValid(supporterKey);
         }else{
+            /*/if you are looking at this comment : yes you are a smarty one, congrats. Decompiling a .jar is so hard...*/
             valid = supporterKey.startsWith("326")
                     || supporterKey.equals("586be5b151ba0")
                     || supporterKey.equals("586d4c24d2ea2");

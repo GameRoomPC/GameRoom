@@ -1,15 +1,10 @@
 package ui.control.drawer.submenu;
 
 import data.io.FileUtils;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
-import javafx.scene.input.MouseDragEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -23,7 +18,6 @@ import ui.scene.GameEditScene;
 import ui.scene.MainScene;
 import ui.scene.SettingsScene;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -148,7 +142,7 @@ public final class SubMenuFactory {
     }
 
     public static SubMenu createEditSubMenu(MainScene mainScene, DrawerMenu drawerMenu) {
-        SubMenu editMenu = new SubMenu("editMenu", mainScene, drawerMenu);
+        SubMenu editMenu = new SubMenu("customize", mainScene, drawerMenu);
         CheckBoxItem keepDrawerCheckBox = new CheckBoxItem("keep_drawer_opened", true);
         keepDrawerCheckBox.setSelected(!Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR));
         keepDrawerCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -165,20 +159,9 @@ public final class SubMenuFactory {
         editMenu.addItem(hidePanesCheckBox);
 
         CheckBoxItem fullScreenCheckBox = new CheckBoxItem("fullscreen", true);
-        fullScreenCheckBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN));
-        fullScreenCheckBox.setOnAction(event -> {
-            try {
-                Robot r = new Robot();
-                r.keyPress(java.awt.event.KeyEvent.VK_F11);
-            } catch (AWTException e) {
-                e.printStackTrace();
-            }
-        });
-        mainScene.getParentStage().fullScreenProperty().addListener((observable, oldValue, newValue) -> {
-            fullScreenCheckBox.setSelected(newValue);
-        });
-        //TODO fix F11 and this checkbox sync
-        //editMenu.addItem(fullScreenCheckBox);
+        fullScreenCheckBox.selectedProperty().bindBidirectional(Main.GENERAL_SETTINGS.getBooleanProperty(PredefinedSetting.FULL_SCREEN));
+
+        editMenu.addItem(fullScreenCheckBox);
 
         Slider sizeSlider = new Slider();
         sizeSlider.setMin(MIN_TILE_ZOOM);

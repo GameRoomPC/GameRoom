@@ -5,11 +5,14 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
@@ -20,8 +23,7 @@ import ui.scene.SettingsScene;
 
 import java.util.HashMap;
 
-import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.LOGGER;
+import static ui.Main.*;
 import static ui.control.drawer.submenu.SubMenuFactory.*;
 
 /**
@@ -29,13 +31,18 @@ import static ui.control.drawer.submenu.SubMenuFactory.*;
  */
 public class DrawerMenu extends BorderPane {
     public static double ANIMATION_TIME = 0.04;
-    public static final double WIDTH_RATIO = 0.025;
+    public static final double WIDTH_RATIO = 0.02;
+    private static final double MIN_WIDTH_RATIO = 0.01;
+    private static final double MAX_WIDTH_RATIO = 0.03;
 
     private Timeline openAnim;
     private Timeline closeAnim;
     private AnchorPane topMenuPane = new AnchorPane();
     private VBox topButtonsBox = new VBox(10);
     private VBox bottomButtonsBox = new VBox(10);
+    private VBox resizePane = new VBox();
+
+    private boolean resizing = false;
 
     private SubMenu currentSubMenu;
 
@@ -44,8 +51,16 @@ public class DrawerMenu extends BorderPane {
     public DrawerMenu(MainScene mainScene) {
         super();
         setFocusTraversable(false);
-        setMaxWidth(GENERAL_SETTINGS.getWindowWidth() * WIDTH_RATIO);
-        setPrefWidth(GENERAL_SETTINGS.getWindowWidth() * WIDTH_RATIO);
+
+        double storedWidth = Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.DRAWER_MENU_WIDTH);
+        if (storedWidth == 0 || storedWidth < SCREEN_WIDTH * MIN_WIDTH_RATIO || storedWidth > SCREEN_WIDTH * MAX_WIDTH_RATIO) {
+            setMaxWidth(SCREEN_WIDTH * WIDTH_RATIO);
+            setPrefWidth(SCREEN_WIDTH * WIDTH_RATIO);
+        } else {
+            setMaxWidth(storedWidth);
+            setPrefWidth(storedWidth);
+        }
+
         setFocusTraversable(false);
         //setEffect(new InnerShadow());
         setId("menu-bar");
@@ -62,13 +77,45 @@ public class DrawerMenu extends BorderPane {
                     close(mainScene);
                 }
             }
+            setCursor(Cursor.DEFAULT);
         });
+
+        setOnMouseDragged(event -> {
+            if (resizing || (getCursor() != null && getCursor().equals(Cursor.E_RESIZE))) {
+                resizing = true;
+                double newWidth = event.getX() - 30; //magic number...
+
+                if (getCursor() == null || !getCursor().equals(Cursor.E_RESIZE)) {
+                    setCursor(Cursor.E_RESIZE);
+                }
+
+                double newRatio = newWidth / SCREEN_WIDTH;
+
+                if (newRatio >= MIN_WIDTH_RATIO && newRatio <= MAX_WIDTH_RATIO) {
+                    setPrefWidth(newWidth);
+                    setMaxWidth(newWidth);
+                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DRAWER_MENU_WIDTH, newWidth);
+                }
+            }
+        });
+        setOnMouseDragExited(event -> {
+            setCursor(Cursor.DEFAULT);
+            resizing = false;
+        });
+
+        resizePane.setOnMouseEntered(event -> {
+            setCursor(Cursor.E_RESIZE);
+        });
+        resizePane.setOnMouseExited(event -> {
+            setCursor(Cursor.DEFAULT);
+        });
+
         setCache(true);
         init(mainScene);
 
         widthProperty().addListener((observable, oldValue, newValue) -> {
             if (getButtonsPaneWidth() > 0) {
-                double newOpacity = 3 * getButtonsPaneWidth() / newValue.doubleValue();
+                double newOpacity = 3.5 * getButtonsPaneWidth() / newValue.doubleValue();
                 if (getTranslateX() < 0) {
                     newOpacity = 1;
                 }
@@ -94,6 +141,8 @@ public class DrawerMenu extends BorderPane {
             }
             mainScene.getBackgroundView().setTranslateX(newTranslateX);*/
         });
+
+        topMenuPane.maxHeightProperty().bind(mainScene.heightProperty());
     }
 
     /**
@@ -116,6 +165,7 @@ public class DrawerMenu extends BorderPane {
         openAnim.setCycleCount(1);
         openAnim.setAutoReverse(false);
         openAnim.play();
+        resizePane.setManaged(true);
     }
 
     /**
@@ -137,6 +187,7 @@ public class DrawerMenu extends BorderPane {
         closeAnim.setAutoReverse(false);
         closeAnim.setOnFinished(event -> {
             setManaged(false);
+            resizePane.setManaged(false);
         });
         closeAnim.play();
     }
@@ -152,12 +203,22 @@ public class DrawerMenu extends BorderPane {
         initEditButton(mainScene);
         initSettingsButton(mainScene);
 
+        Rectangle r = new Rectangle(2.0, getHeight());
+        r.heightProperty().bind(heightProperty());
+        resizePane.getChildren().add(r);
+        resizePane.setOpacity(0);
+
         AnchorPane.setTopAnchor(topButtonsBox, 20.0 * Main.SCREEN_HEIGHT / 1080);
         AnchorPane.setBottomAnchor(bottomButtonsBox, 20.0 * Main.SCREEN_HEIGHT / 1080);
 
         topMenuPane.getChildren().addAll(topButtonsBox, bottomButtonsBox);
         topMenuPane.setId("menu-button-bar");
-        setCenter(topMenuPane);
+
+        BorderPane p = new BorderPane();
+        p.setFocusTraversable(false);
+        p.setCenter(topMenuPane);
+        p.setRight(resizePane);
+        setCenter(p);
 
         initButtonSelectListeners();
     }
@@ -176,6 +237,7 @@ public class DrawerMenu extends BorderPane {
                 openSubMenu(mainScene, addMenu.getMenuId());
             }
         });
+        addButton.setTooltip(new Tooltip(Main.getString("add_a_game")));
 
         subMenus.put(addMenu.getMenuId(), addMenu);
 
@@ -184,6 +246,7 @@ public class DrawerMenu extends BorderPane {
 
     private void initScanButton(MainScene mainScene) {
         ScanButton b = new ScanButton(this);
+        b.setTooltip(new Tooltip(Main.getString("scan")));
 
         topButtonsBox.getChildren().add(b);
     }
@@ -191,6 +254,7 @@ public class DrawerMenu extends BorderPane {
     private void initSortButton(MainScene mainScene) {
         DrawerButton sortButton = new DrawerButton("main-sort-button", this);
         sortButton.setSelectionable(true);
+        sortButton.setTooltip(new Tooltip(Main.getString("sortBy")));
 
         SubMenu sortMenu = createSortBySubMenu(mainScene, this);
 
@@ -219,20 +283,23 @@ public class DrawerMenu extends BorderPane {
         if (currentSubMenu != null) {
             currentSubMenu.setOpacity(0);
         }
+        resizePane.setManaged(false);
 
         subMenu.open(mainScene, this);
     }
 
-    private void closeSubMenu(MainScene mainScene) {
+    public void closeSubMenu(MainScene mainScene) {
         if (currentSubMenu != null) {
             currentSubMenu.close(mainScene, this);
         }
+        resizePane.setManaged(true);
     }
 
     private void initGroupButton(MainScene mainScene) {
         DrawerButton groupButton = new DrawerButton("main-group-button", this);
         groupButton.setFocusTraversable(false);
         groupButton.setSelectionable(true);
+        groupButton.setTooltip(new Tooltip(Main.getString("groupBy")));
 
         SubMenu groupMenu = createGroupBySubMenu(mainScene, this);
 
@@ -254,6 +321,7 @@ public class DrawerMenu extends BorderPane {
         DrawerButton editButton = new DrawerButton("main-edit-button", this);
         editButton.setFocusTraversable(false);
         editButton.setSelectionable(true);
+        editButton.setTooltip(new Tooltip(Main.getString("customize")));
 
         SubMenu editSubMenu = createEditSubMenu(mainScene, this);
 
@@ -280,6 +348,7 @@ public class DrawerMenu extends BorderPane {
             LOGGER.debug("SettingsScene : init = " + (System.currentTimeMillis() - start) + "ms");
             mainScene.fadeTransitionTo(settingsScene, mainScene.getParentStage(), true);
         });
+        settingsButton.setTooltip(new Tooltip(Main.getString("Settings")));
 
         bottomButtonsBox.getChildren().add(settingsButton);
     }

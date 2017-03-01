@@ -3,7 +3,9 @@ package system.application.settings;
 import data.game.scanner.ScanPeriod;
 import data.game.scanner.ScannerProfile;
 import data.game.scraper.SteamPreEntry;
+import data.game.scraper.SteamProfile;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
@@ -16,6 +18,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
+
+import static system.application.settings.PredefinedSetting.STEAM_PROFILE;
 
 /**
  * Created by LM on 03/07/2016.
@@ -100,7 +104,15 @@ public class GeneralSettings {
 
     public Boolean getBoolean(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
+        if(setting.getSettingValue() instanceof SimpleBooleanProperty){
+            return ((SimpleBooleanProperty) setting.getSettingValue()).getValue();
+        }
         return (boolean) setting.getSettingValue();
+    }
+
+    public SimpleBooleanProperty getBooleanProperty(PredefinedSetting key) {
+        SettingValue setting = settingsMap.get(key.getKey());
+        return (SimpleBooleanProperty) setting.getSettingValue();
     }
 
     public Locale getLocale(PredefinedSetting key) {
@@ -141,6 +153,11 @@ public class GeneralSettings {
     public String getString(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
         return (String) setting.getSettingValue();
+    }
+
+    public SteamProfile getSteamProfileToScan() {
+        SettingValue setting = settingsMap.get(STEAM_PROFILE.getKey());
+        return (SteamProfile) setting.getSettingValue();
     }
 
     public SteamPreEntry[] getSteamAppsIgnored() {
@@ -210,7 +227,19 @@ public class GeneralSettings {
     }*/
 
     public void setSettingValue(PredefinedSetting key, Object value) {
-        SettingValue settingValue = new SettingValue(value, value.getClass(), key.getDefaultValue().getCategory());
+        SettingValue settingValue;
+
+        if (key.getDefaultValue().getSettingValue() instanceof SimpleBooleanProperty && value instanceof Boolean) {
+            SettingValue<SimpleBooleanProperty> oldValue = settingsMap.get(key.getKey());
+            if (oldValue == null) {
+                oldValue = new SettingValue(new SimpleBooleanProperty((Boolean) value), SimpleBooleanProperty.class, key.getDefaultValue().getCategory());
+            }
+            oldValue.getSettingValue().setValue((Boolean) value);
+            settingValue = oldValue;
+        } else {
+            settingValue = new SettingValue(value, value.getClass(), key.getDefaultValue().getCategory());
+        }
+
         settingsMap.put(key.getKey(), settingValue);
         saveSettings();
     }

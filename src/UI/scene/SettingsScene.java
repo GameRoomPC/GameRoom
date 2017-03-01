@@ -4,6 +4,8 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.GameWatcher;
 import data.game.entry.GameEntry;
 import data.game.scanner.ScanPeriod;
+import data.game.scraper.SteamOnlineScraper;
+import data.game.scraper.SteamProfile;
 import data.http.key.KeyChecker;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -181,13 +183,13 @@ public class SettingsScene extends BaseScene {
         });*/
         addPropertyLine(PredefinedSetting.DISABLE_SCROLLBAR_IN_FULLSCREEN, true);
 
-            addPropertyLine(PredefinedSetting.ENABLE_XBOX_CONTROLLER_SUPPORT, true, new ChangeListener<Boolean>() {
+            addPropertyLine(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT,false, new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 if (newValue) {
-                    Main.xboxController.startThreads();
+                    Main.gameController.startThreads();
                 } else {
-                    Main.xboxController.stopThreads();
+                    Main.gameController.stopThreads();
                 }
             }
         });
@@ -230,6 +232,8 @@ public class SettingsScene extends BaseScene {
         addPropertyLine(PredefinedSetting.SCAN_PERIOD, false, (observable, oldValue, newValue) -> {
             GameWatcher.setScanPeriod((ScanPeriod) newValue,true);
         });
+
+        addPropertyLine(PredefinedSetting.STEAM_PROFILE);
 
 
         /***********************GAME FOLDER IGNORED****************************/
@@ -585,6 +589,13 @@ public class SettingsScene extends BaseScene {
                     }
                 });
                 node2 = localeComboBox;
+            } else if (setting.isClass(SteamProfile.class)) {
+                /**************** LOCALE **************/
+                Button manageButton = new Button(Main.getString("manage"));
+                manageButton.setOnAction(event -> {
+                    SteamOnlineScraper.checkIfCanScanSteam(true);
+                });
+                node2 = manageButton;
             } else if (setting.isClass(String.class)) {
                 /**************** PATH **************/
                 String p = GENERAL_SETTINGS.getString(setting);
@@ -828,7 +839,8 @@ public class SettingsScene extends BaseScene {
             if (currentDir.startsWith("/")) {
                 currentDir = currentDir.substring(1);
             }
-            currentDir.replace("/", "\\");
+            currentDir = currentDir.replace("/", "\\");
+            currentDir = currentDir.replace(".jar",".exe");
 
             String showString = show ? "1" : "0";
             ShellLink sl = ShellLink.createLink(currentDir)

@@ -3,18 +3,14 @@ package ui;
 import data.http.images.ImageDownloaderService;
 import data.http.key.KeyChecker;
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import system.application.GameRoomUpdater;
-import system.application.InternalAppNetworkManager;
-import system.application.MessageListener;
-import system.application.MessageTag;
 import system.application.settings.GeneralSettings;
 import system.application.settings.PredefinedSetting;
 import system.application.settings.SettingValue;
-import system.device.XboxController;
+import system.device.GameController;
 import ui.dialog.GameRoomAlert;
 import ui.scene.MainScene;
 
@@ -31,9 +27,6 @@ import java.util.regex.Pattern;
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
 
 public class Main {
-    private final static String TEMP_UPDATER_JAR_NAME=  "Updater.jar.temp";
-    private final static String UPDATER_JAR_NAME=  "Updater.jar";
-
     public final static String ARGS_FLAG_DEV = "-dev";
     public final static String ARGS_FLAG_IGDB_KEY = "-igdb_key";
     public final static String ARGS_FLAG_SHOW = "-show";
@@ -67,11 +60,9 @@ public class Main {
 
     public static Menu START_TRAY_MENU = new Menu();
 
-    public static XboxController xboxController;
+    public static GameController gameController;
 
     public static TrayIcon TRAY_ICON;
-
-    public static InternalAppNetworkManager NETWORK_MANAGER;
 
     public static volatile boolean KEEP_THREADS_RUNNING = true;
 
@@ -101,7 +92,6 @@ public class Main {
         SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
         GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
-        initNetworkManager();
         //if(!DEV_MODE){
         //startUpdater();
         //}
@@ -142,7 +132,6 @@ public class Main {
                 KEEP_THREADS_RUNNING = false;
                 ImageDownloaderService.getInstance().shutDownNow();
                 Platform.setImplicitExit(true);
-                NETWORK_MANAGER.disconnect();
                 stage.close();
                 Platform.exit();
                 //
@@ -178,22 +167,6 @@ public class Main {
             GameRoomAlert.info(Main.getString("update_downloaded_in_background"));
         });
         GameRoomUpdater.getInstance().start();
-    }
-
-    private static void initNetworkManager() {
-        NETWORK_MANAGER = new InternalAppNetworkManager();
-        NETWORK_MANAGER.addMessageListener(new MessageListener() {
-            @Override
-            public void onMessageReceived(MessageTag tag, String payload) {
-                if (tag.equals(MessageTag.CLOSE_APP)) {
-                    forceStop(MAIN_SCENE.getParentStage(),"Network manager, received close app message");
-                }
-            }
-        });
-        NETWORK_MANAGER.connect();
-        NETWORK_MANAGER.sendMessage(MessageTag.CLOSE_APP);
-        //TODO reduce start time by thread with this
-
     }
 
     public static String getVersion() {
