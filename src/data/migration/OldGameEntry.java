@@ -156,6 +156,7 @@ public class OldGameEntry {
         statement.setBoolean(19, beingScrapped);
         statement.execute();
         statement.close();
+        connection.commit();
 
         sqlId = DataBase.getLastId();
     }
@@ -170,6 +171,7 @@ public class OldGameEntry {
                     genreStatement.setInt(2, genreId);
                     genreStatement.execute();
                     genreStatement.close();
+                    DataBase.commit();
                 }
             }
         }
@@ -185,6 +187,7 @@ public class OldGameEntry {
                     genreStatement.setInt(2, themeID);
                     genreStatement.execute();
                     genreStatement.close();
+                    DataBase.commit();
                 }
             }
         }
@@ -221,6 +224,7 @@ public class OldGameEntry {
             genreStatement.setInt(3, sqlId);
             genreStatement.execute();
             genreStatement.close();
+            DataBase.commit();
         }
 
     }
@@ -238,6 +242,7 @@ public class OldGameEntry {
                     devStatement2.setInt(2, devId);
                     devStatement2.execute();
                     devStatement2.close();
+                    DataBase.commit();
                 }
             }
         }
@@ -256,6 +261,7 @@ public class OldGameEntry {
                     pubStatement2.setInt(2, pubId);
                     pubStatement2.execute();
                     pubStatement2.close();
+                    DataBase.commit();
                 }
             }
         }
@@ -272,6 +278,7 @@ public class OldGameEntry {
                 serieStatement2.setInt(2, serieId);
                 serieStatement2.execute();
                 serieStatement2.close();
+                DataBase.commit();
             }
         }
     }

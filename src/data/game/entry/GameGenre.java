@@ -107,7 +107,7 @@ public enum GameGenre {
 
 
         try {
-            Connection connection = DataBase.getInstance().getConnection();
+            Connection connection = DataBase.getConnection();
             PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM GameGenre WHERE name_key = ?");
             getIdQuery.setString(1,nameKey);
             ResultSet result = getIdQuery.executeQuery();

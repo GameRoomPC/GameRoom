@@ -108,7 +108,7 @@ public enum GameTheme {
         }
 
         try {
-            Connection connection = DataBase.getInstance().getConnection();
+            Connection connection = DataBase.getConnection();
             PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM GameTheme WHERE name_key = ?");
             getIdQuery.setString(1, nameKey);
             ResultSet result = getIdQuery.executeQuery();

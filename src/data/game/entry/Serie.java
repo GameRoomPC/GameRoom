@@ -44,6 +44,7 @@ public class Serie {
             }
             serieStatement.execute();
             serieStatement.close();
+            DataBase.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }

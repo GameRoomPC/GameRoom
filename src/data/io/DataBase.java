@@ -50,6 +50,7 @@ public class DataBase {
         try {
             INSTANCE_CONNECTION = DriverManager.getConnection(url);
             if (INSTANCE_CONNECTION != null) {
+                INSTANCE_CONNECTION.setAutoCommit(false);
                 DatabaseMetaData meta = INSTANCE_CONNECTION.getMetaData();
                 System.out.println("The driver name is " + meta.getDriverName());
                 System.out.println("A new database has been created, path is \"" + url + "\"");
@@ -126,5 +127,13 @@ public class DataBase {
             e.printStackTrace();
         }
         return id;
+    }
+
+    public static void commit() throws SQLException {
+        INSTANCE_CONNECTION.commit();
+    }
+
+    public static void rollback() throws SQLException {
+        INSTANCE_CONNECTION.rollback();
     }
 }

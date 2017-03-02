@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS GameEntry (
 	igdb_id integer,
 	waiting_scrap integer default 0,
 	toAdd integer default 0,
+	ignored integer default 0,
 	beingScraped integer default 0
 );
 
@@ -106,7 +107,8 @@ CREATE TABLE IF NOT EXISTS played (
 
 CREATE TABLE IF NOT EXISTS Platform (
 	id integer PRIMARY KEY,
-	name_key text
+	name_key text,
+	is_launcher integer default 0
 );
 
 CREATE TABLE IF NOT EXISTS runs_on (
@@ -242,16 +244,16 @@ INSERT OR REPLACE INTO GameGenre(igdb_id,name_key) VALUES
 	(32,"indie"),
 	(33,"arcade");
 	
-INSERT OR REPLACE INTO Platform(id,name_key) VALUES
-	(1,"steam"),
-	(2,"steam_online"),
-	(3,"origin"),
-	(4,"uplay"),
-	(5,"battle_net"),
-	(6,"gog"),
-	(7,"wii"),
-	(8,"gamecube"),
-	(9,"n64");
+INSERT OR REPLACE INTO Platform(id,name_key,is_launcher) VALUES
+	(1,"steam",1),
+	(2,"steam_online",1),
+	(3,"origin",1),
+	(4,"uplay",1),
+	(5,"battle_net",1),
+	(6,"gog",1),
+	(7,"wii",0),
+	(8,"gamecube",0),
+	(9,"n64",0);
 	
 INSERT OR REPLACE INTO Emulator(id,name,path,default_args_schema) VALUES
 	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %p");
