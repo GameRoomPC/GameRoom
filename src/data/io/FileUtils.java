@@ -53,6 +53,10 @@ public class FileUtils {
         return initOrCreateFile(new File(f));
     }
 
+    public static File copyToFolder(File src, File target, String newName) throws IOException {
+        return Files.copy(src.toPath(), target.toPath().resolve(newName)).toFile();
+    }
+
     public static File moveToFolder(File src, File target) {
         File movedFile = new File(target.getAbsolutePath() + File.separator + src.getName());
         if (src.exists() && !movedFile.exists()) {

@@ -175,6 +175,9 @@ public class Launcher extends Application {
         Main.FILES_MAP.put("current_theme", FileUtils.initOrCreateFolder(Main.FILES_MAP.get("themes").getAbsolutePath() + File.separator + "current"));
         Main.FILES_MAP.put("theme_css", new File(Main.FILES_MAP.get("current_theme").getAbsolutePath() + File.separator + "theme.css"));
         Main.FILES_MAP.put("db", new File(gameRoomFolder + File.separator + DataBase.DB_NAME));
+        Main.FILES_MAP.put("pictures", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "pictures"));
+        Main.FILES_MAP.put("cover", FileUtils.initOrCreateFolder(Main.FILES_MAP.get("pictures").getAbsolutePath()+ File.separator + "cover"));
+        Main.FILES_MAP.put("screenshot", FileUtils.initOrCreateFolder(Main.FILES_MAP.get("pictures").getAbsolutePath()+ File.separator + "screenshot"));
     }
 
     @Override

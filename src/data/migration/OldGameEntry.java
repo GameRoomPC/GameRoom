@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -124,9 +125,7 @@ public class OldGameEntry {
             exportDevs();
             exportPublishers();
             exportSerie();
-            //movePictures
-            //moveLogs
-
+            movePictures();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -162,7 +161,7 @@ public class OldGameEntry {
     }
 
     private void exportGenres() throws SQLException {
-        if(genres != null){
+        if (genres != null) {
             for (OldGenre genre : genres) {
                 int genreId = GameGenre.getIGDBId(genre.getKey());
                 if (genreId != -1) {
@@ -177,7 +176,7 @@ public class OldGameEntry {
     }
 
     private void exportThemes() throws SQLException {
-        if(themes != null){
+        if (themes != null) {
             for (OldTheme theme : themes) {
                 int themeID = GameTheme.getIGDBId(theme.getKey());
                 if (themeID != -1) {
@@ -195,27 +194,27 @@ public class OldGameEntry {
         int specificId = 0;
         int platformId = -1;
 
-        if(steam_id != -1){
+        if (steam_id != -1) {
             specificId = steam_id;
-            if(!notInstalled){
+            if (!notInstalled) {
                 platformId = 1;
-            }else {
+            } else {
                 platformId = 2;
             }
-        }else if(origin_id != -1){
+        } else if (origin_id != -1) {
             specificId = origin_id;
             platformId = 3;
-        }else if(uplay_id != -1){
+        } else if (uplay_id != -1) {
             specificId = uplay_id;
             platformId = 4;
-        }else if(battlenet_id != -1){
+        } else if (battlenet_id != -1) {
             specificId = battlenet_id;
             platformId = 5;
-        }else if(gog_id != -1){
+        } else if (gog_id != -1) {
             specificId = gog_id;
             platformId = 6;
         }
-        if(platformId != -1){
+        if (platformId != -1) {
             PreparedStatement genreStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO runs_on(specific_id,platform_id,game_id) VALUES (?,?,?)");
             genreStatement.setInt(1, specificId);
             genreStatement.setInt(2, platformId);
@@ -227,13 +226,13 @@ public class OldGameEntry {
     }
 
     private void exportDevs() throws SQLException {
-        if(developer != null && !developer.isEmpty()){
+        if (developer != null && !developer.isEmpty()) {
             String[] devs = developer.split(",\\s");
-            for(String s : devs){
+            for (String s : devs) {
                 Developer dev = new Developer(s);
                 int devId = dev.insertInDB();
 
-                if(devId != -1){
+                if (devId != -1) {
                     PreparedStatement devStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO develops(game_id,dev_id) VALUES (?,?)");
                     devStatement2.setInt(1, sqlId);
                     devStatement2.setInt(2, devId);
@@ -245,13 +244,13 @@ public class OldGameEntry {
     }
 
     private void exportPublishers() throws SQLException {
-        if(publisher != null && !publisher.isEmpty()){
+        if (publisher != null && !publisher.isEmpty()) {
             String[] pubs = publisher.split(",\\s");
-            for(String s : pubs){
+            for (String s : pubs) {
                 Publisher pub = new Publisher(s);
                 int pubId = pub.insertInDB();
 
-                if(pubId != -1){
+                if (pubId != -1) {
                     PreparedStatement pubStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO publishes(game_id,pub_id) VALUES (?,?)");
                     pubStatement2.setInt(1, sqlId);
                     pubStatement2.setInt(2, pubId);
@@ -263,11 +262,11 @@ public class OldGameEntry {
     }
 
     private void exportSerie() throws SQLException {
-        if(serie != null && !serie.isEmpty()){
+        if (serie != null && !serie.isEmpty()) {
             Serie gameSerie = new Serie(serie);
             int serieId = gameSerie.insertInDB();
 
-            if(serieId != -1){
+            if (serieId != -1) {
                 PreparedStatement serieStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO regroups(game_id,serie_id) VALUES (?,?)");
                 serieStatement2.setInt(1, sqlId);
                 serieStatement2.setInt(2, serieId);
@@ -275,6 +274,35 @@ public class OldGameEntry {
                 serieStatement2.close();
             }
         }
+    }
+
+    private void movePictures() {
+        File coverFolder = FILES_MAP.get("cover");
+        File screenshotFolder = FILES_MAP.get("screenshot");
+        File workingdir = Main.FILES_MAP.get("working_dir");
+
+        if (imagesPaths != null) {
+
+            for (int i = 0; i < imagesPaths.length; i++) {
+                File f = imagesPaths[i];
+                //LOGGER.debug("Image"+i+" :"+f);
+                if (f != null) {
+                    File absoluteFile = new File(workingdir+File.separator+f.getPath());
+                    if(absoluteFile.exists()){
+                        try {
+                            if (i == 0) {
+                                FileUtils.copyToFolder(absoluteFile, coverFolder, sqlId + "_" + name.replaceAll("[^a-zA-Z0-9\\.\\-]", "_") + "." + FileUtils.getExtension(absoluteFile));
+                            } else if (i == 1) {
+                                FileUtils.copyToFolder(absoluteFile, screenshotFolder, sqlId + "_" + name.replaceAll("[^a-zA-Z0-9\\.\\-]", "_") + "." + FileUtils.getExtension(absoluteFile));
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
     private File propertyFile() throws IOException {
