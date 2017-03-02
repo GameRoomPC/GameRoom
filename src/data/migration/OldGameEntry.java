@@ -1,10 +1,7 @@
 package data.migration;
 
 import com.google.gson.Gson;
-import data.game.entry.AllGameEntries;
-import data.game.entry.Developer;
-import data.game.entry.GameGenre;
-import data.game.entry.GameTheme;
+import data.game.entry.*;
 import data.io.DataBase;
 import data.io.FileUtils;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -125,7 +122,8 @@ public class OldGameEntry {
             exportThemes();
             exportPlatform();
             exportDevs();
-            //exportPublishers();
+            exportPublishers();
+            exportSerie();
             //movePictures
             //moveLogs
 
@@ -244,31 +242,39 @@ public class OldGameEntry {
                 }
             }
         }
-
     }
 
     private void exportPublishers() throws SQLException {
         if(publisher != null && !publisher.isEmpty()){
             String[] pubs = publisher.split(",\\s");
-            for(String pub : pubs){
-                PreparedStatement pubSStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO Publisher(name) VALUES (?)");
-                pubSStatement.setString(1, pub);
-                pubSStatement.execute();
-                pubSStatement.close();
+            for(String s : pubs){
+                Publisher pub = new Publisher(s);
+                int pubId = pub.insertInDB();
 
-
-
-                //TODO implement mecanism that checks if dev has been created or if it was already here, leading in incorrect devId afterwards
-                int pubId = DataBase.getLastId();
-
-                PreparedStatement pubStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO publishes(game_id,pub_id) VALUES (?,?)");
-                pubStatement2.setInt(1, sqlId);
-                pubStatement2.setInt(2, pubId);
-                pubStatement2.execute();
-                pubStatement2.close();
+                if(pubId != -1){
+                    PreparedStatement pubStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO publishes(game_id,pub_id) VALUES (?,?)");
+                    pubStatement2.setInt(1, sqlId);
+                    pubStatement2.setInt(2, pubId);
+                    pubStatement2.execute();
+                    pubStatement2.close();
+                }
             }
         }
+    }
 
+    private void exportSerie() throws SQLException {
+        if(serie != null && !serie.isEmpty()){
+            Serie gameSerie = new Serie(serie);
+            int serieId = gameSerie.insertInDB();
+
+            if(serieId != -1){
+                PreparedStatement serieStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO regroups(game_id,serie_id) VALUES (?,?)");
+                serieStatement2.setInt(1, sqlId);
+                serieStatement2.setInt(2, serieId);
+                serieStatement2.execute();
+                serieStatement2.close();
+            }
+        }
     }
 
     private File propertyFile() throws IOException {

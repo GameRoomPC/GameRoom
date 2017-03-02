@@ -27,39 +27,18 @@ CREATE TABLE IF NOT EXISTS Developer (
 	id_needs_update integer default 0
 );
 
-CREATE TABLE IF NOT EXISTS Publisher (
-	igdb_id integer PRIMARY KEY AUTOINCREMENT,
-	name text unique,
-    id_needs_update integer default 0
-);
-
-CREATE TABLE IF NOT EXISTS GameGenre (
-	igdb_id integer PRIMARY KEY,
-	name_key text
-);
-
-CREATE TABLE IF NOT EXISTS GameTheme (
-	igdb_id integer PRIMARY KEY,
-	name_key text
-);
-
-CREATE TABLE IF NOT EXISTS Serie (
-	igdb_id integer PRIMARY KEY AUTOINCREMENT,
-	name text unique
-);
-
-CREATE TABLE IF NOT EXISTS PlaySession (
-	id integer PRIMARY KEY AUTOINCREMENT,
-	start_date text,
-	time_played_seconds integer
-);
-
 CREATE TABLE IF NOT EXISTS develops (
 	game_id integer,
 	dev_id integer,
 	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
 	FOREIGN KEY(dev_id) REFERENCES Developer(igdb_id),
 	PRIMARY KEY (game_id, dev_id)
+);
+
+CREATE TABLE IF NOT EXISTS Publisher (
+	igdb_id integer PRIMARY KEY AUTOINCREMENT,
+	name text unique,
+    id_needs_update integer default 0
 );
 
 CREATE TABLE IF NOT EXISTS publishes (
@@ -70,12 +49,37 @@ CREATE TABLE IF NOT EXISTS publishes (
     PRIMARY KEY (game_id, pub_id)
 );
 
+CREATE TABLE IF NOT EXISTS Serie (
+	igdb_id integer PRIMARY KEY AUTOINCREMENT,
+	name text unique,
+    id_needs_update integer default 0
+);
+
+CREATE TABLE IF NOT EXISTS regroups (
+	game_id integer,
+	serie_id integer,
+	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
+	FOREIGN KEY(serie_id) REFERENCES Serie(igdb_id),
+	PRIMARY KEY (game_id, serie_id)
+);
+
+CREATE TABLE IF NOT EXISTS GameGenre (
+	igdb_id integer PRIMARY KEY,
+	name_key text,
+	id_needs_update integer default 0
+);
+
 CREATE TABLE IF NOT EXISTS has_genre (
 	game_id integer,
 	genre_id integer,
 	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
 	FOREIGN KEY(genre_id) REFERENCES GameGenre(igdb_id),
 	PRIMARY KEY (game_id, genre_id)
+);
+
+CREATE TABLE IF NOT EXISTS GameTheme (
+	igdb_id integer PRIMARY KEY,
+	name_key text
 );
 
 CREATE TABLE IF NOT EXISTS has_theme (
@@ -86,12 +90,10 @@ CREATE TABLE IF NOT EXISTS has_theme (
 	PRIMARY KEY (game_id, theme_id)
 );
 
-CREATE TABLE IF NOT EXISTS regroups (
-	game_id integer,
-	serie_id integer,
-	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(serie_id) REFERENCES Serie(igdb_id),
-	PRIMARY KEY (game_id, serie_id)
+CREATE TABLE IF NOT EXISTS PlaySession (
+	id integer PRIMARY KEY AUTOINCREMENT,
+	start_date text,
+	time_played_seconds integer
 );
 
 CREATE TABLE IF NOT EXISTS played (
@@ -107,6 +109,15 @@ CREATE TABLE IF NOT EXISTS Platform (
 	name_key text
 );
 
+CREATE TABLE IF NOT EXISTS runs_on (
+	specific_id integer,
+	platform_id integer,
+	game_id integer,
+	FOREIGN KEY(platform_id) REFERENCES Platform(id),
+	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
+	PRIMARY KEY (platform_id, game_id)
+);
+
 CREATE TABLE IF NOT EXISTS Emulator (
 	id integer PRIMARY KEY,
 	name text,
@@ -118,19 +129,10 @@ CREATE TABLE IF NOT EXISTS Emulator (
 CREATE TABLE IF NOT EXISTS emulates (
 	platform_id integer,
 	emu_id integer,
-	userchoice integer default 0,
+	user_choice integer default 0,
 	FOREIGN KEY(platform_id) REFERENCES Platform(id),
 	FOREIGN KEY(emu_id) REFERENCES Emulator(id),
 	PRIMARY KEY (platform_id, emu_id)
-);
-
-CREATE TABLE IF NOT EXISTS runs_on (
-	specific_id integer,
-	platform_id integer,
-	game_id integer,
-	FOREIGN KEY(platform_id) REFERENCES Platform(id),
-	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	PRIMARY KEY (platform_id, game_id)
 );
 
 CREATE TABLE IF NOT EXISTS Settings (

@@ -10,38 +10,40 @@ import java.sql.SQLException;
 /**
  * Created by LM on 02/03/2017.
  */
-public class Developer {
+public class Serie {
     private int igdb_id = -1;
     private String name;
     private boolean id_needs_update;
 
-    public Developer(int igdb_id, String name) {
+    public Serie(int igdb_id, String name) {
         if(name == null || name.isEmpty()){
-            throw new IllegalArgumentException("Developer's name was either null or empty : \""+name+"\"");
+            throw new IllegalArgumentException("Serie's name was either null or empty : \""+name+"\"");
         }
         this.igdb_id = igdb_id;
         this.name = name;
     }
 
-    public Developer(String name) {
+    //TODO implement a method to check if id_needs_update in db and do it if valid igdb_id. Same for Publisher and Developer
+
+    public Serie(String name) {
         if(name == null || name.isEmpty()){
-            throw new IllegalArgumentException("Developer's name was either null or empty : \""+name+"\"");
+            throw new IllegalArgumentException("Serie's name was either null or empty : \""+name+"\"");
         }
         this.name = name;
     }
 
     public int insertInDB(){
         try {
-            String sql = "INSERT OR IGNORE INTO Developer(name,"+ (igdb_id < 0 ? "id_needs_update) VALUES (?,?)" : "igdb_id) VALUES (?,?)");
-            PreparedStatement devStatement = DataBase.getConnection().prepareStatement(sql);
-            devStatement.setString(1, name);
+            String sql = "INSERT OR IGNORE INTO Serie(name,"+ (igdb_id < 0 ? "id_needs_update) VALUES (?,?)" : "igdb_id) VALUES (?,?)");
+            PreparedStatement serieStatement = DataBase.getConnection().prepareStatement(sql);
+            serieStatement.setString(1, name);
             if(igdb_id >= 0){
-                devStatement.setInt(2,igdb_id);
+                serieStatement.setInt(2,igdb_id);
             }else{
-                devStatement.setInt(2,1);
+                serieStatement.setInt(2,1);
             }
-            devStatement.execute();
-            devStatement.close();
+            serieStatement.execute();
+            serieStatement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -51,12 +53,12 @@ public class Developer {
 
     private int getIdInDb(){
         if(name == null || name.isEmpty()){
-            throw new IllegalArgumentException("Developer's name was either null or empty : \""+name+"\"");
+            throw new IllegalArgumentException("Serie's name was either null or empty : \""+name+"\"");
         }
         int id = -1;
         try {
             Connection connection = DataBase.getConnection();
-            PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM Developer WHERE name = ?");
+            PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM Serie WHERE name = ?");
             getIdQuery.setString(1,name);
             ResultSet result = getIdQuery.executeQuery();
 
