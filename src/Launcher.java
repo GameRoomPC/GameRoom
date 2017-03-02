@@ -1,6 +1,7 @@
 import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
 import data.game.scraper.IGDBScraper;
+import data.io.DataBase;
 import data.io.FileUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -173,6 +174,7 @@ public class Launcher extends Application {
         Main.FILES_MAP.put("themes", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "themes"));
         Main.FILES_MAP.put("current_theme", FileUtils.initOrCreateFolder(Main.FILES_MAP.get("themes").getAbsolutePath() + File.separator + "current"));
         Main.FILES_MAP.put("theme_css", new File(Main.FILES_MAP.get("current_theme").getAbsolutePath() + File.separator + "theme.css"));
+        Main.FILES_MAP.put("db", new File(gameRoomFolder + File.separator + DataBase.DB_NAME));
     }
 
     @Override

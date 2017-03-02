@@ -22,13 +22,15 @@ CREATE TABLE IF NOT EXISTS GameEntry (
 );
 
 CREATE TABLE IF NOT EXISTS Developer (
-	igdb_id integer PRIMARY KEY,
-	name text
+	igdb_id integer PRIMARY KEY AUTOINCREMENT,
+	name text unique,
+	id_needs_update integer default 0
 );
 
 CREATE TABLE IF NOT EXISTS Publisher (
-	igdb_id integer PRIMARY KEY,
-	name text
+	igdb_id integer PRIMARY KEY AUTOINCREMENT,
+	name text unique,
+    id_needs_update integer default 0
 );
 
 CREATE TABLE IF NOT EXISTS GameGenre (
@@ -42,8 +44,8 @@ CREATE TABLE IF NOT EXISTS GameTheme (
 );
 
 CREATE TABLE IF NOT EXISTS Serie (
-	igdb_id integer PRIMARY KEY,
-	name text
+	igdb_id integer PRIMARY KEY AUTOINCREMENT,
+	name text unique
 );
 
 CREATE TABLE IF NOT EXISTS PlaySession (

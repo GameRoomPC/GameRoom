@@ -17,9 +17,9 @@ import static ui.Main.LOGGER;
  * Created by LM on 17/02/2017.
  */
 public class DataBase {
-    private final static String DB_NAME = "library.db";
+    public final static String DB_NAME = "library.db";
     private final static DataBase INSTANCE = new DataBase();
-    private static Connection INSTANCE_CONNECTION ;
+    private static Connection INSTANCE_CONNECTION;
 
     private DataBase() {
         super();
@@ -36,10 +36,12 @@ public class DataBase {
     }
 
     private static String getDBUrl() {
-        File workingDir = Main.FILES_MAP.get("working_dir");
-        //File workingDir = new File("D:\\Desktop");
-        String dbPath = workingDir.toPath().toAbsolutePath() + File.separator + DB_NAME;
-        return "jdbc:sqlite:" + dbPath;
+        File dbFile = Main.FILES_MAP.get("db");
+        if(dbFile.exists()){
+            //TODO remove this deletion, this is just for dev
+            dbFile.delete();
+        }
+        return "jdbc:sqlite:" + dbFile.getAbsolutePath();
     }
 
     private void connect() {
@@ -50,7 +52,7 @@ public class DataBase {
             if (INSTANCE_CONNECTION != null) {
                 DatabaseMetaData meta = INSTANCE_CONNECTION.getMetaData();
                 System.out.println("The driver name is " + meta.getDriverName());
-                System.out.println("A new database has been created, path is \""+url+"\"");
+                System.out.println("A new database has been created, path is \"" + url + "\"");
             }
 
         } catch (SQLException e) {
@@ -101,7 +103,7 @@ public class DataBase {
         }
     }
 
-    public Connection getConnection() throws SQLException {
+    public static Connection getConnection() throws SQLException {
         return INSTANCE_CONNECTION;
     }
 
@@ -111,5 +113,18 @@ public class DataBase {
 
     public static void main(String[] args) {
         initDB();
+    }
+
+    public static int getLastId() {
+        int id = -1;
+        try {
+            PreparedStatement getIdQuery = getConnection().prepareStatement("SELECT last_insert_rowid()");
+            ResultSet result = getIdQuery.executeQuery();
+            id = result.getInt(1);
+            result.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return id;
     }
 }

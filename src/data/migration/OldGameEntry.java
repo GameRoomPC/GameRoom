@@ -2,6 +2,7 @@ package data.migration;
 
 import com.google.gson.Gson;
 import data.game.entry.AllGameEntries;
+import data.game.entry.Developer;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
 import data.io.DataBase;
@@ -31,21 +32,12 @@ import static ui.Main.LOGGER;
  * This class is deprecated and intended to be used only to migrate file-saved GameEntries to the database
  */
 public class OldGameEntry {
-    public final static int CMD_BEFORE_START = 0;
-    public final static int CMD_AFTER_END = 1;
 
     public final static DateFormat DATE_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss SSS");
     private final static DateFormat DATE_OLD_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     private final static int IMAGES_NUMBER = 3;
 
-    private final static int TIME_FORMAT_FULL_HMS = 0; // 0h12m0s, 0h5m13s
-    public final static int TIME_FORMAT_FULL_DOUBLEDOTS = 1; //00:12:00, 00:05:13
-    public final static int TIME_FORMAT_HALF_FULL_HMS = 2; // 12m0s, 5m13s
-    public final static int TIME_FORMAT_ROUNDED_HMS = 3; // 12m, 5m
-    public static final int TIME_FORMAT_HMS_CASUAL = 4; //1h05, 20mn, l0s
-
-
-    private boolean savedLocaly = false;
+    private int sqlId;
 
     private String name = "";
     private Date releaseDate;
@@ -66,8 +58,6 @@ public class OldGameEntry {
     private boolean notInstalled = false;
 
     private File[] imagesPaths = new File[IMAGES_NUMBER];
-    private boolean[] imageNeedsRefresh = new boolean[IMAGES_NUMBER];
-    private HashMap<Integer, Image> createdImages = new HashMap<>();
 
     private long playTime = 0; //Time in seconds
 
@@ -87,12 +77,25 @@ public class OldGameEntry {
     private boolean toAdd = false;
     private boolean beingScrapped;
 
-    private transient Runnable onGameLaunched;
-    private transient Runnable onGameStopped;
 
-    private transient boolean deleted = false;
+    public OldGameEntry(UUID uuid, boolean toAdd) {
+        this.uuid = uuid;
+        this.toAdd = toAdd;
+        try {
+            loadEntry();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-    private transient SimpleBooleanProperty monitored = new SimpleBooleanProperty(false);
+    public OldGameEntry(UUID uuid) {
+        this.uuid = uuid;
+        try {
+            loadEntry();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void transferOldGameEntries() {
         ArrayList<UUID> toAddUUIDs = AllGameEntries.readUUIDS(FILES_MAP.get("to_add"));
@@ -116,118 +119,156 @@ public class OldGameEntry {
     }
 
     public void transferToDB() {
-        String sqlQuery = getSQLInitLine();
         try {
-            Connection connection = DataBase.getInstance().getConnection();
-
-            PreparedStatement statement = connection.prepareStatement(sqlQuery);
-            statement.setString(1, name);
-            statement.setString(2, releaseDate == null ? "" : DATE_STORE_FORMAT.format(releaseDate));
-            statement.setString(3, description);
-            statement.setInt(4, aggregated_rating);
-            statement.setString(5, path);
-            statement.setString(6, cmd[0]);
-            statement.setString(7, cmd[1]);
-            statement.setString(8, args);
-            statement.setString(9, youtubeSoundtrackHash);
-            statement.setString(10, (addedDate == null ? "" : DATE_STORE_FORMAT.format(addedDate)));
-            statement.setString(11, (lastPlayedDate == null ? "" : DATE_STORE_FORMAT.format(lastPlayedDate)));
-            statement.setLong(12, playTime);
-            statement.setBoolean(13, !notInstalled);
-            statement.setString(14, igdb_imageHash[0]);
-            statement.setString(15, igdb_imageHash[1]);
-            statement.setInt(16, igdb_id);
-            statement.setBoolean(17, waitingToBeScrapped);
-            statement.setBoolean(18, toAdd);
-            statement.setBoolean(19, beingScrapped);
-            statement.execute();
-            statement.close();
-
-            PreparedStatement getIdQuery = connection.prepareStatement("SELECT last_insert_rowid()");
-            ResultSet result = getIdQuery.executeQuery();
-            int sqlId = result.getInt(1);
-            result.close();
-
-            if(genres != null){
-                for (OldGenre genre : genres) {
-                    int genreId = GameGenre.getIGDBId(genre.getKey());
-                    if (genreId != -1) {
-                        PreparedStatement genreStatement = connection.prepareStatement("INSERT OR IGNORE INTO has_genre(game_id,genre_id) VALUES (?,?)");
-                        genreStatement.setInt(1, sqlId);
-                        genreStatement.setInt(2, genreId);
-                        genreStatement.execute();
-                        genreStatement.close();
-                    }
-                }
-            }
-
-            if(themes != null){
-                for (OldTheme theme : themes) {
-                    int themeID = GameTheme.getIGDBId(theme.getKey());
-                    if (themeID != -1) {
-                        PreparedStatement genreStatement = connection.prepareStatement("INSERT OR IGNORE INTO has_theme(game_id,theme_id) VALUES (?,?)");
-                        genreStatement.setInt(1, sqlId);
-                        genreStatement.setInt(2, themeID);
-                        genreStatement.execute();
-                        genreStatement.close();
-                    }
-                }
-            }
-            int specificId = 0;
-            int platformId = -1;
-
-            if(steam_id != -1){
-                    specificId = steam_id;
-                if(!notInstalled){
-                    platformId = 1;
-                }else {
-                    platformId = 2;
-                }
-            }else if(origin_id != -1){
-                specificId = origin_id;
-                platformId = 3;
-            }else if(uplay_id != -1){
-                specificId = uplay_id;
-                platformId = 4;
-            }else if(battlenet_id != -1){
-                specificId = battlenet_id;
-                platformId = 5;
-            }else if(gog_id != -1){
-                specificId = gog_id;
-                platformId = 6;
-            }
-            if(platformId != -1){
-                PreparedStatement genreStatement = connection.prepareStatement("INSERT OR IGNORE INTO runs_on(specific_id,platform_id,game_id) VALUES (?,?,?)");
-                genreStatement.setInt(1, specificId);
-                genreStatement.setInt(2, platformId);
-                genreStatement.setInt(3, sqlId);
-                genreStatement.execute();
-                genreStatement.close();
-            }
-
+            exportDirectFields();
+            exportGenres();
+            exportThemes();
+            exportPlatform();
+            exportDevs();
+            //exportPublishers();
+            //movePictures
+            //moveLogs
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public OldGameEntry(UUID uuid, boolean toAdd) {
-        this.uuid = uuid;
-        this.toAdd = toAdd;
-        try {
-            loadEntry();
-        } catch (IOException e) {
-            e.printStackTrace();
+    private void exportDirectFields() throws SQLException {
+        Connection connection = DataBase.getConnection();
+
+        PreparedStatement statement = connection.prepareStatement(getSQLInitLine());
+        statement.setString(1, name);
+        statement.setString(2, releaseDate == null ? "" : DATE_STORE_FORMAT.format(releaseDate));
+        statement.setString(3, description);
+        statement.setInt(4, aggregated_rating);
+        statement.setString(5, path);
+        statement.setString(6, cmd[0]);
+        statement.setString(7, cmd[1]);
+        statement.setString(8, args);
+        statement.setString(9, youtubeSoundtrackHash);
+        statement.setString(10, (addedDate == null ? "" : DATE_STORE_FORMAT.format(addedDate)));
+        statement.setString(11, (lastPlayedDate == null ? "" : DATE_STORE_FORMAT.format(lastPlayedDate)));
+        statement.setLong(12, playTime);
+        statement.setBoolean(13, !notInstalled);
+        statement.setString(14, igdb_imageHash[0]);
+        statement.setString(15, igdb_imageHash[1]);
+        statement.setInt(16, igdb_id);
+        statement.setBoolean(17, waitingToBeScrapped);
+        statement.setBoolean(18, toAdd);
+        statement.setBoolean(19, beingScrapped);
+        statement.execute();
+        statement.close();
+
+        sqlId = DataBase.getLastId();
+    }
+
+    private void exportGenres() throws SQLException {
+        if(genres != null){
+            for (OldGenre genre : genres) {
+                int genreId = GameGenre.getIGDBId(genre.getKey());
+                if (genreId != -1) {
+                    PreparedStatement genreStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO has_genre(game_id,genre_id) VALUES (?,?)");
+                    genreStatement.setInt(1, sqlId);
+                    genreStatement.setInt(2, genreId);
+                    genreStatement.execute();
+                    genreStatement.close();
+                }
+            }
         }
     }
 
-    public OldGameEntry(UUID uuid) {
-        this.uuid = uuid;
-        try {
-            loadEntry();
-        } catch (IOException e) {
-            e.printStackTrace();
+    private void exportThemes() throws SQLException {
+        if(themes != null){
+            for (OldTheme theme : themes) {
+                int themeID = GameTheme.getIGDBId(theme.getKey());
+                if (themeID != -1) {
+                    PreparedStatement genreStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO has_theme(game_id,theme_id) VALUES (?,?)");
+                    genreStatement.setInt(1, sqlId);
+                    genreStatement.setInt(2, themeID);
+                    genreStatement.execute();
+                    genreStatement.close();
+                }
+            }
         }
+    }
+
+    private void exportPlatform() throws SQLException {
+        int specificId = 0;
+        int platformId = -1;
+
+        if(steam_id != -1){
+            specificId = steam_id;
+            if(!notInstalled){
+                platformId = 1;
+            }else {
+                platformId = 2;
+            }
+        }else if(origin_id != -1){
+            specificId = origin_id;
+            platformId = 3;
+        }else if(uplay_id != -1){
+            specificId = uplay_id;
+            platformId = 4;
+        }else if(battlenet_id != -1){
+            specificId = battlenet_id;
+            platformId = 5;
+        }else if(gog_id != -1){
+            specificId = gog_id;
+            platformId = 6;
+        }
+        if(platformId != -1){
+            PreparedStatement genreStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO runs_on(specific_id,platform_id,game_id) VALUES (?,?,?)");
+            genreStatement.setInt(1, specificId);
+            genreStatement.setInt(2, platformId);
+            genreStatement.setInt(3, sqlId);
+            genreStatement.execute();
+            genreStatement.close();
+        }
+
+    }
+
+    private void exportDevs() throws SQLException {
+        if(developer != null && !developer.isEmpty()){
+            String[] devs = developer.split(",\\s");
+            for(String s : devs){
+                Developer dev = new Developer(s);
+                int devId = dev.insertInDB();
+
+                if(devId != -1){
+                    PreparedStatement devStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO develops(game_id,dev_id) VALUES (?,?)");
+                    devStatement2.setInt(1, sqlId);
+                    devStatement2.setInt(2, devId);
+                    devStatement2.execute();
+                    devStatement2.close();
+                }
+            }
+        }
+
+    }
+
+    private void exportPublishers() throws SQLException {
+        if(publisher != null && !publisher.isEmpty()){
+            String[] pubs = publisher.split(",\\s");
+            for(String pub : pubs){
+                PreparedStatement pubSStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO Publisher(name) VALUES (?)");
+                pubSStatement.setString(1, pub);
+                pubSStatement.execute();
+                pubSStatement.close();
+
+
+
+                //TODO implement mecanism that checks if dev has been created or if it was already here, leading in incorrect devId afterwards
+                int pubId = DataBase.getLastId();
+
+                PreparedStatement pubStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO publishes(game_id,pub_id) VALUES (?,?)");
+                pubStatement2.setInt(1, sqlId);
+                pubStatement2.setInt(2, pubId);
+                pubStatement2.execute();
+                pubStatement2.close();
+            }
+        }
+
     }
 
     private File propertyFile() throws IOException {
@@ -372,11 +413,6 @@ public class OldGameEntry {
 
         input.close();
 
-    }
-
-    public void deletePermanently() {
-        deleteFiles();
-        deleted = true;
     }
 
     public void deleteFiles() {
