@@ -48,6 +48,10 @@ public class DataBase {
         String url = getDBUrl();
 
         try {
+            //TODO learn about transactions and isolation levels
+            //it should be possible t oestablish an other connection only for Settings, that would auto-commit as we don't want
+            //for example when resizing a window in EditScene have to either commit changes to a game or take the risk to discard
+            //the window's size if user cancel changes
             INSTANCE_CONNECTION = DriverManager.getConnection(url);
             if (INSTANCE_CONNECTION != null) {
                 INSTANCE_CONNECTION.setAutoCommit(false);
