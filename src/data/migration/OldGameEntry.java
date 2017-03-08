@@ -4,26 +4,20 @@ import com.google.gson.Gson;
 import data.game.entry.*;
 import data.io.DataBase;
 import data.io.FileUtils;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.image.Image;
 import ui.Main;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 
 import static ui.Main.FILES_MAP;
-import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 02/07/2016.
@@ -96,7 +90,7 @@ public class OldGameEntry {
     }
 
     public static void transferOldGameEntries() {
-        ArrayList<UUID> toAddUUIDs = AllGameEntries.readUUIDS(FILES_MAP.get("to_add"));
+        ArrayList<UUID> toAddUUIDs = GameEntryUtils.readUUIDS(FILES_MAP.get("to_add"));
 
         ArrayList<OldGameEntry> oldEntries = new ArrayList<>();
         for (UUID uuid : toAddUUIDs) {
@@ -104,7 +98,7 @@ public class OldGameEntry {
             oldEntries.add(entry);
         }
 
-        ArrayList<UUID> uuids = AllGameEntries.readUUIDS(FILES_MAP.get("games"));
+        ArrayList<UUID> uuids = GameEntryUtils.readUUIDS(FILES_MAP.get("games"));
         for (UUID uuid : uuids) {
             OldGameEntry entry = new OldGameEntry(uuid);
             oldEntries.add(entry);
@@ -136,7 +130,7 @@ public class OldGameEntry {
 
         PreparedStatement statement = connection.prepareStatement(getSQLInitLine());
         statement.setString(1, name);
-        statement.setString(2, releaseDate == null ? "" : DATE_STORE_FORMAT.format(releaseDate));
+        statement.setDate(2, toSqlDate(releaseDate));
         statement.setString(3, description);
         statement.setInt(4, aggregated_rating);
         statement.setString(5, path);
@@ -144,8 +138,8 @@ public class OldGameEntry {
         statement.setString(7, cmd[1]);
         statement.setString(8, args);
         statement.setString(9, youtubeSoundtrackHash);
-        statement.setString(10, (addedDate == null ? "" : DATE_STORE_FORMAT.format(addedDate)));
-        statement.setString(11, (lastPlayedDate == null ? "" : DATE_STORE_FORMAT.format(lastPlayedDate)));
+        statement.setDate(10, toSqlDate(addedDate));
+        statement.setDate(11, toSqlDate(lastPlayedDate));
         statement.setLong(12, playTime);
         statement.setBoolean(13, !notInstalled);
         statement.setString(14, igdb_imageHash[0]);
@@ -294,8 +288,8 @@ public class OldGameEntry {
                 File f = imagesPaths[i];
                 //LOGGER.debug("Image"+i+" :"+f);
                 if (f != null) {
-                    File absoluteFile = new File(workingdir+File.separator+f.getPath());
-                    if(absoluteFile.exists()){
+                    File absoluteFile = new File(workingdir + File.separator + f.getPath());
+                    if (absoluteFile.exists()) {
                         try {
                             if (i == 0) {
                                 FileUtils.copyToFolder(absoluteFile, coverFolder, sqlId + "_" + name.replaceAll("[^a-zA-Z0-9\\.\\-]", "_") + "." + FileUtils.getExtension(absoluteFile));
@@ -486,5 +480,15 @@ public class OldGameEntry {
             temp += ",?";
         }
         return temp + ");";
+    }
+
+    public static java.sql.Date toSqlDate(java.util.Date javaDate) {
+        java.sql.Date sqlDate = null;
+        if (javaDate != null) {
+            sqlDate = new java.sql.Date(javaDate.getTime());
+        }else{
+            return null;
+        }
+        return sqlDate;
     }
 }

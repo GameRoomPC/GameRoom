@@ -13,6 +13,7 @@ import ui.dialog.ChoiceDialog;
 import ui.scene.GameEditScene;
 import ui.scene.MainScene;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
@@ -57,11 +58,10 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
 
 
                         if (entry.isToAdd()) {
-                            entry.deleteFiles();
                             entry.setToAdd(false);
                         }
                         entry.setSavedLocaly(true);
-                        entry.setAddedDate(new Date());
+                        entry.setAddedDate(LocalDate.now());
                         MAIN_SCENE.addGame(entry);
                     }
                     if(MAIN_SCENE!=null){

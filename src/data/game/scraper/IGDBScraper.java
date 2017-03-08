@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 import static ui.Main.LOGGER;
@@ -276,7 +278,9 @@ public class IGDBScraper {
                     return o1.compareTo(o2);
                 }
             });
-            entry.setReleaseDate(getReleaseDate(game_data));
+            Date releaseDate = getReleaseDate(game_data);
+            LocalDate date = releaseDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            entry.setReleaseDate(date);
         } catch (JSONException je) {
             if (je.toString().contains("not found")) {
                 //Main.LOGGER.warn(entry.getName()+" : no release date");

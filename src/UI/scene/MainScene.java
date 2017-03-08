@@ -1,7 +1,7 @@
 package ui.scene;
 
 import data.game.GameWatcher;
-import data.game.entry.AllGameEntries;
+import data.game.entry.GameEntryUtils;
 import data.game.entry.GameEntry;
 import data.game.scanner.FolderGameScanner;
 import data.game.scanner.OnScannerResultHandler;
@@ -339,7 +339,7 @@ public class MainScene extends BaseScene {
                 long refreshWPTime = 800;
                 long lastWallpaperUpdate = 0;
 
-                for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
+                for (GameEntry entry : GameEntryUtils.ENTRIES_LIST) {
                     int finalI = i;
 
                     Main.runAndWait(new Runnable() {
@@ -365,7 +365,7 @@ public class MainScene extends BaseScene {
                             setImageBackground(screenshotImage);
                         });
                     }
-                    updateProgress(finalI, AllGameEntries.ENTRIES_LIST.size() - 1);
+                    updateProgress(finalI, GameEntryUtils.ENTRIES_LIST.size() - 1);
                     i++;
                 }
                 return null;
@@ -496,7 +496,7 @@ public class MainScene extends BaseScene {
         Main.START_TRAY_MENU.removeAll();
 
         ArrayList<java.awt.MenuItem> newItems = new ArrayList<>();
-        for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
+        for (GameEntry entry : GameEntryUtils.ENTRIES_LIST) {
             java.awt.MenuItem gameItem = new java.awt.MenuItem(entry.getName());
             gameItem.addActionListener(new ActionListener() {
                 @Override
@@ -581,7 +581,7 @@ public class MainScene extends BaseScene {
             tilePane.removeGame(entry);
         }
 
-        AllGameEntries.removeGame(entry);
+        GameEntryUtils.removeGame(entry);
         refreshTrayMenu();
     }
 
@@ -593,7 +593,7 @@ public class MainScene extends BaseScene {
         for (GroupRowTilePane tilePane : groupRowList) {
             tilePane.updateGame(entry);
         }
-        AllGameEntries.updateGame(entry);
+        GameEntryUtils.updateGame(entry);
         refreshTrayMenu();
     }
 
@@ -607,7 +607,7 @@ public class MainScene extends BaseScene {
         for (GroupRowTilePane tilePane : groupRowList) {
             tilePane.addGame(entry);
         }
-        AllGameEntries.addGame(entry);
+        GameEntryUtils.addGame(entry);
         refreshTrayMenu();
     }
 

@@ -1,7 +1,7 @@
 package data.game.scanner;
 
 import data.game.GameWatcher;
-import data.game.entry.AllGameEntries;
+import data.game.entry.GameEntryUtils;
 import data.game.entry.GameEntry;
 import data.game.scraper.SteamLocalScraper;
 import system.application.settings.PredefinedSetting;
@@ -81,7 +81,7 @@ public class FolderGameScanner extends GameScanner {
                     potentialEntry.setPath(file.getAbsolutePath());
                     if (checkValidToAdd(potentialEntry)) {
                         if (isPotentiallyAGame(file)) {
-                            potentialEntry.setNotInstalled(false);
+                            potentialEntry.setInstalled(true);
                             addGameEntryFound(potentialEntry);
                         }
                     }
@@ -182,7 +182,7 @@ public class FolderGameScanner extends GameScanner {
      */
     protected void compareAndSetLauncherId(GameEntry foundEntry) {
         List<GameEntry> toAddAndLibEntries = new ArrayList<>();
-        toAddAndLibEntries.addAll(AllGameEntries.ENTRIES_LIST);
+        toAddAndLibEntries.addAll(GameEntryUtils.ENTRIES_LIST);
         toAddAndLibEntries.addAll(parentLooker.getEntriesToAdd());
 
         if (isGameIgnored(foundEntry)) {
@@ -197,8 +197,8 @@ public class FolderGameScanner extends GameScanner {
                     entry.setSteam_id(foundEntry.getSteam_id());
                     needRefresh = true;
                 }
-                if(entry.isNotInstalled() != foundEntry.isNotInstalled()){
-                    entry.setNotInstalled(foundEntry.isNotInstalled());
+                if(entry.isInstalled() != foundEntry.isInstalled()){
+                    entry.setInstalled(!foundEntry.isInstalled());
                     needRefresh = true;
                 }
                 if (!entry.isBattlenetGame() && foundEntry.isBattlenetGame()) {
@@ -286,7 +286,7 @@ public class FolderGameScanner extends GameScanner {
      * @return true if already in the library, false otherwise
      */
     public static boolean gameAlreadyInLibrary(GameEntry foundEntry) {
-        return gameAlreadyIn(foundEntry, AllGameEntries.ENTRIES_LIST);
+        return gameAlreadyIn(foundEntry, GameEntryUtils.ENTRIES_LIST);
     }
 
     /**

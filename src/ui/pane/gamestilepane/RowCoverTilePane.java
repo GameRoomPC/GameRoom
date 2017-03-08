@@ -25,6 +25,7 @@ import ui.control.button.gamebutton.GameButton;
 import ui.control.button.gamebutton.TileGameButton;
 import ui.scene.MainScene;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -43,8 +44,8 @@ public class RowCoverTilePane extends CoverTilePane {
     public final static String TYPE_RECENTLY_ADDED = "recently_added";
     public final static Comparator<GameEntry> LAST_PLAYED_COMPARATOR = (o1, o2) -> {
         int result = 0;
-        Date date1 = o1.getLastPlayedDate();
-        Date date2 = o2.getLastPlayedDate();
+        LocalDate date1 = o1.getLastPlayedDate();
+        LocalDate date2 = o2.getLastPlayedDate();
 
         if (date1 == null && date2 != null) {
             return 1;
@@ -65,8 +66,8 @@ public class RowCoverTilePane extends CoverTilePane {
 
     public final static Comparator<GameEntry> RECENTLY_ADDED_COMPARATOR = (o1, o2) -> {
         int result = 0;
-        Date date1 = o1.getAddedDate();
-        Date date2 = o2.getAddedDate();
+        LocalDate date1 = o1.getAddedDate();
+        LocalDate date2 = o2.getAddedDate();
 
         if (date1 == null && date2 != null) {
             return 1;
@@ -134,9 +135,9 @@ public class RowCoverTilePane extends CoverTilePane {
                     orderMayChange = orderMayChange || c.wasAdded() || c.wasRemoved() || c.wasReplaced() || c.wasUpdated();
                 }
                 if (orderMayChange) {
-                    ArrayList<UUID> uuids = new ArrayList<UUID>();
+                    ArrayList<Integer> ids = new ArrayList<Integer>();
                     for (GameButton button : tilesList) {
-                        uuids.add(button.getEntry().getUuid());
+                        ids.add(button.getEntry().getId());
                     }
                     tilesList.sort(new Comparator<Node>() {
                         @Override
@@ -174,8 +175,8 @@ public class RowCoverTilePane extends CoverTilePane {
                     }
                     if (!hideTilePane) {
                         boolean changedOrder = false;
-                        for (int i = 0; i < uuids.size() && !changedOrder; i++) {
-                            changedOrder = uuids.get(i).equals(tilesList.get(i).getEntry().getUuid());
+                        for (int i = 0; i < ids.size() && !changedOrder; i++) {
+                            changedOrder = ids.get(i) == tilesList.get(i).getEntry().getId();
                         }
                         if (changedOrder || hidden) {
                             show();

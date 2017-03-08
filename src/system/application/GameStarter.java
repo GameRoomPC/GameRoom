@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 import static ui.Main.*;
@@ -35,18 +37,18 @@ public class GameStarter {
     public GameStarter(GameEntry entry) {
         this.entry = entry;
         if(LOG_FOLDER == null){
-            LOG_FOLDER = FILES_MAP.get("games") + File.separator + entry.getUuid() + File.separator;
+            LOG_FOLDER = FILES_MAP.get("games_log").getAbsolutePath() + File.separator;
         }
     }
 
     public void start() throws IOException {
         Main.LOGGER.info("Starting game : " + entry.getName());
         originalPowerMode = PowerMode.getActivePowerMode();
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isMonitored() && !entry.isNotInstalled()) {
+        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isMonitored() && !entry.isInstalled()) {
             GENERAL_SETTINGS.getPowerMode(PredefinedSetting.GAMING_POWER_MODE).activate();
         }
         entry.setSavedLocaly(true);
-        entry.setLastPlayedDate(new Date());
+        entry.setLastPlayedDate(LocalDate.now());
         entry.setSavedLocaly(false);
 
         startGame();
@@ -91,7 +93,7 @@ public class GameStarter {
                     String commandsAfterString = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_AFTER_END] + (cmdAfter != null ? "\n" + cmdAfter : "");
                     LOGGER.debug("commandsAfter : \"" + commandsAfterString + "\"");
                     String[] commandsAfter = commandsAfterString.split("\n");
-                    File postLog = new File(LOG_FOLDER + "post_" + entry.getProcessName() + ".log");
+                    File postLog = new File(LOG_FOLDER + "post_" + entry.getName() + ".log");
                     try {
                         Terminal terminal = new Terminal();
                         File path = new File(entry.getPath());
@@ -142,7 +144,7 @@ public class GameStarter {
     }
 
     private void startGame() throws IOException {
-        File preLog = FileUtils.initOrCreateFile(LOG_FOLDER + "pre_" + entry.getProcessName() + ".log");
+        File preLog = FileUtils.initOrCreateFile(LOG_FOLDER + "pre_" + entry.getName() + ".log");
 
         Terminal terminal = new Terminal();
         String cmdBefore = entry.getCmd(GameEntry.CMD_BEFORE_START);
@@ -162,7 +164,7 @@ public class GameStarter {
 
 
 
-            File gameLog = new File(LOG_FOLDER + entry.getProcessName() + ".log");
+            File gameLog = new File(LOG_FOLDER + entry.getName() + ".log");
             ProcessBuilder gameProcessBuilder = new ProcessBuilder(getGameArgs()).inheritIO();
             gameProcessBuilder.redirectOutput(gameLog);
             gameProcessBuilder.redirectError(gameLog);

@@ -5,7 +5,6 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.GameWatcher;
 import data.game.entry.GameEntry;
-import data.game.entry.Platform;
 import data.game.scanner.GameScanner;
 import data.game.scanner.OnGameFound;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -21,7 +20,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Callable;
@@ -137,12 +139,13 @@ public class SteamOnlineScraper {
             GameEntry entry = new GameEntry(gameInfoJson.getString("name"));
             entry.setDescription(Jsoup.parse(gameInfoJson.getString("about_the_game")).text());
             try {
-                entry.setReleaseDate(STEAM_DATE_FORMAT.parse(gameInfoJson.getJSONObject("release_date").getString("date")));
+                Date input = STEAM_DATE_FORMAT.parse(gameInfoJson.getJSONObject("release_date").getString("date"));
+                entry.setReleaseDate(input.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
             } catch (ParseException | NumberFormatException e) {
                 Main.LOGGER.error("Invalid release date format");
             }
             entry.setSteam_id(steamId);
-            entry.setNotInstalled(!SteamLocalScraper.isSteamGameInstalled(entry.getSteam_id()));
+            entry.setInstalled(SteamLocalScraper.isSteamGameInstalled(entry.getSteam_id()));
 
             if (entry.getName() == null || entry.getName().isEmpty()) {
                 return null;

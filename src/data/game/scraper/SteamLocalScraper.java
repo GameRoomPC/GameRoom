@@ -169,7 +169,7 @@ public class SteamLocalScraper {
                     try {
                         GameEntry entry = SteamOnlineScraper.getEntryForSteamId(Integer.parseInt(steamId));
                         if (entry != null) {
-                            entry.setNotInstalled(false);
+                            entry.setInstalled(true);
                             scanner.checkAndAdd(entry);
                         }
                     } catch (ConnectTimeoutException | UnirestException e) {

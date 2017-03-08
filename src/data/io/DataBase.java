@@ -27,7 +27,7 @@ public class DataBase {
 
     public static void initDB() {
         try {
-            INSTANCE.connect();
+            connect();
             INSTANCE.readAndExecSQLInit();
         } catch (IOException e) {
             //TODO localize

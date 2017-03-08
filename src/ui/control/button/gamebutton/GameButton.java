@@ -686,7 +686,7 @@ public abstract class GameButton extends BorderPane {
     protected abstract void onNewTileHeight(double height);
 
     private void initNotInstalled(){
-        if (getEntry().isNotInstalled()){
+        if (getEntry().isInstalled()){
 
             //Image addImage = new Image("res/ui/toDownloadIcon.png");
             notInstalledImage.setId("tile-todownload-overlay");

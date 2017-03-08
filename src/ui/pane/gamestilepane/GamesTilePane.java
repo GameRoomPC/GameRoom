@@ -29,6 +29,7 @@ import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.scene.MainScene;
 
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.function.Predicate;
@@ -282,7 +283,7 @@ public abstract class GamesTilePane extends BorderPane {
     public final int indexOfTile(GameEntry entry) {
         int i = 0;
         for (Node n : tilesList) {
-            if (((GameButton) n).getEntry().getUuid().equals(entry.getUuid())) {
+            if (((GameButton) n).getEntry().getId() == entry.getId()) {
                 return i;
             }
             int steamId1 = ((GameButton) n).getEntry().getSteam_id();
@@ -385,8 +386,8 @@ public abstract class GamesTilePane extends BorderPane {
             @Override
             public int compare(Node o1, Node o2) {
                 int result = 0;
-                Date date1 = ((GameButton) o1).getEntry().getReleaseDate();
-                Date date2 = ((GameButton) o2).getEntry().getReleaseDate();
+                LocalDate date1 = ((GameButton) o1).getEntry().getReleaseDate();
+                LocalDate date2 = ((GameButton) o2).getEntry().getReleaseDate();
 
                 if (date1 == null && date2 != null) {
                     return -1;
@@ -631,7 +632,7 @@ public abstract class GamesTilePane extends BorderPane {
         }
         boolean sameOrder = true;
         for (int i = 0; i < nodes1.size() && sameOrder; i++) {
-            sameOrder = ((GameButton) nodes1.get(i)).getEntry().getUuid().equals(((GameButton) nodes2.get(i)).getEntry().getUuid());
+            sameOrder = ((GameButton) nodes1.get(i)).getEntry().getId() == ((GameButton) nodes2.get(i)).getEntry().getId();
         }
         return sameOrder;
     }

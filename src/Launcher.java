@@ -1,4 +1,4 @@
-import data.game.entry.AllGameEntries;
+import data.game.entry.GameEntryUtils;
 import data.game.entry.GameEntry;
 import data.game.scraper.IGDBScraper;
 import data.io.DataBase;
@@ -32,9 +32,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -95,23 +93,29 @@ public class Launcher extends Application {
         }
 
         initFiles();
-        AllGameEntries.loadGames();
+        GameEntryUtils.loadGames();
 
-        String gameToStartUUID = getArg(ARGS_START_GAME, args, true);
-        if (gameToStartUUID != null) {
+        String gameToStartID = getArg(ARGS_START_GAME, args, true);
+        if (gameToStartID != null) {
             boolean gameRoomAlreadyStarted = Monitor.isProcessRunning("GameRoom.exe");
             if (gameRoomAlreadyStarted) {
                 //TODO implement network init and sendung the game to start (with a repeat functionnality if no ack after 2 sec)
 
             } else {
                 //can start the game here, then let GameRoom do as usual
-                ArrayList<UUID> uuids = AllGameEntries.readUUIDS(FILES_MAP.get("games"));
+                ArrayList<UUID> uuids = GameEntryUtils.readUUIDS(FILES_MAP.get("games"));
                 int i = 0;
-                for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
-                    if (entry.getUuid().equals(gameToStartUUID)) {
-                        //found the game to start!
-                        entry.startGame();
+                try {
+
+                    int id = Integer.parseInt(gameToStartID);
+                    for (GameEntry entry : GameEntryUtils.ENTRIES_LIST) {
+                        if (entry.getId() == id) {
+                            //found the game to start!
+                            entry.startGame();
+                        }
                     }
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -177,8 +181,10 @@ public class Launcher extends Application {
         Main.FILES_MAP.put("theme_css", new File(Main.FILES_MAP.get("current_theme").getAbsolutePath() + File.separator + "theme.css"));
         Main.FILES_MAP.put("db", new File(gameRoomFolder + File.separator + DataBase.DB_NAME));
         Main.FILES_MAP.put("pictures", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "pictures"));
-        Main.FILES_MAP.put("cover", FileUtils.initOrCreateFolder(Main.FILES_MAP.get("pictures").getAbsolutePath()+ File.separator + "cover"));
-        Main.FILES_MAP.put("screenshot", FileUtils.initOrCreateFolder(Main.FILES_MAP.get("pictures").getAbsolutePath()+ File.separator + "screenshot"));
+        Main.FILES_MAP.put("cover", FileUtils.initOrCreateFolder(Main.FILES_MAP.get("pictures").getAbsolutePath() + File.separator + "cover"));
+        Main.FILES_MAP.put("screenshot", FileUtils.initOrCreateFolder(Main.FILES_MAP.get("pictures").getAbsolutePath() + File.separator + "screenshot"));
+        Main.FILES_MAP.put("games_log", FileUtils.initOrCreateFolder(Main.FILES_MAP.get("log").getAbsolutePath() + File.separator + "games"));
+
     }
 
     @Override

@@ -1,6 +1,6 @@
 package system.application;
 
-import data.game.entry.AllGameEntries;
+import data.game.entry.GameEntryUtils;
 import data.game.entry.GameEntry;
 import data.game.scraper.SteamOnlineScraper;
 import data.http.key.KeyChecker;
@@ -124,7 +124,7 @@ public class SupportService {
             LOGGER.info("Scanning Steam playtimes online");
             for (GameEntry ownedEntry : ownedSteamApps) {
                 if (ownedEntry.getPlayTimeSeconds() != 0) {
-                    for (GameEntry storedEntry : AllGameEntries.ENTRIES_LIST) {
+                    for (GameEntry storedEntry : GameEntryUtils.ENTRIES_LIST) {
                         if (ownedEntry.getSteam_id() == storedEntry.getSteam_id() && ownedEntry.getPlayTimeSeconds() != storedEntry.getPlayTimeSeconds()) {
                             storedEntry.setPlayTimeSeconds(ownedEntry.getPlayTimeSeconds());
                             Platform.runLater(() -> {

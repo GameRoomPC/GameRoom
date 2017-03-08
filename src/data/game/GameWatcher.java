@@ -2,7 +2,7 @@ package data.game;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.LevenshteinDistance;
-import data.game.entry.AllGameEntries;
+import data.game.entry.GameEntryUtils;
 import data.game.entry.GameEntry;
 import data.game.scanner.*;
 import data.game.scraper.IGDBScraper;
@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -185,11 +186,10 @@ public class GameWatcher {
     }
 
     private void initToAddEntries() {
-        ArrayList<UUID> uuids = AllGameEntries.readUUIDS(FILES_MAP.get("to_add"));
+        ArrayList<GameEntry> toAddEntries = GameEntryUtils.loadToAddGames();
 
         ArrayList<GameEntry> savedEntries = new ArrayList<>();
-        for (UUID uuid : uuids) {
-            GameEntry entry = new GameEntry(uuid, true);
+        for (GameEntry entry : toAddEntries) {
             if (!FolderGameScanner.isGameIgnored(entry)) {
                 entry.setSavedLocaly(true);
                 savedEntries.add(entry);
@@ -199,8 +199,8 @@ public class GameWatcher {
             @Override
             public int compare(GameEntry o1, GameEntry o2) {
                 int result = 0;
-                Date date1 = o1.getAddedDate();
-                Date date2 = o2.getAddedDate();
+                LocalDate date1 = o1.getAddedDate();
+                LocalDate date2 = o2.getAddedDate();
 
                 if (date1 == null && date2 != null) {
                     return 1;
@@ -339,7 +339,7 @@ public class GameWatcher {
                                             @Override
                                             public void run(File outputfile) {
                                                 try {
-                                                    File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + FileUtils.getExtension(outputfile));
+                                                    File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getId() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + FileUtils.getExtension(outputfile));
                                                     Files.copy(outputfile.getAbsoluteFile().toPath()
                                                             , localCoverFile.getAbsoluteFile().toPath()
                                                             , StandardCopyOption.REPLACE_EXISTING);
@@ -365,7 +365,7 @@ public class GameWatcher {
                                                             @Override
                                                             public void run(File outputfile) {
                                                                 try {
-                                                                    File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + FileUtils.getExtension(outputfile));
+                                                                    File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getId() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + FileUtils.getExtension(outputfile));
                                                                     Files.copy(outputfile.getAbsoluteFile().toPath()
                                                                             , localCoverFile.getAbsoluteFile().toPath()
                                                                             , StandardCopyOption.REPLACE_EXISTING);
@@ -459,7 +459,7 @@ public class GameWatcher {
 
     public GameButton onGameFound(GameEntry foundEntry) {
         if (!FolderGameScanner.gameAlreadyIn(foundEntry, entriesToAdd)) {
-            foundEntry.setAddedDate(new Date());
+            foundEntry.setAddedDate(LocalDate.now());
             foundEntry.setToAdd(true);
             foundEntry.setSavedLocaly(true);
             foundEntry.setName(cleanName(foundEntry.getName()));
@@ -497,7 +497,7 @@ public class GameWatcher {
     public void removeGame(GameEntry entry) {
         ArrayList<GameEntry> toRemoveEntries = new ArrayList<>();
         for (GameEntry n : entriesToAdd) {
-            boolean delete = n.getUuid().equals(entry.getUuid())
+            boolean delete = n.getId() == entry.getId()
                     || FolderGameScanner.entryNameOrPathEquals(n, entry);
             if (delete) {
                 toRemoveEntries.add(n);

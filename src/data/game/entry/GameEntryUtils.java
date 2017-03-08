@@ -16,9 +16,13 @@ import static ui.Main.LOGGER;
 /**
  * Created by LM on 03/07/2016.
  */
-public class AllGameEntries {
+public class GameEntryUtils {
     public static final ArrayList<GameEntry> ENTRIES_LIST = new ArrayList<>();
 
+    public static ArrayList<GameEntry> loadToAddGames(){
+        //TODO return toAdd games from db
+        return new ArrayList<>();
+    }
 
     public static ArrayList<UUID> readUUIDS(File entriesFolder){
         ArrayList<UUID> uuids = new ArrayList<>();
@@ -41,7 +45,7 @@ public class AllGameEntries {
         int index = -1;
         int i = 0;
         for(GameEntry gameEntry : ENTRIES_LIST){
-            if(entry.getUuid().equals(gameEntry.getUuid())){
+            if(entry.getId() == gameEntry.getId()){
                 index = i;
                 break;
             }
@@ -72,7 +76,8 @@ public class AllGameEntries {
             Statement statement = connection.createStatement();
             ResultSet set = statement.executeQuery("select * from GameEntry");
             while (set.next()){
-                LOGGER.debug("From DB : "+set.getString("name"));
+                addGame(GameEntry.loadFromDB(set));
+                LOGGER.debug("Loaded game \""+set.getString("name")+"\"");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -80,11 +85,11 @@ public class AllGameEntries {
     }
 
     private static void loadGames(File entryFolder){
-        ArrayList<UUID> uuids = AllGameEntries.readUUIDS(entryFolder);
+        /*ArrayList<UUID> uuids = GameEntryUtils.readUUIDS(entryFolder);
         for (UUID uuid : uuids) {
             GameEntry entry = new GameEntry(uuid);
             addGame(entry);
-        }
+        }*/
     }
     public static void addGame(GameEntry entry){
         addGame(entry,true);
@@ -93,7 +98,7 @@ public class AllGameEntries {
         boolean validToAdd = true;
         if(filterByUUID){
             for(GameEntry entryInList : ENTRIES_LIST){
-                validToAdd = !entryInList.getUuid().equals(entry.getUuid());
+                validToAdd = entryInList.getId() != entry.getId();
                 if(!validToAdd){
                     Main.LOGGER.debug("Matching uuids for games : "+entryInList.getName());
                     break;
@@ -105,6 +110,7 @@ public class AllGameEntries {
             Main.LOGGER.info("Added game : " + entry.getName());
         }
     }
+
     public static void removeGame(GameEntry entry){
         ENTRIES_LIST.remove(entry);
         Main.LOGGER.info("Removed game : " + entry.getName());

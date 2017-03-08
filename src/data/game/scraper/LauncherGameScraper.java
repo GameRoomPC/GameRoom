@@ -90,7 +90,7 @@ public class LauncherGameScraper {
                                     }
                                     GameEntry potentialEntry = new GameEntry(name);
                                     potentialEntry.setPath(file.getAbsolutePath());
-                                    potentialEntry.setNotInstalled(false);
+                                    potentialEntry.setInstalled(true);
 
                                     int id = 0;
                                     try {
@@ -302,7 +302,7 @@ public class LauncherGameScraper {
                                             break;
                                     }
 
-                                    entry.setNotInstalled(false);
+                                    entry.setInstalled(true);
                                     scanner.checkAndAdd(entry);
                                 }
                                 try {

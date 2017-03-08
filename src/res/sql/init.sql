@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS GameEntry (
 	id integer PRIMARY KEY AUTOINCREMENT,
 	name text unique,
-	release_date text,
+	release_date datetime,
 	description text,
 	aggregated_rating integer,
 	path text,
@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS GameEntry (
 	cmd_after text,
 	launch_args text,
 	yt_hash text,
-	added_date text,
-	last_played_date text,
+	added_date datetime,
+	last_played_date datetime,
 	initial_playtime integer,
 	installed integer default 1,
 	cover_hash text,
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS has_theme (
 
 CREATE TABLE IF NOT EXISTS PlaySession (
 	id integer PRIMARY KEY AUTOINCREMENT,
-	start_date text,
+	start_date datetime,
 	time_played_seconds integer
 );
 
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS Settings (
 	uiscale text,
 	theme text,
 	lastSupportMessage text,
-	lastUpdateCheck text,
+	lastUpdateCheck datetime,
 	drawerMenuWidth real default 0.0
 );
 

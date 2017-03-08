@@ -62,6 +62,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -188,14 +190,13 @@ public class GameEditScene extends BaseScene {
                         }
                     }
                     if (entry.isToAdd()) {
-                        entry.deleteFiles();
                         entry.setToAdd(false);
                     }
                     entry.setSavedLocaly(true);
 
                     switch (mode) {
                         case MODE_ADD:
-                            entry.setAddedDate(new Date());
+                            entry.setAddedDate(LocalDate.now());
                             MAIN_SCENE.addGame(entry);
                             GeneralToast.displayToast(entry.getName() + Main.getString("added_to_your_lib"), getParentStage());
                             break;
@@ -388,7 +389,8 @@ public class GameEditScene extends BaseScene {
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 if (!releaseDateField.getText().equals("")) {
                     try {
-                        Date date = GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText());
+                        Date releaseDate = GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText());
+                        LocalDate date = releaseDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
                         entry.setReleaseDate(date);
                     } catch (ParseException e) {
                         //well date not valid yet
@@ -401,7 +403,8 @@ public class GameEditScene extends BaseScene {
             public boolean isValid() {
                 if (!releaseDateField.getText().equals("")) {
                     try {
-                        Date date = GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText());
+                        Date releaseDate = GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText());
+                        LocalDate date = releaseDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
                         entry.setReleaseDate(date);
                     } catch (ParseException e) {
                         message.replace(0, message.length(), Main.getString("invalid_release_date"));
@@ -510,8 +513,8 @@ public class GameEditScene extends BaseScene {
                         Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                         ImageUtils.transitionToWindowBackground(img, backgroundView);
                         chosenImageFiles[1] = outputfile;
-                        File coverLocalImageFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
-                        entry.setImagePath(1, coverLocalImageFile);
+                        String localScreenshotPath = entry.getScreenShotPath() + "." + getExtension(outputfile);
+                        entry.setImagePath(1, new File(localScreenshotPath));
                     }
                 });
             }
@@ -530,9 +533,7 @@ public class GameEditScene extends BaseScene {
         screenshotFileButton.setOnAction(event -> {
             chosenImageFiles[1] = imageChooser.showOpenDialog(getParentStage());
             screenshotDlDoneHandler.run(chosenImageFiles[1]);
-            //backgroundView.setImage(new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true));
-            File localScreenshotFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(chosenImageFiles[1].getName()));
-            entry.setImagePath(1, localScreenshotFile);
+            entry.setImagePath(1, new File(entry.getScreenShotPath() + "." + getExtension(chosenImageFiles[1].getName())));
         });
         Label orLabel = new Label(Main.getString("or"));
 
@@ -551,9 +552,9 @@ public class GameEditScene extends BaseScene {
                                                          } else {
                                                              jse.printStackTrace();
                                                          }
-                                                     } catch (UnirestException |IOException e) {
-                                                             GameRoomAlert.errorIGDB();
-                                                             LOGGER.error(e.getMessage());
+                                                     } catch (UnirestException | IOException e) {
+                                                         GameRoomAlert.errorIGDB();
+                                                         LOGGER.error(e.getMessage());
                                                      }
                                                  } else {
                                                      SearchDialog dialog = new SearchDialog(createDoNotUpdateFielsMap(), entry.getName());
@@ -827,11 +828,12 @@ public class GameEditScene extends BaseScene {
             @Override
             public void handle(ActionEvent event) {
                 chosenImageFiles[0] = imageChooser.showOpenDialog(getParentStage());
-                File localCoverFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + getExtension(chosenImageFiles[0].getName()));
+                String localCoverPath = entry.getCoverPath() + "." + getExtension(chosenImageFiles[0].getName());
+
                 Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
                 ImageUtils.transitionToImage(img, coverView);
 
-                entry.setImagePath(0, localCoverFile);
+                entry.setImagePath(0, new File(localCoverPath));
             }
         });
         //COVER EFFECTS
@@ -909,12 +911,8 @@ public class GameEditScene extends BaseScene {
                             case MODE_ADD:
                                 break;
                             case MODE_EDIT:
-                                try {
-                                    entry.loadEntry();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                    break;
-                                }
+                                //TODO revert changes by loading from db and rollback
+                                //was previously entry.loadEntry();
                                 break;
                             default:
                                 break;
@@ -986,8 +984,8 @@ public class GameEditScene extends BaseScene {
                             ImageUtils.transitionToImage(img, coverView);
 
                             chosenImageFiles[0] = outputfile;
-                            File coverLocalImageFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + getExtension(outputfile));
-                            entry.setImagePath(0, coverLocalImageFile);
+                            String coverImagePath = entry.getCoverPath() + "." + getExtension(outputfile);
+                            entry.setImagePath(0, new File(coverImagePath));
 
                         }
                     });
@@ -1008,7 +1006,6 @@ public class GameEditScene extends BaseScene {
                             public void run(File outputfile) {
                                 Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                                 ImageUtils.transitionToWindowBackground(img, backgroundView);
-
                             }
                         });
             }
@@ -1029,8 +1026,8 @@ public class GameEditScene extends BaseScene {
                                 ImageUtils.transitionToWindowBackground(img, backgroundView);
 
                                 chosenImageFiles[1] = outputfile;
-                                File coverLocalImageFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
-                                entry.setImagePath(1, coverLocalImageFile);
+                                String screenShotLocalFile = entry.getScreenShotPath() + "." + getExtension(outputfile);
+                                entry.setImagePath(1, new File(screenShotLocalFile));
 
                             }
                         });
@@ -1103,12 +1100,8 @@ public class GameEditScene extends BaseScene {
                                 case MODE_ADD:
                                     break;
                                 case MODE_EDIT:
-                                    try {
-                                        entry.loadEntry();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                        break;
-                                    }
+                                    //TODO revert changes by loading from db and rollback
+                                    //was previously entry.loadEntry();
                                     break;
                                 default:
                                     break;
@@ -1131,23 +1124,24 @@ public class GameEditScene extends BaseScene {
                 imageFile = new File(FILES_MAP.get("working_dir").getPath() + File.separator + imageFile.getPath());
             }
             if (imageFile.exists()) {
-                File localCoverFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + imageType + "." + getExtension(imageFile.getName()));
+                String path = imageType.equals(ImageUtils.IGDB_TYPE_COVER) ? entry.getCoverPath() : entry.getScreenShotPath();
+                File localFile = new File(path + getExtension(imageFile.getName()));
                 try {
-                    if (!localCoverFile.getParentFile().exists()) {
-                        localCoverFile.getParentFile().mkdirs();
+                    if (!localFile.getParentFile().exists()) {
+                        localFile.getParentFile().mkdirs();
                     }
                     /*if (!localCoverFile.isValid()) {
                         localCoverFile.createNewFile();
                     }*/
                     Files.copy(imageFile.toPath().toAbsolutePath()
-                            , localCoverFile.toPath().toAbsolutePath()
+                            , localFile.toPath().toAbsolutePath()
                             , StandardCopyOption.REPLACE_EXISTING);
                     int imageIndex = 0;
                     if (imageType.equals(ImageUtils.IGDB_TYPE_SCREENSHOT)) {
                         imageIndex = 1;
                     }
-                    entry.setImagePath(imageIndex, localCoverFile);
-                    Main.LOGGER.debug("Moving from \n\t" + imageFile.toPath().toAbsolutePath() + "\n\tto " + localCoverFile.toPath().toAbsolutePath());
+                    entry.setImagePath(imageIndex, localFile);
+                    Main.LOGGER.debug("Moving from \n\t" + imageFile.toPath().toAbsolutePath() + "\n\tto " + localFile.toPath().toAbsolutePath());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
