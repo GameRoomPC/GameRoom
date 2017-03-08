@@ -19,6 +19,10 @@ import ui.scene.MainScene;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -97,9 +101,6 @@ public class Main {
         //if(!DEV_MODE){
         //startUpdater();
         //}
-
-        DataBase.initDB();
-        OldGameEntry.transferOldGameEntries();
     }
 
     public static String getArg(String flag,String[] args, boolean hasOption){

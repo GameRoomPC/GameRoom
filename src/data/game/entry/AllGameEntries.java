@@ -1,13 +1,17 @@
 package data.game.entry;
 
+import data.io.DataBase;
 import data.io.FileUtils;
+import data.migration.OldGameEntry;
 import ui.Main;
 
 import java.io.File;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.UUID;
 
 import static ui.Main.FILES_MAP;
+import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 03/07/2016.
@@ -53,7 +57,26 @@ public class AllGameEntries {
         }
     }
     public static void loadGames(){
+        //TODO detect in following method if exists old games
         loadGames(FILES_MAP.get("games"));
+
+        //TODO remove this deletion, this is just for dev
+        File dbFile = Main.FILES_MAP.get("db");
+        //dbFile.delete();
+
+        DataBase.initDB();
+        OldGameEntry.transferOldGameEntries();
+
+        try {
+            Connection connection = DataBase.getConnection();
+            Statement statement = connection.createStatement();
+            ResultSet set = statement.executeQuery("select * from GameEntry");
+            while (set.next()){
+                LOGGER.debug("From DB : "+set.getString("name"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void loadGames(File entryFolder){

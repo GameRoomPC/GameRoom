@@ -54,7 +54,7 @@ public class FileUtils {
     }
 
     public static File copyToFolder(File src, File target, String newName) throws IOException {
-        return Files.copy(src.toPath(), target.toPath().resolve(newName)).toFile();
+        return Files.copy(src.toPath(), target.toPath().resolve(newName), StandardCopyOption.REPLACE_EXISTING).toFile();
     }
 
     public static File moveToFolder(File src, File target) {

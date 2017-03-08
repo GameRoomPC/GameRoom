@@ -37,14 +37,10 @@ public class DataBase {
 
     private static String getDBUrl() {
         File dbFile = Main.FILES_MAP.get("db");
-        if(dbFile.exists()){
-            //TODO remove this deletion, this is just for dev
-            dbFile.delete();
-        }
         return "jdbc:sqlite:" + dbFile.getAbsolutePath();
     }
 
-    private void connect() {
+    private static void connect() {
         String url = getDBUrl();
 
         try {
@@ -109,6 +105,9 @@ public class DataBase {
     }
 
     public static Connection getConnection() throws SQLException {
+        if(INSTANCE_CONNECTION == null){
+            connect();
+        }
         return INSTANCE_CONNECTION;
     }
 
