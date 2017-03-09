@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.Date;
 
 import static ui.Main.FILES_MAP;
+import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 02/07/2016.
@@ -153,6 +154,7 @@ public class OldGameEntry {
         connection.commit();
 
         sqlId = DataBase.getLastId();
+        LOGGER.debug("Exported game \""+name+"\" with id "+sqlId);
     }
 
     private void exportGenres() throws SQLException {

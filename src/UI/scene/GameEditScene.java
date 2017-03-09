@@ -63,8 +63,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -394,8 +396,8 @@ public class GameEditScene extends BaseScene {
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 if (!releaseDateField.getText().equals("")) {
                     try {
-                        LocalDateTime releaseDate = LocalDateTime.from(GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText()));
-                        entry.setReleaseDate(releaseDate);
+                        LocalDateTime time = LocalDateTime.from(LocalDate.parse(releaseDateField.getText(), GameEntry.DATE_DISPLAY_FORMAT).atStartOfDay());
+                        entry.setReleaseDate(time);
                     } catch (DateTimeParseException e) {
                         //well date not valid yet
                     }
@@ -407,8 +409,8 @@ public class GameEditScene extends BaseScene {
             public boolean isValid() {
                 if (!releaseDateField.getText().equals("")) {
                     try {
-                        LocalDateTime releaseDate = LocalDateTime.from(GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText()));
-                        entry.setReleaseDate(releaseDate);
+                        LocalDateTime time = LocalDateTime.from(LocalDate.parse(releaseDateField.getText(), GameEntry.DATE_DISPLAY_FORMAT).atStartOfDay());
+                        entry.setReleaseDate(time);
                     } catch (DateTimeParseException e) {
                         message.replace(0, message.length(), Main.getString("invalid_release_date"));
                         return false;
