@@ -14,6 +14,7 @@ import ui.scene.GameEditScene;
 import ui.scene.MainScene;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
@@ -61,7 +62,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
                             entry.setToAdd(false);
                         }
                         entry.setSavedLocaly(true);
-                        entry.setAddedDate(LocalDate.now());
+                        entry.setAddedDate(LocalDateTime.now());
                         MAIN_SCENE.addGame(entry);
                     }
                     if(MAIN_SCENE!=null){

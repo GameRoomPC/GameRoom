@@ -312,7 +312,7 @@ public abstract class GameButton extends BorderPane {
         ratingLabel.setFocusTraversable(false);
         ratingLabel.setMouseTransparent(true);
 
-        SimpleDateFormat buttonDateFormat = new SimpleDateFormat("MM.yyyy");
+        DateTimeFormatter buttonDateFormat = DateTimeFormatter.ofPattern("MM.yyyy");
         releaseDateLabel = new Label(entry.getReleaseDate()!=null ? buttonDateFormat.format(entry.getReleaseDate()) : "-");
         releaseDateLabel.setEffect(ds);
         releaseDateLabel.setFocusTraversable(false);

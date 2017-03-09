@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -48,7 +49,7 @@ public class GameStarter {
             GENERAL_SETTINGS.getPowerMode(PredefinedSetting.GAMING_POWER_MODE).activate();
         }
         entry.setSavedLocaly(true);
-        entry.setLastPlayedDate(LocalDate.now());
+        entry.setLastPlayedDate(LocalDateTime.now());
         entry.setSavedLocaly(false);
 
         startGame();

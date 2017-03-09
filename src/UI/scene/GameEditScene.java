@@ -1,13 +1,13 @@
 package ui.scene;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
-import data.http.images.ImageUtils;
 import data.game.entry.GameEntry;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.YoutubeSoundtrackScrapper;
+import data.http.images.ImageUtils;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -39,11 +39,11 @@ import org.controlsfx.control.CheckComboBox;
 import org.json.JSONException;
 import system.application.settings.PredefinedSetting;
 import system.os.WindowsShortcut;
+import ui.GeneralToast;
 import ui.Main;
 import ui.control.ValidEntryCondition;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
-import ui.GeneralToast;
 import ui.control.textfield.AppPathField;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
@@ -62,8 +62,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -197,7 +196,7 @@ public class GameEditScene extends BaseScene {
 
                     switch (mode) {
                         case MODE_ADD:
-                            entry.setAddedDate(LocalDate.now());
+                            entry.setAddedDate(LocalDateTime.now());
                             MAIN_SCENE.addGame(entry);
                             GeneralToast.displayToast(entry.getName() + Main.getString("added_to_your_lib"), getParentStage());
                             break;
@@ -390,7 +389,7 @@ public class GameEditScene extends BaseScene {
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 if (!releaseDateField.getText().equals("")) {
                     try {
-                        LocalDate releaseDate = LocalDate.from(GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText()));
+                        LocalDateTime releaseDate = LocalDateTime.from(GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText()));
                         entry.setReleaseDate(releaseDate);
                     } catch (DateTimeParseException e) {
                         //well date not valid yet
@@ -403,7 +402,7 @@ public class GameEditScene extends BaseScene {
             public boolean isValid() {
                 if (!releaseDateField.getText().equals("")) {
                     try {
-                        LocalDate releaseDate = LocalDate.from(GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText()));
+                        LocalDateTime releaseDate = LocalDateTime.from(GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText()));
                         entry.setReleaseDate(releaseDate);
                     } catch (DateTimeParseException e) {
                         message.replace(0, message.length(), Main.getString("invalid_release_date"));
@@ -769,9 +768,9 @@ public class GameEditScene extends BaseScene {
                                     ((CheckComboBox) node).getCheckModel().check(theme);
                                 }
                             }
-                        } else if (newValue instanceof LocalDate) {
+                        } else if (newValue instanceof LocalDateTime) {
                             if (node instanceof TextField) {
-                                ((TextField) node).setText(newValue != null ? GameEntry.DATE_DISPLAY_FORMAT.format((LocalDate)newValue) : "");
+                                ((TextField) node).setText(newValue != null ? GameEntry.DATE_DISPLAY_FORMAT.format((LocalDateTime)newValue) : "");
                             }
                         }
                         break;

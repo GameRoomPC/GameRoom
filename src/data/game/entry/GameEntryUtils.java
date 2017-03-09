@@ -76,8 +76,11 @@ public class GameEntryUtils {
             Statement statement = connection.createStatement();
             ResultSet set = statement.executeQuery("select * from GameEntry");
             while (set.next()){
-                addGame(GameEntry.loadFromDB(set));
-                LOGGER.debug("Loaded game \""+set.getString("name")+"\"");
+                GameEntry nextEntry = GameEntry.loadFromDB(set);
+                if(nextEntry != null){
+                    addGame(nextEntry);
+                    //LOGGER.debug("Loaded game \""+nextEntry.getName()+"\"");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();

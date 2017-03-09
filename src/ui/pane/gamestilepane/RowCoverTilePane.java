@@ -26,6 +26,7 @@ import ui.control.button.gamebutton.TileGameButton;
 import ui.scene.MainScene;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -44,8 +45,8 @@ public class RowCoverTilePane extends CoverTilePane {
     public final static String TYPE_RECENTLY_ADDED = "recently_added";
     public final static Comparator<GameEntry> LAST_PLAYED_COMPARATOR = (o1, o2) -> {
         int result = 0;
-        LocalDate date1 = o1.getLastPlayedDate();
-        LocalDate date2 = o2.getLastPlayedDate();
+        LocalDateTime date1 = o1.getLastPlayedDate();
+        LocalDateTime date2 = o2.getLastPlayedDate();
 
         if (date1 == null && date2 != null) {
             return 1;
@@ -66,8 +67,8 @@ public class RowCoverTilePane extends CoverTilePane {
 
     public final static Comparator<GameEntry> RECENTLY_ADDED_COMPARATOR = (o1, o2) -> {
         int result = 0;
-        LocalDate date1 = o1.getAddedDate();
-        LocalDate date2 = o2.getAddedDate();
+        LocalDateTime date1 = o1.getAddedDate();
+        LocalDateTime date2 = o2.getAddedDate();
 
         if (date1 == null && date2 != null) {
             return 1;

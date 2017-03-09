@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -199,8 +200,8 @@ public class GameWatcher {
             @Override
             public int compare(GameEntry o1, GameEntry o2) {
                 int result = 0;
-                LocalDate date1 = o1.getAddedDate();
-                LocalDate date2 = o2.getAddedDate();
+                LocalDateTime date1 = o1.getAddedDate();
+                LocalDateTime date2 = o2.getAddedDate();
 
                 if (date1 == null && date2 != null) {
                     return 1;
@@ -459,7 +460,7 @@ public class GameWatcher {
 
     public GameButton onGameFound(GameEntry foundEntry) {
         if (!FolderGameScanner.gameAlreadyIn(foundEntry, entriesToAdd)) {
-            foundEntry.setAddedDate(LocalDate.now());
+            foundEntry.setAddedDate(LocalDateTime.now());
             foundEntry.setToAdd(true);
             foundEntry.setSavedLocaly(true);
             foundEntry.setName(cleanName(foundEntry.getName()));

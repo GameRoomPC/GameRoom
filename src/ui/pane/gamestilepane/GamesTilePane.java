@@ -30,6 +30,7 @@ import ui.control.button.gamebutton.GameButton;
 import ui.scene.MainScene;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.function.Predicate;
@@ -386,8 +387,8 @@ public abstract class GamesTilePane extends BorderPane {
             @Override
             public int compare(Node o1, Node o2) {
                 int result = 0;
-                LocalDate date1 = ((GameButton) o1).getEntry().getReleaseDate();
-                LocalDate date2 = ((GameButton) o2).getEntry().getReleaseDate();
+                LocalDateTime date1 = ((GameButton) o1).getEntry().getReleaseDate();
+                LocalDateTime date2 = ((GameButton) o2).getEntry().getReleaseDate();
 
                 if (date1 == null && date2 != null) {
                     return -1;

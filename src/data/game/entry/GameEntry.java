@@ -11,9 +11,9 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.regex.Pattern;
@@ -42,7 +42,7 @@ public class GameEntry {
     private boolean savedLocaly = false;
 
     private String name = "";
-    private LocalDate releaseDate;
+    private LocalDateTime releaseDate;
     private String description = "";
     private String developer = "";
     private String publisher = "";
@@ -55,8 +55,8 @@ public class GameEntry {
     private String[] cmd = new String[4];
     private String args = "";
     private String youtubeSoundtrackHash = "";
-    private LocalDate addedDate;
-    private LocalDate lastPlayedDate;
+    private LocalDateTime addedDate;
+    private LocalDateTime lastPlayedDate;
     private boolean installed = false;
 
     private File[] imagesPaths = new File[IMAGES_NUMBER];
@@ -112,11 +112,11 @@ public class GameEntry {
         saveEntry();
     }
 
-    public LocalDate getReleaseDate() {
+    public LocalDateTime getReleaseDate() {
         return releaseDate;
     }
 
-    public void setReleaseDate(LocalDate releaseDate) {
+    public void setReleaseDate(LocalDateTime releaseDate) {
         this.releaseDate = releaseDate;
         saveEntry();
     }
@@ -489,11 +489,11 @@ public class GameEntry {
         return cmd[index];
     }
 
-    public LocalDate getAddedDate() {
+    public LocalDateTime getAddedDate() {
         return addedDate;
     }
 
-    public void setAddedDate(LocalDate addedDate) {
+    public void setAddedDate(LocalDateTime addedDate) {
         this.addedDate = addedDate;
         saveEntry();
     }
@@ -507,11 +507,11 @@ public class GameEntry {
         saveEntry();
     }
 
-    public LocalDate getLastPlayedDate() {
+    public LocalDateTime getLastPlayedDate() {
         return lastPlayedDate;
     }
 
-    public void setLastPlayedDate(LocalDate lastPlayedDate) {
+    public void setLastPlayedDate(LocalDateTime lastPlayedDate) {
         this.lastPlayedDate = lastPlayedDate;
         saveEntry();
     }
@@ -644,6 +644,9 @@ public class GameEntry {
     }
 
     public static GameEntry loadFromDB(ResultSet set) throws SQLException {
+        if(set == null){
+            return null;
+        }
         int id = set.getInt("id");
         GameEntry entry = new GameEntry(id);
         entry.setName(set.getString("name"));
@@ -652,7 +655,24 @@ public class GameEntry {
         entry.setCmd(GameEntry.CMD_BEFORE_START,set.getString("cmd_before"));
         entry.setCmd(GameEntry.CMD_AFTER_END,set.getString("cmd_after"));
         entry.setYoutubeSoundtrackHash(set.getString("yt_hash"));
-        entry.setAddedDate(set.getDate("added_date").toLocalDate());
+
+        Timestamp addedTimestamp = set.getTimestamp("added_date");
+        if(addedTimestamp !=null){
+            entry.setAddedDate(addedTimestamp.toLocalDateTime());
+        }else{
+            entry.setAddedDate(LocalDateTime.now());
+        }
+
+        Timestamp releasedTimestamp = set.getTimestamp("release_date");
+        if(releasedTimestamp !=null){
+            entry.setReleaseDate(releasedTimestamp.toLocalDateTime());
+        }
+
+        Timestamp lastPlayedTimestamp = set.getTimestamp("last_played_date");
+        if(lastPlayedTimestamp !=null){
+            entry.setAddedDate(lastPlayedTimestamp.toLocalDateTime());
+        }
+
         entry.setPlayTimeSeconds(set.getInt("initial_playtime"));
         entry.setInstalled(set.getBoolean("installed"));
         entry.setIgdb_imageHash(0,set.getString("cover_hash"));

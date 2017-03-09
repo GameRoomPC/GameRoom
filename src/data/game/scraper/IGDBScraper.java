@@ -19,6 +19,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -279,7 +280,7 @@ public class IGDBScraper {
                 }
             });
             Date releaseDate = getReleaseDate(game_data);
-            LocalDate date = releaseDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDateTime date = releaseDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             entry.setReleaseDate(date);
         } catch (JSONException je) {
             if (je.toString().contains("not found")) {

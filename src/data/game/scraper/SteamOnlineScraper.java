@@ -140,7 +140,7 @@ public class SteamOnlineScraper {
             entry.setDescription(Jsoup.parse(gameInfoJson.getString("about_the_game")).text());
             try {
                 Date input = STEAM_DATE_FORMAT.parse(gameInfoJson.getJSONObject("release_date").getString("date"));
-                entry.setReleaseDate(input.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                entry.setReleaseDate(input.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
             } catch (ParseException | NumberFormatException e) {
                 Main.LOGGER.error("Invalid release date format");
             }
