@@ -102,6 +102,20 @@ public class GameEntry {
 
     public GameEntry(int id) {
         this.id = id;
+        for (int i = 0; i < IMAGES_NUMBER; i++) {
+            String path = "";
+            if (i == 0) {
+                path = getCoverPath();
+            } else {
+                path = getScreenShotPath();
+            }
+            //TODO read here which saved pictures corresponds to this pattern
+            path += ".jpg";
+
+            File localFile = new File(path);
+            imagesFiles[i] = localFile;
+            imageNeedsRefresh[i] = true;
+        }
     }
 
     private void saveEntry() {
