@@ -41,6 +41,7 @@ import ui.scene.MainScene;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -128,8 +129,9 @@ public abstract class GameButton extends BorderPane {
         this.entry = entry;
         playTimeLabel.setText(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_ROUNDED_HMS));
         ratingLabel.setText(Integer.toString(entry.getAggregated_rating()));
-        SimpleDateFormat buttonDateFormat = new SimpleDateFormat("MM.yyyy");
-        releaseDateLabel.setText(entry.getReleaseDate()!=null ? buttonDateFormat.format(entry.getReleaseDate()) : "-");
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM.yyyy");
+        releaseDateLabel.setText(entry.getReleaseDate()!=null ? formatter.format(entry.getReleaseDate()) : "-");
 
         titleLabel.setText(entry.getName());
         titleLabel.setTooltip(new Tooltip(entry.getName()));

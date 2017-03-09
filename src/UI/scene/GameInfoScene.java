@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static ui.Main.*;
 
 /**
@@ -186,7 +187,8 @@ public class GameInfoScene extends BaseScene {
         /****************************END SEPARATORS************************************/
         addProperty("release_date", entry.getReleaseDate() != null ? GameEntry.DATE_DISPLAY_FORMAT.format(entry.getReleaseDate()) : "");
         if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)){
-            addProperty("added_date", entry.getAddedDate() != null ? GameEntry.DATE_STORE_FORMAT.format(entry.getAddedDate()) : "").setId("advanced-setting-label");
+
+            addProperty("added_date", entry.getAddedDate() != null ? ISO_LOCAL_DATE_TIME.format(entry.getAddedDate()) : "").setId("advanced-setting-label");
         }
         addProperty("developer", entry.getDeveloper());
         addProperty("publisher", entry.getPublisher());

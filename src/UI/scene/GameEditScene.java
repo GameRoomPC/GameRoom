@@ -64,6 +64,7 @@ import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -389,10 +390,9 @@ public class GameEditScene extends BaseScene {
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 if (!releaseDateField.getText().equals("")) {
                     try {
-                        Date releaseDate = GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText());
-                        LocalDate date = releaseDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                        entry.setReleaseDate(date);
-                    } catch (ParseException e) {
+                        LocalDate releaseDate = LocalDate.from(GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText()));
+                        entry.setReleaseDate(releaseDate);
+                    } catch (DateTimeParseException e) {
                         //well date not valid yet
                     }
                 }
@@ -403,10 +403,9 @@ public class GameEditScene extends BaseScene {
             public boolean isValid() {
                 if (!releaseDateField.getText().equals("")) {
                     try {
-                        Date releaseDate = GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText());
-                        LocalDate date = releaseDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                        entry.setReleaseDate(date);
-                    } catch (ParseException e) {
+                        LocalDate releaseDate = LocalDate.from(GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText()));
+                        entry.setReleaseDate(releaseDate);
+                    } catch (DateTimeParseException e) {
                         message.replace(0, message.length(), Main.getString("invalid_release_date"));
                         return false;
                     }
@@ -770,9 +769,9 @@ public class GameEditScene extends BaseScene {
                                     ((CheckComboBox) node).getCheckModel().check(theme);
                                 }
                             }
-                        } else if (newValue instanceof Date) {
+                        } else if (newValue instanceof LocalDate) {
                             if (node instanceof TextField) {
-                                ((TextField) node).setText(newValue != null ? GameEntry.DATE_DISPLAY_FORMAT.format(newValue) : "");
+                                ((TextField) node).setText(newValue != null ? GameEntry.DATE_DISPLAY_FORMAT.format((LocalDate)newValue) : "");
                             }
                         }
                         break;
