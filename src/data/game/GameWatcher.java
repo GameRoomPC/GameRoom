@@ -340,17 +340,13 @@ public class GameWatcher {
                                             @Override
                                             public void run(File outputfile) {
                                                 try {
-                                                    File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getId() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + FileUtils.getExtension(outputfile));
-                                                    Files.copy(outputfile.getAbsoluteFile().toPath()
-                                                            , localCoverFile.getAbsoluteFile().toPath()
-                                                            , StandardCopyOption.REPLACE_EXISTING);
                                                     toScrapEntry.setSavedLocaly(true);
-                                                    toScrapEntry.setImagePath(0, localCoverFile);
+                                                    toScrapEntry.updateImage(0, outputfile);
                                                     toScrapEntry.setSavedLocaly(false);
                                                 } catch (Exception e) {
-                                                    toScrapEntry.setSavedLocaly(true);
-                                                    toScrapEntry.setImagePath(0, outputfile);
                                                     toScrapEntry.setSavedLocaly(false);
+                                                    //TODO localize
+                                                    GameRoomAlert.error("Could not update image's path");
                                                 }
 
                                                 Main.runAndWait(() -> {
@@ -366,17 +362,13 @@ public class GameWatcher {
                                                             @Override
                                                             public void run(File outputfile) {
                                                                 try {
-                                                                    File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getId() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + FileUtils.getExtension(outputfile));
-                                                                    Files.copy(outputfile.getAbsoluteFile().toPath()
-                                                                            , localCoverFile.getAbsoluteFile().toPath()
-                                                                            , StandardCopyOption.REPLACE_EXISTING);
                                                                     toScrapEntry.setSavedLocaly(true);
-                                                                    toScrapEntry.setImagePath(1, localCoverFile);
+                                                                    toScrapEntry.updateImage(1, outputfile);
                                                                     toScrapEntry.setSavedLocaly(false);
                                                                 } catch (Exception e) {
-                                                                    toScrapEntry.setSavedLocaly(true);
-                                                                    toScrapEntry.setImagePath(1, outputfile);
                                                                     toScrapEntry.setSavedLocaly(false);
+                                                                    //TODO localize
+                                                                    GameRoomAlert.error("Could not update image's path");
                                                                 }
                                                                 toScrapEntry.setSavedLocaly(true);
                                                                 toScrapEntry.setWaitingToBeScrapped(false);

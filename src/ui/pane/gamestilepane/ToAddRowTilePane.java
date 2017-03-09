@@ -52,12 +52,6 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
                         entries.add(b.getEntry());
                     }
                     for (GameEntry entry : entries) {
-                        for (int i = 0; i < GameEntry.DEFAULT_IMAGES_PATHS.length; i++) {
-                            String type = i == 0 ? ImageUtils.IGDB_TYPE_COVER : ImageUtils.IGDB_TYPE_SCREENSHOT;
-                            GameEditScene.moveImage(entry, entry.getImagePath(i), type);
-                        }
-
-
                         if (entry.isToAdd()) {
                             entry.setToAdd(false);
                         }

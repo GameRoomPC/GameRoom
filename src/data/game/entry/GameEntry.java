@@ -8,17 +8,20 @@ import ui.Main;
 import ui.dialog.GameRoomAlert;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
-import static ui.Main.FILES_MAP;
+import static data.io.FileUtils.getExtension;
 
 /**
  * Created by LM on 02/07/2016.
@@ -36,7 +39,7 @@ public class GameEntry {
     public final static int TIME_FORMAT_FULL_DOUBLEDOTS = 1; //00:12:00, 00:05:13
     public final static int TIME_FORMAT_HALF_FULL_HMS = 2; // 12m0s, 5m13s
     public final static int TIME_FORMAT_ROUNDED_HMS = 3; // 12m, 5m
-    public static final int TIME_FORMAT_HMS_CASUAL = 4 ; //1h05, 20mn, l0s
+    public static final int TIME_FORMAT_HMS_CASUAL = 4; //1h05, 20mn, l0s
 
 
     private boolean savedLocaly = false;
@@ -46,8 +49,8 @@ public class GameEntry {
     private String description = "";
     private String developer = "";
     private String publisher = "";
-    private GameGenre[] genres;
-    private GameTheme[] themes;
+    private ArrayList<GameGenre> genres = new ArrayList<>();
+    private ArrayList<GameTheme> themes = new ArrayList<>();
     private String serie = "";
     private int aggregated_rating;
     private String path = "";
@@ -59,7 +62,11 @@ public class GameEntry {
     private LocalDateTime lastPlayedDate;
     private boolean installed = false;
 
-    private File[] imagesPaths = new File[IMAGES_NUMBER];
+    private ArrayList<Developer> developers = new ArrayList<>();
+    private ArrayList<Publisher> publishers = new ArrayList<>();
+
+
+    private File[] imagesFiles = new File[IMAGES_NUMBER];
     private boolean[] imageNeedsRefresh = new boolean[IMAGES_NUMBER];
     private HashMap<Integer, Image> createdImages = new HashMap<>();
 
@@ -67,7 +74,7 @@ public class GameEntry {
 
 
     private int igdb_id = -1;
-        /*FOR IGDB PURPOSE ONLY, should not be stored*/
+    /*FOR IGDB PURPOSE ONLY, should not be stored*/
     private String[] igdb_imageHash = new String[IMAGES_NUMBER];
 
 
@@ -109,8 +116,8 @@ public class GameEntry {
 
     public void setName(String name) {
         this.name = name;
-        saveEntry();
     }
+
 
     public LocalDateTime getReleaseDate() {
         return releaseDate;
@@ -126,7 +133,7 @@ public class GameEntry {
     }
 
     public void setDeveloper(String developer) {
-        this.developer = developer!=null ? developer : "";
+        this.developer = developer != null ? developer : "";
         saveEntry();
     }
 
@@ -135,7 +142,7 @@ public class GameEntry {
     }
 
     public void setPublisher(String publisher) {
-        this.publisher = publisher!= null ? publisher : "";
+        this.publisher = publisher != null ? publisher : "";
         saveEntry();
     }
 
@@ -144,8 +151,9 @@ public class GameEntry {
     }
 
     public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth) {
-        return getImage(index,width,height,preserveRatio,smooth,false);
+        return getImage(index, width, height, preserveRatio, smooth, false);
     }
+
     private Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth, boolean backGroundloading) {
         if (createdImages.get(index) != null && !imageNeedsRefresh[index]) {
             if (createdImages.get(index).getWidth() == width && createdImages.get(index).getHeight() == height) {
@@ -155,13 +163,13 @@ public class GameEntry {
         File currFile = getImagePath(index);
         if (currFile == null) {
             return null;
-        } else if(currFile.exists()) {
+        } else if (currFile.exists()) {
             Image result = new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth, backGroundloading);
             createdImages.put(index, result);
             imageNeedsRefresh[index] = false;
             return result;
-        } else{
-            Image result = new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir")+File.separator+currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
+        } else {
+            Image result = new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir") + File.separator + currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
             createdImages.put(index, result);
             imageNeedsRefresh[index] = false;
             return result;
@@ -175,12 +183,11 @@ public class GameEntry {
      * @return
      */
     public File getImagePath(int index) {
-        if (index < imagesPaths.length) {
-            File imagePath = imagesPaths[index];
-            File dir = Main.FILES_MAP.get("working_dir");
-            if(imagePath!=null && dir != null){
-                return FileUtils.relativizePath(imagePath,dir);
-            }else{
+        if (index < imagesFiles.length) {
+            File imagePath = imagesFiles[index];
+            if (imagePath != null) {
+                return new File(imagePath.getAbsolutePath());
+            } else {
                 return null;
             }
         }
@@ -201,7 +208,7 @@ public class GameEntry {
     }
 
     public void setDescription(String description) {
-        this.description = description!=null ? description : "";
+        this.description = description != null ? description : "";
         saveEntry();
     }
 
@@ -214,13 +221,30 @@ public class GameEntry {
         saveEntry();
     }
 
-    public void setImagePath(int index, File imagePath) {
-        if (imagesPaths.length > index) {
-            File relativeFile = FileUtils.relativizePath(imagePath,Main.FILES_MAP.get("working_dir"));
-            imagesPaths[index] = relativeFile;
-            imageNeedsRefresh[index] = true;
+    public void updateImage(int index, File newImageFile) throws IOException {
+        if (imagesFiles.length > index) {
+            if (newImageFile != null && newImageFile.exists() && newImageFile.isFile()) {
+                String ext = getExtension(newImageFile);
+                String path = "";
+                if (index == 0) {
+                    path = getCoverPath();
+                } else {
+                    path = getScreenShotPath();
+                }
+                path += "." + ext;
+
+                File localFile = new File(path);
+
+                Files.copy(newImageFile.getAbsoluteFile().toPath()
+                        , localFile.getAbsoluteFile().toPath()
+                        , StandardCopyOption.REPLACE_EXISTING);
+
+                imagesFiles[index] = localFile;
+                imageNeedsRefresh[index] = true;
+
+                saveEntry();
+            }
         }
-        saveEntry();
     }
 
     public int getSteam_id() {
@@ -236,7 +260,7 @@ public class GameEntry {
     }
 
     public void setSteam_id(int steam_id) {
-        setSteam_id(steam_id, steam_id!=-1);
+        setSteam_id(steam_id, steam_id != -1);
     }
 
     public boolean isSteamGame() {
@@ -365,11 +389,11 @@ public class GameEntry {
             case TIME_FORMAT_HMS_CASUAL:
                 if (hours > 0) {
                     result += hours + "h";
-                    if(minutes > 0){
-                        if(minutes <10){
+                    if (minutes > 0) {
+                        if (minutes < 10) {
                             result += '0';
                         }
-                        result+= minutes;
+                        result += minutes;
                     }
                 } else {
                     if (minutes > 0) {
@@ -428,7 +452,7 @@ public class GameEntry {
         saveEntry();
     }
 
-    public void deletePermanently(){
+    public void deletePermanently() {
         //TODO delete in db
         deleted = true;
     }
@@ -455,20 +479,20 @@ public class GameEntry {
         saveEntry();
     }
 
-    public GameGenre[] getGenres() {
+    public ArrayList<GameGenre> getGenres() {
         return genres;
     }
 
-    public void setGenres(GameGenre[] genres) {
+    public void setGenres(ArrayList<GameGenre> genres) {
         this.genres = genres;
         saveEntry();
     }
 
-    public GameTheme[] getThemes() {
+    public ArrayList<GameTheme> getThemes() {
         return themes;
     }
 
-    public void setThemes(GameTheme[] themes) {
+    public void setThemes(ArrayList<GameTheme> themes) {
         this.themes = themes;
         saveEntry();
     }
@@ -478,14 +502,15 @@ public class GameEntry {
     }
 
     public void setSerie(String serie) {
-        this.serie = serie!= null ? serie : "";
+        this.serie = serie != null ? serie : "";
         saveEntry();
     }
 
-    public void setCmd(int index, String cmd){
-        this.cmd[index]=cmd;
+    public void setCmd(int index, String cmd) {
+        this.cmd[index] = cmd;
     }
-    public String getCmd(int index){
+
+    public String getCmd(int index) {
         return cmd[index];
     }
 
@@ -555,7 +580,7 @@ public class GameEntry {
     public void startGame() {
         try {
             new GameStarter(this).start();
-        }catch (IOException ioe){
+        } catch (IOException ioe) {
             GameRoomAlert.error(ioe.getMessage());
         }
     }
@@ -564,12 +589,13 @@ public class GameEntry {
     public String toString() {
         return "GameEntry:name=" + name +
                 ",release_date=" + (releaseDate != null ? DATE_DISPLAY_FORMAT.format(releaseDate) : null) +
-                ",steam_id=" + steam_id+
-                "playTime="+getPlayTimeFormatted(TIME_FORMAT_FULL_DOUBLEDOTS);
+                ",steam_id=" + steam_id +
+                "playTime=" + getPlayTimeFormatted(TIME_FORMAT_FULL_DOUBLEDOTS);
     }
 
     public void setId(int id) {
         this.id = id;
+        saveEntry();
     }
 
     public boolean isToAdd() {
@@ -622,11 +648,11 @@ public class GameEntry {
         this.onGameStopped = onGameStopped;
     }
 
-    public void setMonitored(boolean monitored){
+    public void setMonitored(boolean monitored) {
         this.monitored.setValue(monitored);
     }
 
-    public boolean isMonitored(){
+    public boolean isMonitored() {
         return monitored.getValue();
     }
 
@@ -644,7 +670,7 @@ public class GameEntry {
     }
 
     public static GameEntry loadFromDB(ResultSet set) throws SQLException {
-        if(set == null){
+        if (set == null) {
             return null;
         }
         int id = set.getInt("id");
@@ -652,31 +678,31 @@ public class GameEntry {
         entry.setName(set.getString("name"));
         entry.setDescription(set.getString("description"));
         entry.setPath(set.getString("path"));
-        entry.setCmd(GameEntry.CMD_BEFORE_START,set.getString("cmd_before"));
-        entry.setCmd(GameEntry.CMD_AFTER_END,set.getString("cmd_after"));
+        entry.setCmd(GameEntry.CMD_BEFORE_START, set.getString("cmd_before"));
+        entry.setCmd(GameEntry.CMD_AFTER_END, set.getString("cmd_after"));
         entry.setYoutubeSoundtrackHash(set.getString("yt_hash"));
 
         Timestamp addedTimestamp = set.getTimestamp("added_date");
-        if(addedTimestamp !=null){
+        if (addedTimestamp != null) {
             entry.setAddedDate(addedTimestamp.toLocalDateTime());
-        }else{
+        } else {
             entry.setAddedDate(LocalDateTime.now());
         }
 
         Timestamp releasedTimestamp = set.getTimestamp("release_date");
-        if(releasedTimestamp !=null){
+        if (releasedTimestamp != null) {
             entry.setReleaseDate(releasedTimestamp.toLocalDateTime());
         }
 
         Timestamp lastPlayedTimestamp = set.getTimestamp("last_played_date");
-        if(lastPlayedTimestamp !=null){
+        if (lastPlayedTimestamp != null) {
             entry.setAddedDate(lastPlayedTimestamp.toLocalDateTime());
         }
 
         entry.setPlayTimeSeconds(set.getInt("initial_playtime"));
         entry.setInstalled(set.getBoolean("installed"));
-        entry.setIgdb_imageHash(0,set.getString("cover_hash"));
-        entry.setIgdb_imageHash(1,set.getString("wp_hash"));
+        entry.setIgdb_imageHash(0, set.getString("cover_hash"));
+        entry.setIgdb_imageHash(1, set.getString("wp_hash"));
         entry.setIgdb_id(set.getInt("igdb_id"));
         entry.setWaitingToBeScrapped(set.getBoolean("waiting_scrap"));
         entry.setToAdd(set.getBoolean("toAdd"));
@@ -685,15 +711,11 @@ public class GameEntry {
         return entry;
     }
 
-    public String getCoverPath(){
-        File coverFolder = FILES_MAP.get("cover");
-
-        return id + "_" + name.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
+    private String getCoverPath() {
+        return GameEntryUtils.coverPath(this);
     }
 
-    public String getScreenShotPath(){
-        File coverFolder = FILES_MAP.get("screenshot");
-
-        return id + "_" + name.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
+    private String getScreenShotPath() {
+        return GameEntryUtils.screenshotPath(this);
     }
 }

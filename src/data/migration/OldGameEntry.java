@@ -292,9 +292,9 @@ public class OldGameEntry {
                     if (absoluteFile.exists()) {
                         try {
                             if (i == 0) {
-                                FileUtils.copyToFolder(absoluteFile, coverFolder, sqlId + "_" + name.replaceAll("[^a-zA-Z0-9\\.\\-]", "_") + "." + FileUtils.getExtension(absoluteFile));
+                                FileUtils.copyToFolder(absoluteFile, coverFolder, sqlId + "." + FileUtils.getExtension(absoluteFile));
                             } else if (i == 1) {
-                                FileUtils.copyToFolder(absoluteFile, screenshotFolder, sqlId + "_" + name.replaceAll("[^a-zA-Z0-9\\.\\-]", "_") + "." + FileUtils.getExtension(absoluteFile));
+                                FileUtils.copyToFolder(absoluteFile, screenshotFolder, sqlId + "." + FileUtils.getExtension(absoluteFile));
                             }
                         } catch (IOException e) {
                             e.printStackTrace();

@@ -118,4 +118,15 @@ public class GameEntryUtils {
         ENTRIES_LIST.remove(entry);
         Main.LOGGER.info("Removed game : " + entry.getName());
     }
+
+    public static String coverPath(GameEntry entry){
+        File coverFolder = FILES_MAP.get("cover");
+        return coverFolder.getAbsolutePath()+ File.separator + entry.getId() ;
+    }
+
+    public static String screenshotPath(GameEntry entry){
+        File screenshotFolder = FILES_MAP.get("screenshot");
+        return screenshotFolder.getAbsolutePath()+ File.separator + entry.getId();
+
+    }
 }

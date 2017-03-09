@@ -30,7 +30,7 @@ public class GroupsFactory {
                         return false;
                     }
                 }
-                return entry.getGenres() == null || entry.getGenres().length == 0;
+                return entry.getGenres() == null || entry.getGenres().isEmpty();
             }
         };
         othersTilePane.setTitle(Main.getString("others"));
@@ -112,7 +112,7 @@ public class GroupsFactory {
                         return false;
                     }
                 }
-                return entry.getThemes() == null || entry.getThemes().length == 0;
+                return entry.getThemes() == null || entry.getThemes().isEmpty();
             }
         };
         othersTilePane.setTitle(Main.getString("others"));

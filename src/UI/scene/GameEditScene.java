@@ -2,6 +2,7 @@ package ui.scene;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.GameEntry;
+import data.game.entry.GameEntryUtils;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
 import data.game.scraper.IGDBScraper;
@@ -185,8 +186,12 @@ public class GameEditScene extends BaseScene {
                 if (allConditionsMet) {
                     for (int i = 0; i < chosenImageFiles.length; i++) {
                         if (chosenImageFiles[i] != null) {
-                            String type = i == 0 ? ImageUtils.IGDB_TYPE_COVER : ImageUtils.IGDB_TYPE_SCREENSHOT;
-                            moveImage(entry, chosenImageFiles[i], type);
+                            try {
+                                entry.updateImage(i,chosenImageFiles[i]);
+                            } catch (IOException e) {
+                                //TODO localize
+                                GameRoomAlert.error("Could not move new images");
+                            }
                         }
                     }
                     if (entry.isToAdd()) {
@@ -457,8 +462,8 @@ public class GameEditScene extends BaseScene {
         genreComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<GameGenre>() {
             @Override
             public void onChanged(Change<? extends GameGenre> c) {
-                GameGenre[] newGenres = new GameGenre[genreComboBox.getCheckModel().getCheckedIndices().size()];
-                newGenres = genreComboBox.getCheckModel().getCheckedItems().toArray(newGenres);
+                ArrayList<GameGenre> newGenres = new ArrayList<>();
+                newGenres.addAll(genreComboBox.getCheckModel().getCheckedItems());
                 entry.setGenres(newGenres);
             }
         });
@@ -490,9 +495,9 @@ public class GameEditScene extends BaseScene {
         themeComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<GameTheme>() {
             @Override
             public void onChanged(Change<? extends GameTheme> c) {
-                GameTheme[] newTheme = new GameTheme[themeComboBox.getCheckModel().getCheckedIndices().size()];
-                newTheme = themeComboBox.getCheckModel().getCheckedItems().toArray(newTheme);
-                entry.setThemes(newTheme);
+                ArrayList<GameTheme> newThemes = new ArrayList<>();
+                newThemes.addAll(themeComboBox.getCheckModel().getCheckedItems());
+                entry.setThemes(newThemes);
             }
         });
         Label themeLabel = new Label(Main.getString("theme") + " :");
@@ -511,8 +516,6 @@ public class GameEditScene extends BaseScene {
                         Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                         ImageUtils.transitionToWindowBackground(img, backgroundView);
                         chosenImageFiles[1] = outputfile;
-                        String localScreenshotPath = entry.getScreenShotPath() + "." + getExtension(outputfile);
-                        entry.setImagePath(1, new File(localScreenshotPath));
                     }
                 });
             }
@@ -531,7 +534,6 @@ public class GameEditScene extends BaseScene {
         screenshotFileButton.setOnAction(event -> {
             chosenImageFiles[1] = imageChooser.showOpenDialog(getParentStage());
             screenshotDlDoneHandler.run(chosenImageFiles[1]);
-            entry.setImagePath(1, new File(entry.getScreenShotPath() + "." + getExtension(chosenImageFiles[1].getName())));
         });
         Label orLabel = new Label(Main.getString("or"));
 
@@ -826,12 +828,10 @@ public class GameEditScene extends BaseScene {
             @Override
             public void handle(ActionEvent event) {
                 chosenImageFiles[0] = imageChooser.showOpenDialog(getParentStage());
-                String localCoverPath = entry.getCoverPath() + "." + getExtension(chosenImageFiles[0].getName());
+                String localCoverPath = GameEntryUtils.coverPath(entry) + "." + getExtension(chosenImageFiles[0].getName());
 
                 Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
                 ImageUtils.transitionToImage(img, coverView);
-
-                entry.setImagePath(0, new File(localCoverPath));
             }
         });
         //COVER EFFECTS
@@ -982,9 +982,6 @@ public class GameEditScene extends BaseScene {
                             ImageUtils.transitionToImage(img, coverView);
 
                             chosenImageFiles[0] = outputfile;
-                            String coverImagePath = entry.getCoverPath() + "." + getExtension(outputfile);
-                            entry.setImagePath(0, new File(coverImagePath));
-
                         }
                     });
         }
@@ -1024,9 +1021,6 @@ public class GameEditScene extends BaseScene {
                                 ImageUtils.transitionToWindowBackground(img, backgroundView);
 
                                 chosenImageFiles[1] = outputfile;
-                                String screenShotLocalFile = entry.getScreenShotPath() + "." + getExtension(outputfile);
-                                entry.setImagePath(1, new File(screenShotLocalFile));
-
                             }
                         });
                 validEntriesConditions.add(new ValidEntryCondition() {
@@ -1115,38 +1109,4 @@ public class GameEditScene extends BaseScene {
             buttonsBox.getChildren().add(cancelButton);
         }
     }
-
-    public static void moveImage(GameEntry entry, File imageFile, String imageType) {
-        if (imageFile != null) {
-            if (!imageFile.exists()) {
-                imageFile = new File(FILES_MAP.get("working_dir").getPath() + File.separator + imageFile.getPath());
-            }
-            if (imageFile.exists()) {
-                String path = imageType.equals(ImageUtils.IGDB_TYPE_COVER) ? entry.getCoverPath() : entry.getScreenShotPath();
-                File localFile = new File(path + getExtension(imageFile.getName()));
-                try {
-                    if (!localFile.getParentFile().exists()) {
-                        localFile.getParentFile().mkdirs();
-                    }
-                    /*if (!localCoverFile.isValid()) {
-                        localCoverFile.createNewFile();
-                    }*/
-                    Files.copy(imageFile.toPath().toAbsolutePath()
-                            , localFile.toPath().toAbsolutePath()
-                            , StandardCopyOption.REPLACE_EXISTING);
-                    int imageIndex = 0;
-                    if (imageType.equals(ImageUtils.IGDB_TYPE_SCREENSHOT)) {
-                        imageIndex = 1;
-                    }
-                    entry.setImagePath(imageIndex, localFile);
-                    Main.LOGGER.debug("Moving from \n\t" + imageFile.toPath().toAbsolutePath() + "\n\tto " + localFile.toPath().toAbsolutePath());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                LOGGER.error("Could not move non existing image : " + imageFile.getPath());
-            }
-        }
-    }
-
 }

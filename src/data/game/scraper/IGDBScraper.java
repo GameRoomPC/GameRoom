@@ -470,15 +470,16 @@ public class IGDBScraper {
         }
     }
 
-    private static GameGenre[] getGenres(JSONObject gameData) {
+    private static ArrayList<GameGenre> getGenres(JSONObject gameData) {
         try {
             int genresNumber = gameData.getJSONArray("genres").length();
-            GameGenre[] gameGenres = new GameGenre[genresNumber];
+            ArrayList<GameGenre> genres = new ArrayList<>();
+
             for (int i = 0; i < genresNumber; i++) {
                 int genreId = gameData.getJSONArray("genres").getInt(i);
-                gameGenres[i] = GameGenre.getGenreFromIGDB(genreId);
+                genres.add(GameGenre.getGenreFromIGDB(genreId));
             }
-            return gameGenres;
+            return genres;
         } catch (JSONException jse) {
             if (jse.toString().contains("not found")) {
                 //Main.LOGGER.error("Genres not found");
@@ -489,15 +490,16 @@ public class IGDBScraper {
         return null;
     }
 
-    private static GameTheme[] getThemes(JSONObject gameData) {
+    private static ArrayList<GameTheme> getThemes(JSONObject gameData) {
         try {
             int themesNumber = gameData.getJSONArray("themes").length();
-            GameTheme[] gameThemes = new GameTheme[themesNumber];
+            ArrayList<GameTheme> themes = new ArrayList<>();
+
             for (int i = 0; i < themesNumber; i++) {
                 int genreId = gameData.getJSONArray("themes").getInt(i);
-                gameThemes[i] = GameTheme.getThemeFromIGDB(genreId);
+                themes.add(GameTheme.getThemeFromIGDB(genreId));
             }
-            return gameThemes;
+            return themes;
         } catch (JSONException jse) {
             if (jse.toString().contains("not found")) {
                 //Main.LOGGER.error("Themes not found");
