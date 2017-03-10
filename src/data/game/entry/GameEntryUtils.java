@@ -64,16 +64,13 @@ public class GameEntryUtils {
         //TODO detect in following method if exists old games
         loadGames(FILES_MAP.get("games"));
 
-        //TODO remove this deletion, this is just for dev
-        File dbFile = Main.FILES_MAP.get("db");
-        //dbFile.delete();
-
         DataBase.initDB();
         OldGameEntry.transferOldGameEntries();
 
         try {
             Connection connection = DataBase.getConnection();
             Statement statement = connection.createStatement();
+            //TODO update query to join to result the gameGenre, gameTheme, devs and publishers
             ResultSet set = statement.executeQuery("select * from GameEntry");
             while (set.next()){
                 GameEntry nextEntry = GameEntry.loadFromDB(set);
@@ -82,6 +79,7 @@ public class GameEntryUtils {
                     //LOGGER.debug("Loaded game \""+nextEntry.getName()+"\"");
                 }
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }

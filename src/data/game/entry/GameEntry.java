@@ -51,6 +51,8 @@ public class GameEntry {
     private String publisher = "";
     private ArrayList<GameGenre> genres = new ArrayList<>();
     private ArrayList<GameTheme> themes = new ArrayList<>();
+    private ArrayList<Integer> genresIds = new ArrayList<>();
+    private ArrayList<Integer> themesIds = new ArrayList<>();
     private String serie = "";
     private int aggregated_rating;
     private String path = "";

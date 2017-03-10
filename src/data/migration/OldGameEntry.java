@@ -92,15 +92,6 @@ public class OldGameEntry {
     }
 
     public static void transferOldGameEntries() {
-        //TODO remove when db implementation is done, this is intended for dev phase only
-        if(DEV_MODE){
-            File dbFile = Main.FILES_MAP.get("db");
-            dbFile.delete();
-            File pictFile = Main.FILES_MAP.get("pictures");
-            pictFile.delete();
-
-        }
-
         ArrayList<UUID> toAddUUIDs = GameEntryUtils.readUUIDS(FILES_MAP.get("to_add"));
 
         ArrayList<OldGameEntry> oldEntries = new ArrayList<>();

@@ -6,24 +6,19 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.GameEntry;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
-import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import ui.Main;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-
-import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 03/07/2016.
@@ -477,7 +472,7 @@ public class IGDBScraper {
 
             for (int i = 0; i < genresNumber; i++) {
                 int genreId = gameData.getJSONArray("genres").getInt(i);
-                genres.add(GameGenre.getGenreFromIGDB(genreId));
+                genres.add(GameGenre.getGenreFromID(genreId));
             }
             return genres;
         } catch (JSONException jse) {
