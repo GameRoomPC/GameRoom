@@ -17,7 +17,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 
-import static ui.Main.DEV_MODE;
 import static ui.Main.FILES_MAP;
 import static ui.Main.LOGGER;
 
@@ -128,7 +127,7 @@ public class OldGameEntry {
     }
 
     private void exportDirectFields() throws SQLException {
-        Connection connection = DataBase.getConnection();
+        Connection connection = DataBase.getUserConnection();
 
         PreparedStatement statement = connection.prepareStatement(GameEntry.getSQLInitLine());
         statement.setString(1, name);
@@ -163,7 +162,7 @@ public class OldGameEntry {
             for (OldGenre genre : genres) {
                 int genreId = GameGenre.getIGDBId(genre.getKey());
                 if (genreId != -1) {
-                    PreparedStatement genreStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO has_genre(game_id,genre_id) VALUES (?,?)");
+                    PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO has_genre(game_id,genre_id) VALUES (?,?)");
                     genreStatement.setInt(1, sqlId);
                     genreStatement.setInt(2, genreId);
                     genreStatement.execute();
@@ -179,7 +178,7 @@ public class OldGameEntry {
             for (OldTheme theme : themes) {
                 int themeID = GameTheme.getIGDBId(theme.getKey());
                 if (themeID != -1) {
-                    PreparedStatement genreStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO has_theme(game_id,theme_id) VALUES (?,?)");
+                    PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO has_theme(game_id,theme_id) VALUES (?,?)");
                     genreStatement.setInt(1, sqlId);
                     genreStatement.setInt(2, themeID);
                     genreStatement.execute();
@@ -215,7 +214,7 @@ public class OldGameEntry {
             platformId = 6;
         }
         if (platformId != -1) {
-            PreparedStatement genreStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO runs_on(specific_id,platform_id,game_id) VALUES (?,?,?)");
+            PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO runs_on(specific_id,platform_id,game_id) VALUES (?,?,?)");
             genreStatement.setInt(1, specificId);
             genreStatement.setInt(2, platformId);
             genreStatement.setInt(3, sqlId);
@@ -234,7 +233,7 @@ public class OldGameEntry {
                 int devId = dev.insertInDB();
 
                 if (devId != -1) {
-                    PreparedStatement devStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO develops(game_id,dev_id) VALUES (?,?)");
+                    PreparedStatement devStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO develops(game_id,dev_id) VALUES (?,?)");
                     devStatement2.setInt(1, sqlId);
                     devStatement2.setInt(2, devId);
                     devStatement2.execute();
@@ -253,7 +252,7 @@ public class OldGameEntry {
                 int pubId = pub.insertInDB();
 
                 if (pubId != -1) {
-                    PreparedStatement pubStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO publishes(game_id,pub_id) VALUES (?,?)");
+                    PreparedStatement pubStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO publishes(game_id,pub_id) VALUES (?,?)");
                     pubStatement2.setInt(1, sqlId);
                     pubStatement2.setInt(2, pubId);
                     pubStatement2.execute();
@@ -270,7 +269,7 @@ public class OldGameEntry {
             int serieId = gameSerie.insertInDB();
 
             if (serieId != -1) {
-                PreparedStatement serieStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO regroups(game_id,serie_id) VALUES (?,?)");
+                PreparedStatement serieStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO regroups(game_id,serie_id) VALUES (?,?)");
                 serieStatement2.setInt(1, sqlId);
                 serieStatement2.setInt(2, serieId);
                 serieStatement2.execute();

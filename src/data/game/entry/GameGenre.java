@@ -1,6 +1,5 @@
 package data.game.entry;
 
-import com.google.gson.Gson;
 import data.io.DataBase;
 import ui.Main;
 
@@ -42,7 +41,7 @@ public class GameGenre {
     }
 
     private static void initWithDb() throws SQLException {
-        Connection connection = DataBase.getConnection();
+        Connection connection = DataBase.getUserConnection();
         Statement statement = connection.createStatement();
         ResultSet set = statement.executeQuery("select * from GameGenre");
         while(set.next()){
@@ -68,7 +67,7 @@ public class GameGenre {
 
 
         try {
-            Connection connection = DataBase.getConnection();
+            Connection connection = DataBase.getUserConnection();
             PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM GameGenre WHERE name_key = ?");
             getIdQuery.setString(1,nameKey);
             ResultSet result = getIdQuery.executeQuery();

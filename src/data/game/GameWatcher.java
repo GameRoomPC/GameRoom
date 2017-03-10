@@ -9,7 +9,6 @@ import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.images.ImageUtils;
 import data.http.key.KeyChecker;
-import data.io.FileUtils;
 import javafx.application.Platform;
 import org.json.JSONArray;
 import ui.GeneralToast;
@@ -19,9 +18,6 @@ import ui.dialog.GameRoomAlert;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
@@ -249,13 +245,13 @@ public class GameWatcher {
 
         final boolean[] alreadyDisplayedIGDBError = {false};
         for (GameEntry entry : entriesToAdd) {
-            if (entry.isWaitingToBeScrapped() && !entry.isBeingScrapped() && !FolderGameScanner.isGameIgnored(entry)) {
+            if (entry.isWaitingToBeScrapped() && !entry.isBeingScraped() && !FolderGameScanner.isGameIgnored(entry)) {
                 Callable task = new Callable() {
                     @Override
                     public Object call() throws Exception {
                         try {
                             entry.setSavedLocaly(true);
-                            entry.setBeingScrapped(true);
+                            entry.setBeingScraped(true);
                             entry.setSavedLocaly(false);
                             JSONArray search_results = IGDBScraper.searchGame(entry.getName());
                             searchIGDBIDs.add(LevenshteinDistance.closestName(entry.getName(),search_results));
@@ -273,7 +269,7 @@ public class GameWatcher {
                             }
                             entry.setSavedLocaly(true);
                             entry.setWaitingToBeScrapped(false);
-                            entry.setBeingScrapped(false);
+                            entry.setBeingScraped(false);
                             entry.setSavedLocaly(false);
                             Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
                         }
@@ -372,7 +368,7 @@ public class GameWatcher {
                                                                 }
                                                                 toScrapEntry.setSavedLocaly(true);
                                                                 toScrapEntry.setWaitingToBeScrapped(false);
-                                                                toScrapEntry.setBeingScrapped(false);
+                                                                toScrapEntry.setBeingScraped(false);
                                                                 toScrapEntry.setSavedLocaly(false);
                                                                 Main.runAndWait(() -> {
                                                                     Main.MAIN_SCENE.updateGame(toScrapEntry);

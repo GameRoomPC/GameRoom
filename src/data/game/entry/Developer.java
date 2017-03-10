@@ -33,7 +33,7 @@ public class Developer {
     public int insertInDB(){
         try {
             String sql = "INSERT OR IGNORE INTO Developer(name,"+ (igdb_id < 0 ? "id_needs_update) VALUES (?,?)" : "igdb_id) VALUES (?,?)");
-            PreparedStatement devStatement = DataBase.getConnection().prepareStatement(sql);
+            PreparedStatement devStatement = DataBase.getUserConnection().prepareStatement(sql);
             devStatement.setString(1, name);
             if(igdb_id >= 0){
                 devStatement.setInt(2,igdb_id);
@@ -56,7 +56,7 @@ public class Developer {
         }
         int id = -1;
         try {
-            Connection connection = DataBase.getConnection();
+            Connection connection = DataBase.getUserConnection();
             PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM Developer WHERE name = ?");
             getIdQuery.setString(1,name);
             ResultSet result = getIdQuery.executeQuery();

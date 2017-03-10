@@ -1,9 +1,6 @@
 package data.game.entry;
 
 import data.io.DataBase;
-import data.io.FileUtils;
-import data.migration.OldGenre;
-import data.migration.OldTheme;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.image.Image;
 import system.application.GameStarter;
@@ -11,16 +8,17 @@ import ui.Main;
 import ui.dialog.GameRoomAlert;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.regex.Pattern;
 
 import static data.io.FileUtils.getExtension;
 
@@ -99,6 +97,26 @@ public class GameEntry {
 
     private transient SimpleBooleanProperty monitored = new SimpleBooleanProperty(false);
 
+    private final static String[] SQL_PARAMS = new String[]{"name",
+            "release_date",
+            "description",
+            "aggregated_rating",
+            "path",
+            "cmd_before",
+            "cmd_after",
+            "launch_args",
+            "yt_hash",
+            "added_date",
+            "last_played_date",
+            "initial_playtime",
+            "installed",
+            "cover_hash",
+            "wp_hash",
+            "igdb_id",
+            "waiting_scrap",
+            "toAdd",
+            "beingScraped"};
+
     public GameEntry(String name) {
         this.name = name;
     }
@@ -121,7 +139,7 @@ public class GameEntry {
         }
     }
 
-    private void saveEntry() {
+    /*private void saveEntry() {
         if (savedLocaly && !deleted) {
             try {
                 //TODO store into db
@@ -141,11 +159,10 @@ public class GameEntry {
     }
 
     private void saveDirectFields() throws SQLException {
-        Connection connection = DataBase.getConnection();
+        Connection connection = DataBase.getUserConnection();
 
         PreparedStatement statement = connection.prepareStatement(getSQLInitLine());
         statement.setString(1, name);
-        statement.setDate(2, releaseDate);
         statement.setString(3, description);
         statement.setInt(4, aggregated_rating);
         statement.setString(5, path);
@@ -153,8 +170,8 @@ public class GameEntry {
         statement.setString(7, cmd[1]);
         statement.setString(8, args);
         statement.setString(9, youtubeSoundtrackHash);
-        statement.setDate(10, addedDate);
-        statement.setDate(11, lastPlayedDate);
+        statement.setTimestamp(10, Timestamp.valueOf(addedDate));
+        statement.setTimestamp(11, Timestamp.valueOf(lastPlayedDate));
         statement.setLong(12, playTime);
         statement.setBoolean(13, installed);
         statement.setString(14, igdb_imageHash[0]);
@@ -173,7 +190,7 @@ public class GameEntry {
             for (GameGenre genre : genres) {
                 int genreId = GameGenre.getIGDBId(genre.getKey());
                 if (genreId != -1) {
-                    PreparedStatement genreStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO has_genre(game_id,genre_id) VALUES (?,?)");
+                    PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO has_genre(game_id,genre_id) VALUES (?,?)");
                     genreStatement.setInt(1, id);
                     genreStatement.setInt(2, genreId);
                     genreStatement.execute();
@@ -189,7 +206,7 @@ public class GameEntry {
             for (GameTheme theme : themes) {
                 int themeID = GameTheme.getIGDBId(theme.getKey());
                 if (themeID != -1) {
-                    PreparedStatement genreStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO has_theme(game_id,theme_id) VALUES (?,?)");
+                    PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO has_theme(game_id,theme_id) VALUES (?,?)");
                     genreStatement.setInt(1, id);
                     genreStatement.setInt(2, themeID);
                     genreStatement.execute();
@@ -208,7 +225,7 @@ public class GameEntry {
                 int devId = dev.insertInDB();
 
                 if (devId != -1) {
-                    PreparedStatement devStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO develops(game_id,dev_id) VALUES (?,?)");
+                    PreparedStatement devStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO develops(game_id,dev_id) VALUES (?,?)");
                     devStatement2.setInt(1, id);
                     devStatement2.setInt(2, devId);
                     devStatement2.execute();
@@ -227,7 +244,7 @@ public class GameEntry {
                 int pubId = pub.insertInDB();
 
                 if (pubId != -1) {
-                    PreparedStatement pubStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO publishes(game_id,pub_id) VALUES (?,?)");
+                    PreparedStatement pubStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO publishes(game_id,pub_id) VALUES (?,?)");
                     pubStatement2.setInt(1, id);
                     pubStatement2.setInt(2, pubId);
                     pubStatement2.execute();
@@ -244,7 +261,7 @@ public class GameEntry {
             int serieId = gameSerie.insertInDB();
 
             if (serieId != -1) {
-                PreparedStatement serieStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO regroups(game_id,serie_id) VALUES (?,?)");
+                PreparedStatement serieStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO regroups(game_id,serie_id) VALUES (?,?)");
                 serieStatement2.setInt(1, id);
                 serieStatement2.setInt(2, serieId);
                 serieStatement2.execute();
@@ -279,7 +296,7 @@ public class GameEntry {
             platformId = 6;
         }
         if (platformId != -1) {
-            PreparedStatement genreStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO runs_on(specific_id,platform_id,game_id) VALUES (?,?,?)");
+            PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO runs_on(specific_id,platform_id,game_id) VALUES (?,?,?)");
             genreStatement.setInt(1, specificId);
             genreStatement.setInt(2, platformId);
             genreStatement.setInt(3, id);
@@ -287,7 +304,7 @@ public class GameEntry {
             genreStatement.close();
             DataBase.commit();
         }
-    }
+    }*/
 
     public String getName() {
         return name;
@@ -304,7 +321,18 @@ public class GameEntry {
 
     public void setReleaseDate(LocalDateTime releaseDate) {
         this.releaseDate = releaseDate;
-        saveEntry();
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set release_date = ? where id = ?");
+            statement.setTimestamp(1, Timestamp.valueOf(releaseDate));
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getDeveloper() {
@@ -313,7 +341,7 @@ public class GameEntry {
 
     public void setDeveloper(String developer) {
         this.developer = developer != null ? developer : "";
-        saveEntry();
+        //TODO update developer to work like gamegenres
     }
 
     public String getPublisher() {
@@ -322,7 +350,7 @@ public class GameEntry {
 
     public void setPublisher(String publisher) {
         this.publisher = publisher != null ? publisher : "";
-        saveEntry();
+        //TODO update publisher to work like gamegenres
     }
 
     public int getId() {
@@ -379,7 +407,18 @@ public class GameEntry {
 
     public void setPath(String path) {
         this.path = path.trim();
-        saveEntry();
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set path = ? where id = ?");
+            statement.setString(1, path);
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getDescription() {
@@ -388,7 +427,18 @@ public class GameEntry {
 
     public void setDescription(String description) {
         this.description = description != null ? description : "";
-        saveEntry();
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set description = ? where id = ?");
+            statement.setString(1, description);
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public int getAggregated_rating() {
@@ -397,7 +447,18 @@ public class GameEntry {
 
     public void setAggregated_rating(int aggregated_rating) {
         this.aggregated_rating = aggregated_rating;
-        saveEntry();
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set aggregated_rating = ? where id = ?");
+            statement.setInt(1, aggregated_rating);
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void updateImage(int index, File newImageFile) throws IOException {
@@ -420,8 +481,6 @@ public class GameEntry {
 
                 imagesFiles[index] = localFile;
                 imageNeedsRefresh[index] = true;
-
-                saveEntry();
             }
         }
     }
@@ -435,7 +494,7 @@ public class GameEntry {
         if (updatePath) {
             this.path = "steam://rungameid/" + steam_id;
         }
-        saveEntry();
+        //TODO update to use the platform as implemented in db, and have only one setter and getter to rule them all !
     }
 
     public void setSteam_id(int steam_id) {
@@ -469,7 +528,7 @@ public class GameEntry {
 
     public void setBattlenet_id(int battlenet_id) {
         this.battlenet_id = battlenet_id;
-        saveEntry();
+        //TODO update to use the platform as implemented in db, and have only one setter and getter to rule them all !
     }
 
     public int getOrigin_id() {
@@ -478,7 +537,7 @@ public class GameEntry {
 
     public void setOrigin_id(int origin_id) {
         this.origin_id = origin_id;
-        saveEntry();
+        //TODO update to use the platform as implemented in db, and have only one setter and getter to rule them all !
     }
 
     public int getUplay_id() {
@@ -487,7 +546,7 @@ public class GameEntry {
 
     public void setUplay_id(int uplay_id) {
         this.uplay_id = uplay_id;
-        saveEntry();
+        //TODO update to use the platform as implemented in db, and have only one setter and getter to rule them all !
     }
 
     public int getGog_id() {
@@ -496,7 +555,7 @@ public class GameEntry {
 
     public void setGog_id(int gog_id) {
         this.gog_id = gog_id;
-        saveEntry();
+        //TODO update to use the platform as implemented in db, and have only one setter and getter to rule them all !
     }
 
     public long getPlayTimeSeconds() {
@@ -505,7 +564,18 @@ public class GameEntry {
 
     public void setPlayTimeSeconds(long seconds) {
         this.playTime = seconds;
-        saveEntry();
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set initial_playtime = ? where id = ?");
+            statement.setLong(1, playTime);
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static String getPlayTimeFormatted(long playTime, int format) {
@@ -590,45 +660,25 @@ public class GameEntry {
 
     }
 
-    public void setPlayTimeFormatted(String time, int format) {
-        switch (format) {
-            case TIME_FORMAT_FULL_DOUBLEDOTS:
-                Pattern timePattern = Pattern.compile("\\d*:\\d\\d:\\d\\d");
-                if (!timePattern.matcher(time).matches()) {
-                    throw new IllegalArgumentException("Invalid time: " + time);
-                }
-                String[] tokens = time.split(":");
-                assert tokens.length == 3;
-                try {
-                    int hours = Integer.parseInt(tokens[0]);
-                    int mins = Integer.parseInt(tokens[1]);
-                    int secs = Integer.parseInt(tokens[2]);
-                    if (hours < 0) {
-                        throw new IllegalArgumentException("Invalid time: " + time);
-                    }
-                    if (mins < 0 || mins > 59) {
-                        throw new IllegalArgumentException("Invalid time: " + time);
-                    }
-                    setPlayTimeSeconds(hours * 3600 + mins * 60 + secs);
-                } catch (NumberFormatException nfe) {
-                    // regex matching should assure we never reach this catch block
-                    assert false;
-                    throw new IllegalArgumentException("Invalid time: " + time);
-                }
-                break;
-            default:
-                break;
-        }
-
-    }
-
     public String getPlayTimeFormatted(int format) {
         return getPlayTimeFormatted(playTime, format);
     }
 
+    /**
+     * Similar to auto-commit mode for this entry if set true
+     * Commits directly if set to true
+     *
+     * @param savedLocaly wether to auto-commit or not
+     */
     public void setSavedLocaly(boolean savedLocaly) {
         this.savedLocaly = savedLocaly;
-        saveEntry();
+        try {
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void deletePermanently() {
@@ -655,7 +705,18 @@ public class GameEntry {
 
     public void setIgdb_id(int igdb_id) {
         this.igdb_id = igdb_id;
-        saveEntry();
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set igdb_id = ? where id = ?");
+            statement.setInt(1, igdb_id);
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public ArrayList<GameGenre> getGenres() {
@@ -664,7 +725,7 @@ public class GameEntry {
 
     public void setGenres(ArrayList<GameGenre> genres) {
         this.genres = genres;
-        saveEntry();
+        //TODO do a multi "insert or ignore into" here into the relational table
     }
 
     public ArrayList<GameTheme> getThemes() {
@@ -673,7 +734,7 @@ public class GameEntry {
 
     public void setThemes(ArrayList<GameTheme> themes) {
         this.themes = themes;
-        saveEntry();
+        //TODO do a multi "insert or ignore into " here into the relational table
     }
 
     public String getSerie() {
@@ -682,7 +743,7 @@ public class GameEntry {
 
     public void setSerie(String serie) {
         this.serie = serie != null ? serie : "";
-        saveEntry();
+        //TODO do a multi "insert or ignore into " here into the relational table
     }
 
     public void setCmd(int index, String cmd) {
@@ -699,7 +760,18 @@ public class GameEntry {
 
     public void setAddedDate(LocalDateTime addedDate) {
         this.addedDate = addedDate;
-        saveEntry();
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set added_date = ? where id = ?");
+            statement.setTimestamp(1, Timestamp.valueOf(addedDate));
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean isInstalled() {
@@ -708,7 +780,18 @@ public class GameEntry {
 
     public void setInstalled(boolean notInstalled) {
         this.installed = notInstalled;
-        saveEntry();
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set installed = ? where id = ?");
+            statement.setBoolean(1, installed);
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public LocalDateTime getLastPlayedDate() {
@@ -717,7 +800,18 @@ public class GameEntry {
 
     public void setLastPlayedDate(LocalDateTime lastPlayedDate) {
         this.lastPlayedDate = lastPlayedDate;
-        saveEntry();
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set last_played_date = ? where id = ?");
+            statement.setTimestamp(1, Timestamp.valueOf(addedDate));
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getIgdb_imageHash(int index) {
@@ -740,7 +834,18 @@ public class GameEntry {
 
     public void setWaitingToBeScrapped(boolean waitingToBeScrapped) {
         this.waitingToBeScrapped = waitingToBeScrapped;
-        saveEntry();
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set waiting_scrap = ? where id = ?");
+            statement.setBoolean(1, waitingToBeScrapped);
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void setIgdb_imageHash(int index, String hash) {
@@ -772,18 +877,24 @@ public class GameEntry {
                 "playTime=" + getPlayTimeFormatted(TIME_FORMAT_FULL_DOUBLEDOTS);
     }
 
-    public void setId(int id) {
-        this.id = id;
-        saveEntry();
-    }
-
     public boolean isToAdd() {
         return toAdd;
     }
 
     public void setToAdd(boolean toAdd) {
         this.toAdd = toAdd;
-        saveEntry();
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set to_add = ? where id = ?");
+            statement.setBoolean(1, toAdd);
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getYoutubeSoundtrackHash() {
@@ -792,7 +903,18 @@ public class GameEntry {
 
     public void setYoutubeSoundtrackHash(String youtubeSoundtrackHash) {
         this.youtubeSoundtrackHash = youtubeSoundtrackHash;
-        saveEntry();
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set yt_hash = ? where id = ?");
+            statement.setString(1, youtubeSoundtrackHash);
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getArgs() {
@@ -803,12 +925,24 @@ public class GameEntry {
         this.args = args;
     }
 
-    public boolean isBeingScrapped() {
+    public boolean isBeingScraped() {
         return beingScrapped;
     }
 
-    public void setBeingScrapped(boolean beingScrapped) {
-        this.beingScrapped = beingScrapped;
+    public void setBeingScraped(boolean beingScraped) {
+        this.beingScrapped = beingScraped;
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set beingScraped = ? where id = ?");
+            statement.setBoolean(1, beingScraped);
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public Runnable getOnGameLaunched() {
@@ -846,9 +980,21 @@ public class GameEntry {
 
     public void setIgnored(boolean ignored) {
         this.ignored = ignored;
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set ignored = ? where id = ?");
+            statement.setBoolean(1, ignored);
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocaly) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static GameEntry loadFromDB(ResultSet set) throws SQLException {
+    static GameEntry loadFromDB(ResultSet set) throws SQLException {
         if (set == null) {
             return null;
         }
@@ -886,7 +1032,7 @@ public class GameEntry {
         entry.setWaitingToBeScrapped(set.getBoolean("waiting_scrap"));
         entry.setToAdd(set.getBoolean("toAdd"));
         entry.setIgnored(set.getBoolean("ignored"));
-        entry.setBeingScrapped(set.getBoolean("beingScraped"));
+        entry.setBeingScraped(set.getBoolean("beingScraped"));
         return entry;
     }
 
@@ -899,29 +1045,36 @@ public class GameEntry {
     }
 
     public static String getSQLInitLine() {
-        String temp = "INSERT OR IGNORE INTO GameEntry (name," +
-                "release_date," +
-                "description," +
-                "aggregated_rating," +
-                "path," +
-                "cmd_before," +
-                "cmd_after," +
-                "launch_args," +
-                "yt_hash," +
-                "added_date," +
-                "last_played_date," +
-                "initial_playtime," +
-                "installed," +
-                "cover_hash," +
-                "wp_hash," +
-                "igdb_id," +
-                "waiting_scrap," +
-                "toAdd," +
-                "beingScraped" +
-                ") VALUES (?";
-        for (int i = 0; i < 18; i++) {
-            temp += ",?";
+        String temp = "INSERT OR IGNORE INTO GameEntry (";
+
+        for (int i = 0; i < SQL_PARAMS.length; i++) {
+            temp+=SQL_PARAMS[i];
+            if(i!=SQL_PARAMS.length-1){
+                temp+=",";
+            }
+        }
+
+        temp += ") VALUES (";
+        for (int i = 0; i < SQL_PARAMS.length; i++) {
+            temp += "?";
+            if(i!=SQL_PARAMS.length-1){
+                temp+=",";
+            }
         }
         return temp + ");";
+    }
+
+    public static String getSQLUpdateLine() {
+        String temp = "UPDATE GameEntry set ";
+
+        for (int i = 0; i < SQL_PARAMS.length; i++) {
+            temp+=SQL_PARAMS[i]+"=?";
+            if(i!=SQL_PARAMS.length-1){
+                temp+=",";
+            }
+        }
+
+        temp += " WHERE id = ?";
+        return temp;
     }
 }

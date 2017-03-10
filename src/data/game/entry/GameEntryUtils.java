@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import static ui.Main.FILES_MAP;
-import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 03/07/2016.
@@ -68,7 +67,7 @@ public class GameEntryUtils {
         OldGameEntry.transferOldGameEntries();
 
         try {
-            Connection connection = DataBase.getConnection();
+            Connection connection = DataBase.getUserConnection();
             Statement statement = connection.createStatement();
             //TODO update query to join to result the gameGenre, gameTheme, devs and publishers
             ResultSet set = statement.executeQuery("select * from GameEntry");

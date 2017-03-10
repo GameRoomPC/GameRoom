@@ -1,7 +1,5 @@
 package data.io;
 
-import data.game.entry.GameGenre;
-import data.game.entry.GameTheme;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
 
@@ -20,7 +18,7 @@ import static ui.Main.LOGGER;
 public class DataBase {
     public final static String DB_NAME = "library.db";
     private final static DataBase INSTANCE = new DataBase();
-    private static Connection INSTANCE_CONNECTION;
+    private static Connection USER_CONNECTION;
 
     private DataBase() {
         super();
@@ -58,10 +56,10 @@ public class DataBase {
             //it should be possible t oestablish an other connection only for Settings, that would auto-commit as we don't want
             //for example when resizing a window in EditScene have to either commit changes to a game or take the risk to discard
             //the window's size if user cancel changes
-            INSTANCE_CONNECTION = DriverManager.getConnection(url);
-            if (INSTANCE_CONNECTION != null) {
-                INSTANCE_CONNECTION.setAutoCommit(false);
-                DatabaseMetaData meta = INSTANCE_CONNECTION.getMetaData();
+            USER_CONNECTION = DriverManager.getConnection(url);
+            if (USER_CONNECTION != null) {
+                USER_CONNECTION.setAutoCommit(false);
+                DatabaseMetaData meta = USER_CONNECTION.getMetaData();
                 System.out.println("The driver name is " + meta.getDriverName());
                 System.out.println("A new database has been created, path is \"" + url + "\"");
             }
@@ -114,11 +112,11 @@ public class DataBase {
         }
     }
 
-    public static Connection getConnection() throws SQLException {
-        if(INSTANCE_CONNECTION == null){
+    public static Connection getUserConnection() throws SQLException {
+        if(USER_CONNECTION == null){
             connect();
         }
-        return INSTANCE_CONNECTION;
+        return USER_CONNECTION;
     }
 
     public static DataBase getInstance() {
@@ -132,7 +130,7 @@ public class DataBase {
     public static int getLastId() {
         int id = -1;
         try {
-            PreparedStatement getIdQuery = getConnection().prepareStatement("SELECT last_insert_rowid()");
+            PreparedStatement getIdQuery = getUserConnection().prepareStatement("SELECT last_insert_rowid()");
             ResultSet result = getIdQuery.executeQuery();
             id = result.getInt(1);
             result.close();
@@ -143,10 +141,10 @@ public class DataBase {
     }
 
     public static void commit() throws SQLException {
-        INSTANCE_CONNECTION.commit();
+        USER_CONNECTION.commit();
     }
 
     public static void rollback() throws SQLException {
-        INSTANCE_CONNECTION.rollback();
+        USER_CONNECTION.rollback();
     }
 }
