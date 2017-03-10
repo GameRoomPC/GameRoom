@@ -10,12 +10,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Properties;
+import java.util.UUID;
 
 import static ui.Main.FILES_MAP;
 import static ui.Main.LOGGER;
@@ -154,7 +158,7 @@ public class OldGameEntry {
         connection.commit();
 
         sqlId = DataBase.getLastId();
-        LOGGER.debug("Exported game \""+name+"\" with id "+sqlId);
+        LOGGER.debug("Exported game \"" + name + "\" with id " + sqlId);
     }
 
     private void exportGenres() throws SQLException {
@@ -461,7 +465,7 @@ public class OldGameEntry {
         java.sql.Date sqlDate = null;
         if (javaDate != null) {
             sqlDate = new java.sql.Date(javaDate.getTime());
-        }else{
+        } else {
             return null;
         }
         return sqlDate;

@@ -1061,17 +1061,17 @@ public class GameEntry {
         String temp = "INSERT OR IGNORE INTO GameEntry (";
 
         for (int i = 0; i < SQL_PARAMS.length; i++) {
-            temp+=SQL_PARAMS[i];
-            if(i!=SQL_PARAMS.length-1){
-                temp+=",";
+            temp += SQL_PARAMS[i];
+            if (i != SQL_PARAMS.length - 1) {
+                temp += ",";
             }
         }
 
         temp += ") VALUES (";
         for (int i = 0; i < SQL_PARAMS.length; i++) {
             temp += "?";
-            if(i!=SQL_PARAMS.length-1){
-                temp+=",";
+            if (i != SQL_PARAMS.length - 1) {
+                temp += ",";
             }
         }
         return temp + ");";
@@ -1081,9 +1081,9 @@ public class GameEntry {
         String temp = "UPDATE GameEntry set ";
 
         for (int i = 0; i < SQL_PARAMS.length; i++) {
-            temp+=SQL_PARAMS[i]+"=?";
-            if(i!=SQL_PARAMS.length-1){
-                temp+=",";
+            temp += SQL_PARAMS[i] + "=?";
+            if (i != SQL_PARAMS.length - 1) {
+                temp += ",";
             }
         }
 
