@@ -191,14 +191,14 @@ public class FolderGameScanner extends GameScanner {
         for (GameEntry entry : toAddAndLibEntries) {
             if (entryNameOrPathEquals(entry, foundEntry)) {
                 //TODO replace launchers with an enum and an id ?
-                entry.setSavedLocaly(true);
+                entry.setSavedLocally(true);
                 boolean needRefresh = false;
                 if (!entry.isSteamGame() && foundEntry.isSteamGame()) {
                     entry.setSteam_id(foundEntry.getSteam_id());
                     needRefresh = true;
                 }
                 if(entry.isInstalled() != foundEntry.isInstalled()){
-                    entry.setInstalled(!foundEntry.isInstalled());
+                    entry.setInstalled(foundEntry.isInstalled());
                     needRefresh = true;
                 }
                 if (!entry.isBattlenetGame() && foundEntry.isBattlenetGame()) {
@@ -217,7 +217,7 @@ public class FolderGameScanner extends GameScanner {
                     entry.setUplay_id(foundEntry.getUplay_id());
                     needRefresh = true;
                 }
-                entry.setSavedLocaly(false);
+                entry.setSavedLocally(false);
                 if (needRefresh) {
                     if (MAIN_SCENE != null) {
                         MAIN_SCENE.updateGame(entry);

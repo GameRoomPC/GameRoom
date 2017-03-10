@@ -247,7 +247,7 @@ public class IGDBScraper {
 
     private static GameEntry getEntry(JSONObject game_data, boolean allowUseMoreRequest) {
         GameEntry entry = new GameEntry(game_data.getString("name"));
-        entry.setSavedLocaly(false);
+        entry.setSavedLocally(false);
 
         try {
             entry.setDescription(game_data.getString("summary"));

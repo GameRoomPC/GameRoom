@@ -66,7 +66,7 @@ public class AddIgnoreGameButton extends GameButton {
                 }
                 //TODO set ignored and what's needed
                 //entry.deleteFiles();
-                entry.setSavedLocaly(false);
+                entry.setSavedLocally(false);
 
                 mainScene.removeGame(entry);
                 parentPane.removeGame(entry);

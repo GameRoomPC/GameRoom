@@ -1,6 +1,5 @@
 package ui.pane.gamestilepane;
 
-import data.http.images.ImageUtils;
 import data.game.entry.GameEntry;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tooltip;
@@ -10,13 +9,10 @@ import ui.control.button.gamebutton.AddIgnoreGameButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.GeneralToast;
 import ui.dialog.ChoiceDialog;
-import ui.scene.GameEditScene;
 import ui.scene.MainScene;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Optional;
 
 import static ui.Main.MAIN_SCENE;
@@ -55,7 +51,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
                         if (entry.isToAdd()) {
                             entry.setToAdd(false);
                         }
-                        entry.setSavedLocaly(true);
+                        entry.setSavedLocally(true);
                         entry.setAddedDate(LocalDateTime.now());
                         MAIN_SCENE.addGame(entry);
                     }

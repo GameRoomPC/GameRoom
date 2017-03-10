@@ -41,7 +41,7 @@ public class GameEntry {
     public static final int TIME_FORMAT_HMS_CASUAL = 4; //1h05, 20mn, l0s
 
 
-    private boolean savedLocaly = false;
+    private boolean savedLocally = false;
 
     private String name = "";
     private LocalDateTime releaseDate;
@@ -140,7 +140,7 @@ public class GameEntry {
     }
 
     /*private void saveEntry() {
-        if (savedLocaly && !deleted) {
+        if (savedLocally && !deleted) {
             try {
                 //TODO store into db
                 saveDirectFields();
@@ -327,7 +327,7 @@ public class GameEntry {
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -413,7 +413,7 @@ public class GameEntry {
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -433,7 +433,7 @@ public class GameEntry {
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -453,7 +453,7 @@ public class GameEntry {
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -570,7 +570,7 @@ public class GameEntry {
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -668,12 +668,12 @@ public class GameEntry {
      * Similar to auto-commit mode for this entry if set true
      * Commits directly if set to true
      *
-     * @param savedLocaly wether to auto-commit or not
+     * @param savedLocally wether to auto-commit or not
      */
-    public void setSavedLocaly(boolean savedLocaly) {
-        this.savedLocaly = savedLocaly;
+    public void setSavedLocally(boolean savedLocally) {
+        this.savedLocally = savedLocally;
         try {
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -711,7 +711,7 @@ public class GameEntry {
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -766,7 +766,7 @@ public class GameEntry {
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -786,7 +786,7 @@ public class GameEntry {
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -806,7 +806,7 @@ public class GameEntry {
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -840,7 +840,7 @@ public class GameEntry {
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -884,12 +884,12 @@ public class GameEntry {
     public void setToAdd(boolean toAdd) {
         this.toAdd = toAdd;
         try {
-            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set to_add = ? where id = ?");
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set toAdd = ? where id = ?");
             statement.setBoolean(1, toAdd);
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -909,7 +909,7 @@ public class GameEntry {
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -923,6 +923,18 @@ public class GameEntry {
 
     public void setArgs(String args) {
         this.args = args;
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set launch_args = ? where id = ?");
+            statement.setString(1, args);
+            statement.setInt(2, id);
+            statement.execute();
+
+            if (savedLocally) {
+                DataBase.getUserConnection().commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean isBeingScraped() {
@@ -937,7 +949,7 @@ public class GameEntry {
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -986,7 +998,7 @@ public class GameEntry {
             statement.setInt(2, id);
             statement.execute();
 
-            if (savedLocaly) {
+            if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
         } catch (SQLException e) {
@@ -1000,6 +1012,7 @@ public class GameEntry {
         }
         int id = set.getInt("id");
         GameEntry entry = new GameEntry(id);
+        entry.setSavedLocally(false);
         entry.setName(set.getString("name"));
         entry.setDescription(set.getString("description"));
         entry.setPath(set.getString("path"));

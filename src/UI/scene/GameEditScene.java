@@ -60,13 +60,10 @@ import ui.scene.exitaction.ExitAction;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -136,7 +133,7 @@ public class GameEditScene extends BaseScene {
         super(new StackPane(), previousScene.getParentStage());
         this.mode = mode;
         this.entry = entry;
-        this.entry.setSavedLocaly(false);
+        this.entry.setSavedLocally(false);
         init(previousScene, coverImage);
     }
 
@@ -199,7 +196,7 @@ public class GameEditScene extends BaseScene {
                     if (entry.isToAdd()) {
                         entry.setToAdd(false);
                     }
-                    entry.setSavedLocaly(true);
+                    entry.setSavedLocally(true);
 
                     switch (mode) {
                         case MODE_ADD:

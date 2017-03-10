@@ -110,9 +110,9 @@ public class Monitor {
 
             timer += MONITOR_REFRESH;
             long result = computeTrueRunningTime();
-            getGameEntry().setSavedLocaly(true);
+            getGameEntry().setSavedLocally(true);
             getGameEntry().setPlayTimeSeconds(originalPlayTime + Math.round(result / 1000.0));
-            getGameEntry().setSavedLocaly(false);
+            getGameEntry().setSavedLocally(false);
 
             try {
                 Thread.sleep(MONITOR_REFRESH - (System.currentTimeMillis() - startTimeRec));

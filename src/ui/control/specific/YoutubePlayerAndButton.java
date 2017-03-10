@@ -17,7 +17,6 @@ import ui.scene.BaseScene;
 import java.net.MalformedURLException;
 
 import static ui.Main.LOGGER;
-import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 07/08/2016.
@@ -138,9 +137,9 @@ public class YoutubePlayerAndButton {
             if (entry.getYoutubeSoundtrackHash().equals("")) {
                 String hash = YoutubeSoundtrackScrapper.getThemeYoutubeHash(entry,scene);
 
-                entry.setSavedLocaly(true);
+                entry.setSavedLocally(true);
                 entry.setYoutubeSoundtrackHash(hash);
-                entry.setSavedLocaly(false);
+                entry.setSavedLocally(false);
             }
             return entry.getYoutubeSoundtrackHash();
         } catch (Exception e) {

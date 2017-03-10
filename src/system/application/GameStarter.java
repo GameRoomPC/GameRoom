@@ -17,9 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 import static ui.Main.*;
@@ -45,12 +43,12 @@ public class GameStarter {
     public void start() throws IOException {
         Main.LOGGER.info("Starting game : " + entry.getName());
         originalPowerMode = PowerMode.getActivePowerMode();
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isMonitored() && !entry.isInstalled()) {
+        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isMonitored() && entry.isInstalled()) {
             GENERAL_SETTINGS.getPowerMode(PredefinedSetting.GAMING_POWER_MODE).activate();
         }
-        entry.setSavedLocaly(true);
+        entry.setSavedLocally(true);
         entry.setLastPlayedDate(LocalDateTime.now());
-        entry.setSavedLocaly(false);
+        entry.setSavedLocally(false);
 
         startGame();
 

@@ -349,9 +349,9 @@ public class GroupsFactory {
     private static boolean isEntryFromLauncher(GameEntry entry, ScannerProfile profile){
         switch (profile){
             case STEAM:
-                return entry.isSteamGame() && !entry.isInstalled();
-            case STEAM_ONLINE:
                 return entry.isSteamGame() && entry.isInstalled();
+            case STEAM_ONLINE:
+                return entry.isSteamGame() && !entry.isInstalled();
             case BATTLE_NET:
                 return entry.isBattlenetGame();
             case GOG:

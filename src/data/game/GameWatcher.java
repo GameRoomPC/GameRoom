@@ -188,7 +188,7 @@ public class GameWatcher {
         ArrayList<GameEntry> savedEntries = new ArrayList<>();
         for (GameEntry entry : toAddEntries) {
             if (!FolderGameScanner.isGameIgnored(entry)) {
-                entry.setSavedLocaly(true);
+                entry.setSavedLocally(true);
                 savedEntries.add(entry);
             }
         }
@@ -250,9 +250,9 @@ public class GameWatcher {
                     @Override
                     public Object call() throws Exception {
                         try {
-                            entry.setSavedLocaly(true);
+                            entry.setSavedLocally(true);
                             entry.setBeingScraped(true);
-                            entry.setSavedLocaly(false);
+                            entry.setSavedLocally(false);
                             JSONArray search_results = IGDBScraper.searchGame(entry.getName());
                             searchIGDBIDs.add(LevenshteinDistance.closestName(entry.getName(),search_results));
                             toScrapEntries.add(entry);
@@ -267,10 +267,10 @@ public class GameWatcher {
                                     alreadyDisplayedIGDBError[0] = true;
                                 }
                             }
-                            entry.setSavedLocaly(true);
+                            entry.setSavedLocally(true);
                             entry.setWaitingToBeScrapped(false);
                             entry.setBeingScraped(false);
-                            entry.setSavedLocaly(false);
+                            entry.setSavedLocally(false);
                             Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
                         }
                         return null;
@@ -312,7 +312,7 @@ public class GameWatcher {
                         for (GameEntry scrappedEntry : scrappedEntries) {
                             GameEntry toScrapEntry = toScrapEntries.get(i);
                             if (!FolderGameScanner.isGameIgnored(toScrapEntry)) {
-                                toScrapEntry.setSavedLocaly(true);
+                                toScrapEntry.setSavedLocally(true);
                                 if (toScrapEntry.getDescription() == null || toScrapEntry.getDescription().equals("")) {
                                     toScrapEntry.setDescription(scrappedEntry.getDescription());
                                 }
@@ -325,7 +325,7 @@ public class GameWatcher {
                                 toScrapEntry.setDeveloper(scrappedEntry.getDeveloper());
                                 toScrapEntry.setPublisher(scrappedEntry.getPublisher());
                                 toScrapEntry.setIgdb_id(scrappedEntry.getIgdb_id());
-                                toScrapEntry.setSavedLocaly(false);
+                                toScrapEntry.setSavedLocally(false);
 
                                 ImageUtils.downloadIGDBImageToCache(EXECUTOR_SERVICE
                                         , scrappedEntry.getIgdb_id()
@@ -336,11 +336,11 @@ public class GameWatcher {
                                             @Override
                                             public void run(File outputfile) {
                                                 try {
-                                                    toScrapEntry.setSavedLocaly(true);
+                                                    toScrapEntry.setSavedLocally(true);
                                                     toScrapEntry.updateImage(0, outputfile);
-                                                    toScrapEntry.setSavedLocaly(false);
+                                                    toScrapEntry.setSavedLocally(false);
                                                 } catch (Exception e) {
-                                                    toScrapEntry.setSavedLocaly(false);
+                                                    toScrapEntry.setSavedLocally(false);
                                                     //TODO localize
                                                     GameRoomAlert.error("Could not update image's path");
                                                 }
@@ -358,18 +358,18 @@ public class GameWatcher {
                                                             @Override
                                                             public void run(File outputfile) {
                                                                 try {
-                                                                    toScrapEntry.setSavedLocaly(true);
+                                                                    toScrapEntry.setSavedLocally(true);
                                                                     toScrapEntry.updateImage(1, outputfile);
-                                                                    toScrapEntry.setSavedLocaly(false);
+                                                                    toScrapEntry.setSavedLocally(false);
                                                                 } catch (Exception e) {
-                                                                    toScrapEntry.setSavedLocaly(false);
+                                                                    toScrapEntry.setSavedLocally(false);
                                                                     //TODO localize
                                                                     GameRoomAlert.error("Could not update image's path");
                                                                 }
-                                                                toScrapEntry.setSavedLocaly(true);
+                                                                toScrapEntry.setSavedLocally(true);
                                                                 toScrapEntry.setWaitingToBeScrapped(false);
                                                                 toScrapEntry.setBeingScraped(false);
-                                                                toScrapEntry.setSavedLocaly(false);
+                                                                toScrapEntry.setSavedLocally(false);
                                                                 Main.runAndWait(() -> {
                                                                     Main.MAIN_SCENE.updateGame(toScrapEntry);
                                                                 });
@@ -450,7 +450,7 @@ public class GameWatcher {
         if (!FolderGameScanner.gameAlreadyIn(foundEntry, entriesToAdd)) {
             foundEntry.setAddedDate(LocalDateTime.now());
             foundEntry.setToAdd(true);
-            foundEntry.setSavedLocaly(true);
+            foundEntry.setSavedLocally(true);
             foundEntry.setName(cleanName(foundEntry.getName()));
 
             Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
