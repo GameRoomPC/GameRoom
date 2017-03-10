@@ -476,7 +476,7 @@ public class GameEditScene extends BaseScene {
 
         // create the data to show in the CheckComboBox
         final ObservableList<GameTheme> allGamesTheme = FXCollections.observableArrayList();
-        Collections.addAll(allGamesTheme, GameTheme.values());
+        allGamesTheme.addAll(GameTheme.values());
         allGamesTheme.sort(new Comparator<GameTheme>() {
             @Override
             public int compare(GameTheme o1, GameTheme o2) {

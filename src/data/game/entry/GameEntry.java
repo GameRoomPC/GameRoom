@@ -11,10 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -330,6 +327,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -416,6 +414,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -436,6 +435,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -456,6 +456,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -573,6 +574,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -714,6 +716,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -769,6 +772,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -789,6 +793,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -809,6 +814,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -843,6 +849,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -892,6 +899,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -912,6 +920,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -932,6 +941,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -952,6 +962,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -1001,6 +1012,7 @@ public class GameEntry {
             if (savedLocally) {
                 DataBase.getUserConnection().commit();
             }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -1046,6 +1058,37 @@ public class GameEntry {
         entry.setToAdd(set.getBoolean("toAdd"));
         entry.setIgnored(set.getBoolean("ignored"));
         entry.setBeingScraped(set.getBoolean("beingScraped"));
+
+        try {
+            PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("SELECT genre_id FROM has_genre WHERE game_id=?");
+            genreStatement.setInt(1,id);
+            ResultSet genreSet = genreStatement.executeQuery();
+            while (genreSet.next()) {
+                int genreId = genreSet.getInt("genre_id");
+                GameGenre genre = GameGenre.getGenreFromID(genreId);
+                entry.addGenre(genre);
+            }
+            genreStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            PreparedStatement themeStatement = DataBase.getUserConnection().prepareStatement("SELECT theme_id FROM has_theme WHERE game_id=?");
+            themeStatement.setInt(1,id);
+            ResultSet themeSet = themeStatement.executeQuery();
+            while (themeSet.next()) {
+                int themeId = themeSet.getInt("theme_id");
+                GameTheme theme = GameTheme.getThemeFromId(themeId);
+                if (theme != null) {
+                    entry.getThemes().add(theme);
+                }
+            }
+            themeStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         return entry;
     }
 
@@ -1089,5 +1132,21 @@ public class GameEntry {
 
         temp += " WHERE id = ?";
         return temp;
+    }
+
+    public void addGenre(GameGenre genre){
+        if(genre == null){
+            return;
+        }
+        genres.add(genre);
+        //TODO update in db
+    }
+
+    public void removeGenre(GameGenre genre){
+        if(genre == null){
+            return;
+        }
+        genres.remove(genre);
+        //TODO update in db
     }
 }

@@ -1,47 +1,25 @@
 package data.game.entry;
 
-import com.google.gson.Gson;
 import data.io.DataBase;
 import ui.Main;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.Collection;
 import java.util.HashMap;
+
+import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 13/08/2016.
  */
-public enum GameTheme {
-    ACTION("action"),
-    FANTASY("fantasy"),
-    SCIENCE_FICTION("science_fiction"),
-    HORROR("horror"),
-    THRILLER("thriller"),
-    SURVIVAL("survival"),
-    HISTORICAL("historical"),
-    STEALTH("stealth"),
-    COMEDY("comedy"),
-    BUSINESS("business"),
-    DRAMA("drama"),
-    NON_FICTION("non_fiction"),
-    SANDBOX("sandbox"),
-    EDUCATIONAL("educational"),
-    KIDS("kids"),
-    OPEN_WORLD("open_world"),
-    WARFARE("warfare"),
-    PARTY("party"),
-    EXPLORE_EXPAND_EXPLOIT_EXTERMINATE("4x"),
-    EROTIC("erotic"),
-    MYSTERY("mystery");
-
-    private final static HashMap<Integer, GameTheme> IGDB_THEME_MAP = new HashMap<>();
+public class GameTheme {
+    private final static HashMap<Integer, GameTheme> ID_MAP = new HashMap<>();
     private String key;
-    private boolean hasPayload;
+    private int id;
 
-    GameTheme(String key) {
+    private GameTheme(int id, String key) {
         this.key = key;
+        this.id = id;
     }
 
     @Override
@@ -49,53 +27,53 @@ public enum GameTheme {
         return getDisplayName();
     }
 
-    public static String toJson(data.game.entry.GameTheme[] genres) {
-        Gson gson = new Gson();
-        return gson.toJson(genres, GameTheme[].class);
-    }
-
-    public static GameTheme[] fromJson(String json) {
-        Gson gson = new Gson();
-        return gson.fromJson(json, GameTheme[].class);
-    }
-
     public String getDisplayName() {
         return Main.GAME_THEMES_BUNDLE.getString(key);
     }
 
-    public static GameTheme getThemeFromIGDB(int igdbThemeId) {
-        if (IGDB_THEME_MAP.size() == 0) {
-            fillIGDBThemeMap();
+    public static GameTheme getThemeFromId(int id) {
+        if (ID_MAP.size() == 0) {
+            try {
+                initWithDb();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
-        return IGDB_THEME_MAP.get(igdbThemeId);
+        GameTheme theme = ID_MAP.get(id);
+        if (theme == null) {
+            //try to see if it exists in db
+            try {
+                Connection connection = DataBase.getUserConnection();
+                PreparedStatement statement = connection.prepareStatement("select * from GameTheme where igdb_id = ?");
+                statement.setInt(1, id);
+                ResultSet set = statement.executeQuery();
+                if (set.next()) {
+                    int igdb_id = set.getInt("igdb_id");
+                    String key = set.getString("name_key");
+                    GameTheme newTheme = new GameTheme(igdb_id, key);
+                    ID_MAP.put(igdb_id, newTheme);
+
+                    return newTheme;
+                }
+                statement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        }
+        return theme;
     }
 
-    private static void fillIGDBThemeMap() {
-        IGDB_THEME_MAP.put(1, ACTION);
-        IGDB_THEME_MAP.put(17, FANTASY);
-        IGDB_THEME_MAP.put(18, SCIENCE_FICTION);
-        IGDB_THEME_MAP.put(19, HORROR);
-        IGDB_THEME_MAP.put(20, THRILLER);
-        IGDB_THEME_MAP.put(21, SURVIVAL);
-        IGDB_THEME_MAP.put(22, HISTORICAL);
-        IGDB_THEME_MAP.put(23, STEALTH);
-        IGDB_THEME_MAP.put(27, COMEDY);
-        IGDB_THEME_MAP.put(28, BUSINESS);
-        IGDB_THEME_MAP.put(31, DRAMA);
-        IGDB_THEME_MAP.put(32, NON_FICTION);
-        IGDB_THEME_MAP.put(33, SANDBOX);
-        IGDB_THEME_MAP.put(34, EDUCATIONAL);
-        IGDB_THEME_MAP.put(35, KIDS);
-        IGDB_THEME_MAP.put(38, OPEN_WORLD);
-        IGDB_THEME_MAP.put(39, WARFARE);
-        IGDB_THEME_MAP.put(40, PARTY);
-        IGDB_THEME_MAP.put(41, EXPLORE_EXPAND_EXPLOIT_EXTERMINATE);
-        IGDB_THEME_MAP.put(42, EROTIC);
-        IGDB_THEME_MAP.put(43, MYSTERY);
-    }
-
-    public static HashMap<Integer, GameTheme> getIgdbThemeMap() {
-        return IGDB_THEME_MAP;
+    private static void initWithDb() throws SQLException {
+        Connection connection = DataBase.getUserConnection();
+        Statement statement = connection.createStatement();
+        ResultSet set = statement.executeQuery("select * from GameTheme");
+        while (set.next()) {
+            int id = set.getInt("igdb_id");
+            String key = set.getString("name_key");
+            ID_MAP.put(id, new GameTheme(id, key));
+        }
+        statement.close();
     }
 
     public String getKey() {
@@ -123,5 +101,9 @@ public enum GameTheme {
         }
         return -1;
 
+    }
+
+    public static Collection<GameTheme> values() {
+        return ID_MAP.values();
     }
 }

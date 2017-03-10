@@ -492,7 +492,7 @@ public class IGDBScraper {
 
             for (int i = 0; i < themesNumber; i++) {
                 int genreId = gameData.getJSONArray("themes").getInt(i);
-                themes.add(GameTheme.getThemeFromIGDB(genreId));
+                themes.add(GameTheme.getThemeFromId(genreId));
             }
             return themes;
         } catch (JSONException jse) {
