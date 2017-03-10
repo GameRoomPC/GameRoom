@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 
+import static ui.Main.DEV_MODE;
 import static ui.Main.FILES_MAP;
 import static ui.Main.LOGGER;
 
@@ -91,6 +92,15 @@ public class OldGameEntry {
     }
 
     public static void transferOldGameEntries() {
+        //TODO remove when db implementation is done, this is intended for dev phase only
+        if(DEV_MODE){
+            File dbFile = Main.FILES_MAP.get("db");
+            dbFile.delete();
+            File pictFile = Main.FILES_MAP.get("pictures");
+            pictFile.delete();
+
+        }
+
         ArrayList<UUID> toAddUUIDs = GameEntryUtils.readUUIDS(FILES_MAP.get("to_add"));
 
         ArrayList<OldGameEntry> oldEntries = new ArrayList<>();
@@ -111,7 +121,7 @@ public class OldGameEntry {
 
     }
 
-    public void transferToDB() {
+    private void transferToDB() {
         try {
             exportDirectFields();
             exportGenres();
