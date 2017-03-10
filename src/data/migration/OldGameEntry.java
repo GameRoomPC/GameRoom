@@ -130,7 +130,7 @@ public class OldGameEntry {
     private void exportDirectFields() throws SQLException {
         Connection connection = DataBase.getConnection();
 
-        PreparedStatement statement = connection.prepareStatement(getSQLInitLine());
+        PreparedStatement statement = connection.prepareStatement(GameEntry.getSQLInitLine());
         statement.setString(1, name);
         statement.setDate(2, toSqlDate(releaseDate));
         statement.setString(3, description);
@@ -456,33 +456,6 @@ public class OldGameEntry {
     public void deleteFiles() {
         File file = new File((toAdd ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + uuid.toString());
         FileUtils.deleteFolder(file);
-    }
-
-    private static String getSQLInitLine() {
-        String temp = "INSERT OR IGNORE INTO GameEntry (name," +
-                "release_date," +
-                "description," +
-                "aggregated_rating," +
-                "path," +
-                "cmd_before," +
-                "cmd_after," +
-                "launch_args," +
-                "yt_hash," +
-                "added_date," +
-                "last_played_date," +
-                "initial_playtime," +
-                "installed," +
-                "cover_hash," +
-                "wp_hash," +
-                "igdb_id," +
-                "waiting_scrap," +
-                "toAdd," +
-                "beingScraped" +
-                ") VALUES (?";
-        for (int i = 0; i < 18; i++) {
-            temp += ",?";
-        }
-        return temp + ");";
     }
 
     public static java.sql.Date toSqlDate(java.util.Date javaDate) {

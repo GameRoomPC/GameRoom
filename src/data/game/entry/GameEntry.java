@@ -1,6 +1,9 @@
 package data.game.entry;
 
+import data.io.DataBase;
 import data.io.FileUtils;
+import data.migration.OldGenre;
+import data.migration.OldTheme;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.image.Image;
 import system.application.GameStarter;
@@ -12,9 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -122,7 +123,169 @@ public class GameEntry {
 
     private void saveEntry() {
         if (savedLocaly && !deleted) {
-            //TODO store into db
+            try {
+                //TODO store into db
+                saveDirectFields();
+                saveGenres();
+                saveThemes();
+                saveDevs();
+                savePublishers();
+                saveSerie();
+                savePlatformInfo();
+
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void saveDirectFields() throws SQLException {
+        Connection connection = DataBase.getConnection();
+
+        PreparedStatement statement = connection.prepareStatement(getSQLInitLine());
+        statement.setString(1, name);
+        statement.setDate(2, releaseDate);
+        statement.setString(3, description);
+        statement.setInt(4, aggregated_rating);
+        statement.setString(5, path);
+        statement.setString(6, cmd[0]);
+        statement.setString(7, cmd[1]);
+        statement.setString(8, args);
+        statement.setString(9, youtubeSoundtrackHash);
+        statement.setDate(10, addedDate);
+        statement.setDate(11, lastPlayedDate);
+        statement.setLong(12, playTime);
+        statement.setBoolean(13, installed);
+        statement.setString(14, igdb_imageHash[0]);
+        statement.setString(15, igdb_imageHash[1]);
+        statement.setInt(16, igdb_id);
+        statement.setBoolean(17, waitingToBeScrapped);
+        statement.setBoolean(18, toAdd);
+        statement.setBoolean(19, beingScrapped);
+        statement.execute();
+        statement.close();
+        connection.commit();
+    }
+
+    private void saveGenres() throws SQLException {
+        if (genres != null) {
+            for (GameGenre genre : genres) {
+                int genreId = GameGenre.getIGDBId(genre.getKey());
+                if (genreId != -1) {
+                    PreparedStatement genreStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO has_genre(game_id,genre_id) VALUES (?,?)");
+                    genreStatement.setInt(1, id);
+                    genreStatement.setInt(2, genreId);
+                    genreStatement.execute();
+                    genreStatement.close();
+                    DataBase.commit();
+                }
+            }
+        }
+    }
+
+    private void saveThemes() throws SQLException {
+        if (themes != null) {
+            for (GameTheme theme : themes) {
+                int themeID = GameTheme.getIGDBId(theme.getKey());
+                if (themeID != -1) {
+                    PreparedStatement genreStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO has_theme(game_id,theme_id) VALUES (?,?)");
+                    genreStatement.setInt(1, id);
+                    genreStatement.setInt(2, themeID);
+                    genreStatement.execute();
+                    genreStatement.close();
+                    DataBase.commit();
+                }
+            }
+        }
+    }
+
+    private void saveDevs() throws SQLException {
+        if (developer != null && !developer.isEmpty()) {
+            String[] devs = developer.split(",\\s");
+            for (String s : devs) {
+                Developer dev = new Developer(s);
+                int devId = dev.insertInDB();
+
+                if (devId != -1) {
+                    PreparedStatement devStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO develops(game_id,dev_id) VALUES (?,?)");
+                    devStatement2.setInt(1, id);
+                    devStatement2.setInt(2, devId);
+                    devStatement2.execute();
+                    devStatement2.close();
+                    DataBase.commit();
+                }
+            }
+        }
+    }
+
+    private void savePublishers() throws SQLException {
+        if (publisher != null && !publisher.isEmpty()) {
+            String[] pubs = publisher.split(",\\s");
+            for (String s : pubs) {
+                Publisher pub = new Publisher(s);
+                int pubId = pub.insertInDB();
+
+                if (pubId != -1) {
+                    PreparedStatement pubStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO publishes(game_id,pub_id) VALUES (?,?)");
+                    pubStatement2.setInt(1, id);
+                    pubStatement2.setInt(2, pubId);
+                    pubStatement2.execute();
+                    pubStatement2.close();
+                    DataBase.commit();
+                }
+            }
+        }
+    }
+
+    private void saveSerie() throws SQLException {
+        if (serie != null && !serie.isEmpty()) {
+            Serie gameSerie = new Serie(serie);
+            int serieId = gameSerie.insertInDB();
+
+            if (serieId != -1) {
+                PreparedStatement serieStatement2 = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO regroups(game_id,serie_id) VALUES (?,?)");
+                serieStatement2.setInt(1, id);
+                serieStatement2.setInt(2, serieId);
+                serieStatement2.execute();
+                serieStatement2.close();
+                DataBase.commit();
+            }
+        }
+    }
+
+    private void savePlatformInfo() throws SQLException {
+        int specificId = 0;
+        int platformId = -1;
+
+        if (steam_id != -1) {
+            specificId = steam_id;
+            if (installed) {
+                platformId = 1;
+            } else {
+                platformId = 2;
+            }
+        } else if (origin_id != -1) {
+            specificId = origin_id;
+            platformId = 3;
+        } else if (uplay_id != -1) {
+            specificId = uplay_id;
+            platformId = 4;
+        } else if (battlenet_id != -1) {
+            specificId = battlenet_id;
+            platformId = 5;
+        } else if (gog_id != -1) {
+            specificId = gog_id;
+            platformId = 6;
+        }
+        if (platformId != -1) {
+            PreparedStatement genreStatement = DataBase.getConnection().prepareStatement("INSERT OR IGNORE INTO runs_on(specific_id,platform_id,game_id) VALUES (?,?,?)");
+            genreStatement.setInt(1, specificId);
+            genreStatement.setInt(2, platformId);
+            genreStatement.setInt(3, id);
+            genreStatement.execute();
+            genreStatement.close();
+            DataBase.commit();
         }
     }
 
@@ -733,5 +896,32 @@ public class GameEntry {
 
     private String getScreenShotPath() {
         return GameEntryUtils.screenshotPath(this);
+    }
+
+    public static String getSQLInitLine() {
+        String temp = "INSERT OR IGNORE INTO GameEntry (name," +
+                "release_date," +
+                "description," +
+                "aggregated_rating," +
+                "path," +
+                "cmd_before," +
+                "cmd_after," +
+                "launch_args," +
+                "yt_hash," +
+                "added_date," +
+                "last_played_date," +
+                "initial_playtime," +
+                "installed," +
+                "cover_hash," +
+                "wp_hash," +
+                "igdb_id," +
+                "waiting_scrap," +
+                "toAdd," +
+                "beingScraped" +
+                ") VALUES (?";
+        for (int i = 0; i < 18; i++) {
+            temp += ",?";
+        }
+        return temp + ");";
     }
 }
