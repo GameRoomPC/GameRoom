@@ -19,8 +19,25 @@ public class GameEntryUtils {
     public static final ArrayList<GameEntry> ENTRIES_LIST = new ArrayList<>();
 
     public static ArrayList<GameEntry> loadToAddGames(){
-        //TODO return toAdd games from db
-        return new ArrayList<>();
+        ArrayList<GameEntry> toAddGames = new ArrayList<>();
+
+        try {
+            Connection connection = DataBase.getUserConnection();
+            Statement statement = connection.createStatement();
+
+            ResultSet set = statement.executeQuery("select * from GameEntry where toAdd = 1");
+            while (set.next()) {
+                GameEntry nextEntry = GameEntry.loadFromDB(set);
+                if (nextEntry != null) {
+                    toAddGames.add(nextEntry);
+                    //LOGGER.debug("Loaded game \""+nextEntry.getName()+"\"");
+                }
+            }
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return toAddGames;
     }
 
     public static ArrayList<UUID> readUUIDS(File entriesFolder){
@@ -69,8 +86,8 @@ public class GameEntryUtils {
         try {
             Connection connection = DataBase.getUserConnection();
             Statement statement = connection.createStatement();
-            //TODO update query to join to result the gameGenre, gameTheme, devs and publishers
-            ResultSet set = statement.executeQuery("select * from GameEntry");
+
+            ResultSet set = statement.executeQuery("select * from GameEntry where toAdd = 0");
             while (set.next()){
                 GameEntry nextEntry = GameEntry.loadFromDB(set);
                 if(nextEntry != null){

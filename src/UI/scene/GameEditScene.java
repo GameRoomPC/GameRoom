@@ -319,6 +319,9 @@ public class GameEditScene extends BaseScene {
         serieComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             entry.setSerie(newValue);
         });
+
+        serieComboBox.getSelectionModel().select(entry.getSerie());
+
         Label serieLabel = new Label(Main.getString("serie") + " :");
         serieLabel.setTooltip(new Tooltip(Main.getString("serie")));
         contentPane.add(serieLabel, 0, row_count);
@@ -984,6 +987,7 @@ public class GameEditScene extends BaseScene {
                     if (buttonType.equals(ButtonType.OK)) {
                         switch (mode) {
                             case MODE_ADD:
+                                entry.reloadFromDB();
                                 break;
                             case MODE_EDIT:
                                 entry.reloadFromDB();
@@ -1167,6 +1171,7 @@ public class GameEditScene extends BaseScene {
                         if (buttonType.equals(ButtonType.OK)) {
                             switch (mode) {
                                 case MODE_ADD:
+                                    entry.reloadFromDB();
                                     break;
                                 case MODE_EDIT:
                                     entry.reloadFromDB();

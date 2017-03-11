@@ -26,7 +26,7 @@ public class DataBase {
 
     public static void initDB() {
         //TODO remove when db implementation is done, this is intended for dev phase only
-        if(DEV_MODE){
+        if(false && DEV_MODE){
             File dbFile = Main.FILES_MAP.get("db");
             dbFile.delete();
             File pictFile = Main.FILES_MAP.get("pictures");

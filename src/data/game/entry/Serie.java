@@ -5,6 +5,9 @@ import data.io.DataBase;
 import java.sql.*;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Objects;
+
+import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 02/03/2017.
@@ -35,7 +38,7 @@ public class Serie {
         if (id != NONE_ID) {
             insertInDB();
         }else{
-            ID_MAP.put(id,NONE);
+            ID_MAP.put(id,this);
         }
     }
 
