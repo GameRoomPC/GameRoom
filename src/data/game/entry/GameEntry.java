@@ -45,10 +45,13 @@ public class GameEntry {
     private String description = "";
     private String developer = "";
     private String publisher = "";
+
+    private ArrayList<Developer> developers = new ArrayList<>();
+    private ArrayList<Publisher> publishers = new ArrayList<>();
+
     private ArrayList<GameGenre> genres = new ArrayList<>();
     private ArrayList<GameTheme> themes = new ArrayList<>();
-    private ArrayList<Integer> genresIds = new ArrayList<>();
-    private ArrayList<Integer> themesIds = new ArrayList<>();
+
     private String serie = "";
     private int aggregated_rating;
     private String path = "";
@@ -59,10 +62,6 @@ public class GameEntry {
     private LocalDateTime addedDate;
     private LocalDateTime lastPlayedDate;
     private boolean installed = false;
-
-    private ArrayList<Developer> developers = new ArrayList<>();
-    private ArrayList<Publisher> publishers = new ArrayList<>();
-
 
     private File[] imagesFiles = new File[IMAGES_NUMBER];
     private boolean[] imageNeedsRefresh = new boolean[IMAGES_NUMBER];

@@ -23,8 +23,9 @@ CREATE TABLE IF NOT EXISTS GameEntry (
 );
 
 CREATE TABLE IF NOT EXISTS Developer (
-	igdb_id integer PRIMARY KEY AUTOINCREMENT,
-	name text unique,
+    id integer PRIMARY KEY AUTOINCREMENT,
+    igdb_id integer unique,
+	name_key text unique,
 	id_needs_update integer default 0
 );
 
@@ -32,13 +33,14 @@ CREATE TABLE IF NOT EXISTS develops (
 	game_id integer,
 	dev_id integer,
 	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(dev_id) REFERENCES Developer(igdb_id),
+	FOREIGN KEY(dev_id) REFERENCES Developer(id),
 	PRIMARY KEY (game_id, dev_id)
 );
 
 CREATE TABLE IF NOT EXISTS Publisher (
-	igdb_id integer PRIMARY KEY AUTOINCREMENT,
-	name text unique,
+    id integer PRIMARY KEY AUTOINCREMENT,
+    igdb_id integer unique,
+	name_key text unique,
     id_needs_update integer default 0
 );
 
@@ -46,13 +48,14 @@ CREATE TABLE IF NOT EXISTS publishes (
 	game_id integer,
 	pub_id integer,
 	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(pub_id) REFERENCES Publisher(igdb_id),
+	FOREIGN KEY(pub_id) REFERENCES Publisher(id),
     PRIMARY KEY (game_id, pub_id)
 );
 
 CREATE TABLE IF NOT EXISTS Serie (
-	igdb_id integer PRIMARY KEY AUTOINCREMENT,
-	name text unique,
+    id integer PRIMARY KEY AUTOINCREMENT,
+    igdb_id integer unique,
+	name_key text unique,
     id_needs_update integer default 0
 );
 
@@ -60,12 +63,13 @@ CREATE TABLE IF NOT EXISTS regroups (
 	game_id integer,
 	serie_id integer,
 	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(serie_id) REFERENCES Serie(igdb_id),
+	FOREIGN KEY(serie_id) REFERENCES Serie(id),
 	PRIMARY KEY (game_id, serie_id)
 );
 
 CREATE TABLE IF NOT EXISTS GameGenre (
-	igdb_id integer PRIMARY KEY,
+    id integer PRIMARY KEY AUTOINCREMENT,
+    igdb_id integer unique,
 	name_key text,
 	id_needs_update integer default 0
 );
@@ -74,20 +78,22 @@ CREATE TABLE IF NOT EXISTS has_genre (
 	game_id integer,
 	genre_id integer,
 	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(genre_id) REFERENCES GameGenre(igdb_id),
+	FOREIGN KEY(genre_id) REFERENCES GameGenre(id),
 	PRIMARY KEY (game_id, genre_id)
 );
 
 CREATE TABLE IF NOT EXISTS GameTheme (
-	igdb_id integer PRIMARY KEY,
-	name_key text
+    id integer PRIMARY KEY AUTOINCREMENT,
+    igdb_id integer unique,
+	name_key text,
+	id_needs_update integer default 0
 );
 
 CREATE TABLE IF NOT EXISTS has_theme (
 	game_id integer,
 	theme_id integer,
 	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(theme_id) REFERENCES GameTheme(igdb_id),
+	FOREIGN KEY(theme_id) REFERENCES GameTheme(id),
 	PRIMARY KEY (game_id, theme_id)
 );
 

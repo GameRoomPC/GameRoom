@@ -12,7 +12,7 @@ import static ui.Main.LOGGER;
 /**
  * Created by LM on 13/08/2016.
  */
-public class GameTheme {
+public class GameTheme{
     private final static HashMap<Integer, GameTheme> ID_MAP = new HashMap<>();
     private String key;
     private int id;
@@ -31,6 +31,7 @@ public class GameTheme {
         return Main.GAME_THEMES_BUNDLE.getString(key);
     }
 
+
     public static GameTheme getThemeFromId(int id) {
         if (ID_MAP.size() == 0) {
             try {
@@ -44,14 +45,14 @@ public class GameTheme {
             //try to see if it exists in db
             try {
                 Connection connection = DataBase.getUserConnection();
-                PreparedStatement statement = connection.prepareStatement("select * from GameTheme where igdb_id = ?");
+                PreparedStatement statement = connection.prepareStatement("select * from GameTheme where id = ?");
                 statement.setInt(1, id);
                 ResultSet set = statement.executeQuery();
                 if (set.next()) {
-                    int igdb_id = set.getInt("igdb_id");
+                    int genreId = set.getInt("id");
                     String key = set.getString("name_key");
-                    GameTheme newTheme = new GameTheme(igdb_id, key);
-                    ID_MAP.put(igdb_id, newTheme);
+                    GameTheme newTheme = new GameTheme(genreId, key);
+                    ID_MAP.put(genreId, newTheme);
 
                     return newTheme;
                 }
@@ -69,7 +70,7 @@ public class GameTheme {
         Statement statement = connection.createStatement();
         ResultSet set = statement.executeQuery("select * from GameTheme");
         while (set.next()) {
-            int id = set.getInt("igdb_id");
+            int id = set.getInt("id");
             String key = set.getString("name_key");
             ID_MAP.put(id, new GameTheme(id, key));
         }
@@ -87,7 +88,7 @@ public class GameTheme {
 
         try {
             Connection connection = DataBase.getUserConnection();
-            PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM GameTheme WHERE name_key = ?");
+            PreparedStatement getIdQuery = connection.prepareStatement("SELECT id FROM GameTheme WHERE name_key = ?");
             getIdQuery.setString(1, nameKey);
             ResultSet result = getIdQuery.executeQuery();
 
