@@ -160,6 +160,9 @@ public class GameEntry {
 
         PreparedStatement statement = connection.prepareStatement(getSQLInitLine());
         statement.setString(1, name);
+        if(releaseDate!=null){
+            statement.setTimestamp(2, Timestamp.valueOf(releaseDate));
+        }
         statement.setString(3, description);
         statement.setInt(4, aggregated_rating);
         statement.setString(5, path);
@@ -167,8 +170,14 @@ public class GameEntry {
         statement.setString(7, cmd[1]);
         statement.setString(8, args);
         statement.setString(9, youtubeSoundtrackHash);
-        statement.setTimestamp(10, Timestamp.valueOf(addedDate));
-        statement.setTimestamp(11, Timestamp.valueOf(lastPlayedDate));
+        if(addedDate!=null){
+            statement.setTimestamp(10, Timestamp.valueOf(addedDate));
+        }else{
+            statement.setTimestamp(10,Timestamp.valueOf(LocalDateTime.now()));
+        }
+        if(lastPlayedDate!=null){
+            statement.setTimestamp(11, Timestamp.valueOf(lastPlayedDate));
+        }
         statement.setLong(12, playTime);
         statement.setBoolean(13, installed);
         statement.setString(14, igdb_imageHash[0]);

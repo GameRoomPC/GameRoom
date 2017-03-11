@@ -217,6 +217,6 @@ public class Serie {
         if(name == null){
             return "-";
         }
-        return name+" "+id;
+        return name;
     }
 }
