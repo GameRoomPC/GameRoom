@@ -34,7 +34,7 @@ public class Publisher {
 
     public int insertInDB(){
         try {
-            String sql = "INSERT OR IGNORE INTO Publisher(name,"+ (igdb_id < 0 ? "id_needs_update) VALUES (?,?)" : "igdb_id) VALUES (?,?)");
+            String sql = "INSERT OR IGNORE INTO Publisher(name_key,"+ (igdb_id < 0 ? "id_needs_update) VALUES (?,?)" : "igdb_id) VALUES (?,?)");
             PreparedStatement pubStatement = DataBase.getUserConnection().prepareStatement(sql);
             pubStatement.setString(1, name);
             if(igdb_id >= 0){
@@ -59,7 +59,7 @@ public class Publisher {
         int id = -1;
         try {
             Connection connection = DataBase.getUserConnection();
-            PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM Publisher WHERE name = ?");
+            PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM Publisher WHERE name_key = ?");
             getIdQuery.setString(1,name);
             ResultSet result = getIdQuery.executeQuery();
 

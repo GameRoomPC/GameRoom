@@ -1,5 +1,6 @@
 package ui.scene;
 
+import data.game.entry.Developer;
 import data.game.entry.GameEntry;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
@@ -190,7 +191,16 @@ public class GameInfoScene extends BaseScene {
 
             addProperty("added_date", entry.getAddedDate() != null ? ISO_LOCAL_DATE_TIME.format(entry.getAddedDate()) : "").setId("advanced-setting-label");
         }
-        addProperty("developer", entry.getDeveloper());
+        if(entry.getDevelopers()!=null){
+            String devs = "";
+            for(Developer dev : entry.getDevelopers()){
+                devs+=dev.getName()+", ";
+            }
+            addProperty("developer",devs.length() > 2 && !devs.equals(", ") ? devs.substring(0,devs.length()-2) : "-");
+        }else{
+            addProperty("developer",null);
+        }
+        //addProperty("developer", entry.getDeveloper());
         addProperty("publisher", entry.getPublisher());
         addProperty("serie", entry.getSerie());
         if(entry.getGenres()!=null){

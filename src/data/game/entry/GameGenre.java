@@ -52,7 +52,6 @@ public class GameGenre {
                     String key = set.getString("name_key");
                     GameGenre newGenre = new GameGenre(genreId, key);
                     ID_MAP.put(genreId, newGenre);
-                    LOGGER.debug("Loaded Genre : " + key);
 
                     return newGenre;
                 }

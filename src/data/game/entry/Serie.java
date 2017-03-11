@@ -34,7 +34,7 @@ public class Serie {
 
     public int insertInDB(){
         try {
-            String sql = "INSERT OR IGNORE INTO Serie(name,"+ (igdb_id < 0 ? "id_needs_update) VALUES (?,?)" : "igdb_id) VALUES (?,?)");
+            String sql = "INSERT OR IGNORE INTO Serie(name_key,"+ (igdb_id < 0 ? "id_needs_update) VALUES (?,?)" : "igdb_id) VALUES (?,?)");
             PreparedStatement serieStatement = DataBase.getUserConnection().prepareStatement(sql);
             serieStatement.setString(1, name);
             if(igdb_id >= 0){
@@ -59,7 +59,7 @@ public class Serie {
         int id = -1;
         try {
             Connection connection = DataBase.getUserConnection();
-            PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM Serie WHERE name = ?");
+            PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM Serie WHERE name_key = ?");
             getIdQuery.setString(1,name);
             ResultSet result = getIdQuery.executeQuery();
 

@@ -90,6 +90,7 @@ public class GameEntry {
     private transient Runnable onGameStopped;
 
     private transient boolean deleted = false;
+    private transient boolean inDb = false;
 
     private transient SimpleBooleanProperty monitored = new SimpleBooleanProperty(false);
 
@@ -138,7 +139,6 @@ public class GameEntry {
     public void saveEntry() {
         if (savedLocally && !deleted) {
             try {
-                //TODO store into db
                 saveDirectFields();
                 saveGenres();
                 saveThemes();
@@ -146,12 +146,15 @@ public class GameEntry {
                 savePublishers();
                 saveSerie();
                 savePlatformInfo();
-
-
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void addInDb(){
+        setSavedLocally(true);
+        saveEntry();
     }
 
     private void saveDirectFields() throws SQLException {
@@ -178,6 +181,11 @@ public class GameEntry {
         statement.setBoolean(19, beingScrapped);
         statement.execute();
         statement.close();
+
+        if(!inDb){
+            id = DataBase.getLastId();
+            inDb = true;
+        }
         //connection.commit();
     }
 
@@ -186,7 +194,7 @@ public class GameEntry {
             for (GameGenre genre : genres) {
                 int genreId = GameGenre.getIGDBId(genre.getKey());
                 if (genreId != -1) {
-                    PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO has_genre(game_id,genre_id) VALUES (?,?)");
+                    PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO has_genre(game_id,genre_id) VALUES (?,?)");
                     genreStatement.setInt(1, id);
                     genreStatement.setInt(2, genreId);
                     genreStatement.execute();
@@ -202,7 +210,7 @@ public class GameEntry {
             for (GameTheme theme : themes) {
                 int themeID = GameTheme.getIGDBId(theme.getKey());
                 if (themeID != -1) {
-                    PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO has_theme(game_id,theme_id) VALUES (?,?)");
+                    PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO has_theme(game_id,theme_id) VALUES (?,?)");
                     genreStatement.setInt(1, id);
                     genreStatement.setInt(2, themeID);
                     genreStatement.execute();
@@ -221,7 +229,7 @@ public class GameEntry {
                 int devId = dev.insertInDB();
 
                 if (devId != -1) {
-                    PreparedStatement devStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO develops(game_id,dev_id) VALUES (?,?)");
+                    PreparedStatement devStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO develops(game_id,dev_id) VALUES (?,?)");
                     devStatement2.setInt(1, id);
                     devStatement2.setInt(2, devId);
                     devStatement2.execute();
@@ -240,7 +248,7 @@ public class GameEntry {
                 int pubId = pub.insertInDB();
 
                 if (pubId != -1) {
-                    PreparedStatement pubStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO publishes(game_id,pub_id) VALUES (?,?)");
+                    PreparedStatement pubStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO publishes(game_id,pub_id) VALUES (?,?)");
                     pubStatement2.setInt(1, id);
                     pubStatement2.setInt(2, pubId);
                     pubStatement2.execute();
@@ -257,7 +265,7 @@ public class GameEntry {
             int serieId = gameSerie.insertInDB();
 
             if (serieId != -1) {
-                PreparedStatement serieStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO regroups(game_id,serie_id) VALUES (?,?)");
+                PreparedStatement serieStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO regroups(game_id,serie_id) VALUES (?,?)");
                 serieStatement2.setInt(1, id);
                 serieStatement2.setInt(2, serieId);
                 serieStatement2.execute();
@@ -292,7 +300,7 @@ public class GameEntry {
             platformId = 6;
         }
         if (platformId != -1) {
-            PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO runs_on(specific_id,platform_id,game_id) VALUES (?,?,?)");
+            PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO runs_on(specific_id,platform_id,game_id) VALUES (?,?,?)");
             genreStatement.setInt(1, specificId);
             genreStatement.setInt(2, platformId);
             genreStatement.setInt(3, id);
@@ -1001,6 +1009,7 @@ public class GameEntry {
         }
         int id = set.getInt("id");
         GameEntry entry = new GameEntry(id);
+        entry.inDb = true;
         entry.setSavedLocally(false);
         entry.setName(set.getString("name"));
         entry.setDescription(set.getString("description"));
@@ -1036,6 +1045,7 @@ public class GameEntry {
         entry.setIgnored(set.getBoolean("ignored"));
         entry.setBeingScraped(set.getBoolean("beingScraped"));
 
+        //LOAD GENRES FROM DB
         try {
             PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("SELECT genre_id FROM has_genre WHERE game_id=?");
             genreStatement.setInt(1, id);
@@ -1050,6 +1060,7 @@ public class GameEntry {
             e.printStackTrace();
         }
 
+        //LOAD THEMES FROM DB
         try {
             PreparedStatement themeStatement = DataBase.getUserConnection().prepareStatement("SELECT theme_id FROM has_theme WHERE game_id=?");
             themeStatement.setInt(1, id);
@@ -1058,10 +1069,27 @@ public class GameEntry {
                 int themeId = themeSet.getInt("theme_id");
                 GameTheme theme = GameTheme.getThemeFromId(themeId);
                 if (theme != null) {
-                    entry.getThemes().add(theme);
+                    entry.addTheme(theme);
                 }
             }
             themeStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        //LOAD DEV FROM DB
+        try {
+            PreparedStatement devStatement = DataBase.getUserConnection().prepareStatement("SELECT dev_id FROM develops WHERE game_id=?");
+            devStatement.setInt(1, id);
+            ResultSet devSet = devStatement.executeQuery();
+            while (devSet.next()) {
+                int devId = devSet.getInt("dev_id");
+                Developer dev = Developer.getFromId(devId);
+                if (dev != null) {
+                    entry.addDeveloper(dev);
+                }
+            }
+            devStatement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -1078,7 +1106,7 @@ public class GameEntry {
     }
 
     public static String getSQLInitLine() {
-        String temp = "INSERT OR IGNORE INTO GameEntry (";
+        String temp = "INSERT OR REPLACE INTO GameEntry (";
 
         for (int i = 0; i < SQL_PARAMS.length; i++) {
             temp += SQL_PARAMS[i];
@@ -1125,5 +1153,25 @@ public class GameEntry {
         }
         genres.remove(genre);
         //TODO update in db
+    }
+
+    public void addTheme(GameTheme theme) {
+        if (theme == null) {
+            return;
+        }
+        themes.add(theme);
+        //TODO update in db
+    }
+
+    public void addDeveloper(Developer dev) {
+        if (dev == null) {
+            return;
+        }
+        developers.add(dev);
+        //TODO update in db
+    }
+
+    public ArrayList<Developer> getDevelopers() {
+        return developers;
     }
 }
