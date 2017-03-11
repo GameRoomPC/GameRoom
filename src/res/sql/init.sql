@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS GameEntry (
 	beingScraped integer default 0
 );
 
-CREATE TABLE IF NOT EXISTS Developer (
+CREATE TABLE IF NOT EXISTS Company (
     id integer PRIMARY KEY AUTOINCREMENT,
     igdb_id integer unique,
 	name_key text unique,
@@ -33,22 +33,15 @@ CREATE TABLE IF NOT EXISTS develops (
 	game_id integer,
 	dev_id integer,
 	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(dev_id) REFERENCES Developer(id),
+	FOREIGN KEY(dev_id) REFERENCES Company(id),
 	PRIMARY KEY (game_id, dev_id)
-);
-
-CREATE TABLE IF NOT EXISTS Publisher (
-    id integer PRIMARY KEY AUTOINCREMENT,
-    igdb_id integer unique,
-	name_key text unique,
-    id_needs_update integer default 0
 );
 
 CREATE TABLE IF NOT EXISTS publishes (
 	game_id integer,
 	pub_id integer,
 	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(pub_id) REFERENCES Publisher(id),
+	FOREIGN KEY(pub_id) REFERENCES Company(id),
     PRIMARY KEY (game_id, pub_id)
 );
 

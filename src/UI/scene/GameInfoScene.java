@@ -1,6 +1,6 @@
 package ui.scene;
 
-import data.game.entry.Developer;
+import data.game.entry.Company;
 import data.game.entry.GameEntry;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
@@ -191,17 +191,9 @@ public class GameInfoScene extends BaseScene {
 
             addProperty("added_date", entry.getAddedDate() != null ? ISO_LOCAL_DATE_TIME.format(entry.getAddedDate()) : "").setId("advanced-setting-label");
         }
-        if(entry.getDevelopers()!=null){
-            String devs = "";
-            for(Developer dev : entry.getDevelopers()){
-                devs+=dev.getName()+", ";
-            }
-            addProperty("developer",devs.length() > 2 && !devs.equals(", ") ? devs.substring(0,devs.length()-2) : "-");
-        }else{
-            addProperty("developer",null);
-        }
-        //addProperty("developer", entry.getDeveloper());
-        addProperty("publisher", entry.getPublisher());
+
+        addProperty("developer", Company.getDisplayString(entry.getDevelopers()));
+        addProperty("publisher", Company.getDisplayString(entry.getPublishers()));
         addProperty("serie", entry.getSerie());
         if(entry.getGenres()!=null){
             String genres = "";
@@ -262,9 +254,11 @@ public class GameInfoScene extends BaseScene {
         updateProperty("play_time", editedEntry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS));
         updateProperty("game_path", editedEntry.getPath());
         updateProperty("release_date", editedEntry.getReleaseDate()!=null ? GameEntry.DATE_DISPLAY_FORMAT.format(editedEntry.getReleaseDate()) : "");
-        updateProperty("developer", editedEntry.getDeveloper());
-        updateProperty("publisher", editedEntry.getPublisher());
+        updateProperty("developer", Company.getDisplayString(entry.getDevelopers()));
+        updateProperty("publisher", Company.getDisplayString(entry.getPublishers()));
+
         updateProperty("serie", editedEntry.getSerie());
+
         if(entry.getGenres()!=null){
             String genres = "";
             for(GameGenre genre : entry.getGenres()){

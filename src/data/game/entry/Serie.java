@@ -23,7 +23,7 @@ public class Serie {
         this.name = name;
     }
 
-    //TODO implement a method to check if id_needs_update in db and do it if valid igdb_id. Same for Publisher and Developer
+    //TODO implement a method to check if id_needs_update in db and do it if valid igdb_id. Same for Publisher and Company
 
     public Serie(String name) {
         if(name == null || name.isEmpty()){

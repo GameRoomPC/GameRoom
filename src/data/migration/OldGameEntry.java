@@ -233,7 +233,7 @@ public class OldGameEntry {
         if (developer != null && !developer.isEmpty()) {
             String[] devs = developer.split(",\\s");
             for (String s : devs) {
-                Developer dev = new Developer(s);
+                Company dev = new Company(s);
                 int devId = dev.insertInDB();
 
                 if (devId != -1) {
@@ -252,7 +252,7 @@ public class OldGameEntry {
         if (publisher != null && !publisher.isEmpty()) {
             String[] pubs = publisher.split(",\\s");
             for (String s : pubs) {
-                Publisher pub = new Publisher(s);
+                Company pub = new Company(s);
                 int pubId = pub.insertInDB();
 
                 if (pubId != -1) {

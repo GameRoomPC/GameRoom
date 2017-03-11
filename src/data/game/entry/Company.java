@@ -3,24 +3,23 @@ package data.game.entry;
 import data.io.DataBase;
 
 import java.sql.*;
+import java.util.Collection;
 import java.util.HashMap;
-
-import static ui.Main.LOGGER;
 
 /**
  * Created by LM on 02/03/2017.
  */
-public class Developer {
-    private final static HashMap<Integer, Developer> ID_MAP = new HashMap<>();
+public class Company {
+    private final static HashMap<Integer, Company> ID_MAP = new HashMap<>();
     private int igdb_id = -1;
     private int id;
     private String name;
     private int IGDBId;
 
 
-    public Developer(int igdb_id, String name) {
+    public Company(int igdb_id, String name) {
         if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("Developer's name was either null or empty : \"" + name + "\"");
+            throw new IllegalArgumentException("Company's name was either null or empty : \"" + name + "\"");
         }
         this.igdb_id = igdb_id;
         this.name = name;
@@ -28,16 +27,16 @@ public class Developer {
         insertInDB();
     }
 
-    public Developer(String name) {
+    public Company(String name) {
         if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("Developer's name was either null or empty : \"" + name + "\"");
+            throw new IllegalArgumentException("Company's name was either null or empty : \"" + name + "\"");
         }
         this.name = name;
     }
 
     public int insertInDB() {
         try {
-            String sql = "INSERT OR IGNORE INTO Developer(name_key," + (igdb_id < 0 ? "id_needs_update) VALUES (?,?)" : "igdb_id) VALUES (?,?)");
+            String sql = "INSERT OR IGNORE INTO Company(name_key," + (igdb_id < 0 ? "id_needs_update) VALUES (?,?)" : "igdb_id) VALUES (?,?)");
             PreparedStatement devStatement = DataBase.getUserConnection().prepareStatement(sql);
             devStatement.setString(1, name);
             if (igdb_id >= 0) {
@@ -60,12 +59,12 @@ public class Developer {
 
     private int getIdInDb() {
         if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("Developer's name was either null or empty : \"" + name + "\"");
+            throw new IllegalArgumentException("Company's name was either null or empty : \"" + name + "\"");
         }
         int id = -1;
         try {
             Connection connection = DataBase.getUserConnection();
-            PreparedStatement getIdQuery = connection.prepareStatement("SELECT id FROM Developer WHERE name_key = ?");
+            PreparedStatement getIdQuery = connection.prepareStatement("SELECT id FROM Company WHERE name_key = ?");
             getIdQuery.setString(1, name);
             ResultSet result = getIdQuery.executeQuery();
 
@@ -80,7 +79,7 @@ public class Developer {
         return id;
     }
 
-    public static Developer getFromIGDBId(int igdb_id) {
+    public static Company getFromIGDBId(int igdb_id) {
         if (ID_MAP.isEmpty()) {
             try {
                 initWithDb();
@@ -89,7 +88,7 @@ public class Developer {
             }
         }
 
-        for (Developer dev : ID_MAP.values()) {
+        for (Company dev : ID_MAP.values()) {
             if (dev.getIGDBId() == igdb_id) {
                 return dev;
             }
@@ -97,13 +96,13 @@ public class Developer {
         //try to see if it exists in db
         try {
             Connection connection = DataBase.getUserConnection();
-            PreparedStatement statement = connection.prepareStatement("select * from Developer where igdb_id = ?");
+            PreparedStatement statement = connection.prepareStatement("select * from Company where igdb_id = ?");
             statement.setInt(1, igdb_id);
             ResultSet set = statement.executeQuery();
             if (set.next()) {
                 int devId = set.getInt("id");
                 String key = set.getString("name_key");
-                Developer newDev = new Developer(devId, key);
+                Company newDev = new Company(devId, key);
                 newDev.setIGDBId(igdb_id);
                 ID_MAP.put(devId, newDev);
 
@@ -117,7 +116,7 @@ public class Developer {
         return null;
     }
 
-    public static Developer getFromId(int id) {
+    public static Company getFromId(int id) {
         if (ID_MAP.isEmpty()) {
             try {
                 initWithDb();
@@ -126,19 +125,19 @@ public class Developer {
             }
         }
 
-        Developer dev = ID_MAP.get(id);
+        Company dev = ID_MAP.get(id);
 
         if(dev == null){
             //try to see if it exists in db
             try {
                 Connection connection = DataBase.getUserConnection();
-                PreparedStatement statement = connection.prepareStatement("select * from Developer where id = ?");
+                PreparedStatement statement = connection.prepareStatement("select * from Company where id = ?");
                 statement.setInt(1, id);
                 ResultSet set = statement.executeQuery();
                 if (set.next()) {
                     int devId = set.getInt("id");
                     String key = set.getString("name_key");
-                    Developer newDev = new Developer(devId, key);
+                    Company newDev = new Company(devId, key);
                     newDev.setIGDBId(set.getInt("igdb_id"));
                     ID_MAP.put(devId, newDev);
 
@@ -156,11 +155,11 @@ public class Developer {
     private static void initWithDb() throws SQLException {
         Connection connection = DataBase.getUserConnection();
         Statement statement = connection.createStatement();
-        ResultSet set = statement.executeQuery("select * from Developer");
+        ResultSet set = statement.executeQuery("select * from Company");
         while (set.next()) {
             int id = set.getInt("id");
             String key = set.getString("name_key");
-            ID_MAP.put(id, new Developer(id, key));
+            ID_MAP.put(id, new Company(id, key));
         }
         statement.close();
     }
@@ -175,5 +174,29 @@ public class Developer {
 
     public String getName() {
         return name;
+    }
+
+    public static Collection<Company> values() {
+        return ID_MAP.values();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public static String getDisplayString(Collection<Company> companies){
+        if(companies == null || companies.isEmpty()){
+            return "-";
+        }
+        String temp = "";
+        int i = 0;
+        for(Company c : companies){
+            temp+= c.getName();
+            if(i!=companies.size() -1){
+                temp+=",";
+            }
+            i++;
+        }
+        return temp;
     }
 }

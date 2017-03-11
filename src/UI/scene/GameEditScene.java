@@ -1,10 +1,7 @@
 package ui.scene;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
-import data.game.entry.GameEntry;
-import data.game.entry.GameEntryUtils;
-import data.game.entry.GameGenre;
-import data.game.entry.GameTheme;
+import data.game.entry.*;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.YoutubeSoundtrackScrapper;
@@ -423,22 +420,62 @@ public class GameEditScene extends BaseScene {
             }
         });
 
+        /************************** DEVS AND PUBLISHER*********************************************/
+
+        final ObservableList<Company> allCompanies = FXCollections.observableArrayList();
+        allCompanies.addAll(Company.values());
+        allCompanies.sort(new Comparator<Company>() {
+            @Override
+            public int compare(Company o1, Company o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
 
         /**************************DEVELOPER*********************************************/
-        createLineForProperty("developer", entry.getDeveloper(), new ChangeListener<String>() {
+        // Create the CheckComboBox with the data
+        final CheckComboBox<Company> devComboBox = new CheckComboBox<Company>(allCompanies);
+        devComboBox.setId("developer");
+        if (entry.getDevelopers() != null) {
+            for (Company developer : entry.getDevelopers()) {
+                devComboBox.getCheckModel().check(devComboBox.getCheckModel().getItemIndex(developer));
+            }
+        }
+        devComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<Company>() {
             @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                entry.setDeveloper(newValue);
+            public void onChanged(Change<? extends Company> c) {
+                ArrayList<Company> newDevs = new ArrayList<>();
+                newDevs.addAll(devComboBox.getCheckModel().getCheckedItems());
+                entry.setDevelopers(newDevs);
             }
         });
+        Label devLabel = new Label(Main.getString("developer") + " :");
+        devLabel.setTooltip(new Tooltip(Main.getString("developer")));
+        contentPane.add(devLabel, 0, row_count);
+        contentPane.add(devComboBox, 1, row_count);
+        row_count++;
 
         /**************************PUBLISHER*********************************************/
-        createLineForProperty("publisher", entry.getPublisher(), new ChangeListener<String>() {
+        // Create the CheckComboBox with the data
+        final CheckComboBox<Company> pubComboBox = new CheckComboBox<Company>(allCompanies);
+        pubComboBox.setId("publisher");
+        if (entry.getPublishers() != null) {
+            for (Company publisher : entry.getPublishers()) {
+                pubComboBox.getCheckModel().check(pubComboBox.getCheckModel().getItemIndex(publisher));
+            }
+        }
+        pubComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<Company>() {
             @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                entry.setPublisher(newValue);
+            public void onChanged(Change<? extends Company> c) {
+                ArrayList<Company> newPublishers = new ArrayList<>();
+                newPublishers.addAll(pubComboBox.getCheckModel().getCheckedItems());
+                entry.setPublishers(newPublishers);
             }
         });
+        Label pubLabel = new Label(Main.getString("publisher") + " :");
+        pubLabel.setTooltip(new Tooltip(Main.getString("publisher")));
+        contentPane.add(pubLabel, 0, row_count);
+        contentPane.add(pubComboBox, 1, row_count);
+        row_count++;
 
         /**************************GENRE*********************************************/
 
@@ -758,16 +795,28 @@ public class GameEditScene extends BaseScene {
                             } else if (node instanceof PathTextField) {
                                 ((PathTextField) node).setText((String) newValue);
                             }
-                        } else if (newValue instanceof GameGenre[]) {
+                        } else if (property.equals("genre")) {
                             if (node instanceof CheckComboBox) {
-                                for (GameGenre genre : (GameGenre[]) newValue) {
+                                for (GameGenre genre : (ArrayList<GameGenre>) newValue) {
                                     ((CheckComboBox) node).getCheckModel().check(genre);
                                 }
                             }
-                        } else if (newValue instanceof GameTheme[]) {
+                        } else if (property.equals("theme")) {
                             if (node instanceof CheckComboBox) {
-                                for (GameTheme theme : (GameTheme[]) newValue) {
+                                for (GameTheme theme : (ArrayList<GameTheme>) newValue) {
                                     ((CheckComboBox) node).getCheckModel().check(theme);
+                                }
+                            }
+                        } else if (property.equals("developer")) {
+                            if (node instanceof CheckComboBox) {
+                                for (Company dev : (ArrayList<Company>) newValue) {
+                                    ((CheckComboBox) node).getCheckModel().check(dev);
+                                }
+                            }
+                        } else if (property.equals("publisher")) {
+                            if (node instanceof CheckComboBox) {
+                                for (Company pub : (ArrayList<Company>) newValue) {
+                                    ((CheckComboBox) node).getCheckModel().check(pub);
                                 }
                             }
                         } else if (newValue instanceof LocalDateTime) {
@@ -960,8 +1009,8 @@ public class GameEditScene extends BaseScene {
         updateLineProperty("game_name", gameEntry.getName(), doNotUpdateFieldsMap);
         updateLineProperty("serie", gameEntry.getSerie(), doNotUpdateFieldsMap);
         updateLineProperty("release_date", gameEntry.getReleaseDate(), doNotUpdateFieldsMap);
-        updateLineProperty("developer", gameEntry.getDeveloper(), doNotUpdateFieldsMap);
-        updateLineProperty("publisher", gameEntry.getPublisher(), doNotUpdateFieldsMap);
+        updateLineProperty("developer", gameEntry.getDevelopers(), doNotUpdateFieldsMap);
+        updateLineProperty("publisher", gameEntry.getPublishers(), doNotUpdateFieldsMap);
         updateLineProperty("game_description", StringEscapeUtils.unescapeHtml(gameEntry.getDescription()), doNotUpdateFieldsMap);
         updateLineProperty("genre", gameEntry.getGenres(), doNotUpdateFieldsMap);
         updateLineProperty("theme", gameEntry.getThemes(), doNotUpdateFieldsMap);

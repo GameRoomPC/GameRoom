@@ -322,8 +322,8 @@ public class GameWatcher {
                                 toScrapEntry.setThemes(scrappedEntry.getThemes());
                                 toScrapEntry.setGenres(scrappedEntry.getGenres());
                                 toScrapEntry.setSerie(scrappedEntry.getSerie());
-                                toScrapEntry.setDeveloper(scrappedEntry.getDeveloper());
-                                toScrapEntry.setPublisher(scrappedEntry.getPublisher());
+                                toScrapEntry.setDevelopers(scrappedEntry.getDevelopers());
+                                toScrapEntry.setPublishers(scrappedEntry.getPublishers());
                                 toScrapEntry.setIgdb_id(scrappedEntry.getIgdb_id());
                                 toScrapEntry.setSavedLocally(false);
 

@@ -43,11 +43,10 @@ public class GameEntry {
     private String name = "";
     private LocalDateTime releaseDate;
     private String description = "";
-    private String developer = "";
     private String publisher = "";
 
-    private ArrayList<Developer> developers = new ArrayList<>();
-    private ArrayList<Publisher> publishers = new ArrayList<>();
+    private ArrayList<Company> developers = new ArrayList<>();
+    private ArrayList<Company> publishers = new ArrayList<>();
 
     private ArrayList<GameGenre> genres = new ArrayList<>();
     private ArrayList<GameTheme> themes = new ArrayList<>();
@@ -152,7 +151,7 @@ public class GameEntry {
         }
     }
 
-    public void addInDb(){
+    public void addInDb() {
         setSavedLocally(true);
         saveEntry();
     }
@@ -182,7 +181,7 @@ public class GameEntry {
         statement.execute();
         statement.close();
 
-        if(!inDb){
+        if (!inDb) {
             id = DataBase.getLastId();
             inDb = true;
         }
@@ -194,6 +193,11 @@ public class GameEntry {
             for (GameGenre genre : genres) {
                 int genreId = GameGenre.getIGDBId(genre.getKey());
                 if (genreId != -1) {
+                    PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from has_genre where game_id= ?");
+                    deleteStatement.setInt(1, id);
+                    deleteStatement.execute();
+                    deleteStatement.close();
+
                     PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO has_genre(game_id,genre_id) VALUES (?,?)");
                     genreStatement.setInt(1, id);
                     genreStatement.setInt(2, genreId);
@@ -210,6 +214,11 @@ public class GameEntry {
             for (GameTheme theme : themes) {
                 int themeID = GameTheme.getIGDBId(theme.getKey());
                 if (themeID != -1) {
+                    PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from has_theme where game_id= ?");
+                    deleteStatement.setInt(1, id);
+                    deleteStatement.execute();
+                    deleteStatement.close();
+
                     PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO has_theme(game_id,theme_id) VALUES (?,?)");
                     genreStatement.setInt(1, id);
                     genreStatement.setInt(2, themeID);
@@ -222,39 +231,37 @@ public class GameEntry {
     }
 
     private void saveDevs() throws SQLException {
-        if (developer != null && !developer.isEmpty()) {
-            String[] devs = developer.split(",\\s");
-            for (String s : devs) {
-                Developer dev = new Developer(s);
-                int devId = dev.insertInDB();
+        if (developers != null && !developers.isEmpty()) {
+            for (Company c : developers) {
+                PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from develops where game_id= ?");
+                deleteStatement.setInt(1, id);
+                deleteStatement.execute();
+                deleteStatement.close();
 
-                if (devId != -1) {
-                    PreparedStatement devStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO develops(game_id,dev_id) VALUES (?,?)");
-                    devStatement2.setInt(1, id);
-                    devStatement2.setInt(2, devId);
-                    devStatement2.execute();
-                    devStatement2.close();
-                    //DataBase.commit();
-                }
+                PreparedStatement insertStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO develops(game_id,dev_id) VALUES (?,?)");
+                insertStatement.setInt(1, id);
+                insertStatement.setInt(2, c.getId());
+                insertStatement.execute();
+                insertStatement.close();
+                //DataBase.commit();
             }
         }
     }
 
     private void savePublishers() throws SQLException {
-        if (publisher != null && !publisher.isEmpty()) {
-            String[] pubs = publisher.split(",\\s");
-            for (String s : pubs) {
-                Publisher pub = new Publisher(s);
-                int pubId = pub.insertInDB();
+        if (publishers != null && !publishers.isEmpty()) {
+            for (Company c : publishers) {
+                PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from publishes where game_id= ?");
+                deleteStatement.setInt(1, id);
+                deleteStatement.execute();
+                deleteStatement.close();
 
-                if (pubId != -1) {
-                    PreparedStatement pubStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO publishes(game_id,pub_id) VALUES (?,?)");
-                    pubStatement2.setInt(1, id);
-                    pubStatement2.setInt(2, pubId);
-                    pubStatement2.execute();
-                    pubStatement2.close();
-                    //DataBase.commit();
-                }
+                PreparedStatement insertStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO publishes(game_id,pub_id) VALUES (?,?)");
+                insertStatement.setInt(1, id);
+                insertStatement.setInt(2, c.getId());
+                insertStatement.execute();
+                insertStatement.close();
+                //DataBase.commit();
             }
         }
     }
@@ -265,6 +272,11 @@ public class GameEntry {
             int serieId = gameSerie.insertInDB();
 
             if (serieId != -1) {
+                PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from regroups where game_id= ?");
+                deleteStatement.setInt(1, id);
+                deleteStatement.execute();
+                deleteStatement.close();
+
                 PreparedStatement serieStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO regroups(game_id,serie_id) VALUES (?,?)");
                 serieStatement2.setInt(1, id);
                 serieStatement2.setInt(2, serieId);
@@ -337,24 +349,6 @@ public class GameEntry {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    public String getDeveloper() {
-        return developer;
-    }
-
-    public void setDeveloper(String developer) {
-        this.developer = developer != null ? developer : "";
-        //TODO update developer to work like gamegenres
-    }
-
-    public String getPublisher() {
-        return publisher;
-    }
-
-    public void setPublisher(String publisher) {
-        this.publisher = publisher != null ? publisher : "";
-        //TODO update publisher to work like gamegenres
     }
 
     public int getId() {
@@ -1084,7 +1078,7 @@ public class GameEntry {
             ResultSet devSet = devStatement.executeQuery();
             while (devSet.next()) {
                 int devId = devSet.getInt("dev_id");
-                Developer dev = Developer.getFromId(devId);
+                Company dev = Company.getFromId(devId);
                 if (dev != null) {
                     entry.addDeveloper(dev);
                 }
@@ -1144,7 +1138,13 @@ public class GameEntry {
             return;
         }
         genres.add(genre);
-        //TODO update in db
+        if (savedLocally && !deleted) {
+            try {
+                saveGenres();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void removeGenre(GameGenre genre) {
@@ -1152,7 +1152,13 @@ public class GameEntry {
             return;
         }
         genres.remove(genre);
-        //TODO update in db
+        if (savedLocally && !deleted) {
+            try {
+                saveGenres();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void addTheme(GameTheme theme) {
@@ -1160,18 +1166,89 @@ public class GameEntry {
             return;
         }
         themes.add(theme);
-        //TODO update in db
+        if (savedLocally && !deleted) {
+            try {
+                saveThemes();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    public void addDeveloper(Developer dev) {
+    public void removeTheme(GameTheme theme) {
+        if (theme == null) {
+            return;
+        }
+        themes.remove(theme);
+        if (savedLocally && !deleted) {
+            try {
+                saveThemes();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void addDeveloper(Company dev) {
         if (dev == null) {
             return;
         }
         developers.add(dev);
-        //TODO update in db
+        if (savedLocally && !deleted) {
+            try {
+                saveDevs();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    public ArrayList<Developer> getDevelopers() {
+    public void removeDeveloper(Company dev) {
+        if (dev == null) {
+            return;
+        }
+        developers.remove(dev);
+        if (savedLocally && !deleted) {
+            try {
+                saveDevs();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * You should never edit this list directly
+     *
+     * @return a list containing all devs
+     */
+    public ArrayList<Company> getDevelopers() {
         return developers;
+    }
+
+    public void setDevelopers(ArrayList<Company> developers) {
+        this.developers = developers;
+        if (savedLocally && !deleted) {
+            try {
+                saveDevs();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public ArrayList<Company> getPublishers() {
+        return publishers;
+    }
+
+    public void setPublishers(ArrayList<Company> publishers) {
+        this.publishers = publishers;
+        if (savedLocally && !deleted) {
+            try {
+                savePublishers();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

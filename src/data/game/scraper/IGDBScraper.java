@@ -3,6 +3,7 @@ package data.game.scraper;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import data.game.entry.Company;
 import data.game.entry.GameEntry;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
@@ -54,7 +55,7 @@ public class IGDBScraper {
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener);
         } catch (JSONException e) {
-            throw new UnirestException("IGDB : received invalid JSON \""+json+"\"");
+            throw new UnirestException("IGDB : received invalid JSON \"" + json + "\"");
         }
     }
 
@@ -132,92 +133,27 @@ public class IGDBScraper {
     }*/
     public static ArrayList<GameEntry> getEntries(JSONArray searchData) throws IOException, UnirestException {
         ArrayList<GameEntry> entries = new ArrayList<>();
-        HashSet<Integer> companiesIDs = new HashSet<>();
+        HashSet<Integer> companiesIDs = getUnknownCompaniesIDs(searchData);
         HashSet<Integer> seriesIDs = new HashSet<>();
 
-        for (int i = 0; i < searchData.length(); i++) {
-            try {
-                int publishersNumber = searchData.getJSONObject(i).getJSONArray("publishers").length();
-                for (int j = 0; j < publishersNumber; j++) {
-                    companiesIDs.add(searchData.getJSONObject(i).getJSONArray("publishers").getInt(j));
-                }
-            } catch (JSONException je) {
-                if (je.toString().contains("not found")) {
-                    //Main.LOGGER.warn(entry.getName()+" : no publishers");
-                } else {
-                    je.printStackTrace();
-                }
-            }
-
-            try {
-                int developersNumber = searchData.getJSONObject(i).getJSONArray("developers").length();
-                for (int j = 0; j < developersNumber; j++) {
-                    companiesIDs.add(searchData.getJSONObject(i).getJSONArray("developers").getInt(j));
-                }
-            } catch (JSONException je) {
-                if (je.toString().contains("not found")) {
-                    //Main.LOGGER.warn(entry.getName()+" : no publishers");
-                } else {
-                    je.printStackTrace();
-                }
-            }
-
-            try {
-                seriesIDs.add(searchData.getJSONObject(i).getInt("collection"));
-            } catch (JSONException je) {
-                if (je.toString().contains("not found")) {
-                    //Main.LOGGER.warn(entry.getName()+" : no publishers");
-                } else {
-                    je.printStackTrace();
-                }
+        try {
+            seriesIDs.add(searchData.getJSONObject(i).getInt("collection"));
+        } catch (JSONException je) {
+            if (je.toString().contains("not found")) {
+                //Main.LOGGER.warn(entry.getName()+" : no publishers");
+            } else {
+                je.printStackTrace();
             }
         }
+
         JSONArray companiesData = getCompaniesData(companiesIDs);
         JSONArray seriesData = getSeriesData(seriesIDs);
 
 
         for (int i = 0; i < searchData.length(); i++) {
-            GameEntry entry = getEntry(searchData.getJSONObject(i), false);
-
-            try {
-                int publishersNumber = searchData.getJSONObject(i).getJSONArray("publishers").length();
-                String publishers = "";
-                if (companiesData != null) {
-                    for (int j = 0; j < publishersNumber; j++) {
-                        publishers += getCompanyName(searchData.getJSONObject(i).getJSONArray("publishers").getInt(j), companiesData);
-                        if (j != publishersNumber - 1) {
-                            publishers += ", ";
-                        }
-                    }
-                }
-                entry.setPublisher(publishers);
-            } catch (JSONException je) {
-                if (je.toString().contains("not found")) {
-                    //Main.LOGGER.warn(entry.getName()+" : no publishers");
-                } else {
-                    je.printStackTrace();
-                }
-            }
-
-            try {
-                String developers = "";
-                if (companiesData != null) {
-                    int developersNumber = searchData.getJSONObject(i).getJSONArray("developers").length();
-                    for (int j = 0; j < developersNumber; j++) {
-                        developers += getCompanyName(searchData.getJSONObject(i).getJSONArray("developers").getInt(j), companiesData);
-                        if (j != developersNumber - 1) {
-                            developers += ", ";
-                        }
-                    }
-                }
-                entry.setDeveloper(developers);
-            } catch (JSONException je) {
-                if (je.toString().contains("not found")) {
-                    //Main.LOGGER.warn(entry.getName()+" : no devs");
-                } else {
-                    je.printStackTrace();
-                }
-            }
+            JSONObject gameData = searchData.getJSONObject(i);
+            GameEntry entry = getEntry(gameData, false);
+            setGameCompanies(entry,gameData,companiesData);
 
             try {
                 int serieId = searchData.getJSONObject(i).getInt("collection");
@@ -285,30 +221,10 @@ public class IGDBScraper {
             }
         }
         if (allowUseMoreRequest) {
-            try {
-                String publishers = "";
-                int publishersNumber = game_data.getJSONArray("publishers").length();
-                ArrayList<Integer> companiesIDS = new ArrayList<>();
-                for (int i = 0; i < publishersNumber; i++) {
-                    companiesIDS.add(game_data.getJSONArray("publishers").getInt(i));
-                    //System.out.println("TEST :"+ game_data.getJSONArray("publishers").getInt(i));
-                }
-                JSONArray companiesData = getCompaniesData(companiesIDS);
+            HashSet<Integer> companiesIDS = getUnknownCompaniesIDs(game_data);
+            JSONArray companiesData = getCompaniesData(companiesIDS);
 
-                for (int i = 0; i < publishersNumber; i++) {
-                    publishers += getCompanyName(game_data.getJSONArray("publishers").getInt(i), companiesData);
-                    if (i != publishersNumber - 1) {
-                        publishers += ", ";
-                    }
-                }
-                entry.setPublisher(publishers);
-            } catch (JSONException je) {
-                if (je.toString().contains("not found")) {
-                    //Main.LOGGER.warn(entry.getName()+" : no publishers");
-                } else {
-                    je.printStackTrace();
-                }
-            }
+            setGameCompanies(entry,game_data,companiesData);
 
             try {
                 entry.setSerie(getSerie(game_data));
@@ -318,36 +234,11 @@ public class IGDBScraper {
                 } else {
                     je.printStackTrace();
                 }
-            } catch (UnirestException e) {
+            } catch (UnirestException | IOException e) {
                 e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                String developers = "";
-                int developersNumber = game_data.getJSONArray("developers").length();
-                ArrayList<Integer> companiesIDS = new ArrayList<>();
-                for (int i = 0; i < developersNumber; i++) {
-                    companiesIDS.add(game_data.getJSONArray("developers").getInt(i));
-                }
-                JSONArray companiesData = getCompaniesData(companiesIDS);
-
-                for (int i = 0; i < developersNumber; i++) {
-                    developers += getCompanyName(game_data.getJSONArray("developers").getInt(i), companiesData);
-                    if (i != developersNumber - 1) {
-                        developers += ", ";
-                    }
-                }
-                entry.setDeveloper(developers);
-            } catch (JSONException je) {
-                if (je.toString().contains("not found")) {
-                    //Main.LOGGER.warn(entry.getName()+" : no developers");
-                } else {
-                    je.printStackTrace();
-                }
             }
         }
+
         try {
             entry.setGenres(getGenres(game_data));
         } catch (JSONException je) {
@@ -415,7 +306,7 @@ public class IGDBScraper {
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener);
         } catch (JSONException e) {
-            throw new UnirestException("IGDB : received invalid json : \""+json+"\"");
+            throw new UnirestException("IGDB : received invalid json : \"" + json + "\"");
         }
     }
 
@@ -441,7 +332,7 @@ public class IGDBScraper {
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener);
         } catch (JSONException e) {
-            throw new UnirestException("IGDB : received invalid JSON \""+json+"\"");
+            throw new UnirestException("IGDB : received invalid JSON \"" + json + "\"");
         }
     }
 
@@ -522,7 +413,7 @@ public class IGDBScraper {
             if (jse.toString().contains("not found")) {
                 //Main.LOGGER.error("Serie not found");
             } else {
-                throw new UnirestException("IGDB : received invalid json \""+json+"\"");
+                throw new UnirestException("IGDB : received invalid json \"" + json + "\"");
             }
         }
         return null;
@@ -557,17 +448,21 @@ public class IGDBScraper {
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener);
         } catch (JSONException e) {
-            throw new JSONException("IGDB : received invalid json \""+json+"\"");
+            throw new JSONException("IGDB : received invalid json \"" + json + "\"");
         }
     }
 
-    private static String getCompanyName(int id, JSONArray companiesData) {
+    private static Company getCompany(int id, JSONArray companiesData) {
+        Company c = Company.getFromIGDBId(id);
         try {
-            return companiesData.getJSONObject(indexOf(id, companiesData)).getString("name");
+            if (c == null && companiesData != null) {
+                String name = companiesData.getJSONObject(indexOf(id, companiesData)).getString("name");
+                c = new Company(id, name);
+            }
         } catch (JSONException je) {
             je.printStackTrace();
-            return "";
         }
+        return c;
     }
 
     private static JSONArray getCompaniesData(Collection<Integer> ids) {
@@ -596,5 +491,111 @@ public class IGDBScraper {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * Looks up in db if knows a company given its id, or adds it to the result set
+     *
+     * @param searchData a json object containing the research on a game
+     * @return a hashset containing IDs of yet unknown companies
+     */
+    private static HashSet<Integer> getUnknownCompaniesIDs(JSONObject searchData) {
+        HashSet<Integer> companiesIDs = new HashSet<>();
+        try {
+            int publishersNumber = searchData.getJSONArray("publishers").length();
+            for (int j = 0; j < publishersNumber; j++) {
+                int igdbId = searchData.getJSONArray("publishers").getInt(j);
+                Company publi = Company.getFromIGDBId(igdbId);
+                if (publi == null) {
+                    companiesIDs.add(igdbId);
+                }
+            }
+        } catch (JSONException je) {
+            if (je.toString().contains("not found")) {
+                //Main.LOGGER.warn(entry.getName()+" : no publishers");
+            } else {
+                je.printStackTrace();
+            }
+        }
+
+        try {
+            int developersNumber = searchData.getJSONArray("developers").length();
+            for (int j = 0; j < developersNumber; j++) {
+                int igdbId = searchData.getJSONArray("developers").getInt(j);
+                Company dev = Company.getFromIGDBId(igdbId);
+                if (dev == null) {
+                    companiesIDs.add(igdbId);
+                }
+            }
+        } catch (JSONException je) {
+            if (je.toString().contains("not found")) {
+                //Main.LOGGER.warn(entry.getName()+" : no publishers");
+            } else {
+                je.printStackTrace();
+            }
+        }
+        return companiesIDs;
+    }
+
+    /**
+     * See @getUnknownCompaniesIDs(JSONObject searchData)
+     *
+     * @param searchData a JSONArray of search about games
+     * @return a hashset containing idsof yet unknown companies
+     */
+    private static HashSet<Integer> getUnknownCompaniesIDs(JSONArray searchData) {
+        HashSet<Integer> companiesIDs = new HashSet<>();
+        for (int i = 0; i < searchData.length(); i++) {
+            companiesIDs.addAll(getUnknownCompaniesIDs(searchData.getJSONObject(i)));
+        }
+        return companiesIDs;
+    }
+
+    private static HashSet<Integer> getUnknownSeriesIDs(JSONObject searchData) {
+        //TODO as in getUnknownCompaniesIDs
+        return new HashSet<>();
+    }
+
+    private static HashSet<Integer> getUnknownSeriesIDs(JSONArray searchData) {
+        //TODO as in getUnknownCompaniesIDs
+        return new HashSet<>();
+    }
+
+    /** Given searchData on a game and companiesData, update it with companies
+     *
+     * @param searchData data fetched about a game
+     * @param companiesData data fetched about companies
+     */
+    private static void setGameCompanies(GameEntry entryToSet, JSONObject searchData, JSONArray companiesData) {
+
+        try {
+            int publishersNumber = searchData.getJSONArray("publishers").length();
+            for (int j = 0; j < publishersNumber; j++) {
+                int igdbId = searchData.getJSONArray("publishers").getInt(j);
+                entryToSet.addPublisher(getCompany(igdbId, companiesData));
+            }
+        } catch (JSONException je) {
+            if (je.toString().contains("not found")) {
+                //Main.LOGGER.warn(entry.getName()+" : no publishers");
+            } else {
+                je.printStackTrace();
+            }
+        }
+
+        try {
+            int developersNumber = searchData.getJSONArray("developers").length();
+
+            for (int j = 0; j < developersNumber; j++) {
+                int igdbId = searchData.getJSONArray("developers").getInt(j);
+                Company dev = Company.getFromIGDBId(igdbId);
+                entryToSet.addDeveloper(dev);
+            }
+        } catch (JSONException je) {
+            if (je.toString().contains("not found")) {
+                //Main.LOGGER.warn(entry.getName()+" : no devs");
+            } else {
+                je.printStackTrace();
+            }
+        }
     }
 }
