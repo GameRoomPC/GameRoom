@@ -986,7 +986,7 @@ public class GameEditScene extends BaseScene {
                             case MODE_ADD:
                                 break;
                             case MODE_EDIT:
-                                //TODO revert changes by loading from db and rollback
+                                entry.reloadFromDB();
                                 //was previously entry.loadEntry();
                                 break;
                             default:
@@ -1169,8 +1169,7 @@ public class GameEditScene extends BaseScene {
                                 case MODE_ADD:
                                     break;
                                 case MODE_EDIT:
-                                    //TODO revert changes by loading from db and rollback
-                                    //was previously entry.loadEntry();
+                                    entry.reloadFromDB();
                                     break;
                                 default:
                                     break;

@@ -117,21 +117,7 @@ public class GameEntry {
     }
 
     public GameEntry(int id) {
-        this.id = id;
-        for (int i = 0; i < IMAGES_NUMBER; i++) {
-            String path = "";
-            if (i == 0) {
-                path = getCoverPath();
-            } else {
-                path = getScreenShotPath();
-            }
-            //TODO read here which saved pictures corresponds to this pattern
-            path += ".jpg";
-
-            File localFile = new File(path);
-            imagesFiles[i] = localFile;
-            imageNeedsRefresh[i] = true;
-        }
+        setId(id);
     }
 
     public void saveEntry() {
@@ -1021,47 +1007,59 @@ public class GameEntry {
         }
     }
 
-    static GameEntry loadFromDB(ResultSet set) throws SQLException {
-        if (set == null) {
-            return null;
+    public void reloadFromDB(){
+        try {
+            Statement s = DataBase.getUserConnection().createStatement();
+            ResultSet set = s.executeQuery("select * from GameEntry where id = "+id);
+            if(set.next()){
+                reloadWithSet(set);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        int id = set.getInt("id");
-        GameEntry entry = new GameEntry(id);
-        entry.inDb = true;
-        entry.setSavedLocally(false);
-        entry.setName(set.getString("name"));
-        entry.setDescription(set.getString("description"));
-        entry.setPath(set.getString("path"));
-        entry.setCmd(GameEntry.CMD_BEFORE_START, set.getString("cmd_before"));
-        entry.setCmd(GameEntry.CMD_AFTER_END, set.getString("cmd_after"));
-        entry.setYoutubeSoundtrackHash(set.getString("yt_hash"));
+    }
+
+    private void reloadWithSet(ResultSet set) throws SQLException {
+        if (set == null) {
+            throw new SQLException("Given set is null");
+        }
+        setId(set.getInt("id"));
+        inDb = true;
+        setSavedLocally(false);
+        setName(set.getString("name"));
+        setDescription(set.getString("description"));
+        setPath(set.getString("path"));
+        setCmd(GameEntry.CMD_BEFORE_START, set.getString("cmd_before"));
+        setCmd(GameEntry.CMD_AFTER_END, set.getString("cmd_after"));
+        setYoutubeSoundtrackHash(set.getString("yt_hash"));
 
         Timestamp addedTimestamp = set.getTimestamp("added_date");
         if (addedTimestamp != null) {
-            entry.setAddedDate(addedTimestamp.toLocalDateTime());
+            setAddedDate(addedTimestamp.toLocalDateTime());
         } else {
-            entry.setAddedDate(LocalDateTime.now());
+            setAddedDate(LocalDateTime.now());
         }
 
         Timestamp releasedTimestamp = set.getTimestamp("release_date");
         if (releasedTimestamp != null) {
-            entry.setReleaseDate(releasedTimestamp.toLocalDateTime());
+            setReleaseDate(releasedTimestamp.toLocalDateTime());
         }
 
         Timestamp lastPlayedTimestamp = set.getTimestamp("last_played_date");
         if (lastPlayedTimestamp != null) {
-            entry.setAddedDate(lastPlayedTimestamp.toLocalDateTime());
+            setAddedDate(lastPlayedTimestamp.toLocalDateTime());
         }
 
-        entry.setPlayTimeSeconds(set.getInt("initial_playtime"));
-        entry.setInstalled(set.getBoolean("installed"));
-        entry.setIgdb_imageHash(0, set.getString("cover_hash"));
-        entry.setIgdb_imageHash(1, set.getString("wp_hash"));
-        entry.setIgdb_id(set.getInt("igdb_id"));
-        entry.setWaitingToBeScrapped(set.getBoolean("waiting_scrap"));
-        entry.setToAdd(set.getBoolean("toAdd"));
-        entry.setIgnored(set.getBoolean("ignored"));
-        entry.setBeingScraped(set.getBoolean("beingScraped"));
+        setPlayTimeSeconds(set.getInt("initial_playtime"));
+        setInstalled(set.getBoolean("installed"));
+        setIgdb_imageHash(0, set.getString("cover_hash"));
+        setIgdb_imageHash(1, set.getString("wp_hash"));
+        setIgdb_id(set.getInt("igdb_id"));
+        setWaitingToBeScrapped(set.getBoolean("waiting_scrap"));
+        setToAdd(set.getBoolean("toAdd"));
+        setIgnored(set.getBoolean("ignored"));
+        setBeingScraped(set.getBoolean("beingScraped"));
 
         //LOAD GENRES FROM DB
         try {
@@ -1071,7 +1069,7 @@ public class GameEntry {
             while (genreSet.next()) {
                 int genreId = genreSet.getInt("genre_id");
                 GameGenre genre = GameGenre.getGenreFromID(genreId);
-                entry.addGenre(genre);
+                addGenre(genre);
             }
             genreStatement.close();
         } catch (SQLException e) {
@@ -1087,7 +1085,7 @@ public class GameEntry {
                 int themeId = themeSet.getInt("theme_id");
                 GameTheme theme = GameTheme.getThemeFromId(themeId);
                 if (theme != null) {
-                    entry.addTheme(theme);
+                    addTheme(theme);
                 }
             }
             themeStatement.close();
@@ -1104,7 +1102,7 @@ public class GameEntry {
                 int devId = devSet.getInt("dev_id");
                 Company dev = Company.getFromId(devId);
                 if (dev != null) {
-                    entry.addDeveloper(dev);
+                    addDeveloper(dev);
                 }
             }
             devStatement.close();
@@ -1121,7 +1119,7 @@ public class GameEntry {
                 int publisherId = pubSet.getInt("pub_id");
                 Company publisher = Company.getFromId(publisherId);
                 if (publisher != null) {
-                    entry.addPublisher(publisher);
+                    addPublisher(publisher);
                 }
             }
             pubStatement.close();
@@ -1138,14 +1136,18 @@ public class GameEntry {
                 int serieId = serieSet.getInt("serie_id");
                 Serie serie = Serie.getFromId(serieId);
                 if (serie != null) {
-                    entry.setSerie(serie);
+                    setSerie(serie);
                 }
             }
             serieStatement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
 
+    static GameEntry loadFromDB(ResultSet set) throws SQLException {
+        GameEntry entry = new GameEntry("need_to_reload");
+        entry.reloadWithSet(set);
         return entry;
     }
 
@@ -1335,6 +1337,24 @@ public class GameEntry {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void setId(int id){
+        this.id = id;
+        for (int i = 0; i < IMAGES_NUMBER; i++) {
+            String path = "";
+            if (i == 0) {
+                path = getCoverPath();
+            } else {
+                path = getScreenShotPath();
+            }
+            //TODO read here which saved pictures corresponds to this pattern
+            path += ".jpg";
+
+            File localFile = new File(path);
+            imagesFiles[i] = localFile;
+            imageNeedsRefresh[i] = true;
         }
     }
 }
