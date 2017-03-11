@@ -3,6 +3,7 @@ package ui.pane.gamestilepane;
 import data.game.entry.GameEntry;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
+import data.game.entry.Serie;
 import data.game.scanner.ScannerProfile;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -183,9 +184,9 @@ public class GroupsFactory {
     }
 
     public static ArrayList<GroupRowTilePane> createGroupsBySerie(GamesTilePane originalTilePane, MainScene mainScene) {
-        ArrayList<String> allSeries = new ArrayList<>();
+        ArrayList<Serie> allSeries = new ArrayList<>();
         for (GameButton button : originalTilePane.getGameButtons()) {
-            if (!allSeries.contains(button.getEntry().getSerie()) && button.getEntry().getSerie() != null && !button.getEntry().getSerie().trim().equals("")) {
+            if (!button.getEntry().getSerie().equals(Serie.NONE) && !allSeries.contains(button.getEntry().getSerie()) && !button.getEntry().getSerie().equals("")) {
                 allSeries.add(button.getEntry().getSerie());
             }
         }
@@ -200,7 +201,7 @@ public class GroupsFactory {
                         return false;
                     }
                 }
-                return entry.getSerie() == null || entry.getSerie().trim().equals("");
+                return entry.getSerie().equals(Serie.NONE);
             }
         };
         othersTilePane.setTitle(Main.getString("others"));
@@ -219,17 +220,17 @@ public class GroupsFactory {
         othersTilePane.setPrefTileHeight(originalTilePane.getTilePane().getPrefTileHeight());
         othersTilePane.setPrefTileWidth(originalTilePane.getTilePane().getPrefTileWidth());
 
-        for (String serie : allSeries) {
+        for (Serie serie : allSeries) {
             GroupRowTilePane tilePane = new GroupRowTilePane(mainScene) {
                 @Override
                 public boolean fillsRequirement(GameEntry entry) {
-                    if (entry.getSerie() == null) {
+                    if (entry.getSerie().equals(Serie.NONE)) {
                         return false;
                     }
                     return entry.getSerie().equals(serie);
                 }
             };
-            tilePane.setTitle(serie);
+            tilePane.setTitle(serie.getName());
             for (GameButton button : originalTilePane.getGameButtons()) {
                 tilePane.addGame(button.getEntry());
                 othersTilePane.addGame(button.getEntry());

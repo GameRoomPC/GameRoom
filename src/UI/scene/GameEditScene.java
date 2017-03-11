@@ -183,7 +183,7 @@ public class GameEditScene extends BaseScene {
                     for (int i = 0; i < chosenImageFiles.length; i++) {
                         if (chosenImageFiles[i] != null) {
                             try {
-                                entry.updateImage(i,chosenImageFiles[i]);
+                                entry.updateImage(i, chosenImageFiles[i]);
                             } catch (IOException e) {
                                 //TODO localize
                                 GameRoomAlert.error("Could not move new images");
@@ -294,12 +294,36 @@ public class GameEditScene extends BaseScene {
             }
         });
         /**************************SERIE*********************************************/
-        createLineForProperty("serie", entry.getSerie(), new ChangeListener<String>() {
+
+        // create the data to show in the CheckComboBox
+        final ObservableList<Serie> allSeries = FXCollections.observableArrayList();
+        allSeries.addAll(Serie.values());
+        allSeries.sort(new Comparator<Serie>() {
             @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                entry.setSerie(newValue);
+            public int compare(Serie o1, Serie o2) {
+                if(o1 == null || o1.getName() == null){
+                    return -1;
+                }
+                if(o2 == null || o2.getName() == null){
+                    return 1;
+                }
+                return o1.getName().compareTo(o2.getName());
             }
         });
+        // Create the CheckComboBox with the data
+        final ComboBox<Serie> serieComboBox = new ComboBox<Serie>(allSeries);
+        serieComboBox.setId("serie");
+        if (entry.getGenres() != null) {
+            serieComboBox.getSelectionModel().select(entry.getSerie());
+        }
+        serieComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            entry.setSerie(newValue);
+        });
+        Label serieLabel = new Label(Main.getString("serie") + " :");
+        serieLabel.setTooltip(new Tooltip(Main.getString("serie")));
+        contentPane.add(serieLabel, 0, row_count);
+        contentPane.add(serieComboBox, 1, row_count);
+        row_count++;
 
         /**************************PATH*********************************************/
         contentPane.add(new Label(Main.getString("game_path") + " :"), 0, row_count);
@@ -819,9 +843,13 @@ public class GameEditScene extends BaseScene {
                                     ((CheckComboBox) node).getCheckModel().check(pub);
                                 }
                             }
-                        } else if (newValue instanceof LocalDateTime) {
+                        } else if (property.equals("serie")) {
+                            if (node instanceof ComboBox) {
+                                ((ComboBox<Serie>)node).getSelectionModel().select((Serie) newValue);
+                            }
+                        }else if (newValue instanceof LocalDateTime) {
                             if (node instanceof TextField) {
-                                ((TextField) node).setText(newValue != null ? GameEntry.DATE_DISPLAY_FORMAT.format((LocalDateTime)newValue) : "");
+                                ((TextField) node).setText(newValue != null ? GameEntry.DATE_DISPLAY_FORMAT.format((LocalDateTime) newValue) : "");
                             }
                         }
                         break;

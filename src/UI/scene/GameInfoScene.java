@@ -54,10 +54,10 @@ public class GameInfoScene extends BaseScene {
         initCenter();
         initBottom();
         addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            switch (event.getCode()){
+            switch (event.getCode()) {
                 case SPACE:
-                    if(ytButton!=null){
-                        if(!ytButton.getSoundMuteButton().isMouseTransparent()){
+                    if (ytButton != null) {
+                        if (!ytButton.getSoundMuteButton().isMouseTransparent()) {
                             ytButton.getSoundMuteButton().getOnAction().handle(new ActionEvent());
                         }
                     }
@@ -66,7 +66,7 @@ public class GameInfoScene extends BaseScene {
                     break;
             }
         });
-        if(previousScene instanceof MainScene && ((MainScene)previousScene).getInputMode() == MainScene.INPUT_MODE_KEYBOARD){
+        if (previousScene instanceof MainScene && ((MainScene) previousScene).getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
             coverButton.requestFocus();
         }
     }
@@ -78,7 +78,7 @@ public class GameInfoScene extends BaseScene {
         editButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                fadeTransitionTo(new GameEditScene(GameInfoScene.this, entry,coverButton.getImage()), getParentStage());
+                fadeTransitionTo(new GameEditScene(GameInfoScene.this, entry, coverButton.getImage()), getParentStage());
             }
         });
         Button deleteButton = new Button(Main.getString("delete"));
@@ -92,7 +92,7 @@ public class GameInfoScene extends BaseScene {
                 if (result.get() == ButtonType.OK) {
                     entry.deletePermanently();
                     MAIN_SCENE.removeGame(entry);
-                    GeneralToast.displayToast(entry.getName()+Main.getString("removed_from_your_lib"),getParentStage());
+                    GeneralToast.displayToast(entry.getName() + Main.getString("removed_from_your_lib"), getParentStage());
                     fadeTransitionTo(previousScene, getParentStage());
                 }
             }
@@ -105,8 +105,8 @@ public class GameInfoScene extends BaseScene {
         if (entry.getImagePath(1) != null) {
             //Main.LOGGER.debug("Screenshot available : "+entry.getImagePath(1));
             Image screenshotImage = entry.getImage(1,
-                    Main.GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO,
-                    Main.GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO
+                    Main.GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
+                    Main.GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
                     , false, true);
 
             backgroundView.setImage(screenshotImage);
@@ -121,9 +121,9 @@ public class GameInfoScene extends BaseScene {
 
     private void initTop() {
         StackPane topStackPane = createTop(entry.getName());
-        if(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
+        if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
             try {
-                ytButton = new YoutubePlayerAndButton(entry,this);
+                ytButton = new YoutubePlayerAndButton(entry, this);
                 entry.setOnGameLaunched(() -> ytButton.automaticPause());
                 entry.setOnGameStopped(() -> ytButton.automaticPlay());
                 topStackPane.getChildren().addAll(ytButton.getSoundMuteButton());
@@ -167,7 +167,7 @@ public class GameInfoScene extends BaseScene {
 
         double imgSize = 50 * SCREEN_WIDTH / 1920;
         //Image folderImage = new Image("res/ui/folderButton.png", 50 * SCREEN_WIDTH / 1920, 50 * SCREEN_HEIGHT / 1080, false, true);
-        ImageButton folderButton = new ImageButton("folder-button", imgSize,imgSize);
+        ImageButton folderButton = new ImageButton("folder-button", imgSize, imgSize);
         folderButton.setOnAction(event -> {
             try {
                 Desktop.getDesktop().open(new File(entry.getPath()).getParentFile());
@@ -175,7 +175,7 @@ public class GameInfoScene extends BaseScene {
                 e.printStackTrace();
             }
         });
-        if(new File(entry.getPath()).exists()) {
+        if (new File(entry.getPath()).exists()) {
             propertiesPane.add(folderButton, 2, row_count - 1);
         }
         /***************************END PATH******************************************/
@@ -187,31 +187,32 @@ public class GameInfoScene extends BaseScene {
         row_count++;
         /****************************END SEPARATORS************************************/
         addProperty("release_date", entry.getReleaseDate() != null ? GameEntry.DATE_DISPLAY_FORMAT.format(entry.getReleaseDate()) : "");
-        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)){
+        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
 
             addProperty("added_date", entry.getAddedDate() != null ? ISO_LOCAL_DATE_TIME.format(entry.getAddedDate()) : "").setId("advanced-setting-label");
         }
 
         addProperty("developer", Company.getDisplayString(entry.getDevelopers()));
         addProperty("publisher", Company.getDisplayString(entry.getPublishers()));
-        addProperty("serie", entry.getSerie());
-        if(entry.getGenres()!=null){
+        addProperty("serie", entry.getSerie().getName());
+
+        if (entry.getGenres() != null) {
             String genres = "";
-            for(GameGenre genre : entry.getGenres()){
-                genres+=genre.getDisplayName()+", ";
+            for (GameGenre genre : entry.getGenres()) {
+                genres += genre.getDisplayName() + ", ";
             }
-            addProperty("genre",genres.length() > 2 && !genres.equals("") ? genres.substring(0,genres.length()-2):"-");
-        }else{
-            addProperty("genre",null);
+            addProperty("genre", genres.length() > 2 && !genres.equals("") ? genres.substring(0, genres.length() - 2) : "-");
+        } else {
+            addProperty("genre", null);
         }
-        if(entry.getThemes()!=null){
+        if (entry.getThemes() != null) {
             String themes = "";
-            for(GameTheme theme : entry.getThemes()){
-                themes+=theme.getDisplayName()+", ";
+            for (GameTheme theme : entry.getThemes()) {
+                themes += theme.getDisplayName() + ", ";
             }
-            addProperty("theme",themes.length() > 2 && !themes.equals(", ") ? themes.substring(0,themes.length()-2) : "-");
-        }else{
-            addProperty("theme",null);
+            addProperty("theme", themes.length() > 2 && !themes.equals(", ") ? themes.substring(0, themes.length() - 2) : "-");
+        } else {
+            addProperty("theme", null);
         }
         addProperty("description", entry.getDescription());
 
@@ -250,33 +251,34 @@ public class GameInfoScene extends BaseScene {
         row_count++;
         return valueLabel;
     }
-    void updateWithEditedEntry(GameEntry editedEntry){
+
+    void updateWithEditedEntry(GameEntry editedEntry) {
         updateProperty("play_time", editedEntry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS));
         updateProperty("game_path", editedEntry.getPath());
-        updateProperty("release_date", editedEntry.getReleaseDate()!=null ? GameEntry.DATE_DISPLAY_FORMAT.format(editedEntry.getReleaseDate()) : "");
+        updateProperty("release_date", editedEntry.getReleaseDate() != null ? GameEntry.DATE_DISPLAY_FORMAT.format(editedEntry.getReleaseDate()) : "");
         updateProperty("developer", Company.getDisplayString(entry.getDevelopers()));
         updateProperty("publisher", Company.getDisplayString(entry.getPublishers()));
 
-        updateProperty("serie", editedEntry.getSerie());
+        updateProperty("serie", editedEntry.getSerie().getName());
 
-        if(entry.getGenres()!=null){
+        if (entry.getGenres() != null) {
             String genres = "";
-            for(GameGenre genre : entry.getGenres()){
-                genres+=genre.getDisplayName()+", ";
+            for (GameGenre genre : entry.getGenres()) {
+                genres += genre.getDisplayName() + ", ";
             }
             updateProperty("genre", genres.length() > 2 ? genres.substring(0, genres.length() - 2) : "-");
 
-        }else{
-            updateProperty("genre",null);
+        } else {
+            updateProperty("genre", null);
         }
-        if(entry.getThemes()!=null){
+        if (entry.getThemes() != null) {
             String themes = "";
-            for(GameTheme theme : entry.getThemes()){
-                themes+=theme.getDisplayName()+", ";
+            for (GameTheme theme : entry.getThemes()) {
+                themes += theme.getDisplayName() + ", ";
             }
-            updateProperty("theme",themes.length() > 2 ?themes.substring(0,themes.length()-2) : "-");
-        }else{
-            updateProperty("theme",null);
+            updateProperty("theme", themes.length() > 2 ? themes.substring(0, themes.length() - 2) : "-");
+        } else {
+            updateProperty("theme", null);
         }
         updateProperty("description", editedEntry.getDescription());
         Image backgroundImage = editedEntry.getImage(1,
@@ -286,11 +288,11 @@ public class GameInfoScene extends BaseScene {
         //no need to fade transition here as it is the "right" image and no actual change
         double widthScale = 1;
         double heightScale = 1;
-        if(backgroundImage!= null && backgroundImage.getWidth() != GENERAL_SETTINGS.getWindowWidth()){
-            widthScale = (double)GENERAL_SETTINGS.getWindowWidth()/backgroundImage.getWidth();
+        if (backgroundImage != null && backgroundImage.getWidth() != GENERAL_SETTINGS.getWindowWidth()) {
+            widthScale = (double) GENERAL_SETTINGS.getWindowWidth() / backgroundImage.getWidth();
         }
-        if(backgroundImage!= null && backgroundImage.getHeight() != GENERAL_SETTINGS.getWindowHeight()){
-            heightScale = (double)GENERAL_SETTINGS.getWindowHeight()/backgroundImage.getHeight();
+        if (backgroundImage != null && backgroundImage.getHeight() != GENERAL_SETTINGS.getWindowHeight()) {
+            heightScale = (double) GENERAL_SETTINGS.getWindowHeight() / backgroundImage.getHeight();
         }
         backgroundView.setScaleX(widthScale);
         backgroundView.setScaleY(heightScale);
@@ -300,11 +302,12 @@ public class GameInfoScene extends BaseScene {
         backgroundView.setEffect(blur);
         backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
         coverButton.setImage(editedEntry.getImage(0
-                ,coverButton.getWidth()
-                ,coverButton.getHeight()
-                ,false
-                ,true));
+                , coverButton.getWidth()
+                , coverButton.getHeight()
+                , false
+                , true));
     }
+
     private void updateProperty(String title, String value) {
         for (Node node : propertiesPane.getChildren()) {
             if (node != null && node instanceof Label && node.getId() != null && node.getId().equals(title)) {

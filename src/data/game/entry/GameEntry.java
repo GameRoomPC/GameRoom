@@ -43,15 +43,14 @@ public class GameEntry {
     private String name = "";
     private LocalDateTime releaseDate;
     private String description = "";
-    private String publisher = "";
 
     private ArrayList<Company> developers = new ArrayList<>();
     private ArrayList<Company> publishers = new ArrayList<>();
+    private Serie serie = Serie.NONE;
 
     private ArrayList<GameGenre> genres = new ArrayList<>();
     private ArrayList<GameTheme> themes = new ArrayList<>();
 
-    private String serie = "";
     private int aggregated_rating;
     private String path = "";
     private int id = -1;
@@ -267,11 +266,7 @@ public class GameEntry {
     }
 
     private void saveSerie() throws SQLException {
-        if (serie != null && !serie.isEmpty()) {
-            Serie gameSerie = new Serie(serie);
-            int serieId = gameSerie.insertInDB();
-
-            if (serieId != -1) {
+        if (serie != null) {
                 PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from regroups where game_id= ?");
                 deleteStatement.setInt(1, id);
                 deleteStatement.execute();
@@ -279,11 +274,10 @@ public class GameEntry {
 
                 PreparedStatement serieStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO regroups(game_id,serie_id) VALUES (?,?)");
                 serieStatement2.setInt(1, id);
-                serieStatement2.setInt(2, serieId);
+                serieStatement2.setInt(2, serie.getId());
                 serieStatement2.execute();
                 serieStatement2.close();
                 //DataBase.commit();
-            }
         }
     }
 
@@ -716,7 +710,13 @@ public class GameEntry {
 
     public void setGenres(ArrayList<GameGenre> genres) {
         this.genres = genres;
-        //TODO do a multi "insert or ignore into" here into the relational table
+        if (savedLocally && !deleted) {
+            try {
+                saveGenres();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public ArrayList<GameTheme> getThemes() {
@@ -725,16 +725,31 @@ public class GameEntry {
 
     public void setThemes(ArrayList<GameTheme> themes) {
         this.themes = themes;
-        //TODO do a multi "insert or ignore into " here into the relational table
+        if (savedLocally && !deleted) {
+            try {
+                saveThemes();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    public String getSerie() {
+    public Serie getSerie() {
         return serie;
     }
 
-    public void setSerie(String serie) {
-        this.serie = serie != null ? serie : "";
-        //TODO do a multi "insert or ignore into " here into the relational table
+    public void setSerie(Serie serie) {
+        if(serie == null){
+            this.serie = Serie.NONE;
+        }
+        this.serie = serie;
+        if (savedLocally && !deleted) {
+            try {
+                saveSerie();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void setCmd(int index, String cmd) {
@@ -1088,6 +1103,40 @@ public class GameEntry {
             e.printStackTrace();
         }
 
+        //LOAD PUBLISHERS FROM DB
+        try {
+            PreparedStatement pubStatement = DataBase.getUserConnection().prepareStatement("SELECT pub_id FROM publishes WHERE game_id=?");
+            pubStatement.setInt(1, id);
+            ResultSet pubSet = pubStatement.executeQuery();
+            while (pubSet.next()) {
+                int publisherId = pubSet.getInt("pub_id");
+                Company publisher = Company.getFromId(publisherId);
+                if (publisher != null) {
+                    entry.addPublisher(publisher);
+                }
+            }
+            pubStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        //LOAD SERIE FROM DB
+        try {
+            PreparedStatement serieStatement = DataBase.getUserConnection().prepareStatement("SELECT serie_id FROM regroups WHERE game_id=?");
+            serieStatement.setInt(1, id);
+            ResultSet serieSet = serieStatement.executeQuery();
+            while (serieSet.next()) {
+                int serieId = serieSet.getInt("serie_id");
+                Serie serie = Serie.getFromId(serieId);
+                if (serie != null) {
+                    entry.setSerie(serie);
+                }
+            }
+            serieStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         return entry;
     }
 
@@ -1243,6 +1292,34 @@ public class GameEntry {
 
     public void setPublishers(ArrayList<Company> publishers) {
         this.publishers = publishers;
+        if (savedLocally && !deleted) {
+            try {
+                savePublishers();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void addPublisher(Company dev) {
+        if (dev == null) {
+            return;
+        }
+        publishers.add(dev);
+        if (savedLocally && !deleted) {
+            try {
+                savePublishers();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void removePublisher(Company dev) {
+        if (dev == null) {
+            return;
+        }
+        publishers.remove(dev);
         if (savedLocally && !deleted) {
             try {
                 savePublishers();

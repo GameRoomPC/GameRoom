@@ -10,9 +10,10 @@ import java.util.HashMap;
  * Created by LM on 02/03/2017.
  */
 public class Company {
+    private final static int DEFAULT_ID = -1;
     private final static HashMap<Integer, Company> ID_MAP = new HashMap<>();
-    private int igdb_id = -1;
-    private int id;
+    private int igdb_id = DEFAULT_ID;
+    private int id = DEFAULT_ID;
     private String name;
     private int IGDBId;
 
@@ -36,32 +37,49 @@ public class Company {
 
     public int insertInDB() {
         try {
-            String sql = "INSERT OR IGNORE INTO Company(name_key," + (igdb_id < 0 ? "id_needs_update) VALUES (?,?)" : "igdb_id) VALUES (?,?)");
-            PreparedStatement devStatement = DataBase.getUserConnection().prepareStatement(sql);
-            devStatement.setString(1, name);
-            if (igdb_id >= 0) {
-                devStatement.setInt(2, igdb_id);
-            } else {
-                devStatement.setInt(2, 1);
-            }
-            devStatement.execute();
-            devStatement.close();
-            id = getIdInDb();
+            if(isInDB()){
+                id = getIdInDb();
+                String sql = "UPDATE Serie set name_key=?"+(igdb_id < 0 ? "" : ", igdb_id=?")+" where id="+id;
+                PreparedStatement companyStatement = DataBase.getUserConnection().prepareStatement(sql);
+                companyStatement.setString(1, name);
+                if (igdb_id >= 0) {
+                    companyStatement.setInt(2, igdb_id);
+                }
+                companyStatement.execute();
+                companyStatement.close();
+            }else {
+                String sql = "INSERT OR IGNORE INTO Company(name_key," + (igdb_id < 0 ? "id_needs_update) VALUES (?,?)" : "igdb_id) VALUES (?,?)");
+                PreparedStatement companyStatement = DataBase.getUserConnection().prepareStatement(sql);
+                companyStatement.setString(1, name);
+                if (igdb_id >= 0) {
+                    companyStatement.setInt(2, igdb_id);
+                } else {
+                    companyStatement.setInt(2, 1);
+                }
+                companyStatement.execute();
+                companyStatement.close();
 
-            ID_MAP.put(id, this);
+                id = getIdInDb();
+                ID_MAP.put(id, this);
+            }
+
             return id;
             //DataBase.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return -1;
+        return DEFAULT_ID;
+    }
+
+    private boolean isInDB(){
+        return getIdInDb() != DEFAULT_ID;
     }
 
     private int getIdInDb() {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Company's name was either null or empty : \"" + name + "\"");
         }
-        int id = -1;
+        int id = DEFAULT_ID;
         try {
             Connection connection = DataBase.getUserConnection();
             PreparedStatement getIdQuery = connection.prepareStatement("SELECT id FROM Company WHERE name_key = ?");
@@ -88,9 +106,9 @@ public class Company {
             }
         }
 
-        for (Company dev : ID_MAP.values()) {
-            if (dev.getIGDBId() == igdb_id) {
-                return dev;
+        for (Company company : ID_MAP.values()) {
+            if (company.getIGDBId() == igdb_id) {
+                return company;
             }
         }
         //try to see if it exists in db
@@ -100,13 +118,13 @@ public class Company {
             statement.setInt(1, igdb_id);
             ResultSet set = statement.executeQuery();
             if (set.next()) {
-                int devId = set.getInt("id");
+                int companyId = set.getInt("id");
                 String key = set.getString("name_key");
-                Company newDev = new Company(devId, key);
-                newDev.setIGDBId(igdb_id);
-                ID_MAP.put(devId, newDev);
+                Company newCompany = new Company(companyId, key);
+                newCompany.setIGDBId(igdb_id);
+                ID_MAP.put(companyId, newCompany);
 
-                return newDev;
+                return newCompany;
             }
             statement.close();
         } catch (SQLException e) {
@@ -125,9 +143,9 @@ public class Company {
             }
         }
 
-        Company dev = ID_MAP.get(id);
+        Company company = ID_MAP.get(id);
 
-        if(dev == null){
+        if(company == null){
             //try to see if it exists in db
             try {
                 Connection connection = DataBase.getUserConnection();
@@ -135,13 +153,13 @@ public class Company {
                 statement.setInt(1, id);
                 ResultSet set = statement.executeQuery();
                 if (set.next()) {
-                    int devId = set.getInt("id");
+                    int companyId = set.getInt("id");
                     String key = set.getString("name_key");
-                    Company newDev = new Company(devId, key);
-                    newDev.setIGDBId(set.getInt("igdb_id"));
-                    ID_MAP.put(devId, newDev);
+                    Company newCompany = new Company(companyId, key);
+                    newCompany.setIGDBId(set.getInt("igdb_id"));
+                    ID_MAP.put(companyId, newCompany);
 
-                    return newDev;
+                    return newCompany;
                 }
                 statement.close();
             } catch (SQLException e) {
@@ -149,7 +167,7 @@ public class Company {
             }
         }
 
-        return dev;
+        return company;
     }
 
     private static void initWithDb() throws SQLException {
@@ -193,10 +211,18 @@ public class Company {
         for(Company c : companies){
             temp+= c.getName();
             if(i!=companies.size() -1){
-                temp+=",";
+                temp+=", ";
             }
             i++;
         }
         return temp;
+    }
+
+    @Override
+    public String toString(){
+        if(name == null){
+            return "-";
+        }
+        return name;
     }
 }

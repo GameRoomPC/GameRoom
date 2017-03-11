@@ -3,10 +3,7 @@ package data.game.scraper;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import data.game.entry.Company;
-import data.game.entry.GameEntry;
-import data.game.entry.GameGenre;
-import data.game.entry.GameTheme;
+import data.game.entry.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,7 +12,6 @@ import org.json.JSONTokener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -133,40 +129,17 @@ public class IGDBScraper {
     }*/
     public static ArrayList<GameEntry> getEntries(JSONArray searchData) throws IOException, UnirestException {
         ArrayList<GameEntry> entries = new ArrayList<>();
-        HashSet<Integer> companiesIDs = getUnknownCompaniesIDs(searchData);
-        HashSet<Integer> seriesIDs = new HashSet<>();
 
-        try {
-            seriesIDs.add(searchData.getJSONObject(i).getInt("collection"));
-        } catch (JSONException je) {
-            if (je.toString().contains("not found")) {
-                //Main.LOGGER.warn(entry.getName()+" : no publishers");
-            } else {
-                je.printStackTrace();
-            }
-        }
-
-        JSONArray companiesData = getCompaniesData(companiesIDs);
-        JSONArray seriesData = getSeriesData(seriesIDs);
+        JSONArray companiesData = getCompaniesData(getUnknownCompaniesIDs(searchData));
+        JSONArray seriesData = getSeriesData(getUnknownSeriesIDs(searchData));
 
 
         for (int i = 0; i < searchData.length(); i++) {
             JSONObject gameData = searchData.getJSONObject(i);
             GameEntry entry = getEntry(gameData, false);
-            setGameCompanies(entry,gameData,companiesData);
+            setGameCompanies(entry, gameData, companiesData);
+            setGameSerie(entry, gameData, seriesData);
 
-            try {
-                int serieId = searchData.getJSONObject(i).getInt("collection");
-                if (seriesData != null) {
-                    entry.setSerie(getSerieName(serieId, seriesData));
-                }
-            } catch (JSONException je) {
-                if (je.toString().contains("not found")) {
-                    //Main.LOGGER.warn(entry.getName()+" : no serie");
-                } else {
-                    je.printStackTrace();
-                }
-            }
             entries.add(entry);
             try {
                 Thread.sleep(2 * 100);
@@ -221,22 +194,10 @@ public class IGDBScraper {
             }
         }
         if (allowUseMoreRequest) {
-            HashSet<Integer> companiesIDS = getUnknownCompaniesIDs(game_data);
-            JSONArray companiesData = getCompaniesData(companiesIDS);
-
-            setGameCompanies(entry,game_data,companiesData);
-
-            try {
-                entry.setSerie(getSerie(game_data));
-            } catch (JSONException je) {
-                if (je.toString().contains("not found")) {
-                    //Main.LOGGER.warn(entry.getName()+" : no serie");
-                } else {
-                    je.printStackTrace();
-                }
-            } catch (UnirestException | IOException e) {
-                e.printStackTrace();
-            }
+            JSONArray companiesData = getCompaniesData(getUnknownCompaniesIDs(game_data));
+            JSONArray seriesData = getSeriesData(getUnknownSeriesIDs(game_data));
+            setGameCompanies(entry, game_data, companiesData);
+            setGameSerie(entry, game_data, seriesData);
         }
 
         try {
@@ -419,16 +380,20 @@ public class IGDBScraper {
         return null;
     }
 
-    private static String getSerieName(int id, JSONArray serieData) {
+    private static Serie getSerie(int id, JSONArray serieData) {
+        Serie s = Serie.getFromIGDBId(id);
         try {
-            return serieData.getJSONObject(indexOf(id, serieData)).getString("name");
+            if (s == null && serieData != null) {
+                String name = serieData.getJSONObject(indexOf(id, serieData)).getString("name");
+                s = new Serie(id, name);
+            }
         } catch (JSONException je) {
             je.printStackTrace();
-            return "";
         }
+        return s;
     }
 
-    private static JSONArray getSeriesData(Collection<Integer> ids) throws UnirestException, IOException {
+    private static JSONArray getSeriesData(Collection<Integer> ids) {
         if (ids.size() < 1) {
             return null;
         }
@@ -436,20 +401,21 @@ public class IGDBScraper {
         for (Integer id : ids) {
             idsString += id + ",";
         }
-        HttpResponse<String> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/collections/" + idsString.substring(0, idsString.length() - 1) + /*"?fields=*"+*/ "?fields=name")
-                .header("X-Mashape-Key", key)
-                .header("Accept", "application/json")
-                .asString();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
-        String json = reader.readLine();
-        reader.close();
+        HttpResponse<String> response = null;
         try {
-
+            response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/collections/" + idsString.substring(0, idsString.length() - 1) + /*"?fields=*"+*/ "?fields=name")
+                    .header("X-Mashape-Key", key)
+                    .header("Accept", "application/json")
+                    .asString();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
+            String json = reader.readLine();
+            reader.close();
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener);
-        } catch (JSONException e) {
-            throw new JSONException("IGDB : received invalid json \"" + json + "\"");
+        } catch (UnirestException | IOException e) {
+            e.printStackTrace();
         }
+        return null;
     }
 
     private static Company getCompany(int id, JSONArray companiesData) {
@@ -483,11 +449,7 @@ public class IGDBScraper {
             reader.close();
             JSONTokener tokener = new JSONTokener(json);
             return new JSONArray(tokener);
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (UnirestException | IOException e) {
             e.printStackTrace();
         }
         return null;
@@ -551,19 +513,10 @@ public class IGDBScraper {
         return companiesIDs;
     }
 
-    private static HashSet<Integer> getUnknownSeriesIDs(JSONObject searchData) {
-        //TODO as in getUnknownCompaniesIDs
-        return new HashSet<>();
-    }
-
-    private static HashSet<Integer> getUnknownSeriesIDs(JSONArray searchData) {
-        //TODO as in getUnknownCompaniesIDs
-        return new HashSet<>();
-    }
-
-    /** Given searchData on a game and companiesData, update it with companies
+    /**
+     * Given searchData on a game and companiesData, update it with companies
      *
-     * @param searchData data fetched about a game
+     * @param searchData    data fetched about a game
      * @param companiesData data fetched about companies
      */
     private static void setGameCompanies(GameEntry entryToSet, JSONObject searchData, JSONArray companiesData) {
@@ -593,6 +546,64 @@ public class IGDBScraper {
         } catch (JSONException je) {
             if (je.toString().contains("not found")) {
                 //Main.LOGGER.warn(entry.getName()+" : no devs");
+            } else {
+                je.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Looks up in db if knows a serie given its id, or adds it to the result set
+     *
+     * @param searchData a json object containing the research on a game
+     * @return a hashset containing IDs of yet unknown series
+     */
+    private static HashSet<Integer> getUnknownSeriesIDs(JSONObject searchData) {
+        HashSet<Integer> seriesIDs = new HashSet<>();
+        try {
+            int serieId = searchData.getInt("collection");
+            Serie serie = Serie.getFromIGDBId(serieId);
+            if (serie == null) {
+                seriesIDs.add(serieId);
+            }
+        } catch (JSONException je) {
+            if (je.toString().contains("not found")) {
+                //Main.LOGGER.warn(entry.getName()+" : no publishers");
+            } else {
+                je.printStackTrace();
+            }
+        }
+        return seriesIDs;
+    }
+
+    /**
+     * See @getUnknownSeriesIDs(JSONObject searchData)
+     *
+     * @param searchData a JSONArray of search about games
+     * @return a hashset containing ids of yet unknown serie
+     */
+    private static HashSet<Integer> getUnknownSeriesIDs(JSONArray searchData) {
+        HashSet<Integer> seriesIDs = new HashSet<>();
+        for (int i = 0; i < searchData.length(); i++) {
+            seriesIDs.addAll(getUnknownSeriesIDs(searchData.getJSONObject(i)));
+        }
+        return seriesIDs;
+    }
+
+    /**
+     * Given searchData on a game and serieDAta, update it with corresponding serie
+     *
+     * @param searchData data fetched about a game
+     * @param seriesData data fetched about series
+     */
+    private static void setGameSerie(GameEntry entryToSet, JSONObject searchData, JSONArray seriesData) {
+
+        try {
+            int serieId = searchData.getInt("collection");
+            entryToSet.setSerie(getSerie(serieId, seriesData));
+        } catch (JSONException je) {
+            if (je.toString().contains("not found")) {
+                //Main.LOGGER.warn(entry.getName()+" : no serie");
             } else {
                 je.printStackTrace();
             }
