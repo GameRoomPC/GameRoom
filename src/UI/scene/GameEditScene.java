@@ -197,6 +197,7 @@ public class GameEditScene extends BaseScene {
                         entry.setToAdd(false);
                     }
                     entry.setSavedLocally(true);
+                    entry.saveEntry();
 
                     switch (mode) {
                         case MODE_ADD:

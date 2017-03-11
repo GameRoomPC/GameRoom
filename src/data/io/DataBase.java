@@ -58,7 +58,7 @@ public class DataBase {
             //the window's size if user cancel changes
             USER_CONNECTION = DriverManager.getConnection(url);
             if (USER_CONNECTION != null) {
-                USER_CONNECTION.setAutoCommit(false);
+                //USER_CONNECTION.setAutoCommit(false);
                 DatabaseMetaData meta = USER_CONNECTION.getMetaData();
                 System.out.println("The driver name is " + meta.getDriverName());
                 System.out.println("A new database has been created, path is \"" + url + "\"");

@@ -42,7 +42,7 @@ public class Developer {
             }
             devStatement.execute();
             devStatement.close();
-            DataBase.commit();
+            //DataBase.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }

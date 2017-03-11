@@ -44,7 +44,7 @@ public class Publisher {
             }
             pubStatement.execute();
             pubStatement.close();
-            DataBase.commit();
+            //DataBase.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
