@@ -16,7 +16,7 @@ public class Serie {
     private final static HashMap<Integer, Serie> ID_MAP = new HashMap<>();
 
     private final static int NONE_ID = -2;
-    private final static int DEFAULT_ID = -1;
+    public final static int DEFAULT_ID = -1;
     public final static Serie NONE = new Serie(NONE_ID, NONE_ID, "-");
 
 
@@ -37,7 +37,7 @@ public class Serie {
 
         if (id != NONE_ID) {
             insertInDB();
-        }else{
+        }else {
             ID_MAP.put(id,this);
         }
     }

@@ -270,12 +270,11 @@ public class OldGameEntry {
     private void exportSerie() throws SQLException {
         if (serie != null && !serie.isEmpty()) {
             Serie gameSerie = new Serie(serie);
-            int serieId = gameSerie.insertInDB();
 
-            if (serieId != -1) {
+            if (gameSerie.getId() != Serie.DEFAULT_ID) {
                 PreparedStatement serieStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO regroups(game_id,serie_id) VALUES (?,?)");
                 serieStatement2.setInt(1, sqlId);
-                serieStatement2.setInt(2, serieId);
+                serieStatement2.setInt(2, gameSerie.getId());
                 serieStatement2.execute();
                 serieStatement2.close();
                 //DataBase.commit();

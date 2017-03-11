@@ -163,6 +163,8 @@ public class GameEntry {
         statement.setBoolean(17, waitingToBeScrapped);
         statement.setBoolean(18, toAdd);
         statement.setBoolean(19, beingScrapped);
+        statement.setInt(20, id);
+
         statement.execute();
         statement.close();
 
