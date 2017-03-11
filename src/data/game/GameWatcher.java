@@ -451,6 +451,7 @@ public class GameWatcher {
             foundEntry.setAddedDate(LocalDateTime.now());
             foundEntry.setToAdd(true);
             foundEntry.setSavedLocally(true);
+            foundEntry.saveEntry();
             foundEntry.setName(cleanName(foundEntry.getName()));
 
             Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());

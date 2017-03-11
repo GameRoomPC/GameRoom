@@ -39,7 +39,7 @@ public class Company {
         try {
             if(isInDB()){
                 id = getIdInDb();
-                String sql = "UPDATE Serie set name_key=?"+(igdb_id < 0 ? "" : ", igdb_id=?")+" where id="+id;
+                String sql = "UPDATE Company set name_key=?"+(igdb_id < 0 ? "" : ", igdb_id=?")+" where id="+id;
                 PreparedStatement companyStatement = DataBase.getUserConnection().prepareStatement(sql);
                 companyStatement.setString(1, name);
                 if (igdb_id >= 0) {

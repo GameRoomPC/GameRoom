@@ -95,7 +95,10 @@ public class OldGameEntry {
     }
 
     public static void transferOldGameEntries() {
-        ArrayList<UUID> toAddUUIDs = GameEntryUtils.readUUIDS(FILES_MAP.get("to_add"));
+        File toAddFolder = FILES_MAP.get("to_add");
+        File gamesFolder = FILES_MAP.get("games");
+
+        ArrayList<UUID> toAddUUIDs = GameEntryUtils.readUUIDS(toAddFolder);
 
         ArrayList<OldGameEntry> oldEntries = new ArrayList<>();
         for (UUID uuid : toAddUUIDs) {
@@ -103,7 +106,7 @@ public class OldGameEntry {
             oldEntries.add(entry);
         }
 
-        ArrayList<UUID> uuids = GameEntryUtils.readUUIDS(FILES_MAP.get("games"));
+        ArrayList<UUID> uuids = GameEntryUtils.readUUIDS(gamesFolder);
         for (UUID uuid : uuids) {
             OldGameEntry entry = new OldGameEntry(uuid);
             oldEntries.add(entry);
@@ -112,6 +115,9 @@ public class OldGameEntry {
         for (OldGameEntry entry : oldEntries) {
             entry.transferToDB();
         }
+
+        toAddFolder.renameTo(new File(toAddFolder.getAbsolutePath()+".bak"));
+        gamesFolder.renameTo(new File(gamesFolder.getAbsolutePath()+".bak"));
 
     }
 
