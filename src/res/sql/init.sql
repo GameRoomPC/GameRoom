@@ -107,13 +107,14 @@ CREATE TABLE IF NOT EXISTS played (
 CREATE TABLE IF NOT EXISTS Platform (
 	id integer PRIMARY KEY,
 	name_key text,
+	igdb_id integer unique,
 	is_launcher integer default 0
 );
 
 CREATE TABLE IF NOT EXISTS runs_on (
-	specific_id integer,
+	platformGameId integer,
 	platform_id integer,
-	game_id integer,
+	game_id integer unique,
 	FOREIGN KEY(platform_id) REFERENCES Platform(id),
 	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
 	PRIMARY KEY (platform_id, game_id)
@@ -248,7 +249,7 @@ INSERT OR REPLACE INTO Platform(id,name_key,is_launcher) VALUES
 	(2,"steam_online",1),
 	(3,"origin",1),
 	(4,"uplay",1),
-	(5,"battle_net",1),
+	(5,"battlenet",1),
 	(6,"gog",1),
 	(7,"wii",0),
 	(8,"gamecube",0),

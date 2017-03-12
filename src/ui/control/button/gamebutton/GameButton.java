@@ -40,7 +40,6 @@ import ui.scene.GameInfoScene;
 import ui.scene.MainScene;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Optional;
@@ -162,18 +161,9 @@ public abstract class GameButton extends BorderPane {
         double width = 18*Main.SCREEN_WIDTH/1920;
         double height =  18*Main.SCREEN_HEIGHT/1080;
 
-        String titleLogoId = null;
-        if(entry.isSteamGame()){
-            titleLogoId = "steam-icon";
-        }else if (entry.isUplayGame()){
-            titleLogoId = "uplay-icon";
-        }else if (entry.isOriginGame()){
-            titleLogoId = "origin-icon";
-        }else if (entry.isBattlenetGame()){
-            titleLogoId = "battlenet-icon";
-        }else if (entry.isGoGGame()){
-            titleLogoId = "gog-icon";
-        }
+
+        String titleLogoId = entry.getPlatform().getIconCSSId();
+
         if(titleLogoId != null) {
             titleLogoView.setSmooth(true);
             titleLogoView.setPreserveRatio(true);

@@ -79,7 +79,7 @@ public class Monitor {
     }
 
     public long start(Date initialDate) throws IOException {
-        if (isSteamGame() && !SteamLocalScraper.isSteamGameInstalled(getGameEntry().getSteam_id())) {
+        if (isSteamGame() && !SteamLocalScraper.isSteamGameInstalled(getGameEntry().getPlatformGameID())) {
             return 0;
         }
         timer = 0;
@@ -268,7 +268,7 @@ public class Monitor {
 
     private Date computeCreationDate() throws IOException {
         if (isSteamGame()) {
-            if (SteamLocalScraper.isSteamGameRunning(getGameEntry().getSteam_id())) {
+            if (SteamLocalScraper.isSteamGameRunning(getGameEntry().getPlatformGameID())) {
                 return new Date();
             }
             return null;
@@ -299,7 +299,7 @@ public class Monitor {
 
     private boolean isProcessRunning() throws IOException {
         if (isSteamGame()) {
-            return SteamLocalScraper.isSteamGameRunning(getGameEntry().getSteam_id());
+            return SteamLocalScraper.isSteamGameRunning(getGameEntry().getPlatformGameID());
         } else {
             return isProcessRunning(getGameEntry().getProcessName());
         }

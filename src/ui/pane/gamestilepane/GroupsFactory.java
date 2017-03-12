@@ -1,10 +1,6 @@
 package ui.pane.gamestilepane;
 
-import data.game.entry.GameEntry;
-import data.game.entry.GameGenre;
-import data.game.entry.GameTheme;
-import data.game.entry.Serie;
-import data.game.scanner.ScannerProfile;
+import data.game.entry.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import ui.Main;
@@ -277,14 +273,7 @@ public class GroupsFactory {
                         return false;
                     }
                 }
-                boolean notFromLaunchers = true;
-                for(ScannerProfile launcher : ScannerProfile.values()){
-                    notFromLaunchers = !isEntryFromLauncher(entry,launcher);
-                    if(!notFromLaunchers){
-                        break;
-                    }
-                }
-                return notFromLaunchers;
+                return entry.getPlatform().equals(Platform.NONE);
             }
         };
         othersTilePane.setTitle(Main.getString("others"));
@@ -302,15 +291,15 @@ public class GroupsFactory {
         });
         othersTilePane.setPrefTileHeight(originalTilePane.getTilePane().getPrefTileHeight());
         othersTilePane.setPrefTileWidth(originalTilePane.getTilePane().getPrefTileWidth());
-        for (ScannerProfile launcher : ScannerProfile.values()) {
+        for(Platform platform : Platform.values()){
             GroupRowTilePane tilePane = new GroupRowTilePane(mainScene) {
                 @Override
                 public boolean fillsRequirement(GameEntry entry) {
-                    return isEntryFromLauncher(entry,launcher);
+                    return entry.getPlatform().equals(platform);
                 }
             };
-            tilePane.setTitle(launcher.toString());
-            tilePane.getIconButton().setImageViewId(launcher.getIconCSSID());
+            tilePane.setTitle(platform.getName());
+            tilePane.getIconButton().setImageViewId(platform.getIconCSSId());
             tilePane.getIconButton().setManaged(true);
 
             for (GameButton button : originalTilePane.getGameButtons()) {
@@ -345,24 +334,5 @@ public class GroupsFactory {
             allTilePanes.add(othersTilePane);
         }
         return allTilePanes;
-    }
-
-    private static boolean isEntryFromLauncher(GameEntry entry, ScannerProfile profile){
-        switch (profile){
-            case STEAM:
-                return entry.isSteamGame() && entry.isInstalled();
-            case STEAM_ONLINE:
-                return entry.isSteamGame() && !entry.isInstalled();
-            case BATTLE_NET:
-                return entry.isBattlenetGame();
-            case GOG:
-                return entry.isGoGGame();
-            case ORIGIN:
-                return entry.isOriginGame();
-            case UPLAY:
-                return entry.isUplayGame();
-            default:
-                return false;
-        }
     }
 }

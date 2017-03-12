@@ -1,6 +1,7 @@
 package data.game.scraper;
 
 import data.game.entry.GameEntry;
+import data.game.entry.Platform;
 import data.game.scanner.FolderGameScanner;
 import ui.Main;
 
@@ -28,7 +29,8 @@ public class SteamPreEntry {
 
     public GameEntry toGameEntry() {
         GameEntry entry = new GameEntry(getName());
-        entry.setSteam_id(getId());
+        entry.setPlatform(Platform.STEAM_ID);
+        entry.setPlatformGameId(getId());
         return entry;
     }
 

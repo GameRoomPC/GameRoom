@@ -5,6 +5,7 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.GameWatcher;
 import data.game.entry.GameEntry;
+import data.game.entry.Platform;
 import data.game.scanner.GameScanner;
 import data.game.scanner.OnGameFound;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -20,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,7 +42,7 @@ public class SteamOnlineScraper {
             Callable task = new Callable() {
                 @Override
                 public Object call() throws Exception {
-                    if (!SteamLocalScraper.isSteamGameIgnored(entry) && !SteamLocalScraper.isSteamGameInstalled(entry.getSteam_id())) {
+                    if (!SteamLocalScraper.isSteamGameIgnored(entry) && !SteamLocalScraper.isSteamGameInstalled(entry.getPlatformGameID())) {
                         scanner.checkAndAdd(entry);
                     }
                     return null;
@@ -60,7 +60,7 @@ public class SteamOnlineScraper {
                 for (int i = 0; i < ownedArray.length(); i++) {
                     SteamPreEntry preEntry = new SteamPreEntry(ownedArray.getJSONObject(i).getString("name"), ownedArray.getJSONObject(i).getInt("appID"));
                     GameEntry entry = preEntry.toGameEntry();
-                    GameEntry scrapedEntry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
+                    GameEntry scrapedEntry = SteamOnlineScraper.getEntryForSteamId(entry.getPlatformGameID());
                     if (scrapedEntry != null) {
                         entry = scrapedEntry;
                         try {
@@ -115,7 +115,7 @@ public class SteamOnlineScraper {
         scanNonInstalledSteamGames(entry -> {
             try {
                 long playTime = entry.getPlayTimeSeconds();
-                entry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
+                entry = SteamOnlineScraper.getEntryForSteamId(entry.getPlatformGameID());
                 if (entry != null) {
                     entry.setPlayTimeSeconds(playTime);
                     LOGGER.debug("Play time of " + entry.getName() + " : " + entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
@@ -144,8 +144,10 @@ public class SteamOnlineScraper {
             } catch (ParseException | NumberFormatException e) {
                 Main.LOGGER.error("Invalid release date format");
             }
-            entry.setSteam_id(steamId);
-            entry.setInstalled(SteamLocalScraper.isSteamGameInstalled(entry.getSteam_id()));
+            boolean installed = SteamLocalScraper.isSteamGameInstalled(steamId);
+            entry.setPlatformGameId(steamId);
+            entry.setPlatform(Platform.getFromId(installed ? Platform.STEAM_ID : Platform.STEAM_ONLINE_ID));
+            entry.setInstalled(installed);
 
             if (entry.getName() == null || entry.getName().isEmpty()) {
                 return null;

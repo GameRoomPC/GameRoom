@@ -314,7 +314,7 @@ public class SteamLocalScraper {
         boolean ignored = false;
 
         for (SteamPreEntry pre : ignoredEntries) {
-            ignored = ignored || pre.getId() == entry.getSteam_id();
+            ignored = ignored || pre.getId() == entry.getPlatformGameID();
         }
         for (String name : FolderGameScanner.EXCLUDED_FILE_NAMES) {
             ignored = ignored || name.toLowerCase().equals(entry.getName().toLowerCase());

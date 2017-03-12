@@ -125,7 +125,7 @@ public class SupportService {
             for (GameEntry ownedEntry : ownedSteamApps) {
                 if (ownedEntry.getPlayTimeSeconds() != 0) {
                     for (GameEntry storedEntry : GameEntryUtils.ENTRIES_LIST) {
-                        if (ownedEntry.getSteam_id() == storedEntry.getSteam_id() && ownedEntry.getPlayTimeSeconds() != storedEntry.getPlayTimeSeconds()) {
+                        if (ownedEntry.getPlatformGameID() == storedEntry.getPlatformGameID() && ownedEntry.getPlayTimeSeconds() != storedEntry.getPlayTimeSeconds()) {
                             storedEntry.setPlayTimeSeconds(ownedEntry.getPlayTimeSeconds());
                             Platform.runLater(() -> {
                                 Main.MAIN_SCENE.updateGame(storedEntry);

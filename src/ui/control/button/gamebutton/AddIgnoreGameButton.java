@@ -59,7 +59,7 @@ public class AddIgnoreGameButton extends GameButton {
         ignoreButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if (entry.getSteam_id() != -1) {
+                if (entry.getPlatformGameID() != -1) {
                     addToSteamIgnoredList();
                 } else {
                     addToFolderIgnoredList();
@@ -218,12 +218,12 @@ public class AddIgnoreGameButton extends GameButton {
         boolean inList = false;
 
         for (int i = 0; i < ignoredEntries.length && !inList; i++) {
-            inList = getEntry().getSteam_id() == ignoredEntries[i].getId();
+            inList = getEntry().getPlatformGameID() == ignoredEntries[i].getId();
         }
         if (!inList) {
             SteamPreEntry[] futureEntries = new SteamPreEntry[ignoredEntries.length + 1];
             System.arraycopy(ignoredEntries, 0, futureEntries, 0, ignoredEntries.length);
-            futureEntries[futureEntries.length - 1] = new SteamPreEntry(getEntry().getName(), getEntry().getSteam_id());
+            futureEntries[futureEntries.length - 1] = new SteamPreEntry(getEntry().getName(), getEntry().getPlatformGameID());
             Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS, futureEntries);
         }
     }

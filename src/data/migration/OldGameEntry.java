@@ -224,7 +224,7 @@ public class OldGameEntry {
             platformId = 6;
         }
         if (platformId != -1) {
-            PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO runs_on(specific_id,platform_id,game_id) VALUES (?,?,?)");
+            PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO runs_on(platformGameId,platform_id,game_id) VALUES (?,?,?)");
             genreStatement.setInt(1, specificId);
             genreStatement.setInt(2, platformId);
             genreStatement.setInt(3, sqlId);

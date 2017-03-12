@@ -3,6 +3,7 @@ package data.game.scanner;
 import data.game.GameWatcher;
 import data.game.entry.GameEntryUtils;
 import data.game.entry.GameEntry;
+import data.game.entry.Platform;
 import data.game.scraper.SteamLocalScraper;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
@@ -190,31 +191,17 @@ public class FolderGameScanner extends GameScanner {
         }
         for (GameEntry entry : toAddAndLibEntries) {
             if (entryNameOrPathEquals(entry, foundEntry)) {
-                //TODO replace launchers with an enum and an id ?
                 entry.setSavedLocally(true);
                 boolean needRefresh = false;
-                if (!entry.isSteamGame() && foundEntry.isSteamGame()) {
-                    entry.setSteam_id(foundEntry.getSteam_id());
-                    needRefresh = true;
+
+                for(Platform platform : Platform.values()){
+                    if(foundEntry.getPlatform().equals(platform) && !entry.getPlatform().equals(platform)){
+                        entry.setPlatform(platform);
+                        needRefresh = true;
+                    }
                 }
                 if(entry.isInstalled() != foundEntry.isInstalled()){
                     entry.setInstalled(foundEntry.isInstalled());
-                    needRefresh = true;
-                }
-                if (!entry.isBattlenetGame() && foundEntry.isBattlenetGame()) {
-                    entry.setBattlenet_id(foundEntry.getBattlenet_id());
-                    needRefresh = true;
-                }
-                if (!entry.isGoGGame() && foundEntry.isGoGGame()) {
-                    entry.setGog_id(foundEntry.getGog_id());
-                    needRefresh = true;
-                }
-                if (!entry.isOriginGame() && foundEntry.isOriginGame()) {
-                    entry.setOrigin_id(foundEntry.getOrigin_id());
-                    needRefresh = true;
-                }
-                if (!entry.isUplayGame() && foundEntry.isUplayGame()) {
-                    entry.setUplay_id(foundEntry.getUplay_id());
                     needRefresh = true;
                 }
                 entry.setSavedLocally(false);

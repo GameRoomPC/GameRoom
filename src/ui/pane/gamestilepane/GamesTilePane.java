@@ -5,7 +5,6 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -29,10 +28,8 @@ import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.scene.MainScene;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -287,8 +284,8 @@ public abstract class GamesTilePane extends BorderPane {
             if (((GameButton) n).getEntry().getId() == entry.getId()) {
                 return i;
             }
-            int steamId1 = ((GameButton) n).getEntry().getSteam_id();
-            int steamId2 = entry.getSteam_id();
+            int steamId1 = ((GameButton) n).getEntry().getPlatformGameID();
+            int steamId2 = entry.getPlatformGameID();
             if (steamId1 == steamId2 && steamId1 != -1) {
                 return i;
             }

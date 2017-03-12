@@ -69,11 +69,8 @@ public class GameEntry {
     /*FOR IGDB PURPOSE ONLY, should not be stored*/
     private String[] igdb_imageHash = new String[IMAGES_NUMBER];
 
-    private int steam_id = -1;
-    private int gog_id = -1;
-    private int uplay_id = -1;
-    private int origin_id = -1;
-    private int battlenet_id = -1;
+    private Platform platform = Platform.NONE;
+    private int platformGameId = 0;
 
     private transient boolean inDb = false;
     private boolean toAdd = false;
@@ -125,7 +122,7 @@ public class GameEntry {
                 saveDevs();
                 savePublishers();
                 saveSerie();
-                savePlatformInfo();
+                savePlatform();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -280,34 +277,16 @@ public class GameEntry {
         }
     }
 
-    private void savePlatformInfo() throws SQLException {
-        int specificId = 0;
-        int platformId = -1;
+    private void savePlatform() throws SQLException {
+        if (platform != null) {
+            PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from runs_on where game_id= ?");
+            deleteStatement.setInt(1, id);
+            deleteStatement.execute();
+            deleteStatement.close();
 
-        if (steam_id != -1) {
-            specificId = steam_id;
-            if (installed) {
-                platformId = 1;
-            } else {
-                platformId = 2;
-            }
-        } else if (origin_id != -1) {
-            specificId = origin_id;
-            platformId = 3;
-        } else if (uplay_id != -1) {
-            specificId = uplay_id;
-            platformId = 4;
-        } else if (battlenet_id != -1) {
-            specificId = battlenet_id;
-            platformId = 5;
-        } else if (gog_id != -1) {
-            specificId = gog_id;
-            platformId = 6;
-        }
-        if (platformId != -1) {
-            PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO runs_on(specific_id,platform_id,game_id) VALUES (?,?,?)");
-            genreStatement.setInt(1, specificId);
-            genreStatement.setInt(2, platformId);
+            PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO runs_on(platformGameId,platform_id,game_id) VALUES (?,?,?)");
+            genreStatement.setInt(1, platformGameId);
+            genreStatement.setInt(2, platform.getId());
             genreStatement.setInt(3, id);
             genreStatement.execute();
             genreStatement.close();
@@ -476,77 +455,12 @@ public class GameEntry {
         }
     }
 
-    public int getSteam_id() {
-        return steam_id;
-    }
-
-    private void setSteam_id(int steam_id, boolean updatePath) {
-        this.steam_id = steam_id;
-        if (updatePath) {
-            this.path = "steam://rungameid/" + steam_id;
-        }
-        //TODO update to use the platform as implemented in db, and have only one setter and getter to rule them all !
-    }
-
-    public void setSteam_id(int steam_id) {
-        setSteam_id(steam_id, steam_id != -1);
+    public int getPlatformGameID() {
+        return platformGameId;
     }
 
     public boolean isSteamGame() {
-        return steam_id != -1;
-    }
-
-    public boolean isGoGGame() {
-        return gog_id != -1;
-    }
-
-    public boolean isOriginGame() {
-        return origin_id != -1;
-    }
-
-    public boolean isBattlenetGame() {
-        return battlenet_id != -1;
-    }
-
-    public boolean isUplayGame() {
-        return uplay_id != -1;
-    }
-
-
-    public int getBattlenet_id() {
-        return battlenet_id;
-    }
-
-    public void setBattlenet_id(int battlenet_id) {
-        this.battlenet_id = battlenet_id;
-        //TODO update to use the platform as implemented in db, and have only one setter and getter to rule them all !
-    }
-
-    public int getOrigin_id() {
-        return origin_id;
-    }
-
-    public void setOrigin_id(int origin_id) {
-        this.origin_id = origin_id;
-        //TODO update to use the platform as implemented in db, and have only one setter and getter to rule them all !
-    }
-
-    public int getUplay_id() {
-        return uplay_id;
-    }
-
-    public void setUplay_id(int uplay_id) {
-        this.uplay_id = uplay_id;
-        //TODO update to use the platform as implemented in db, and have only one setter and getter to rule them all !
-    }
-
-    public int getGog_id() {
-        return gog_id;
-    }
-
-    public void setGog_id(int gog_id) {
-        this.gog_id = gog_id;
-        //TODO update to use the platform as implemented in db, and have only one setter and getter to rule them all !
+        return platform.getId() == Platform.STEAM_ID;
     }
 
     public long getPlayTimeSeconds() {
@@ -758,6 +672,32 @@ public class GameEntry {
         }
     }
 
+    public Platform getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(int platformId) {
+        setPlatform(Platform.getFromId(platformId));
+    }
+
+    public void setPlatform(Platform platform) {
+        if (platform == null) {
+            this.platform = Platform.NONE;
+        }
+        this.platform = platform;
+
+        if(platform.getId() == Platform.STEAM_ID ||platform.getId() == Platform.STEAM_ONLINE_ID){
+            setPath("steam://rungameid/" + platformGameId);
+        }
+        if (savedLocally && !deleted) {
+            try {
+                savePlatform();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void setCmd(int index, String cmd) {
         this.cmd[index] = cmd;
     }
@@ -885,7 +825,8 @@ public class GameEntry {
     public String toString() {
         return "GameEntry:name=" + name +
                 ",release_date=" + (releaseDate != null ? DATE_DISPLAY_FORMAT.format(releaseDate) : null) +
-                ",steam_id=" + steam_id +
+                ",platform=" + platform.getName() +
+                ",platform_game_id=" + platformGameId +
                 "playTime=" + getPlayTimeFormatted(TIME_FORMAT_FULL_DOUBLEDOTS);
     }
 
@@ -1154,6 +1095,24 @@ public class GameEntry {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        //LOAD PLATFORM FROM DB
+        try {
+            PreparedStatement platformStatement = DataBase.getUserConnection().prepareStatement("SELECT * FROM runs_on WHERE game_id=?");
+            platformStatement.setInt(1, id);
+            ResultSet platformSet = platformStatement.executeQuery();
+            if (platformSet.next()) {
+                int platformId = platformSet.getInt("platform_id");
+                platformGameId = platformSet.getInt("platformGameId");
+                Platform platform = Platform.getFromId(platformId);
+                if (platform != null) {
+                    setPlatform(platform);
+                }
+            }
+            platformStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     static GameEntry loadFromDB(ResultSet set) throws SQLException {
@@ -1366,6 +1325,20 @@ public class GameEntry {
             File localFile = new File(path);
             imagesFiles[i] = localFile;
             imageNeedsRefresh[i] = true;
+        }
+    }
+
+    public void setPlatformGameId(int platformGameId) {
+        this.platformGameId = platformGameId;
+        if(platform.getId() == Platform.STEAM_ID ||platform.getId() == Platform.STEAM_ONLINE_ID){
+            setPath("steam://rungameid/" + platformGameId);
+        }
+        if (savedLocally && !deleted) {
+            try {
+                savePlatform();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
