@@ -478,19 +478,20 @@ public class OldGameEntry {
 
     public static ArrayList<UUID> readUUIDS(File entriesFolder){
         ArrayList<UUID> uuids = new ArrayList<>();
-        entriesFolder = FileUtils.initOrCreateFolder(entriesFolder);
 
-        for(File gameFolder : entriesFolder.listFiles()){
-            String name = gameFolder.getName();
-            try{
-                if(gameFolder.isDirectory()){
-                    uuids.add(UUID.fromString(name));
+        if(entriesFolder.exists() && entriesFolder.isDirectory()) {
+            for (File gameFolder : entriesFolder.listFiles()) {
+                String name = gameFolder.getName();
+                try {
+                    if (gameFolder.isDirectory()) {
+                        uuids.add(UUID.fromString(name));
+                    }
+                } catch (IllegalArgumentException iae) {
+                    Main.LOGGER.warn("Folder " + name + " is not a valid UUID, ignoring");
                 }
-            }catch (IllegalArgumentException iae){
-                Main.LOGGER.warn("Folder "+name+" is not a valid UUID, ignoring");
             }
+            Main.LOGGER.info("Loaded " + uuids.size() + " uuids from folder " + entriesFolder.getName());
         }
-        Main.LOGGER.info("Loaded " + uuids.size()+" uuids from folder "+entriesFolder.getName());
         return uuids;
     }
 }

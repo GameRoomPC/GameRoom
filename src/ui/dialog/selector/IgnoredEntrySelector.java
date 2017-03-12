@@ -13,14 +13,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import system.application.settings.PredefinedSetting;
 import ui.Main;
+import ui.control.button.gamebutton.GameButton;
 import ui.dialog.GameRoomDialog;
 import ui.pane.SelectListPane;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import static ui.Main.GENERAL_SETTINGS;
 
@@ -36,9 +35,9 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
     public IgnoredEntrySelector() throws IOException {
         statusLabel = new Label(Main.getString("loading") + "...");
         rootStackPane.getChildren().add(statusLabel);
-        Label titleLabel = new Label(Main.getString("select_steam_games_ignore"));
+        Label titleLabel = new Label(Main.getString("select_games_ignore"));
         titleLabel.setWrapText(true);
-        titleLabel.setTooltip(new Tooltip(Main.getString("select_steam_games_ignore")));
+        titleLabel.setTooltip(new Tooltip(Main.getString("select_games_ignore")));
         titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
                 , 20 * Main.SCREEN_WIDTH / 1920
                 , 20 * Main.SCREEN_HEIGHT / 1080
@@ -113,14 +112,10 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
             iconView.setFitWidth(32 * scale);
 
             File gamePath = new File(entry.getPath());
-            if(gamePath.exists()){
-                if (gamePath.isDirectory()) {
-                    iconView.setId("folder-button");
-                } else {
-                    iconView.setImage(AppSelectorDialog.getIcon(gamePath));
-                }
-            }else{
-                iconView.setImage(entry.getImage(0,32,32,true,false));
+            if (!gamePath.exists() || gamePath.isDirectory()) {
+                iconView.setImage(entry.getImage(0, 32, 32* GameButton.COVER_HEIGHT_WIDTH_RATIO, true, false));
+            } else {
+                iconView.setImage(AppSelectorDialog.getIcon(gamePath));
             }
             coverPane.getChildren().add(iconView);
 
