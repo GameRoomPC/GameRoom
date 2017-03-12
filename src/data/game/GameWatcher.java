@@ -467,6 +467,8 @@ public class GameWatcher {
                 .replace("-", "")
                 .replace("_", "")
                 .replace(".", "")
+                .replace("!","")
+                .replace("?","")
                 .replace(" ", "");//remove spaces for a cleaner comparison;
     }
 

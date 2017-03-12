@@ -284,11 +284,6 @@ public abstract class GamesTilePane extends BorderPane {
             if (((GameButton) n).getEntry().getId() == entry.getId()) {
                 return i;
             }
-            int steamId1 = ((GameButton) n).getEntry().getPlatformGameID();
-            int steamId2 = entry.getPlatformGameID();
-            if (steamId1 == steamId2 && steamId1 != -1) {
-                return i;
-            }
             i++;
         }
         return -1;

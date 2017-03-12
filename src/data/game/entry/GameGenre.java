@@ -106,4 +106,22 @@ public class GameGenre {
     public static Collection<GameGenre> values() {
         return ID_MAP.values();
     }
+
+    public static String getDisplayString(Collection<GameGenre> genres){
+        if(genres == null || genres.isEmpty()){
+            return "-";
+        }
+        String temp = "";
+        int i = 0;
+        for(GameGenre genre : genres){
+            if(genre!=null) {
+                temp += genre.getDisplayName();
+                if (i != genres.size() - 1) {
+                    temp += ", ";
+                }
+            }
+            i++;
+        }
+        return temp;
+    }
 }

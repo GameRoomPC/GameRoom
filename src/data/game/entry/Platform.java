@@ -196,6 +196,10 @@ public class Platform {
     }
 
     public String getIconCSSId() {
+        if(id == STEAM_ONLINE_ID){
+            //TODO implement a cleaner way to have icons for this
+            return "steam-icon";
+        }
         return nameKey + "-icon";
     }
 

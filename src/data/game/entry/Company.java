@@ -209,9 +209,11 @@ public class Company {
         String temp = "";
         int i = 0;
         for(Company c : companies){
-            temp+= c.getName();
-            if(i!=companies.size() -1){
-                temp+=", ";
+            if(c!=null) {
+                temp += c.getName();
+                if (i != companies.size() - 1) {
+                    temp += ", ";
+                }
             }
             i++;
         }

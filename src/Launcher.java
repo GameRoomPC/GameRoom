@@ -170,9 +170,9 @@ public class Launcher extends Application {
         Main.FILES_MAP.put("working_dir", gameRoomFolder);
         Main.FILES_MAP.put("cache", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "cache"));
         Main.FILES_MAP.put("temp", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "temp"));
-        Main.FILES_MAP.put("to_add", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "ToAdd"));
+        Main.FILES_MAP.put("to_add", new File(gameRoomFolder + File.separator + "ToAdd"));
         //Main.FILES_MAP.put("libs",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"libs"));
-        Main.FILES_MAP.put("games", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "Games"));
+        Main.FILES_MAP.put("games", new File(gameRoomFolder + File.separator + "Games"));
         Main.FILES_MAP.put("log", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "log"));
         Main.FILES_MAP.put("config.properties", FileUtils.initOrCreateFile(gameRoomFolder + File.separator + "config.properties"));
         Main.FILES_MAP.put("GameRoom.log", FileUtils.initOrCreateFile(Main.FILES_MAP.get("log").getAbsolutePath() + File.separator + "GameRoom.log"));

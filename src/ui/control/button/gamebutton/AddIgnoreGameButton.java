@@ -63,9 +63,10 @@ public class AddIgnoreGameButton extends GameButton {
                     addToSteamIgnoredList();
                 } else {
                     addToFolderIgnoredList();
+                    //TODO use only ignored entries in db instead of this archaic thing
                 }
-                //TODO set ignored and what's needed
-                //entry.deleteFiles();
+                entry.setSavedLocally(true);
+                entry.setIgnored(true);
                 entry.setSavedLocally(false);
 
                 mainScene.removeGame(entry);

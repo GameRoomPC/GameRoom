@@ -107,4 +107,22 @@ public class GameTheme{
     public static Collection<GameTheme> values() {
         return ID_MAP.values();
     }
+
+    public static String getDisplayString(Collection<GameTheme> themes){
+        if(themes == null || themes.isEmpty()){
+            return "-";
+        }
+        String temp = "";
+        int i = 0;
+        for(GameTheme theme : themes){
+            if(theme!=null) {
+                temp += theme.getDisplayName();
+                if (i != themes.size() - 1) {
+                    temp += ", ";
+                }
+            }
+            i++;
+        }
+        return temp;
+    }
 }

@@ -195,25 +195,8 @@ public class GameInfoScene extends BaseScene {
         addProperty("developer", Company.getDisplayString(entry.getDevelopers()));
         addProperty("publisher", Company.getDisplayString(entry.getPublishers()));
         addProperty("serie", entry.getSerie().getName());
-
-        if (entry.getGenres() != null) {
-            String genres = "";
-            for (GameGenre genre : entry.getGenres()) {
-                genres += genre.getDisplayName() + ", ";
-            }
-            addProperty("genre", genres.length() > 2 && !genres.equals("") ? genres.substring(0, genres.length() - 2) : "-");
-        } else {
-            addProperty("genre", null);
-        }
-        if (entry.getThemes() != null) {
-            String themes = "";
-            for (GameTheme theme : entry.getThemes()) {
-                themes += theme.getDisplayName() + ", ";
-            }
-            addProperty("theme", themes.length() > 2 && !themes.equals(", ") ? themes.substring(0, themes.length() - 2) : "-");
-        } else {
-            addProperty("theme", null);
-        }
+        addProperty("genre",GameGenre.getDisplayString(entry.getGenres()));
+        addProperty("theme",GameTheme.getDisplayString(entry.getThemes()));
         addProperty("description", entry.getDescription());
 
         GridPane coverAndPropertiesPane = new GridPane();
@@ -258,28 +241,9 @@ public class GameInfoScene extends BaseScene {
         updateProperty("release_date", editedEntry.getReleaseDate() != null ? GameEntry.DATE_DISPLAY_FORMAT.format(editedEntry.getReleaseDate()) : "");
         updateProperty("developer", Company.getDisplayString(entry.getDevelopers()));
         updateProperty("publisher", Company.getDisplayString(entry.getPublishers()));
-
         updateProperty("serie", editedEntry.getSerie().getName());
-
-        if (entry.getGenres() != null) {
-            String genres = "";
-            for (GameGenre genre : entry.getGenres()) {
-                genres += genre.getDisplayName() + ", ";
-            }
-            updateProperty("genre", genres.length() > 2 ? genres.substring(0, genres.length() - 2) : "-");
-
-        } else {
-            updateProperty("genre", null);
-        }
-        if (entry.getThemes() != null) {
-            String themes = "";
-            for (GameTheme theme : entry.getThemes()) {
-                themes += theme.getDisplayName() + ", ";
-            }
-            updateProperty("theme", themes.length() > 2 ? themes.substring(0, themes.length() - 2) : "-");
-        } else {
-            updateProperty("theme", null);
-        }
+        updateProperty("genre",GameGenre.getDisplayString(entry.getGenres()));
+        updateProperty("theme",GameTheme.getDisplayString(entry.getThemes()));
         updateProperty("description", editedEntry.getDescription());
         Image backgroundImage = editedEntry.getImage(1,
                 Main.GENERAL_SETTINGS.getWindowWidth(),

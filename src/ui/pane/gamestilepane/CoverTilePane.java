@@ -36,7 +36,7 @@ public class CoverTilePane extends GamesTilePane{
 
     @Override
     public boolean isValidToAdd(GameEntry entry) {
-        return true;
+        return !entry.isToAdd() && !entry.isDeleted() && ! entry.isIgnored();
     }
 
     @Override

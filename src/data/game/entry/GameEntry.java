@@ -57,7 +57,7 @@ public class GameEntry {
     private String youtubeSoundtrackHash = "";
     private LocalDateTime addedDate;
     private LocalDateTime lastPlayedDate;
-    private boolean installed = false;
+    private boolean installed = true;
 
     private File[] imagesFiles = new File[IMAGES_NUMBER];
     private boolean[] imageNeedsRefresh = new boolean[IMAGES_NUMBER];
@@ -581,8 +581,19 @@ public class GameEntry {
     public void delete() {
         deleted = true;
         try {
-            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("delete from GameEntry where id = ?");
-            statement.setInt(1, id);
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement(
+                    "delete from GameEntry where id = ?;" +
+                            "delete from runs_on where game_id = ?;" +
+                            "delete from has_theme where game_id = ?;" +
+                            "delete from has_genre where game_id = ?;" +
+                            "delete from publishes where game_id = ?;" +
+                            "delete from develops where game_id = ?;" +
+                            "delete from regroups where game_id = ?;" +
+                            "delete from played where game_id = ?;");
+            for (int i = 1; i < 8; i++) {
+
+                statement.setInt(1, id);
+            }
             statement.execute();
 
             statement.close();
@@ -686,7 +697,7 @@ public class GameEntry {
         }
         this.platform = platform;
 
-        if(platform.getId() == Platform.STEAM_ID ||platform.getId() == Platform.STEAM_ONLINE_ID){
+        if (platform.getId() == Platform.STEAM_ID || platform.getId() == Platform.STEAM_ONLINE_ID) {
             setPath("steam://rungameid/" + platformGameId);
         }
         if (savedLocally && !deleted) {
@@ -1330,7 +1341,7 @@ public class GameEntry {
 
     public void setPlatformGameId(int platformGameId) {
         this.platformGameId = platformGameId;
-        if(platform.getId() == Platform.STEAM_ID ||platform.getId() == Platform.STEAM_ONLINE_ID){
+        if (platform.getId() == Platform.STEAM_ID || platform.getId() == Platform.STEAM_ONLINE_ID) {
             setPath("steam://rungameid/" + platformGameId);
         }
         if (savedLocally && !deleted) {
@@ -1340,5 +1351,9 @@ public class GameEntry {
                 e.printStackTrace();
             }
         }
+    }
+
+    public boolean isDeleted() {
+        return deleted;
     }
 }

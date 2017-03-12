@@ -90,4 +90,9 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
         return null;
     }
 
+    @Override
+    public boolean isValidToAdd(GameEntry entry){
+        return entry.isToAdd() && !entry.isDeleted() && ! entry.isIgnored();
+    }
+
 }

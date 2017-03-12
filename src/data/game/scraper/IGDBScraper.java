@@ -388,7 +388,7 @@ public class IGDBScraper {
                 s = new Serie(id, name);
             }
         } catch (JSONException je) {
-            je.printStackTrace();
+            return Serie.NONE;
         }
         return s;
     }
