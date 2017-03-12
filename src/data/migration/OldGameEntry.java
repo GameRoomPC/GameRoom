@@ -158,7 +158,6 @@ public class OldGameEntry {
         statement.setInt(16, igdb_id);
         statement.setBoolean(17, waitingToBeScrapped);
         statement.setBoolean(18, toAdd);
-        statement.setBoolean(19, beingScrapped);
         statement.execute();
         statement.close();
         //connection.commit();
@@ -318,14 +317,8 @@ public class OldGameEntry {
     }
 
     private File propertyFile() throws IOException {
-        File dir = new File((toAdd ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + uuid.toString());
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
         File configFile = new File((toAdd ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + uuid.toString() + File.separator + "entry.properties");
-        if (!configFile.exists()) {
-            configFile.createNewFile();
-        }
+
         return configFile;
     }
 

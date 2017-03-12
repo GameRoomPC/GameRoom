@@ -75,7 +75,7 @@ public class GameEntry {
     private transient boolean inDb = false;
     private boolean toAdd = false;
     private boolean waitingToBeScrapped = false;
-    private boolean beingScrapped;
+    private boolean beingScrapped = false;
     private boolean ignored = false;
     private transient boolean deleted = false;
 
@@ -102,8 +102,7 @@ public class GameEntry {
             "wp_hash",
             "igdb_id",
             "waiting_scrap",
-            "toAdd",
-            "beingScraped"};
+            "toAdd"};
 
     public GameEntry(String name) {
         this.name = name;
@@ -160,9 +159,8 @@ public class GameEntry {
         statement.setInt(16, igdb_id);
         statement.setBoolean(17, waitingToBeScrapped);
         statement.setBoolean(18, toAdd);
-        statement.setBoolean(19, beingScrapped);
         if (inDb) {
-            statement.setInt(20, id);
+            statement.setInt(19, id);
         }
 
         statement.execute();
@@ -907,18 +905,6 @@ public class GameEntry {
 
     public void setBeingScraped(boolean beingScraped) {
         this.beingScrapped = beingScraped;
-        try {
-            if (savedLocally && !deleted) {
-                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set beingScraped = ? where id = ?");
-                statement.setBoolean(1, beingScraped);
-                statement.setInt(2, id);
-                statement.execute();
-
-                statement.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     public Runnable getOnGameLaunched() {
@@ -1022,7 +1008,6 @@ public class GameEntry {
         setWaitingToBeScrapped(set.getBoolean("waiting_scrap"));
         setToAdd(set.getBoolean("toAdd"));
         setIgnored(set.getBoolean("ignored"));
-        setBeingScraped(set.getBoolean("beingScraped"));
 
         //LOAD GENRES FROM DB
         try {

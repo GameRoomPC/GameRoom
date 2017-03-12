@@ -18,8 +18,7 @@ CREATE TABLE IF NOT EXISTS GameEntry (
 	igdb_id integer,
 	waiting_scrap integer default 0,
 	toAdd integer default 0,
-	ignored integer default 0,
-	beingScraped integer default 0
+	ignored integer default 0
 );
 
 CREATE TABLE IF NOT EXISTS Company (

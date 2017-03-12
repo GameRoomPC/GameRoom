@@ -113,7 +113,8 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
 
             File gamePath = new File(entry.getPath());
             if (!gamePath.exists() || gamePath.isDirectory()) {
-                iconView.setImage(entry.getImage(0, 32, 32* GameButton.COVER_HEIGHT_WIDTH_RATIO, true, false));
+                iconView.setImage(entry.getImage(0, 32 * scale, 32 * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO, true, false));
+                iconView.setFitHeight(32 * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO);
             } else {
                 iconView.setImage(AppSelectorDialog.getIcon(gamePath));
             }
