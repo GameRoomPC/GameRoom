@@ -530,7 +530,6 @@ public class IGDBScraper {
         try {
             return serieData.getJSONObject(indexOf(id, serieData)).getString("name");
         } catch (JSONException je) {
-            je.printStackTrace();
             return "";
         }
     }

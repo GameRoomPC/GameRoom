@@ -293,7 +293,7 @@ public class GameWatcher {
 
         int listCounter = -1;
         for (int i = 0; i < searchIGDBIDs.size(); i++) {
-            if(i%150 == 0){
+            if(i%100 == 0){
                 listCounter ++;
                 searchIDsCollection.add(new CopyOnWriteArrayList<>());
             }
