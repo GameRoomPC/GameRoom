@@ -5,6 +5,7 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.GameWatcher;
 import data.game.entry.GameEntry;
+import data.game.entry.GameEntryUtils;
 import data.game.entry.Platform;
 import data.game.scanner.GameScanner;
 import data.game.scanner.OnGameFound;
@@ -42,7 +43,7 @@ public class SteamOnlineScraper {
             Callable task = new Callable() {
                 @Override
                 public Object call() throws Exception {
-                    if (!SteamLocalScraper.isSteamGameIgnored(entry) && !SteamLocalScraper.isSteamGameInstalled(entry.getPlatformGameID())) {
+                    if (!GameEntryUtils.isGameIgnored(entry) && !SteamLocalScraper.isSteamGameInstalled(entry.getPlatformGameID())) {
                         scanner.checkAndAdd(entry);
                     }
                     return null;

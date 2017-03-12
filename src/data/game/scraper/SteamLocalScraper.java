@@ -301,25 +301,4 @@ public class SteamLocalScraper {
         }
         return (result != null) && (result.equals("1"));
     }
-
-    public static boolean isSteamGameIgnored(GameEntry entry) {
-        SteamPreEntry[] ignoredEntries = Main.GENERAL_SETTINGS.getSteamAppsIgnored();
-
-        if (ignoredEntries == null || ignoredEntries.length == 0) {
-            return false;
-        }
-        if (!entry.isSteamGame()) {
-            return false;
-        }
-        boolean ignored = false;
-
-        for (SteamPreEntry pre : ignoredEntries) {
-            ignored = ignored || pre.getId() == entry.getPlatformGameID();
-        }
-        for (String name : FolderGameScanner.EXCLUDED_FILE_NAMES) {
-            ignored = ignored || name.toLowerCase().equals(entry.getName().toLowerCase());
-        }
-
-        return ignored;
-    }
 }

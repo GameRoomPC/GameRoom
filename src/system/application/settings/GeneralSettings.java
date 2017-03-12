@@ -140,11 +140,6 @@ public class GeneralSettings {
         return (double) setting.getSettingValue();
     }
 
-    public File[] getFiles(PredefinedSetting key) {
-        SettingValue setting = settingsMap.get(key.getKey());
-        return (File[]) setting.getSettingValue();
-    }
-
     public String[] getStrings(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
         return (String[]) setting.getSettingValue();
@@ -158,11 +153,6 @@ public class GeneralSettings {
     public SteamProfile getSteamProfileToScan() {
         SettingValue setting = settingsMap.get(STEAM_PROFILE.getKey());
         return (SteamProfile) setting.getSettingValue();
-    }
-
-    public SteamPreEntry[] getSteamAppsIgnored() {
-        SettingValue setting = settingsMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getKey());
-        return (SteamPreEntry[]) setting.getSettingValue();
     }
 
     public UIScale getUIScale() {

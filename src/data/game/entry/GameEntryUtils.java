@@ -30,7 +30,6 @@ public class GameEntryUtils {
                 GameEntry nextEntry = GameEntry.loadFromDB(set);
                 if (nextEntry != null) {
                     toAddGames.add(nextEntry);
-                    //LOGGER.debug("Loaded game \""+nextEntry.getName()+"\"");
                 }
             }
             statement.close();
@@ -40,23 +39,46 @@ public class GameEntryUtils {
         return toAddGames;
     }
 
-    public static ArrayList<UUID> readUUIDS(File entriesFolder){
-        ArrayList<UUID> uuids = new ArrayList<>();
-        entriesFolder = FileUtils.initOrCreateFolder(entriesFolder);
-
-        for(File gameFolder : entriesFolder.listFiles()){
-            String name = gameFolder.getName();
-            try{
-                if(gameFolder.isDirectory()){
-                    uuids.add(UUID.fromString(name));
-                }
-            }catch (IllegalArgumentException iae){
-                Main.LOGGER.warn("Folder "+name+" is not a valid UUID, ignoring");
+    /**
+     * Checks if a given entry is ignored (folder or steam)
+     *
+     * @param entry the entry to check
+     * @return true if this entry is ignored, false otherwise
+     */
+    public static boolean isGameIgnored(GameEntry entry){
+        ArrayList<GameEntry> ignoredGames = loadIgnoredGames();
+        boolean ignored = false;
+        for (GameEntry ignoredEntry : ignoredGames) {
+            ignored = ignoredEntry.getPath().toLowerCase().contains(entry.getPath().toLowerCase())
+                    || entry.getPath().toLowerCase().contains(ignoredEntry.getPath().toLowerCase());
+            if (ignored) {
+                return true;
             }
         }
-        Main.LOGGER.info("Loaded " + uuids.size()+" uuids from folder "+entriesFolder.getName());
-        return uuids;
+        return ignored;
     }
+
+    public static ArrayList<GameEntry> loadIgnoredGames(){
+        ArrayList<GameEntry> toAddGames = new ArrayList<>();
+
+        try {
+            Connection connection = DataBase.getUserConnection();
+            Statement statement = connection.createStatement();
+
+            ResultSet set = statement.executeQuery("select * from GameEntry where ignored = 1");
+            while (set.next()) {
+                GameEntry nextEntry = GameEntry.loadFromDB(set);
+                if (nextEntry != null) {
+                    toAddGames.add(nextEntry);
+                }
+            }
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return toAddGames;
+    }
+
     private static int indexOf(GameEntry entry){
         int index = -1;
         int i = 0;

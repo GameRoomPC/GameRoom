@@ -187,7 +187,7 @@ public class GameWatcher {
 
         ArrayList<GameEntry> savedEntries = new ArrayList<>();
         for (GameEntry entry : toAddEntries) {
-            if (!FolderGameScanner.isGameIgnored(entry)) {
+            if (!GameEntryUtils.isGameIgnored(entry)) {
                 entry.setSavedLocally(true);
                 savedEntries.add(entry);
             }
@@ -245,7 +245,7 @@ public class GameWatcher {
 
         final boolean[] alreadyDisplayedIGDBError = {false};
         for (GameEntry entry : entriesToAdd) {
-            if (entry.isWaitingToBeScrapped() && !entry.isBeingScraped() && !FolderGameScanner.isGameIgnored(entry)) {
+            if (entry.isWaitingToBeScrapped() && !entry.isBeingScraped() && !GameEntryUtils.isGameIgnored(entry)) {
                 Callable task = new Callable() {
                     @Override
                     public Object call() throws Exception {
@@ -311,7 +311,7 @@ public class GameWatcher {
                         }
                         for (GameEntry scrappedEntry : scrappedEntries) {
                             GameEntry toScrapEntry = toScrapEntries.get(i);
-                            if (!FolderGameScanner.isGameIgnored(toScrapEntry)) {
+                            if (!GameEntryUtils.isGameIgnored(toScrapEntry)) {
                                 toScrapEntry.setSavedLocally(true);
                                 if (toScrapEntry.getDescription() == null || toScrapEntry.getDescription().equals("")) {
                                     toScrapEntry.setDescription(scrappedEntry.getDescription());
@@ -493,9 +493,6 @@ public class GameWatcher {
                     || FolderGameScanner.entryNameOrPathEquals(n, entry);
             if (delete) {
                 toRemoveEntries.add(n);
-                if (n.isToAdd()) { //check if not added to Games folder
-                    n.delete();
-                }
                 break;
             }
         }

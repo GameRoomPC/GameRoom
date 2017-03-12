@@ -98,7 +98,7 @@ public class OldGameEntry {
         File toAddFolder = FILES_MAP.get("to_add");
         File gamesFolder = FILES_MAP.get("games");
 
-        ArrayList<UUID> toAddUUIDs = GameEntryUtils.readUUIDS(toAddFolder);
+        ArrayList<UUID> toAddUUIDs = readUUIDS(toAddFolder);
 
         ArrayList<OldGameEntry> oldEntries = new ArrayList<>();
         for (UUID uuid : toAddUUIDs) {
@@ -106,7 +106,7 @@ public class OldGameEntry {
             oldEntries.add(entry);
         }
 
-        ArrayList<UUID> uuids = GameEntryUtils.readUUIDS(gamesFolder);
+        ArrayList<UUID> uuids = readUUIDS(gamesFolder);
         for (UUID uuid : uuids) {
             OldGameEntry entry = new OldGameEntry(uuid);
             oldEntries.add(entry);
@@ -474,5 +474,23 @@ public class OldGameEntry {
             return null;
         }
         return sqlDate;
+    }
+
+    public static ArrayList<UUID> readUUIDS(File entriesFolder){
+        ArrayList<UUID> uuids = new ArrayList<>();
+        entriesFolder = FileUtils.initOrCreateFolder(entriesFolder);
+
+        for(File gameFolder : entriesFolder.listFiles()){
+            String name = gameFolder.getName();
+            try{
+                if(gameFolder.isDirectory()){
+                    uuids.add(UUID.fromString(name));
+                }
+            }catch (IllegalArgumentException iae){
+                Main.LOGGER.warn("Folder "+name+" is not a valid UUID, ignoring");
+            }
+        }
+        Main.LOGGER.info("Loaded " + uuids.size()+" uuids from folder "+entriesFolder.getName());
+        return uuids;
     }
 }

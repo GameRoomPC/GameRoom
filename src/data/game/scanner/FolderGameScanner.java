@@ -102,7 +102,7 @@ public class FolderGameScanner extends GameScanner {
     public void checkAndAdd(GameEntry potentialEntry) {
         if (checkValidToAdd(potentialEntry)) {
             addGameEntryFound(potentialEntry);
-        } else if (!isGameIgnored(potentialEntry)) {
+        } else if (!GameEntryUtils.isGameIgnored(potentialEntry)) {
             compareAndSetLauncherId(potentialEntry);
         }
     }
@@ -115,7 +115,7 @@ public class FolderGameScanner extends GameScanner {
      */
     protected boolean checkValidToAdd(GameEntry potentialEntry) {
         boolean gameAlreadyInLibrary = gameAlreadyInLibrary(potentialEntry);
-        boolean folderGameIgnored = isGameIgnored(potentialEntry);
+        boolean folderGameIgnored = GameEntryUtils.isGameIgnored(potentialEntry);
         boolean alreadyWaitingToBeAdded = gameAlreadyIn(potentialEntry, parentLooker.getEntriesToAdd());
         boolean pathExists = new File(potentialEntry.getPath()).exists() || potentialEntry.getPath().startsWith("steam");
         return !gameAlreadyInLibrary && !folderGameIgnored && !alreadyWaitingToBeAdded && pathExists;
@@ -186,7 +186,7 @@ public class FolderGameScanner extends GameScanner {
         toAddAndLibEntries.addAll(GameEntryUtils.ENTRIES_LIST);
         toAddAndLibEntries.addAll(parentLooker.getEntriesToAdd());
 
-        if (isGameIgnored(foundEntry)) {
+        if (GameEntryUtils.isGameIgnored(foundEntry)) {
             return;
         }
         for (GameEntry entry : toAddAndLibEntries) {
@@ -213,25 +213,6 @@ public class FolderGameScanner extends GameScanner {
                 break;
             }
         }
-    }
-
-    /**
-     * Checks if a given entry is ignored (folder or steam)
-     *
-     * @param entry the entry to check
-     * @return true if this entry is ignored, false otherwise
-     */
-    public static boolean isGameIgnored(GameEntry entry) {
-        boolean ignored = false;
-        for (File ignoredFile : Main.GENERAL_SETTINGS.getFiles(PredefinedSetting.IGNORED_GAME_FOLDERS)) {
-            ignored = ignoredFile.getAbsolutePath().toLowerCase().contains(entry.getPath().toLowerCase())
-                    || entry.getPath().toLowerCase().contains(ignoredFile.getPath().toLowerCase())
-                    || SteamLocalScraper.isSteamGameIgnored(entry);
-            if (ignored) {
-                return true;
-            }
-        }
-        return ignored;
     }
 
     /**

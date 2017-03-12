@@ -37,9 +37,8 @@ import ui.control.textfield.PathTextField;
 import ui.dialog.ActivationKeyDialog;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.WebBrowser;
-import ui.dialog.selector.GameFoldersIgnoredSelector;
+import ui.dialog.selector.IgnoredEntrySelector;
 import ui.dialog.selector.GameScannerSelector;
-import ui.dialog.selector.SteamIgnoredSelector;
 import ui.theme.Theme;
 import ui.theme.ThemeUtils;
 import ui.theme.UIScale;
@@ -49,6 +48,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static system.application.settings.SettingValue.CATEGORY_SCAN;
 import static ui.Main.*;
 
 /**
@@ -83,7 +83,7 @@ public class SettingsScene extends BaseScene {
 
     private void initCenter() {
         String[] categoriesToDisplay = new String[]{SettingValue.CATEGORY_GENERAL
-                , SettingValue.CATEGORY_SCAN
+                , CATEGORY_SCAN
                 , SettingValue.CATEGORY_ON_GAME_START
                 , SettingValue.CATEGORY_UI
         };
@@ -245,11 +245,15 @@ public class SettingsScene extends BaseScene {
             @Override
             public void handle(ActionEvent event) {
                 try {
-                    GameFoldersIgnoredSelector selector = new GameFoldersIgnoredSelector();
+                    IgnoredEntrySelector selector = new IgnoredEntrySelector();
                     Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
                     ignoredOptionnal.ifPresent(pairs -> {
                         if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_GAME_FOLDERS, selector.getSelectedEntries());
+                            for(GameEntry entry : selector.getSelectedEntries()){
+                                entry.setSavedLocally(true);
+                                entry.setIgnored(true);
+                                entry.setSavedLocally(false);
+                            }
                         }
                     });
                 } catch (IOException e) {
@@ -257,10 +261,10 @@ public class SettingsScene extends BaseScene {
                 }
             }
         });
-        flowPaneHashMap.get(PredefinedSetting.IGNORED_GAME_FOLDERS.getCategory()).getChildren().add(createLine(gameFoldersIgnoredLabel, manageGameFoldersIgnoredButton));
+        flowPaneHashMap.get(CATEGORY_SCAN).getChildren().add(createLine(gameFoldersIgnoredLabel, manageGameFoldersIgnoredButton));
 
         /***********************STEAM GAMES IGNORED****************************/
-        Label steamIgnoredGamesLabel = new Label(Main.getSettingsString("manage_ignored_steam_games_label") + " : ");
+        /*Label steamIgnoredGamesLabel = new Label(Main.getSettingsString("manage_ignored_steam_games_label") + " : ");
         steamIgnoredGamesLabel.setTooltip(new Tooltip(Main.getSettingsString("manage_ignored_steam_games_tooltip")));
         Button manageSteamGamesIgnoredButton = new Button(Main.getString("manage"));
 
@@ -282,7 +286,7 @@ public class SettingsScene extends BaseScene {
         });
 
         flowPaneHashMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getCategory()).getChildren().add(createLine(steamIgnoredGamesLabel, manageSteamGamesIgnoredButton));
-
+*/
         /***********************SUPPORTER KEY****************************/
         //TODO see if possible to have 2 IGDB keys, for supporters
 

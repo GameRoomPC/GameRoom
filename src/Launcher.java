@@ -28,11 +28,13 @@ import ui.scene.BaseScene;
 import ui.scene.MainScene;
 import ui.scene.SettingsScene;
 
+import javax.xml.crypto.Data;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -102,21 +104,7 @@ public class Launcher extends Application {
                 //TODO implement network init and sendung the game to start (with a repeat functionnality if no ack after 2 sec)
 
             } else {
-                //can start the game here, then let GameRoom do as usual
-                ArrayList<UUID> uuids = GameEntryUtils.readUUIDS(FILES_MAP.get("games"));
-                int i = 0;
-                try {
-
-                    int id = Integer.parseInt(gameToStartID);
-                    for (GameEntry entry : GameEntryUtils.ENTRIES_LIST) {
-                        if (entry.getId() == id) {
-                            //found the game to start!
-                            entry.startGame();
-                        }
-                    }
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
-                }
+                //TODO implement starting the game that has the given id
             }
         }
 
@@ -350,6 +338,11 @@ public class Launcher extends Application {
         FileUtils.clearFolder(Main.FILES_MAP.get("cache"));
         FileUtils.clearFolder(Main.FILES_MAP.get("temp"));
         GENERAL_SETTINGS.saveSettings();
+        try {
+            DataBase.getUserConnection().close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         System.exit(0);
     }

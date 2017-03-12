@@ -59,12 +59,6 @@ public class AddIgnoreGameButton extends GameButton {
         ignoreButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if (entry.getPlatformGameID() != -1) {
-                    addToSteamIgnoredList();
-                } else {
-                    addToFolderIgnoredList();
-                    //TODO use only ignored entries in db instead of this archaic thing
-                }
                 entry.setSavedLocally(true);
                 entry.setIgnored(true);
                 entry.setSavedLocally(false);
@@ -73,7 +67,6 @@ public class AddIgnoreGameButton extends GameButton {
                 parentPane.removeGame(entry);
 
                 GeneralToast.displayToast(entry.getName()+Main.getString("ignored"),mainScene.getParentStage());
-
             }
         });
         scrapingButton = new ImageButton("tile-loading-button", SCREEN_WIDTH / 10, SCREEN_WIDTH / 10);
@@ -211,38 +204,6 @@ public class AddIgnoreGameButton extends GameButton {
 
     public Image getImage() {
         return coverView.getImage();
-    }
-
-    private void addToSteamIgnoredList() {
-        SteamPreEntry[] ignoredEntries = Main.GENERAL_SETTINGS.getSteamAppsIgnored();
-
-        boolean inList = false;
-
-        for (int i = 0; i < ignoredEntries.length && !inList; i++) {
-            inList = getEntry().getPlatformGameID() == ignoredEntries[i].getId();
-        }
-        if (!inList) {
-            SteamPreEntry[] futureEntries = new SteamPreEntry[ignoredEntries.length + 1];
-            System.arraycopy(ignoredEntries, 0, futureEntries, 0, ignoredEntries.length);
-            futureEntries[futureEntries.length - 1] = new SteamPreEntry(getEntry().getName(), getEntry().getPlatformGameID());
-            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS, futureEntries);
-        }
-    }
-
-    private void addToFolderIgnoredList() {
-        File[] ignoredFolders = Main.GENERAL_SETTINGS.getFiles(PredefinedSetting.IGNORED_GAME_FOLDERS);
-
-        boolean inList = false;
-
-        for (int i = 0; i < ignoredFolders.length && !inList; i++) {
-            inList = getEntry().getPath().toLowerCase().equals(ignoredFolders[i].getAbsolutePath().toLowerCase());
-        }
-        if (!inList) {
-            File[] futureFolders = new File[ignoredFolders.length + 1];
-            System.arraycopy(ignoredFolders, 0, futureFolders, 0, ignoredFolders.length);
-            futureFolders[futureFolders.length - 1] = new File(getEntry().getPath());
-            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_GAME_FOLDERS, futureFolders);
-        }
     }
 
     private void rotateScrapingButton(){
