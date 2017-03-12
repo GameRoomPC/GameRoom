@@ -807,6 +807,7 @@ public class GameEntry {
 
     public void setArgs(String args) {
         this.args = args;
+        saveEntry();
     }
 
     public boolean isBeingScrapped() {
