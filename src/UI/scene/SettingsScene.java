@@ -559,7 +559,7 @@ public class SettingsScene extends BaseScene {
             } else if (setting.isClass(Locale.class)) {
                 /**************** LOCALE **************/
                 ComboBox<Locale> localeComboBox = new ComboBox<>();
-                localeComboBox.getItems().addAll(Locale.FRENCH, Locale.ENGLISH);
+                localeComboBox.getItems().addAll(Locale.FRENCH, Locale.ENGLISH, Locale.GERMAN);
                 localeComboBox.setConverter(new StringConverter<Locale>() {
                     @Override
                     public String toString(Locale object) {
