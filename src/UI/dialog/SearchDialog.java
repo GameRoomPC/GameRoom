@@ -177,15 +177,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                             GameRoomAlert.errorIGDB();
                         }
                     }
-                } catch (ConnectTimeoutException cte) {
-                    cte.printStackTrace();
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            statusLabel.setText(Main.getString("no_internet"));
-                        }
-                    });
-                } catch (UnirestException | IOException e) {
+                } catch (UnirestException e) {
                     LOGGER.error(e.getMessage());
                     GameRoomAlert.errorIGDB();
                     close();

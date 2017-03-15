@@ -37,6 +37,7 @@ import javafx.util.Duration;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.controlsfx.control.CheckComboBox;
 import org.json.JSONException;
+import org.json.JSONObject;
 import system.application.settings.PredefinedSetting;
 import system.os.WindowsShortcut;
 import ui.Main;
@@ -543,15 +544,21 @@ public class GameEditScene extends BaseScene {
                                                  if (entry.getIgdb_id() != -1) {
                                                      GameEntry gameEntry = entry;
                                                      try {
-                                                         gameEntry.setIgdb_imageHashs(IGDBScraper.getScreenshotHash(IGDBScraper.getGameData(gameEntry.getIgdb_id())));
-                                                         openImageSelector(gameEntry);
+                                                         JSONObject gameData = IGDBScraper.getGameData(gameEntry.getIgdb_id());
+                                                         if(gameData != null){
+                                                             gameEntry.setIgdb_imageHashs(IGDBScraper.getScreenshotHash(gameData));
+                                                             openImageSelector(gameEntry);
+                                                         }else{
+                                                             //TODO localize
+                                                             GameRoomAlert.info("No screenshot for this game on IGDB");
+                                                         }
                                                      } catch (JSONException jse) {
                                                          if (jse.toString().contains("[\"screenshots\"] not found")) {
                                                              GameRoomAlert.error(Main.getString("no_screenshot_for_this_game"));
                                                          } else {
                                                              jse.printStackTrace();
                                                          }
-                                                     } catch (UnirestException |IOException e) {
+                                                     } catch (UnirestException e) {
                                                              GameRoomAlert.errorIGDB();
                                                              LOGGER.error(e.getMessage());
                                                      }
