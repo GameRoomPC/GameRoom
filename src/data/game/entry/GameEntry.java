@@ -59,8 +59,6 @@ public class GameEntry {
     private boolean notInstalled = false;
 
     private File[] imagesPaths = new File[IMAGES_NUMBER];
-    private boolean[] imageNeedsRefresh = new boolean[IMAGES_NUMBER];
-    private HashMap<Integer, Image> createdImages = new HashMap<>();
 
     private long playTime = 0; //Time in seconds
 
@@ -353,24 +351,13 @@ public class GameEntry {
         return getImage(index,width,height,preserveRatio,smooth,false);
     }
     private Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth, boolean backGroundloading) {
-        if (createdImages.get(index) != null && !imageNeedsRefresh[index]) {
-            if (createdImages.get(index).getWidth() == width && createdImages.get(index).getHeight() == height) {
-                return createdImages.get(index);
-            }
-        }
         File currFile = getImagePath(index);
         if (currFile == null) {
             return null;
         } else if(currFile.exists()) {
-            Image result = new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth, backGroundloading);
-            createdImages.put(index, result);
-            imageNeedsRefresh[index] = false;
-            return result;
+            return new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth, backGroundloading);
         } else{
-            Image result = new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir")+File.separator+currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
-            createdImages.put(index, result);
-            imageNeedsRefresh[index] = false;
-            return result;
+            return new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir")+File.separator+currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
         }
     }
 
@@ -424,7 +411,6 @@ public class GameEntry {
         if (imagesPaths.length > index) {
             File relativeFile = FileUtils.relativizePath(imagePath,Main.FILES_MAP.get("working_dir"));
             imagesPaths[index] = relativeFile;
-            imageNeedsRefresh[index] = true;
         }
         saveEntry();
     }
