@@ -77,6 +77,7 @@ public class GameEntry {
 
     private boolean toAdd = false;
     private boolean beingScrapped;
+    private boolean runAsAdmin = false;
 
     private transient Runnable onGameLaunched;
     private transient Runnable onGameStopped;
@@ -162,6 +163,7 @@ public class GameEntry {
                 prop.setProperty("notInstalled", Boolean.toString(notInstalled));
                 prop.setProperty("waitingToBeScrapped", Boolean.toString(waitingToBeScrapped));
                 prop.setProperty("toAdd", Boolean.toString(toAdd));
+                prop.setProperty("runAsAdmin", Boolean.toString(runAsAdmin));
                 prop.setProperty("args", args);
                 prop.setProperty("youtubeSoundtrackHash", youtubeSoundtrackHash);
 
@@ -294,6 +296,9 @@ public class GameEntry {
         }
         if (prop.getProperty("toAdd") != null) {
             toAdd = Boolean.parseBoolean(prop.getProperty("toAdd"));
+        }
+        if (prop.getProperty("runAsAdmin") != null) {
+            runAsAdmin = Boolean.parseBoolean(prop.getProperty("runAsAdmin"));
         }
         if (prop.getProperty("youtubeSoundtrackHash") != null) {
             youtubeSoundtrackHash = prop.getProperty("youtubeSoundtrackHash");
@@ -830,5 +835,14 @@ public class GameEntry {
 
     public SimpleBooleanProperty monitoredProperty() {
         return monitored;
+    }
+
+    public boolean mustRunAsAdmin() {
+        return runAsAdmin;
+    }
+
+    public void setRunAsAdmin(Boolean runAsAdmin) {
+        this.runAsAdmin = runAsAdmin;
+        saveEntry();
     }
 }

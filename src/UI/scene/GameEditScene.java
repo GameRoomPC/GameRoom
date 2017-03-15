@@ -39,12 +39,14 @@ import org.controlsfx.control.CheckComboBox;
 import org.json.JSONException;
 import org.json.JSONObject;
 import system.application.settings.PredefinedSetting;
+import system.os.Terminal;
 import system.os.WindowsShortcut;
 import ui.Main;
 import ui.control.ValidEntryCondition;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.GeneralToast;
+import ui.control.drawer.submenu.CheckBoxItem;
 import ui.control.textfield.AppPathField;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
@@ -366,6 +368,17 @@ public class GameEditScene extends BaseScene {
         contentPane.add(pathNode, 1, row_count);
         row_count++;
 
+        /**************************RUN AS ADMIN ****************************************/
+        contentPane.add(new Label(Main.getString("run_as_admin") + " :"), 0, row_count);
+        CheckBox adminCheckBox = new CheckBox();
+        adminCheckBox.setSelected(entry.mustRunAsAdmin());
+        adminCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            entry.setRunAsAdmin(newValue);
+        });
+        adminCheckBox.setDisable(!checkPowershellAvailable());
+
+        contentPane.add(adminCheckBox, 1, row_count);
+        row_count++;
         /**************************PLAYTIME*********************************************/
         Label titlePlayTimeLabel = new Label(Main.getString("play_time") + " :");
         titlePlayTimeLabel.setTooltip(new Tooltip(Main.getString("play_time")));
@@ -1161,6 +1174,24 @@ public class GameEditScene extends BaseScene {
             } else {
                 LOGGER.error("Could not move non existing image : " + imageFile.getPath());
             }
+        }
+    }
+
+    private static boolean checkPowershellAvailable(){
+        Terminal t = new Terminal(false);
+        try {
+            String[] output = t.execute("powershell","/?");
+            if(output != null){
+                for(String s : output){
+                    if(s.contains("PowerShell[.exe]")){
+                        t.getProcess().destroy();
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } catch (IOException e) {
+            return false;
         }
     }
 
