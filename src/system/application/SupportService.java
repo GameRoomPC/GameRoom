@@ -116,32 +116,34 @@ public class SupportService {
     }
 
     private void scanSteamGamesTime() {
-        try {
-            ArrayList<GameEntry> ownedSteamApps = SteamOnlineScraper.getOwnedSteamGames();
-            if(MAIN_SCENE!=null){
-                GeneralToast.displayToast(Main.getString("scanning_steam_play_time"),MAIN_SCENE.getParentStage(),GeneralToast.DURATION_SHORT,true);
-            }
-            LOGGER.info("Scanning Steam playtimes online");
-            for (GameEntry ownedEntry : ownedSteamApps) {
-                if (ownedEntry.getPlayTimeSeconds() != 0) {
-                    for (GameEntry storedEntry : AllGameEntries.ENTRIES_LIST) {
-                        if (ownedEntry.getSteam_id() == storedEntry.getSteam_id() && ownedEntry.getPlayTimeSeconds() != storedEntry.getPlayTimeSeconds()) {
-                            storedEntry.setPlayTimeSeconds(ownedEntry.getPlayTimeSeconds());
-                            Platform.runLater(() -> {
-                                Main.MAIN_SCENE.updateGame(storedEntry);
-                            });
-                            try {
-                                Thread.sleep(200);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
+        if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.SYNC_STEAM_PLAYTIMES)) {
+            try {
+                ArrayList<GameEntry> ownedSteamApps = SteamOnlineScraper.getOwnedSteamGames();
+                if (MAIN_SCENE != null) {
+                    GeneralToast.displayToast(Main.getString("scanning_steam_play_time"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
+                }
+                LOGGER.info("Scanning Steam playtimes online");
+                for (GameEntry ownedEntry : ownedSteamApps) {
+                    if (ownedEntry.getPlayTimeSeconds() != 0) {
+                        for (GameEntry storedEntry : AllGameEntries.ENTRIES_LIST) {
+                            if (ownedEntry.getSteam_id() == storedEntry.getSteam_id() && ownedEntry.getPlayTimeSeconds() != storedEntry.getPlayTimeSeconds()) {
+                                storedEntry.setPlayTimeSeconds(ownedEntry.getPlayTimeSeconds());
+                                Platform.runLater(() -> {
+                                    Main.MAIN_SCENE.updateGame(storedEntry);
+                                });
+                                try {
+                                    Thread.sleep(200);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                break;
                             }
-                            break;
                         }
                     }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

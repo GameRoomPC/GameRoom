@@ -233,6 +233,8 @@ public class SettingsScene extends BaseScene {
             GameWatcher.setScanPeriod((ScanPeriod) newValue,true);
         });
 
+        addPropertyLine(PredefinedSetting.SYNC_STEAM_PLAYTIMES);
+
         addPropertyLine(PredefinedSetting.STEAM_PROFILE);
 
 
@@ -669,7 +671,7 @@ public class SettingsScene extends BaseScene {
                 });
                 node2 = uiScaleComboBox;
             } else if (setting.isClass(Theme.class)) {
-                /**************** ON LAUNCH ACTION **************/
+                /**************** THEMES **************/
                 ComboBox<Theme> themeComboBox = new ComboBox<>();
                 themeComboBox.getItems().addAll(ThemeUtils.getInstalledThemes());
                 themeComboBox.setConverter(new StringConverter<Theme>() {
@@ -707,7 +709,7 @@ public class SettingsScene extends BaseScene {
 
                 node2 = themeComboBox;
             } else if (setting.isClass(ScanPeriod.class)) {
-                /**************** POWER MODE **************/
+                /**************** SCAN PERIOD **************/
                 ComboBox<ScanPeriod> scanPeriodComboBox = new ComboBox<>();
                 scanPeriodComboBox.getItems().addAll(ScanPeriod.values());
                 scanPeriodComboBox.setConverter(new StringConverter<ScanPeriod>() {

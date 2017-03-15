@@ -81,38 +81,40 @@ public class GameWatcher {
             @Override
             public void run() {
                 initToAddEntries();
-                do {
-                    long start = System.currentTimeMillis();
+                if(!SCAN_PERIOD.equals(ScanPeriod.NEVER)) {
+                    do {
+                        long start = System.currentTimeMillis();
 
-                    if (WAIT_FULL_PERIOD) {
-                        WAIT_FULL_PERIOD = false;
-                        try {
-                            Thread.sleep(SCAN_PERIOD.toMillis());
-                            awaitingStart = false;
-                        } catch (InterruptedException e) {
-                            awaitingStart = false;
-                            LOGGER.info("Forced start of GameWatcher");
-                        }
-                    }
-
-                    routine();
-
-                    long elapsedTime = System.currentTimeMillis() - start;
-                    if (!awaitingStart) {
-                        if (elapsedTime < SCAN_PERIOD.toMillis()) {
+                        if (WAIT_FULL_PERIOD) {
+                            WAIT_FULL_PERIOD = false;
                             try {
-                                Thread.sleep(SCAN_PERIOD.toMillis() - elapsedTime);
+                                Thread.sleep(SCAN_PERIOD.toMillis());
                                 awaitingStart = false;
                             } catch (InterruptedException e) {
                                 awaitingStart = false;
                                 LOGGER.info("Forced start of GameWatcher");
                             }
                         }
-                    } else {
-                        awaitingStart = false;
-                    }
 
-                } while (Main.KEEP_THREADS_RUNNING && KEEP_LOOPING);
+                        routine();
+
+                        long elapsedTime = System.currentTimeMillis() - start;
+                        if (!awaitingStart) {
+                            if (elapsedTime < SCAN_PERIOD.toMillis()) {
+                                try {
+                                    Thread.sleep(SCAN_PERIOD.toMillis() - elapsedTime);
+                                    awaitingStart = false;
+                                } catch (InterruptedException e) {
+                                    awaitingStart = false;
+                                    LOGGER.info("Forced start of GameWatcher");
+                                }
+                            }
+                        } else {
+                            awaitingStart = false;
+                        }
+
+                    } while (Main.KEEP_THREADS_RUNNING && KEEP_LOOPING);
+                }
             }
         });
         serviceThread.setPriority(Thread.MIN_PRIORITY);
@@ -546,7 +548,7 @@ public class GameWatcher {
 
     public static void setScanPeriod(ScanPeriod period, boolean waitFullPeriod) {
         boolean oldValue = KEEP_LOOPING;
-        if (period.equals(ScanPeriod.START_ONLY)) {
+        if (period.equals(ScanPeriod.START_ONLY) || period.equals(ScanPeriod.NEVER)) {
             KEEP_LOOPING = false;
         } else {
             SCAN_PERIOD = period;
