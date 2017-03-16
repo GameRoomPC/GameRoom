@@ -59,8 +59,6 @@ public class GameEntry {
     private boolean notInstalled = false;
 
     private File[] imagesPaths = new File[IMAGES_NUMBER];
-    private boolean[] imageNeedsRefresh = new boolean[IMAGES_NUMBER];
-    private HashMap<Integer, Image> createdImages = new HashMap<>();
 
     private long playTime = 0; //Time in seconds
 
@@ -79,6 +77,7 @@ public class GameEntry {
 
     private boolean toAdd = false;
     private boolean beingScrapped;
+    private boolean runAsAdmin = false;
 
     private transient Runnable onGameLaunched;
     private transient Runnable onGameStopped;
@@ -164,6 +163,7 @@ public class GameEntry {
                 prop.setProperty("notInstalled", Boolean.toString(notInstalled));
                 prop.setProperty("waitingToBeScrapped", Boolean.toString(waitingToBeScrapped));
                 prop.setProperty("toAdd", Boolean.toString(toAdd));
+                prop.setProperty("runAsAdmin", Boolean.toString(runAsAdmin));
                 prop.setProperty("args", args);
                 prop.setProperty("youtubeSoundtrackHash", youtubeSoundtrackHash);
 
@@ -297,6 +297,9 @@ public class GameEntry {
         if (prop.getProperty("toAdd") != null) {
             toAdd = Boolean.parseBoolean(prop.getProperty("toAdd"));
         }
+        if (prop.getProperty("runAsAdmin") != null) {
+            runAsAdmin = Boolean.parseBoolean(prop.getProperty("runAsAdmin"));
+        }
         if (prop.getProperty("youtubeSoundtrackHash") != null) {
             youtubeSoundtrackHash = prop.getProperty("youtubeSoundtrackHash");
         }
@@ -353,24 +356,13 @@ public class GameEntry {
         return getImage(index,width,height,preserveRatio,smooth,false);
     }
     private Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth, boolean backGroundloading) {
-        if (createdImages.get(index) != null && !imageNeedsRefresh[index]) {
-            if (createdImages.get(index).getWidth() == width && createdImages.get(index).getHeight() == height) {
-                return createdImages.get(index);
-            }
-        }
         File currFile = getImagePath(index);
         if (currFile == null) {
             return null;
         } else if(currFile.exists()) {
-            Image result = new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth, backGroundloading);
-            createdImages.put(index, result);
-            imageNeedsRefresh[index] = false;
-            return result;
+            return new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth, backGroundloading);
         } else{
-            Image result = new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir")+File.separator+currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
-            createdImages.put(index, result);
-            imageNeedsRefresh[index] = false;
-            return result;
+            return new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir")+File.separator+currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
         }
     }
 
@@ -424,7 +416,6 @@ public class GameEntry {
         if (imagesPaths.length > index) {
             File relativeFile = FileUtils.relativizePath(imagePath,Main.FILES_MAP.get("working_dir"));
             imagesPaths[index] = relativeFile;
-            imageNeedsRefresh[index] = true;
         }
         saveEntry();
     }
@@ -844,5 +835,14 @@ public class GameEntry {
 
     public SimpleBooleanProperty monitoredProperty() {
         return monitored;
+    }
+
+    public boolean mustRunAsAdmin() {
+        return runAsAdmin;
+    }
+
+    public void setRunAsAdmin(Boolean runAsAdmin) {
+        this.runAsAdmin = runAsAdmin;
+        saveEntry();
     }
 }

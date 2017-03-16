@@ -163,7 +163,7 @@ public class GameStarter {
 
 
             File gameLog = new File(LOG_FOLDER + entry.getProcessName() + ".log");
-            ProcessBuilder gameProcessBuilder = new ProcessBuilder(getGameArgs()).inheritIO();
+            ProcessBuilder gameProcessBuilder = new ProcessBuilder(getStartGameCMD()).inheritIO();
             gameProcessBuilder.redirectOutput(gameLog);
             gameProcessBuilder.redirectError(gameLog);
             gameProcessBuilder.directory(new File(new File(entry.getPath()).getParent()));
@@ -180,11 +180,19 @@ public class GameStarter {
         }
     }
 
-    private java.util.List<String> getGameArgs(){
+    private java.util.List<String> getStartGameCMD(){
         String[] args = entry.getArgs().split(" ");
         ArrayList<String> commands = new ArrayList<>();
+        if(entry.mustRunAsAdmin()){
+            commands.add("powershell.exe");
+            commands.add("Start-Process");
+        }
         commands.add('"' + entry.getPath() + '"');
         Collections.addAll(commands, args);
+        if(entry.mustRunAsAdmin()){
+            commands.add("-verb");
+            commands.add("RunAs");
+        }
         return commands;
     }
 

@@ -48,6 +48,7 @@ public enum PredefinedSetting {
     ,IGNORED_STEAM_APPS("ignoredSteamApps",new SettingValue(new SteamPreEntry[]{},SteamPreEntry[].class,CATEGORY_SCAN))
     ,IGNORED_GAME_FOLDERS("ignoredGameFolders",new SettingValue(new File[]{},File[].class,CATEGORY_SCAN))
     , SCAN_PERIOD("scanPeriod", new SettingValue(ScanPeriod.HALF_HOUR,ScanPeriod.class,CATEGORY_SCAN))
+    , SYNC_STEAM_PLAYTIMES("syncSteamPlaytime", new SettingValue(true,Boolean.class,CATEGORY_SCAN))
     , DISABLE_GAME_MAIN_THEME("disableGameMainTheme", new SettingValue(true,Boolean.class,CATEGORY_UI))
     , ADVANCED_MODE("advancedMode", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     , DEBUG_MODE("debugMode", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
