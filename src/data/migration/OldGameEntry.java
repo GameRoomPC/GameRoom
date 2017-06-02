@@ -2,6 +2,7 @@ package data.migration;
 
 import com.google.gson.Gson;
 import data.game.entry.*;
+import data.game.scraper.SteamPreEntry;
 import data.io.DataBase;
 import data.io.FileUtils;
 import ui.Main;
@@ -53,6 +54,7 @@ public class OldGameEntry {
     private Date addedDate;
     private Date lastPlayedDate;
     private boolean notInstalled = false;
+    private boolean ignored= false;
 
     private File[] imagesPaths = new File[IMAGES_NUMBER];
 
@@ -97,6 +99,8 @@ public class OldGameEntry {
     public static void transferOldGameEntries() {
         File toAddFolder = FILES_MAP.get("to_add");
         File gamesFolder = FILES_MAP.get("games");
+        File[] ignoredFiles = OldSettings.getIgnoredFiles();
+        SteamPreEntry[] ignoredSteam = OldSettings.getIgnoredSteamApps();
 
         ArrayList<UUID> toAddUUIDs = readUUIDS(toAddFolder);
 
@@ -109,6 +113,7 @@ public class OldGameEntry {
         ArrayList<UUID> uuids = readUUIDS(gamesFolder);
         for (UUID uuid : uuids) {
             OldGameEntry entry = new OldGameEntry(uuid);
+            entry.checkIgnored(ignoredFiles,ignoredSteam);
             oldEntries.add(entry);
         }
 
@@ -136,6 +141,23 @@ public class OldGameEntry {
         }
     }
 
+    private void checkIgnored(File[] ignoredFiles, SteamPreEntry[] ignoredSteamEntries){
+        for(File ignoredFile : ignoredFiles){
+            ignored = path.toLowerCase().trim().equals(ignoredFile.getAbsolutePath().toLowerCase().trim());
+            if(ignored){
+                return;
+            }
+        }
+        if(steam_id != -1){
+            for(SteamPreEntry steamPreEntry : ignoredSteamEntries){
+                ignored = steamPreEntry.getId() == steam_id;
+                if(ignored){
+                    return;
+                }
+            }
+        }
+    }
+
     private void exportDirectFields() throws SQLException {
         Connection connection = DataBase.getUserConnection();
 
@@ -158,6 +180,7 @@ public class OldGameEntry {
         statement.setInt(16, igdb_id);
         statement.setBoolean(17, waitingToBeScrapped);
         statement.setBoolean(18, toAdd);
+        statement.setBoolean(19, ignored);
         statement.execute();
         statement.close();
         //connection.commit();
@@ -384,7 +407,6 @@ public class OldGameEntry {
             igdb_id = Integer.parseInt(prop.getProperty("igdb_id"));
         }
         if (prop.getProperty("genres") != null) {
-            Gson gson = new Gson();
             genres = OldGenre.fromJson(prop.getProperty("genres"));
         }
 

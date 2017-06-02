@@ -3,6 +3,7 @@ import data.game.entry.GameEntry;
 import data.game.scraper.IGDBScraper;
 import data.io.DataBase;
 import data.io.FileUtils;
+import data.migration.OldSettings;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -95,6 +96,8 @@ public class Launcher extends Application {
         }
 
         initFiles();
+        DataBase.initDB();
+        OldSettings.transferOldSettings();
         GameEntryUtils.loadGames();
 
         String gameToStartID = getArg(ARGS_START_GAME, args, true);
@@ -162,7 +165,7 @@ public class Launcher extends Application {
         //Main.FILES_MAP.put("libs",FileUtils.initOrCreateFolder(gameRoomFolder+File.separator+"libs"));
         Main.FILES_MAP.put("games", new File(gameRoomFolder + File.separator + "Games"));
         Main.FILES_MAP.put("log", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "log"));
-        Main.FILES_MAP.put("config.properties", FileUtils.initOrCreateFile(gameRoomFolder + File.separator + "config.properties"));
+        Main.FILES_MAP.put("config.properties", new File(gameRoomFolder + File.separator + "config.properties"));
         Main.FILES_MAP.put("GameRoom.log", FileUtils.initOrCreateFile(Main.FILES_MAP.get("log").getAbsolutePath() + File.separator + "GameRoom.log"));
         Main.FILES_MAP.put("themes", FileUtils.initOrCreateFolder(gameRoomFolder + File.separator + "themes"));
         Main.FILES_MAP.put("current_theme", FileUtils.initOrCreateFolder(Main.FILES_MAP.get("themes").getAbsolutePath() + File.separator + "current"));
@@ -337,8 +340,9 @@ public class Launcher extends Application {
         }
         FileUtils.clearFolder(Main.FILES_MAP.get("cache"));
         FileUtils.clearFolder(Main.FILES_MAP.get("temp"));
-        GENERAL_SETTINGS.saveSettings();
+
         try {
+            GENERAL_SETTINGS.saveSettings();
             DataBase.getUserConnection().close();
         } catch (SQLException e) {
             e.printStackTrace();

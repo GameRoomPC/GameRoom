@@ -137,44 +137,8 @@ CREATE TABLE IF NOT EXISTS emulates (
 );
 
 CREATE TABLE IF NOT EXISTS Settings (
-	id integer,
-	locale text,
-	tileZoom real default 0.365,
-	onGameLaunchAction text,
-	fullScreen integer default 0,
-	windowWidth integer,
-	windowHeight integer,
-	gamingPowerMode text,
-	enableGamingPowerMode integer default 0,
-	noNotifications integer default 0,
-	noToasts integer default 0,
-	startMinimized integer default 0,
-	windowMaximized integer default 1,
-	hideToolBar integer default 0,
-	hideTilesRows integer default 0,
-	enableStaticWallpaper integer default 0,
-	startWithWindows integer default 0,
-	noMoreIconTrayWarning integer default 0,
-	enableXboxControllerSupport integer default 0,
-	disableMainSceneWallpaper integer default 0,
-	disableScrollbarFullScreen integer default 1,
-	disableGameMainTheme integer default 1,
-	advancedMode integer default 0,
-	debugMode integer default 0,
-	foldedRowLastPlay integer default 0,
-	foldedRowRecentlyAdded integer default 0,
-	foldedToAddRow integer default 0,
-	cmd_before text,
-	cmd_after text,
-	displayWelcomeMessage integer default 1,
-	supporterKey text,
-	steamProfile text,
-	scrollbarVValue real default 0.0,
-	uiscale text,
-	theme text,
-	lastSupportMessage text,
-	lastUpdateCheck datetime,
-	drawerMenuWidth real default 0.0
+	id text PRIMARY KEY,
+	value text
 );
 
 CREATE TABLE IF NOT EXISTS GamesFolder (

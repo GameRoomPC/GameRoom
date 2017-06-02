@@ -1,14 +1,15 @@
 package data.game.entry;
 
 import data.io.DataBase;
-import data.io.FileUtils;
 import data.migration.OldGameEntry;
 import ui.Main;
 
 import java.io.File;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.UUID;
 
 import static ui.Main.FILES_MAP;
 
@@ -59,7 +60,7 @@ public class GameEntryUtils {
     }
 
     public static ArrayList<GameEntry> loadIgnoredGames(){
-        ArrayList<GameEntry> toAddGames = new ArrayList<>();
+        ArrayList<GameEntry> ignoredGames = new ArrayList<>();
 
         try {
             Connection connection = DataBase.getUserConnection();
@@ -69,14 +70,14 @@ public class GameEntryUtils {
             while (set.next()) {
                 GameEntry nextEntry = GameEntry.loadFromDB(set);
                 if (nextEntry != null) {
-                    toAddGames.add(nextEntry);
+                    ignoredGames.add(nextEntry);
                 }
             }
             statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return toAddGames;
+        return ignoredGames;
     }
 
     private static int indexOf(GameEntry entry){
@@ -101,8 +102,6 @@ public class GameEntryUtils {
     public static void loadGames(){
         //TODO detect in following method if exists old games
         loadGames(FILES_MAP.get("games"));
-
-        DataBase.initDB();
         OldGameEntry.transferOldGameEntries();
 
         try {

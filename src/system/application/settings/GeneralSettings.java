@@ -4,6 +4,7 @@ import data.game.scanner.ScanPeriod;
 import data.game.scanner.ScannerProfile;
 import data.game.scraper.SteamPreEntry;
 import data.game.scraper.SteamProfile;
+import data.io.DataBase;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import system.application.OnLaunchAction;
@@ -14,6 +15,9 @@ import ui.theme.Theme;
 import ui.theme.UIScale;
 
 import java.io.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -32,29 +36,12 @@ public class GeneralSettings {
     }
 
     private void loadSettings() {
-        Properties prop = new Properties();
-        InputStream input = null;
 
         try {
-            input = new FileInputStream(Main.FILES_MAP.get("config.properties"));
-
-            // load a properties file
-            prop.load(input);
-
             for (PredefinedSetting predefinedSetting : PredefinedSetting.values()) {
-                SettingValue.loadSetting(settingsMap, prop, predefinedSetting);
+                SettingValue.loadSetting(settingsMap, predefinedSetting);
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-
         } finally {
-            if (input != null) {
-                try {
-                    input.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
             Main.LOGGER.info("Loaded settings : "
                     + "windowWidth=" + getWindowWidth()
                     + ", windowHeight=" + getWindowHeight()
@@ -62,32 +49,31 @@ public class GeneralSettings {
         }
     }
 
-    public void saveSettings() {
-        Properties prop = new Properties();
-        OutputStream output = null;
+    public void saveSettings() throws SQLException {
+        String sql = "INSERT OR REPLACE INTO Settings (id,value) VALUES ";
+        String pair = "(?,?)";
+        String comma = ", ";
 
-        try {
-
-            output = new FileOutputStream(Main.FILES_MAP.get("config.properties"));
-
-            for (PredefinedSetting key : PredefinedSetting.values()) {
-                prop.setProperty(key.toString(), settingsMap.get(key.getKey()).toString());
+        int settingNb = PredefinedSetting.values().length;
+        for (int i = 0; i < settingNb; i++) {
+            sql += pair;
+            if (i != settingNb - 1) {
+                sql+=comma;
+            } else {
+                sql+=";";
             }
-            // save properties to project root folder
-            prop.store(output, null);
-
-        } catch (IOException io) {
-            io.printStackTrace();
-        } finally {
-            if (output != null) {
-                try {
-                    output.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
         }
+
+        Connection connection = DataBase.getUserConnection();
+        PreparedStatement statement = connection.prepareStatement(sql);
+
+        int i = 1;
+        for(PredefinedSetting setting : PredefinedSetting.values()){
+            statement.setString(i++, setting.getKey());
+            statement.setString(i++, settingsMap.get(setting.getKey()).toString());
+        }
+        statement.execute();
+        statement.close();
     }
 
     /***************************SETTERS AND GETTERS*******************************/
@@ -104,7 +90,7 @@ public class GeneralSettings {
 
     public Boolean getBoolean(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
-        if(setting.getSettingValue() instanceof SimpleBooleanProperty){
+        if (setting.getSettingValue() instanceof SimpleBooleanProperty) {
             return ((SimpleBooleanProperty) setting.getSettingValue()).getValue();
         }
         return (boolean) setting.getSettingValue();
@@ -153,6 +139,11 @@ public class GeneralSettings {
     public SteamProfile getSteamProfileToScan() {
         SettingValue setting = settingsMap.get(STEAM_PROFILE.getKey());
         return (SteamProfile) setting.getSettingValue();
+    }
+
+    public SteamPreEntry[] getSteamAppsIgnored() {
+        SettingValue setting = settingsMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getKey());
+        return (SteamPreEntry[]) setting.getSettingValue();
     }
 
     public UIScale getUIScale() {
@@ -231,7 +222,11 @@ public class GeneralSettings {
         }
 
         settingsMap.put(key.getKey(), settingValue);
-        saveSettings();
+        try {
+            saveSettings();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void onSupporterModeActivated() {

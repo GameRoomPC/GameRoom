@@ -102,7 +102,8 @@ public class GameEntry {
             "wp_hash",
             "igdb_id",
             "waiting_scrap",
-            "toAdd"};
+            "toAdd",
+            "ignored"};
 
     public GameEntry(String name) {
         this.name = name;
