@@ -44,11 +44,11 @@ public class GameGenre {
             //try to see if it exists in db
             try {
                 Connection connection = DataBase.getUserConnection();
-                PreparedStatement statement = connection.prepareStatement("select * from GameGenre where id = ?");
+                PreparedStatement statement = connection.prepareStatement("select * from GameGenre where igdb_id = ?");
                 statement.setInt(1, id);
                 ResultSet set = statement.executeQuery();
                 if (set.next()) {
-                    int genreId = set.getInt("id");
+                    int genreId = set.getInt("igdb_id");
                     String key = set.getString("name_key");
                     GameGenre newGenre = new GameGenre(genreId, key);
                     ID_MAP.put(genreId, newGenre);
@@ -69,7 +69,7 @@ public class GameGenre {
         Statement statement = connection.createStatement();
         ResultSet set = statement.executeQuery("select * from GameGenre");
         while (set.next()) {
-            int id = set.getInt("id");
+            int id = set.getInt("igdb_id");
             String key = set.getString("name_key");
             ID_MAP.put(id, new GameGenre(id, key));
         }
@@ -87,7 +87,7 @@ public class GameGenre {
 
         try {
             Connection connection = DataBase.getUserConnection();
-            PreparedStatement getIdQuery = connection.prepareStatement("SELECT id FROM GameGenre WHERE name_key = ?");
+            PreparedStatement getIdQuery = connection.prepareStatement("SELECT igdb_id FROM GameGenre WHERE name_key = ?");
             getIdQuery.setString(1, nameKey);
             ResultSet result = getIdQuery.executeQuery();
 

@@ -26,7 +26,7 @@ public class GameEntryUtils {
             Connection connection = DataBase.getUserConnection();
             Statement statement = connection.createStatement();
 
-            ResultSet set = statement.executeQuery("select * from GameEntry where toAdd = 1");
+            ResultSet set = statement.executeQuery("select * from GameEntry where toAdd = 1 AND ignored = 0");
             while (set.next()) {
                 GameEntry nextEntry = GameEntry.loadFromDB(set);
                 if (nextEntry != null) {
@@ -108,7 +108,7 @@ public class GameEntryUtils {
             Connection connection = DataBase.getUserConnection();
             Statement statement = connection.createStatement();
 
-            ResultSet set = statement.executeQuery("select * from GameEntry where toAdd = 0");
+            ResultSet set = statement.executeQuery("select * from GameEntry where toAdd = 0 AND ignored = 0");
             while (set.next()){
                 GameEntry nextEntry = GameEntry.loadFromDB(set);
                 if(nextEntry != null){

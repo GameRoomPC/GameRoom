@@ -146,16 +146,6 @@ CREATE TABLE IF NOT EXISTS GamesFolder (
 	path text
 );
 
-CREATE TABLE IF NOT EXISTS IgnoredSteamApps (
-	steam_id integer PRIMARY KEY,
-	name text
-);
-
-CREATE TABLE IF NOT EXISTS IgnoredFiles (
-	id integer PRIMARY KEY AUTOINCREMENT,
-	path text
-);
-
 CREATE TABLE IF NOT EXISTS GameScanners (
 	id integer PRIMARY KEY,
 	name_key text,
