@@ -113,7 +113,7 @@ public class KeyChecker {
                 LOGGER.info("KeyChecker : received null");
             }
         } catch (Exception e) {
-            if(e.toString().contains("org.apache.http.conn.ConnectTimeoutException")){
+            if(e.toString().contains("org.apache.http.conn.ConnectTimeoutException") || e.getMessage().contains("java.net.SocketTimeoutException: Read timed out")){
                 LOGGER.error("[KeyChecker] gameroom.me not reachable");
                 LOGGER.error(e.getMessage());
             }else{

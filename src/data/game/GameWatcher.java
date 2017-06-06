@@ -8,6 +8,7 @@ import data.game.scanner.*;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.images.ImageUtils;
+import data.io.FileUtils;
 import javafx.application.Platform;
 import org.json.JSONArray;
 import system.application.settings.PredefinedSetting;
@@ -18,6 +19,8 @@ import ui.dialog.GameRoomAlert;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
@@ -81,39 +84,41 @@ public class GameWatcher {
         serviceThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                loadToAddEntries();
-                do {
-                    long start = System.currentTimeMillis();
+                    loadToAddEntries();
+                if(!SCAN_PERIOD.equals(ScanPeriod.NEVER)) {
+                    do {
+                        long start = System.currentTimeMillis();
 
-                    if (WAIT_FULL_PERIOD) {
-                        WAIT_FULL_PERIOD = false;
-                        try {
-                            Thread.sleep(SCAN_PERIOD.toMillis());
-                            awaitingStart = false;
-                        } catch (InterruptedException e) {
-                            awaitingStart = false;
-                            LOGGER.info("Forced start of GameWatcher");
-                        }
-                    }
-
-                    routine();
-
-                    long elapsedTime = System.currentTimeMillis() - start;
-                    if (!awaitingStart) {
-                        if (elapsedTime < SCAN_PERIOD.toMillis()) {
+                        if (WAIT_FULL_PERIOD) {
+                            WAIT_FULL_PERIOD = false;
                             try {
-                                Thread.sleep(SCAN_PERIOD.toMillis() - elapsedTime);
+                                Thread.sleep(SCAN_PERIOD.toMillis());
                                 awaitingStart = false;
                             } catch (InterruptedException e) {
                                 awaitingStart = false;
                                 LOGGER.info("Forced start of GameWatcher");
                             }
                         }
-                    } else {
-                        awaitingStart = false;
-                    }
 
-                } while (Main.KEEP_THREADS_RUNNING && KEEP_LOOPING);
+                        routine();
+
+                        long elapsedTime = System.currentTimeMillis() - start;
+                        if (!awaitingStart) {
+                            if (elapsedTime < SCAN_PERIOD.toMillis()) {
+                                try {
+                                    Thread.sleep(SCAN_PERIOD.toMillis() - elapsedTime);
+                                    awaitingStart = false;
+                                } catch (InterruptedException e) {
+                                    awaitingStart = false;
+                                    LOGGER.info("Forced start of GameWatcher");
+                                }
+                            }
+                        } else {
+                            awaitingStart = false;
+                        }
+
+                    } while (Main.KEEP_THREADS_RUNNING && KEEP_LOOPING);
+                }
             }
         });
         serviceThread.setPriority(Thread.MIN_PRIORITY);
@@ -248,9 +253,13 @@ public class GameWatcher {
                             entry.setBeingScraped(true);
                             entry.setSavedLocally(false);
                             JSONArray search_results = IGDBScraper.searchGame(entry.getName());
-                            searchIGDBIDs.add(LevenshteinDistance.closestName(entry.getName(),search_results));
-                            toScrapEntries.add(entry);
-                            Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
+                            if (search_results != null) {
+                                int igdbId = LevenshteinDistance.closestName(entry.getName(), search_results);
+                                searchIGDBIDs.add(igdbId);
+                                entry.setIgdb_id(igdbId);
+                                toScrapEntries.add(entry);
+                                Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
+                            }
 
                         } catch (Exception e) {
                             if (e instanceof IOException) {
@@ -284,107 +293,121 @@ public class GameWatcher {
 
         int listCounter = -1;
         for (int i = 0; i < searchIGDBIDs.size(); i++) {
-            if(i%150 == 0){
-                listCounter ++;
+            if (i % 200 == 0) {
+                listCounter++;
                 searchIDsCollection.add(new CopyOnWriteArrayList<>());
             }
             searchIDsCollection.get(listCounter).add(searchIGDBIDs.get(i));
         }
 
-        if(searchIDsCollection.size() > 0){
-            for(CopyOnWriteArrayList<Integer> ids : searchIDsCollection) {
+        boolean anErrorOccured = false;
+
+        if (searchIDsCollection.size() > 0) {
+            for (CopyOnWriteArrayList<Integer> ids : searchIDsCollection) {
                 if (!ids.isEmpty()) {
                     try {
                         JSONArray gamesDataArray = IGDBScraper.getGamesData(ids);
-                        ArrayList<GameEntry> scrappedEntries = IGDBScraper.getEntries(gamesDataArray);
+                        if (gamesDataArray != null) {
+                            ArrayList<GameEntry> scrappedEntries = IGDBScraper.getEntries(gamesDataArray);
 
-                        int i = 0;
+                            int i = 0;
 
-                        if (MAIN_SCENE != null) {
-                            GeneralToast.displayToast(Main.getString("downloading_images"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
-                        }
-                        for (GameEntry scrappedEntry : scrappedEntries) {
-                            GameEntry toScrapEntry = toScrapEntries.get(i);
-                            if (!GameEntryUtils.isGameIgnored(toScrapEntry)) {
-                                toScrapEntry.setSavedLocally(true);
-                                if (toScrapEntry.getDescription() == null || toScrapEntry.getDescription().equals("")) {
-                                    toScrapEntry.setDescription(scrappedEntry.getDescription());
-                                }
-                                if (toScrapEntry.getReleaseDate() == null) {
-                                    toScrapEntry.setReleaseDate(scrappedEntry.getReleaseDate());
-                                }
-                                toScrapEntry.setThemes(scrappedEntry.getThemes());
-                                toScrapEntry.setGenres(scrappedEntry.getGenres());
-                                toScrapEntry.setSerie(scrappedEntry.getSerie());
-                                toScrapEntry.setDevelopers(scrappedEntry.getDevelopers());
-                                toScrapEntry.setPublishers(scrappedEntry.getPublishers());
-                                toScrapEntry.setIgdb_id(scrappedEntry.getIgdb_id());
-                                toScrapEntry.setSavedLocally(false);
+                            if (MAIN_SCENE != null) {
+                                GeneralToast.displayToast(Main.getString("downloading_images"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
+                            }
+                            for (GameEntry scrappedEntry : scrappedEntries) {
+                                GameEntry toScrapEntry = getGameWithIGDBId(scrappedEntry.getIgdb_id(), toScrapEntries);
+                                if (toScrapEntry != null && !GameEntryUtils.isGameIgnored(toScrapEntry)) {
+                                    toScrapEntry.setSavedLocally(true);
+                                    if (toScrapEntry.getDescription() == null || toScrapEntry.getDescription().equals("")) {
+                                        toScrapEntry.setDescription(scrappedEntry.getDescription());
+                                    }
+                                    if (toScrapEntry.getReleaseDate() == null) {
+                                        toScrapEntry.setReleaseDate(scrappedEntry.getReleaseDate());
+                                    }
+                                    toScrapEntry.setThemes(scrappedEntry.getThemes());
+                                    toScrapEntry.setGenres(scrappedEntry.getGenres());
+                                    toScrapEntry.setSerie(scrappedEntry.getSerie());
+                                    toScrapEntry.setDevelopers(scrappedEntry.getDevelopers());
+                                    toScrapEntry.setPublishers(scrappedEntry.getPublishers());
+                                    toScrapEntry.setIgdb_id(scrappedEntry.getIgdb_id());
+                                    toScrapEntry.setSavedLocally(false);
 
-                                ImageUtils.downloadIGDBImageToCache(EXECUTOR_SERVICE
-                                        , scrappedEntry.getIgdb_id()
-                                        , scrappedEntry.getIgdb_imageHash(0)
-                                        , ImageUtils.IGDB_TYPE_COVER
-                                        , ImageUtils.IGDB_SIZE_BIG_2X
-                                        , new OnDLDoneHandler() {
-                                            @Override
-                                            public void run(File outputfile) {
-                                                try {
-                                                    toScrapEntry.setSavedLocally(true);
-                                                    toScrapEntry.updateImage(0, outputfile);
-                                                    toScrapEntry.setSavedLocally(false);
-                                                } catch (Exception e) {
-                                                    toScrapEntry.setSavedLocally(false);
-                                                    //TODO localize
-                                                    GameRoomAlert.error("Could not update image's path");
-                                                }
+                                    ImageUtils.downloadIGDBImageToCache(EXECUTOR_SERVICE
+                                            , scrappedEntry.getIgdb_id()
+                                            , scrappedEntry.getIgdb_imageHash(0)
+                                            , ImageUtils.IGDB_TYPE_COVER
+                                            , ImageUtils.IGDB_SIZE_BIG_2X
+                                            , new OnDLDoneHandler() {
+                                                @Override
+                                                public void run(File outputfile) {
+                                                    try {
+                                                        toScrapEntry.setSavedLocally(true);
+                                                        toScrapEntry.updateImage(1, outputfile);
+                                                        toScrapEntry.setSavedLocally(false);
+                                                    } catch (Exception e) {
+                                                            Main.LOGGER.error("GameWatcher : could not move image for game "+toScrapEntry.getName());
+                                                            e.printStackTrace();
+                                                    }
 
-                                                Main.runAndWait(() -> {
-                                                    Main.MAIN_SCENE.updateGame(scrappedEntry);
-                                                });
+                                                    Main.runAndWait(() -> {
+                                                        Main.MAIN_SCENE.updateGame(scrappedEntry);
+                                                    });
 
-                                                ImageUtils.downloadIGDBImageToCache(EXECUTOR_SERVICE
-                                                        , scrappedEntry.getIgdb_id()
-                                                        , scrappedEntry.getIgdb_imageHash(1)
-                                                        , ImageUtils.IGDB_TYPE_SCREENSHOT
-                                                        , ImageUtils.IGDB_SIZE_BIG_2X
-                                                        , new OnDLDoneHandler() {
-                                                            @Override
-                                                            public void run(File outputfile) {
-                                                                try {
+                                                    ImageUtils.downloadIGDBImageToCache(EXECUTOR_SERVICE
+                                                            , scrappedEntry.getIgdb_id()
+                                                            , scrappedEntry.getIgdb_imageHash(1)
+                                                            , ImageUtils.IGDB_TYPE_SCREENSHOT
+                                                            , ImageUtils.IGDB_SIZE_BIG_2X
+                                                            , new OnDLDoneHandler() {
+                                                                @Override
+                                                                public void run(File outputfile) {
+                                                                    try {
+                                                                        toScrapEntry.setSavedLocally(true);
+                                                                        toScrapEntry.updateImage(1, outputfile);
+                                                                        toScrapEntry.setSavedLocally(false);
+                                                                    } catch (Exception e) {
+                                                                        Main.LOGGER.error("GameWatcher : could not move image for game "+toScrapEntry.getName());
+                                                                        e.printStackTrace();
+                                                                    }
                                                                     toScrapEntry.setSavedLocally(true);
-                                                                    toScrapEntry.updateImage(1, outputfile);
+                                                                    toScrapEntry.setWaitingToBeScrapped(false);
+                                                                    toScrapEntry.setBeingScraped(false);
                                                                     toScrapEntry.setSavedLocally(false);
-                                                                } catch (Exception e) {
-                                                                    toScrapEntry.setSavedLocally(false);
-                                                                    //TODO localize
-                                                                    GameRoomAlert.error("Could not update image's path");
+                                                                    Main.runAndWait(() -> {
+                                                                        Main.MAIN_SCENE.updateGame(toScrapEntry);
+                                                                    });
                                                                 }
-                                                                toScrapEntry.setSavedLocally(true);
-                                                                toScrapEntry.setWaitingToBeScrapped(false);
-                                                                toScrapEntry.setBeingScraped(false);
-                                                                toScrapEntry.setSavedLocally(false);
-                                                                Main.runAndWait(() -> {
-                                                                    Main.MAIN_SCENE.updateGame(toScrapEntry);
-                                                                });
-                                                            }
-                                                        });
-                                            }
-                                        });
+                                                            });
+                                                }
+                                            });
+                                }
 
-                            }
+                                i++;
 
-                            i++;
-
-                            try {
-                                Thread.sleep(2 * 100);
-                            } catch (InterruptedException ignored) {
+                                try {
+                                    Thread.sleep(2 * 100);
+                                } catch (InterruptedException ignored) {
+                                }
                             }
                         }
-                    } catch (UnirestException | IOException e) {
+                    } catch (UnirestException e) {
                         LOGGER.error(e.getMessage());
                         GameRoomAlert.errorIGDB();
+                        anErrorOccured = true;
                     }
+                }
+            }
+            for(GameEntry ge : toScrapEntries){
+                if(ge.isBeingScraped()){ //this means that there was no id on igdb for this game
+                    //here we set it to false as IGDB was not able to find our game
+                    ge.setSavedLocally(true);
+                    ge.setBeingScraped(false);
+                    ge.setWaitingToBeScrapped(ge.isWaitingToBeScrapped() && anErrorOccured);
+                    ge.setSavedLocally(false);
+                    Main.runAndWait(() -> {
+                        Main.MAIN_SCENE.updateGame(ge);
+                    });
                 }
             }
         }
@@ -466,8 +489,8 @@ public class GameWatcher {
                 .replace(" ", "");//remove spaces for a cleaner comparison;
     }
 
-    public static String cleanName(String name){
-        return name.replace("."," ")
+    public static String cleanName(String name) {
+        return name.replace(".", " ")
                 .replace("\u00AE", "")//registered symbol
                 .replace("\u00A9", "")//copyright symbol
                 .replace("\u2122", "")//TM symbol
@@ -475,9 +498,9 @@ public class GameWatcher {
                 .replace("32 bit", "")
                 .replace("64bit", "")
                 .replace("64 bit", "")
-                .replace("x86","")
-                .replace("x64","")
-                .replace("()","");
+                .replace("x86", "")
+                .replace("x64", "")
+                .replace("()", "");
     }
 
     public void removeGame(GameEntry entry) {
@@ -508,7 +531,7 @@ public class GameWatcher {
 
     public static void setScanPeriod(ScanPeriod period, boolean waitFullPeriod) {
         boolean oldValue = KEEP_LOOPING;
-        if (period.equals(ScanPeriod.START_ONLY)) {
+        if (period.equals(ScanPeriod.START_ONLY) || period.equals(ScanPeriod.NEVER)) {
             KEEP_LOOPING = false;
         } else {
             SCAN_PERIOD = period;
@@ -517,5 +540,17 @@ public class GameWatcher {
                 WAIT_FULL_PERIOD = waitFullPeriod;
             }
         }
+    }
+
+    private static GameEntry getGameWithIGDBId(int id, Collection<GameEntry> collection) {
+        if (collection == null || collection.isEmpty()) {
+            return null;
+        }
+        for (GameEntry ge : collection) {
+            if (ge.getIgdb_id() == id) {
+                return ge;
+            }
+        }
+        return null;
     }
 }

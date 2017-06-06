@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
-import static system.application.settings.PredefinedSetting.STEAM_PROFILE;
+import static system.application.settings.PredefinedSetting.*;
 
 /**
  * This is the main interface to access settings. This singleton is responsible reading/writing settings from/into the
@@ -134,16 +134,25 @@ public class GeneralSettings {
 
     public int getWindowWidth() {
         SettingValue setting = settingsMap.get(PredefinedSetting.WINDOW_WIDTH.getKey());
+        if(setting == null){
+            return (int)PredefinedSetting.WINDOW_WIDTH.getDefaultValue().getSettingValue();
+        }
         return (int) setting.getSettingValue();
     }
 
     public int getWindowHeight() {
         SettingValue setting = settingsMap.get(PredefinedSetting.WINDOW_HEIGHT.getKey());
+        if(setting == null){
+            return (int) PredefinedSetting.WINDOW_HEIGHT.getDefaultValue().getSettingValue();
+        }
         return (int) setting.getSettingValue();
     }
 
     public Boolean getBoolean(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
+        if(setting == null){
+            return (Boolean)key.getDefaultValue().getSettingValue();
+        }
         if (setting.getSettingValue() instanceof SimpleBooleanProperty) {
             return ((SimpleBooleanProperty) setting.getSettingValue()).getValue();
         }
@@ -152,71 +161,105 @@ public class GeneralSettings {
 
     public SimpleBooleanProperty getBooleanProperty(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
+        if(setting == null){
+            return (SimpleBooleanProperty) key.getDefaultValue().getSettingValue();
+        }
         return (SimpleBooleanProperty) setting.getSettingValue();
     }
 
     public Locale getLocale(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
+        if(setting == null){
+            return (Locale) key.getDefaultValue().getSettingValue();
+        }
         return (Locale) setting.getSettingValue();
     }
 
     public OnLaunchAction getOnLaunchAction(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
+        if(setting == null){
+            return (OnLaunchAction) key.getDefaultValue().getSettingValue();
+        }
         return (OnLaunchAction) setting.getSettingValue();
     }
 
     public PowerMode getPowerMode(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
+        if(setting == null){
+            return (PowerMode) key.getDefaultValue().getSettingValue();
+        }
         return (PowerMode) setting.getSettingValue();
     }
 
     public int getInt(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
+        if(setting == null){
+            return (int)key.getDefaultValue().getSettingValue();
+        }
         return (int) setting.getSettingValue();
     }
 
     public double getDouble(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
+        if(setting == null){
+            return (double)key.getDefaultValue().getSettingValue();
+        }
         return (double) setting.getSettingValue();
     }
 
     public String[] getStrings(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
+        if(setting == null){
+            return (String[])key.getDefaultValue().getSettingValue();
+        }
         return (String[]) setting.getSettingValue();
     }
 
     public String getString(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
+        if(setting == null){
+            return (String) key.getDefaultValue().getSettingValue();
+        }
         return (String) setting.getSettingValue();
     }
 
     public SteamProfile getSteamProfileToScan() {
         SettingValue setting = settingsMap.get(STEAM_PROFILE.getKey());
+        if(setting == null){
+            return (SteamProfile) STEAM_PROFILE.getDefaultValue().getSettingValue();
+        }
         return (SteamProfile) setting.getSettingValue();
-    }
-
-    public SteamPreEntry[] getSteamAppsIgnored() {
-        SettingValue setting = settingsMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getKey());
-        return (SteamPreEntry[]) setting.getSettingValue();
     }
 
     public UIScale getUIScale() {
         SettingValue<UIScale> settingValue = settingsMap.get(PredefinedSetting.UI_SCALE.getKey());
+        if(settingValue == null){
+            return (UIScale) UI_SCALE.getDefaultValue().getSettingValue();
+        }
         return settingValue.getSettingValue();
     }
 
     public ScanPeriod getScanPeriod() {
         SettingValue<ScanPeriod> setting = settingsMap.get(PredefinedSetting.SCAN_PERIOD.getKey());
+        if(setting == null){
+            return (ScanPeriod) SCAN_PERIOD.getDefaultValue().getSettingValue();
+        }
         return setting.getSettingValue();
     }
 
     public Date getDate(PredefinedSetting predefSetting) {
         SettingValue<Date> setting = settingsMap.get(predefSetting.getKey());
+        if(setting == null){
+            return (Date) predefSetting.getDefaultValue().getSettingValue();
+        }
         return setting.getSettingValue();
     }
 
     public Theme getTheme() {
         SettingValue<Theme> settingValue = settingsMap.get(PredefinedSetting.THEME.getKey());
+        if(settingValue == null){
+            return (Theme) THEME.getDefaultValue().getSettingValue();
+        }
         return settingValue.getSettingValue();
     }
 

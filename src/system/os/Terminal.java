@@ -16,10 +16,12 @@ import java.util.Collections;
 public class Terminal {
     private ProcessBuilder processBuilder;
     private boolean redirectErrorStream = true;
+    private Process process;
 
-    public Terminal(){
+    public Terminal() {
         this(true);
     }
+
     public Terminal(boolean redirectErrorStream) {
         this.redirectErrorStream = redirectErrorStream;
         processBuilder = new ProcessBuilder();
@@ -45,11 +47,12 @@ public class Terminal {
 
     public String[] execute(String command, String... args) throws IOException {
         ArrayList<String> commands = new ArrayList<String>();
+
         commands.addAll(Arrays.asList("cmd.exe", "/c", "chcp", "65001", "&", "cmd.exe", "/c", command));
         Collections.addAll(commands, args);
         processBuilder.command(commands);
 
-        Process process = processBuilder.start();
+        process = processBuilder.start();
 
         BufferedReader stdInput =
                 new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -58,7 +61,7 @@ public class Terminal {
 
         String s = "";
         // read any errors from the attempted command
-        if(redirectErrorStream){
+        if (redirectErrorStream) {
             while ((s = stdError.readLine()) != null) {
                 Main.LOGGER.error("[cmd=" + command + "] " + s);
             }
@@ -69,5 +72,9 @@ public class Terminal {
         stdInput.close();
         process.destroy();
         return result;
+    }
+
+    public Process getProcess(){
+        return process;
     }
 }

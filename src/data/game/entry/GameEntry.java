@@ -60,8 +60,6 @@ public class GameEntry {
     private boolean installed = true;
 
     private File[] imagesFiles = new File[IMAGES_NUMBER];
-    private boolean[] imageNeedsRefresh = new boolean[IMAGES_NUMBER];
-    private HashMap<Integer, Image> createdImages = new HashMap<>();
 
     private long playTime = 0; //Time in seconds
 
@@ -74,10 +72,12 @@ public class GameEntry {
 
     private transient boolean inDb = false;
     private boolean toAdd = false;
+
     private boolean waitingToBeScrapped = false;
     private boolean beingScrapped = false;
     private boolean ignored = false;
     private transient boolean deleted = false;
+    private boolean runAsAdmin = false;
 
     private transient Runnable onGameLaunched;
     private transient Runnable onGameStopped;
@@ -103,15 +103,14 @@ public class GameEntry {
             "igdb_id",
             "waiting_scrap",
             "toAdd",
-            "ignored"};
+            "ignored",
+            "runAsAdmin"
+    };
 
     public GameEntry(String name) {
         this.name = name;
     }
 
-    public GameEntry(int id) {
-        setId(id);
-    }
 
     public void saveEntry() {
         if (savedLocally && !deleted) {
@@ -331,24 +330,13 @@ public class GameEntry {
     }
 
     private Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth, boolean backGroundloading) {
-        if (createdImages.get(index) != null && !imageNeedsRefresh[index]) {
-            if (createdImages.get(index).getWidth() == width && createdImages.get(index).getHeight() == height) {
-                return createdImages.get(index);
-            }
-        }
         File currFile = getImagePath(index);
         if (currFile == null) {
             return null;
-        } else if (currFile.exists()) {
-            Image result = new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth, backGroundloading);
-            createdImages.put(index, result);
-            imageNeedsRefresh[index] = false;
-            return result;
-        } else {
-            Image result = new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir") + File.separator + currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
-            createdImages.put(index, result);
-            imageNeedsRefresh[index] = false;
-            return result;
+        } else if(currFile.exists()) {
+            return new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth, backGroundloading);
+        } else{
+            return new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir")+File.separator+currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
         }
     }
 
@@ -422,7 +410,6 @@ public class GameEntry {
                 statement.setInt(1, aggregated_rating);
                 statement.setInt(2, id);
                 statement.execute();
-
                 statement.close();
             }
         } catch (SQLException e) {
@@ -449,7 +436,6 @@ public class GameEntry {
                         , StandardCopyOption.REPLACE_EXISTING);
 
                 imagesFiles[index] = localFile;
-                imageNeedsRefresh[index] = true;
             }
         }
     }
@@ -936,7 +922,6 @@ public class GameEntry {
         return monitored;
     }
 
-
     public boolean isIgnored() {
         return ignored;
     }
@@ -1321,7 +1306,6 @@ public class GameEntry {
 
             File localFile = new File(path);
             imagesFiles[i] = localFile;
-            imageNeedsRefresh[i] = true;
         }
     }
 
@@ -1341,5 +1325,26 @@ public class GameEntry {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public boolean mustRunAsAdmin() {
+        return runAsAdmin;
+    }
+
+    public void setRunAsAdmin(Boolean runAsAdmin) {
+        this.runAsAdmin = runAsAdmin;
+        this.path = path.trim();
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set runAsAdmin = ? where id = ?");
+                statement.setBoolean(1, runAsAdmin);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS GameEntry (
 	installed integer default 1,
 	waiting_scrap integer default 0,
 	toAdd integer default 0,
-	ignored integer default 0
+	ignored integer default 0,
+	runAsAdmin integer default 0
 );
 
 CREATE TABLE IF NOT EXISTS Company (
