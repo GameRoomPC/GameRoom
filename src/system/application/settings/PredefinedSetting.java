@@ -18,7 +18,14 @@ import java.util.Locale;
 
 import static system.application.settings.SettingValue.*;
 
-/**
+/** This is the list of possible settings through the app.
+ *  Each Setting has :
+ *      - a {@link String} {@link #key} that uniquely identifies it (useful for DB and HashMap storing, see {@link GeneralSettings}.)
+ *      - a default {@link SettingValue}, {@link #defaultValue}. It can be overriden (in this case it saved into the DB).
+ *  See {@link SettingValue} to understand which restriction there are on this.
+ *  Those {@link PredefinedSetting} can then be used along with the {@link GeneralSettings} instance to read and update
+ *  the setting value.
+ *
  * @author LM. Garret (admin@gameroom.me)
  * @date 08/08/2016
  */

@@ -25,7 +25,16 @@ import java.util.Locale;
 
 import static system.application.settings.PredefinedSetting.STEAM_PROFILE;
 
-/** This is the main interface to access settings.
+/** This is the main interface to access settings. This singleton is responsible reading/writing settings from/into the
+ *  database. Settings are saved when the app closes (otherwise we could have an overload, e.g. when resizing the window).
+ *
+ *  Settings must be accessed only using {@link #settings()}.
+ *
+ *  This class uses three other classes to represent a setting, namely {@link PredefinedSetting} and {@link SettingValue}.
+ *  {@link PredefinedSetting} is an enum that offers the list of settings that can be read and updated. Each of them is
+ *  basically mapped into the {@link #settingsMap} to their current {@link SettingValue}. {@link #settingsMap} works like
+ *  a cache of what's inside the database.
+ *
  * @author LM. Garret (admin@gameroom.me)
  * @date 03/07/2016
  */
@@ -43,6 +52,11 @@ public class GeneralSettings {
         load();
     }
 
+    /** Loads all the settings from the DB. Settings in the DB are represented as a pair, <id,value>.
+     *  Once the {@link SettingValue} have been created, we store it into the {@link #settingsMap} by using the corresponding
+     *  {@link PredefinedSetting}'s key as the HashMap key.
+     *
+     */
     private void load() {
         try {
             try {
@@ -74,6 +88,12 @@ public class GeneralSettings {
         }
     }
 
+    /** Saves settings into the DB. See {@link #load()} to understand how the mapping is done.
+     * This should not be called everytime a setting is updated but only when the app is closed; otherwise we could encounter
+     * overload, e.g. when resizing the window saving the width and height will be called hundred of times per sec.
+     *
+     * @throws SQLException in case an error occurred while saving settings to the db.
+     */
     public void save() throws SQLException {
         String sql = "INSERT OR REPLACE INTO Settings (id,value) VALUES ";
         String pair = "(?,?)";
@@ -254,10 +274,16 @@ public class GeneralSettings {
         }
     }
 
+    /***************************SUPPORTER KEY (DE)ACTIVATION*******************************/
+
+    /** Put here all code that should be executed whenever the user activates his supporter key.
+     */
     public void onSupporterModeActivated() {
 
     }
 
+    /** Put here all code that should be executed whenever the user revokes his supporter key.
+     */
     public void onSupporterModeDeactivated() {
         settings().setSettingValue(PredefinedSetting.THEME, Theme.DEFAULT_THEME);
         settings().setSettingValue(PredefinedSetting.ENABLE_STATIC_WALLPAPER, false);

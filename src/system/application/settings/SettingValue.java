@@ -13,7 +13,11 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.Properties;
 
-/**
+/** This class represents the value of a given {@link PredefinedSetting}. It is generic and thus can be used to store
+ * different type of settings (double, boolean, String). Be careful, as the value is jsonified in order to be stored
+ * into the DB (for later reads), then it is not possible to use generic types (e.g. ArrayList<GameEntry>) as those will
+ * not be correctly read afterwards. It is necessary to store to the lower abstraction possible!
+ *
  * @author LM. Garret (admin@gameroom.me)
  * @date 08/08/2016
  */
