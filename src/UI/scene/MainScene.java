@@ -203,7 +203,7 @@ public class MainScene extends BaseScene {
                     // ... user chose CANCEL or closed the dialog
                 }
                 GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISPLAY_WELCOME_MESSAGE, false);
-                startGameLookerService();
+                startGameWatcherService();
             });
         }
     }
@@ -387,7 +387,7 @@ public class MainScene extends BaseScene {
                 statusLabel.setText("");
                 fadeTransitionTo(MainScene.this, getParentStage(), false);
                 Platform.runLater(() -> {
-                    startGameLookerService();
+                    startGameWatcherService();
                 });
                 home();
 
@@ -674,7 +674,7 @@ public class MainScene extends BaseScene {
         }
     }
 
-    private void startGameLookerService() {
+    private void startGameWatcherService() {
         if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
             return;
         }

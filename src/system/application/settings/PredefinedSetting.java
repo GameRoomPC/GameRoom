@@ -19,7 +19,8 @@ import java.util.Locale;
 import static system.application.settings.SettingValue.*;
 
 /**
- * Created by LM on 08/08/2016.
+ * @author LM. Garret (admin@gameroom.me)
+ * @date 08/08/2016
  */
 public enum PredefinedSetting {
     LOCALE("locale", new SettingValue(Locale.getDefault(),Locale.class,CATEGORY_GENERAL))
@@ -72,6 +73,12 @@ public enum PredefinedSetting {
         this.key = key;
         this.defaultValue = setting;
     }
+    /** Gets the localized label used to name a setting.
+     * Labels are stored along with tooltips in a other properties files than usual for usual strings;
+     *
+     * @return the corresponding label to this setting
+     * @throws NullPointerException if the label was not set
+     */
     public String getLabel(){
         String label = Main.getSettingsString(key +"_label");
         if(label == null){
@@ -80,6 +87,11 @@ public enum PredefinedSetting {
         return label!=null ? label : key;
     }
 
+    /** Gets the localized tooltip to be displayed when the user hovers over the label.
+     * Tooltips are stored along with labels in a other properties files than usual for usual strings;
+     *
+     * @return the corresponding tooltip to this setting, or the label if it has not been set. (see {@link #getLabel()}
+     */
     public String getTooltip(){
         String tooltip = Main.getSettingsString(key +"_tooltip");
         return tooltip!=null ? tooltip : getLabel();
@@ -107,5 +119,22 @@ public enum PredefinedSetting {
 
     public String getCategory() {
         return defaultValue.getCategory();
+    }
+
+    /** Given a key, it returns the corresponding {@link PredefinedSetting} from the enum above.
+     *
+     * @param key key used to identify the {@link PredefinedSetting}. If null, this returns null
+     * @return the corresponding {@link PredefinedSetting}, null if the key is null or unknown.
+     */
+    public static PredefinedSetting getFromKey(String key){
+        if(key == null){
+            return null;
+        }
+        for(PredefinedSetting setting : values()){
+            if(setting.getKey().equals(key)){
+                return setting;
+            }
+        }
+        return null;
     }
 }

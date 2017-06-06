@@ -18,6 +18,7 @@ import static ui.Main.FILES_MAP;
  */
 public class GameEntryUtils {
     public static final ArrayList<GameEntry> ENTRIES_LIST = new ArrayList<>();
+    public static final ArrayList<GameEntry> IGNORED_ENTRIES = new ArrayList<>();
 
     public static ArrayList<GameEntry> loadToAddGames(){
         ArrayList<GameEntry> toAddGames = new ArrayList<>();
@@ -47,7 +48,7 @@ public class GameEntryUtils {
      * @return true if this entry is ignored, false otherwise
      */
     public static boolean isGameIgnored(GameEntry entry){
-        ArrayList<GameEntry> ignoredGames = loadIgnoredGames();
+        ArrayList<GameEntry> ignoredGames = IGNORED_ENTRIES;
         boolean ignored = false;
         for (GameEntry ignoredEntry : ignoredGames) {
             ignored = ignoredEntry.getPath().toLowerCase().contains(entry.getPath().toLowerCase())
@@ -59,9 +60,8 @@ public class GameEntryUtils {
         return ignored;
     }
 
-    public static ArrayList<GameEntry> loadIgnoredGames(){
-        ArrayList<GameEntry> ignoredGames = new ArrayList<>();
-
+    public static void loadIgnoredGames(){
+        IGNORED_ENTRIES.clear();
         try {
             Connection connection = DataBase.getUserConnection();
             Statement statement = connection.createStatement();
@@ -70,14 +70,13 @@ public class GameEntryUtils {
             while (set.next()) {
                 GameEntry nextEntry = GameEntry.loadFromDB(set);
                 if (nextEntry != null) {
-                    ignoredGames.add(nextEntry);
+                    IGNORED_ENTRIES.add(nextEntry);
                 }
             }
             statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return ignoredGames;
     }
 
     private static int indexOf(GameEntry entry){

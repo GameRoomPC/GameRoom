@@ -14,8 +14,10 @@ import java.util.HashMap;
 import java.util.Properties;
 
 /**
- * Created by LM on 08/08/2016.
+ * @author LM. Garret (admin@gameroom.me)
+ * @date 08/08/2016
  */
+
 public class SettingValue<T> {
     public final static String CATEGORY_GENERAL = "general";
     public final static String CATEGORY_NONE = "none";
@@ -49,6 +51,9 @@ public class SettingValue<T> {
         this.settingValue = settingValue;
     }
 
+    public TypeToken<T> getTypeToken(){
+        return typeToken;
+    }
 
     @Override
     public String toString(){
@@ -58,42 +63,26 @@ public class SettingValue<T> {
         return GSON.toJson(settingValue);
     }
 
-    public static void loadSetting(HashMap<String, SettingValue> settingsMap, PredefinedSetting predefinedSetting){
-        try {
-            Connection connection = DataBase.getUserConnection();
-            PreparedStatement statement = connection.prepareStatement("select * from Settings where id=?");
-            statement.setString(1,predefinedSetting.getKey());
-            ResultSet set = statement.executeQuery();
-            if(set.next()){
-                String value = set.getString("value");
-                if(value!=null){
-                    try {
-                        SettingValue settingValue = null;
-                        if(predefinedSetting.getDefaultValue().getValueClass()!=null){
-                            if(predefinedSetting.getDefaultValue().getSettingValue() instanceof SimpleBooleanProperty){
-                                Boolean storedValue = GSON.fromJson(value, Boolean.class);
-                                SimpleBooleanProperty b = new SimpleBooleanProperty(storedValue);
-                                settingValue = new SettingValue(b,predefinedSetting.getDefaultValue().getValueClass(),predefinedSetting.getDefaultValue().category);
-                            }else{
-                                settingValue = new SettingValue(GSON.fromJson(value, predefinedSetting.getDefaultValue().getValueClass()),predefinedSetting.getDefaultValue().getValueClass(),predefinedSetting.getDefaultValue().category);
-                            }
-                        }else{
-                            settingValue = new SettingValue(GSON.fromJson(value, predefinedSetting.getDefaultValue().typeToken.getType()),predefinedSetting.getDefaultValue().typeToken,predefinedSetting.getDefaultValue().category);
-                        }
-                        settingsMap.put(predefinedSetting.getKey(),settingValue!=null?settingValue:predefinedSetting.getDefaultValue());
-                        return;
-                    }catch (JsonSyntaxException jse){
-                        Main.LOGGER.error("Wrong JSON syntax for setting \""+predefinedSetting.getKey()+"\", using value : "+predefinedSetting.getDefaultValue());
-                    }
-                }
-                settingsMap.put(predefinedSetting.getKey(),predefinedSetting.getDefaultValue());
+    /** Creates a {@link SettingValue} corresponding to the given predefinedSetting, which value is determined by the jsonValue.
+     * Might return null in case of an invalid value
+     * @param predefinedSetting the predefined setting this settings value corresponds to.
+     * @param jsonValue defines what the value of this setting is
+     * @return a {@link SettingValue} if the jsonValue is correct, null otherwise
+     */
+    public static SettingValue getSettingValue(PredefinedSetting predefinedSetting, String jsonValue){
+        SettingValue settingValue = null;
+        if (predefinedSetting.getDefaultValue().getValueClass() != null) {
+            if (predefinedSetting.getDefaultValue().getSettingValue() instanceof SimpleBooleanProperty) {
+                Boolean storedValue = GSON.fromJson(jsonValue, Boolean.class);
+                SimpleBooleanProperty b = new SimpleBooleanProperty(storedValue);
+                settingValue = new SettingValue(b, predefinedSetting.getDefaultValue().getValueClass(), predefinedSetting.getDefaultValue().getCategory());
+            } else {
+                settingValue = new SettingValue(GSON.fromJson(jsonValue, predefinedSetting.getDefaultValue().getValueClass()), predefinedSetting.getDefaultValue().getValueClass(), predefinedSetting.getDefaultValue().getCategory());
             }
-            statement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } else {
+            settingValue = new SettingValue(GSON.fromJson(jsonValue, predefinedSetting.getDefaultValue().getTypeToken().getType()), predefinedSetting.getDefaultValue().getTypeToken().getRawType(), predefinedSetting.getDefaultValue().getCategory());
         }
-
-
+        return settingValue;
     }
 
     public String getCategory() {

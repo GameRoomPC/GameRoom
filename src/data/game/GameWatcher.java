@@ -184,12 +184,12 @@ public class GameWatcher {
         ArrayList<GameEntry> toAddEntries = GameEntryUtils.loadToAddGames();
 
         ArrayList<GameEntry> savedEntries = new ArrayList<>();
-        for (GameEntry entry : toAddEntries) {
+        toAddEntries.forEach(entry ->{
             if (!GameEntryUtils.isGameIgnored(entry)) {
                 entry.setSavedLocally(true);
                 savedEntries.add(entry);
             }
-        }
+        });
         savedEntries.sort(new Comparator<GameEntry>() {
             @Override
             public int compare(GameEntry o1, GameEntry o2) {

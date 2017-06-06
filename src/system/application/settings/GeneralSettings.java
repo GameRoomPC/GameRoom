@@ -1,5 +1,7 @@
 package system.application.settings;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import data.game.scanner.ScanPeriod;
 import data.game.scanner.ScannerProfile;
 import data.game.scraper.SteamPreEntry;
@@ -17,6 +19,7 @@ import ui.theme.UIScale;
 import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,7 +29,8 @@ import java.util.Properties;
 import static system.application.settings.PredefinedSetting.STEAM_PROFILE;
 
 /**
- * Created by LM on 03/07/2016.
+ * @author LM. Garret (admin@gameroom.me)
+ * @date 03/07/2016
  */
 public class GeneralSettings {
     private HashMap<String, SettingValue> settingsMap = new HashMap<>();
@@ -36,10 +40,27 @@ public class GeneralSettings {
     }
 
     private void loadSettings() {
-
         try {
-            for (PredefinedSetting predefinedSetting : PredefinedSetting.values()) {
-                SettingValue.loadSetting(settingsMap, predefinedSetting);
+            try {
+                Connection connection = DataBase.getUserConnection();
+                PreparedStatement statement = connection.prepareStatement("select * from Settings");
+                ResultSet set = statement.executeQuery();
+                while (set.next()) {
+                    String value = set.getString("value");
+                    String id = set.getString("id");
+                    PredefinedSetting predefinedSetting = PredefinedSetting.getFromKey(id);
+                    if (value != null && id != null && predefinedSetting != null) {
+                        try {
+                            SettingValue settingValue = SettingValue.getSettingValue(predefinedSetting, value);
+                            settingsMap.put(predefinedSetting.getKey(), settingValue != null ? settingValue : predefinedSetting.getDefaultValue());
+                        } catch (JsonSyntaxException jse) {
+                            Main.LOGGER.error("Wrong JSON syntax for setting \"" + predefinedSetting.getKey() + "\", using value : " + predefinedSetting.getDefaultValue());
+                        }
+                    }
+                }
+                statement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         } finally {
             Main.LOGGER.info("Loaded settings : "
@@ -58,9 +79,9 @@ public class GeneralSettings {
         for (int i = 0; i < settingNb; i++) {
             sql += pair;
             if (i != settingNb - 1) {
-                sql+=comma;
+                sql += comma;
             } else {
-                sql+=";";
+                sql += ";";
             }
         }
 
@@ -68,7 +89,7 @@ public class GeneralSettings {
         PreparedStatement statement = connection.prepareStatement(sql);
 
         int i = 1;
-        for(PredefinedSetting setting : PredefinedSetting.values()){
+        for (PredefinedSetting setting : PredefinedSetting.values()) {
             statement.setString(i++, setting.getKey());
             statement.setString(i++, settingsMap.get(setting.getKey()).toString());
         }

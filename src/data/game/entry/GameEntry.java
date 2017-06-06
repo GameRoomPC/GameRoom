@@ -949,8 +949,8 @@ public class GameEntry {
                 statement.setBoolean(1, ignored);
                 statement.setInt(2, id);
                 statement.execute();
-
                 statement.close();
+                GameEntryUtils.loadIgnoredGames();
             }
         } catch (SQLException e) {
             e.printStackTrace();

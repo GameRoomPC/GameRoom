@@ -56,7 +56,7 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
 
         GameEntryList list = new GameEntryList();
 
-        list.addItems(GameEntryUtils.loadIgnoredGames());
+        list.addItems(GameEntryUtils.IGNORED_ENTRIES);
         statusLabel.setText(null);
 
         mainPane.setCenter(list);
