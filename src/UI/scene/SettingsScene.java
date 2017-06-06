@@ -249,11 +249,17 @@ public class SettingsScene extends BaseScene {
                     Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
                     ignoredOptionnal.ifPresent(pairs -> {
                         if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                            for(GameEntry entry : selector.getSelectedEntries()){
+                            selector.getSelectedEntries().forEach(entry -> {
                                 entry.setSavedLocally(true);
                                 entry.setIgnored(true);
                                 entry.setSavedLocally(false);
-                            }
+                            });
+                            selector.getUnselectedEntries().forEach(entry -> {
+                                entry.setSavedLocally(true);
+                                entry.setIgnored(false);
+                                entry.setSavedLocally(false);
+                                GameWatcher.getInstance().loadToAddEntries();
+                            });
                         }
                     });
                 } catch (IOException e) {

@@ -20,6 +20,7 @@ import ui.pane.SelectListPane;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import static ui.Main.GENERAL_SETTINGS;
 
@@ -29,7 +30,8 @@ import static ui.Main.GENERAL_SETTINGS;
 public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
     public final static int MODE_REMOVE_FROM_LIST = 0;
     public final static int MODE_ADD_TO_LIST = 1;
-    private GameEntry[] selectedList;
+    private ArrayList<GameEntry> selectedList = new ArrayList<>();
+    private ArrayList<GameEntry> unselectedList = new ArrayList<>();
     private Label statusLabel;
 
     public IgnoredEntrySelector() throws IOException {
@@ -65,16 +67,16 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
                 , new ButtonType(Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
 
         setOnHiding(event -> {
-            GameEntry[] temp_entries = new GameEntry[list.getSelectedValues().size()];
-            for (int i = 0; i < temp_entries.length; i++) {
-                temp_entries[i] = (GameEntry) list.getSelectedValues().get(i);
-            }
-            selectedList = temp_entries;
+            selectedList.addAll(list.getSelectedValues());
+            unselectedList.addAll(list.getUnselectedValues());
         });
     }
 
-    public GameEntry[] getSelectedEntries() {
+    public ArrayList<GameEntry> getSelectedEntries() {
         return selectedList;
+    }
+    public ArrayList<GameEntry> getUnselectedEntries() {
+        return unselectedList;
     }
 
     private static class GameEntryList<T> extends SelectListPane {

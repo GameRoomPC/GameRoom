@@ -8,7 +8,6 @@ import data.game.scanner.*;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.images.ImageUtils;
-import data.http.key.KeyChecker;
 import javafx.application.Platform;
 import org.json.JSONArray;
 import ui.GeneralToast;
@@ -22,7 +21,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
 import static ui.Main.*;
 
 /**
@@ -78,7 +76,7 @@ public class GameWatcher {
         serviceThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                initToAddEntries();
+                loadToAddEntries();
                 do {
                     long start = System.currentTimeMillis();
 
@@ -182,7 +180,7 @@ public class GameWatcher {
         }
     }
 
-    private void initToAddEntries() {
+    public void loadToAddEntries() {
         ArrayList<GameEntry> toAddEntries = GameEntryUtils.loadToAddGames();
 
         ArrayList<GameEntry> savedEntries = new ArrayList<>();
@@ -224,14 +222,6 @@ public class GameWatcher {
         }
     }
 
-    private void validateKey() {
-        if (!Main.SUPPORTER_MODE) {
-            Main.SUPPORTER_MODE = !Main.GENERAL_SETTINGS.getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(Main.GENERAL_SETTINGS.getString(SUPPORTER_KEY));
-            if (Main.SUPPORTER_MODE) {
-                IGDBScraper.key = IGDBScraper.IGDB_PRO_KEY;
-            }
-        }
-    }
 
     private void tryScrapToAddEntries() {
         CopyOnWriteArrayList<Integer> searchIGDBIDs = new CopyOnWriteArrayList<>();
