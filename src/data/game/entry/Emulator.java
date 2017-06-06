@@ -133,7 +133,7 @@ public class Emulator {
 
 
     public List<String> getCommandsToExecute(GameEntry entry) {
-        String[] args = argSchema.split("\b");
+        String[] args = argSchema.split("\\s");
 
         ArrayList<String> cmds = new ArrayList<>();
         cmds.add("\"" + path.getAbsolutePath() + "\"");

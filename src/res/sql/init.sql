@@ -213,7 +213,7 @@ INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
 	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %p");
 	
 INSERT OR IGNORE INTO emulates(platform_id, emu_id) VALUES
-	(1,7),
-	(1,8);
+	(7,1),
+	(8,1);
 	
 	
