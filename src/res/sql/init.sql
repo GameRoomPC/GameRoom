@@ -141,9 +141,8 @@ CREATE TABLE IF NOT EXISTS Settings (
 	value text
 );
 
-CREATE TABLE IF NOT EXISTS GamesFolder (
-	id integer PRIMARY KEY AUTOINCREMENT,
-	path text
+CREATE TABLE IF NOT EXISTS GameFolder (
+	path text PRIMARY KEY
 );
 
 CREATE TABLE IF NOT EXISTS GameScanners (

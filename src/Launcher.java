@@ -445,14 +445,15 @@ public class Launcher extends Application {
         gamesFolderItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
+                //TODO offer to browse the multiple game folders
+               /* try {
                     String dir = settings().getString(PredefinedSetting.GAMES_FOLDER);
                     File gamesFolder = new File(dir);
                     if (gamesFolder.exists() && gamesFolder.isDirectory())
                         Desktop.getDesktop().open(gamesFolder);
                 } catch (IOException e1) {
                     e1.printStackTrace();
-                }
+                }*/
             }
         });
         MenuItem settingsItem = new MenuItem(Main.getString("Settings"));
@@ -481,10 +482,11 @@ public class Launcher extends Application {
         popup.addSeparator();
         popup.add(gameRoomFolderItem);
 
-        File gameFolder = new File(settings().getString(PredefinedSetting.GAMES_FOLDER));
+        //TODO offer to browse the different game folders
+        /*File gameFolder = new File(settings().getString(PredefinedSetting.GAMES_FOLDER));
         if (gameFolder.exists() && gameFolder.isDirectory()) {
             popup.add(gamesFolderItem);
-        }
+        }*/
         popup.add(settingsItem);
         popup.addSeparator();
         popup.add(exitItem);

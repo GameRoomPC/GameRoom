@@ -1,6 +1,7 @@
 package data.migration;
 
 import data.game.scraper.SteamPreEntry;
+import system.application.settings.PredefinedSetting;
 import ui.Main;
 
 import java.io.File;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.FILES_MAP;
 
 /**
@@ -23,7 +25,7 @@ public class OldSettings {
 
     public static void transferOldSettings() {
         File configFile = FILES_MAP.get("config.properties");
-        if(!configFile.exists()){ //already migrated
+        if (!configFile.exists()) { //already migrated
             return;
         }
         Properties prop = new Properties();
@@ -39,7 +41,17 @@ public class OldSettings {
                 OldSettingValue.loadSetting(settingsMap, prop, predefinedSetting);
             }
             for (OldPredefinedSetting predefinedSetting : OldPredefinedSetting.values()) {
-                OldSettingValue.toDB(settingsMap, predefinedSetting);
+                if (predefinedSetting.equals(OldPredefinedSetting.GAMES_FOLDER)) {
+                    String path = settingsMap.get(predefinedSetting.getKey()).toString().replace("\"","");
+                    if(!path.isEmpty()){
+                        boolean added = settings().addGameFolder(new File(path));
+                        if (!added) {
+                            Main.LOGGER.error("OldSettings : error importing previous gameFolder, was \"" + path + "\"");
+                        }
+                    }
+                } else {
+                    OldSettingValue.toDB(settingsMap, predefinedSetting);
+                }
             }
 
         } catch (IOException | SQLException ex) {
@@ -53,21 +65,21 @@ public class OldSettings {
                     e.printStackTrace();
                 }
             }
-            configFile.renameTo(new File(configFile.getAbsolutePath()+".bak"));
+            configFile.renameTo(new File(configFile.getAbsolutePath() + ".bak"));
         }
     }
 
-    protected static File[] getIgnoredFiles(){
+    protected static File[] getIgnoredFiles() {
         OldSettingValue setting = settingsMap.get(OldPredefinedSetting.IGNORED_GAME_FOLDERS.getKey());
-        if(setting == null || setting.getSettingValue() == null){
+        if (setting == null || setting.getSettingValue() == null) {
             return new File[0];
         }
         return (File[]) setting.getSettingValue();
     }
 
-    protected static SteamPreEntry[] getIgnoredSteamApps(){
+    protected static SteamPreEntry[] getIgnoredSteamApps() {
         OldSettingValue setting = settingsMap.get(OldPredefinedSetting.IGNORED_STEAM_APPS.getKey());
-        if(setting == null || setting.getSettingValue() == null){
+        if (setting == null || setting.getSettingValue() == null) {
             return new SteamPreEntry[0];
         }
         return (SteamPreEntry[]) setting.getSettingValue();

@@ -207,7 +207,8 @@ public class SettingsScene extends BaseScene {
             }
         });
         addPropertyLine(PredefinedSetting.GAMING_POWER_MODE);
-        addPropertyLine(PredefinedSetting.GAMES_FOLDER);
+        //TODO create a dialog to manage game folders
+        //addPropertyLine(PredefinedSetting.GAMES_FOLDER);
 
         /***********************GAME SCANNERS GAMES IGNORED****************************/
         Label scannersLabel = new Label(Main.getSettingsString("enabledGameScanners_label") + " : ");
@@ -626,7 +627,8 @@ public class SettingsScene extends BaseScene {
 
                     @Override
                     public boolean isValid() {
-                        if (setting.equals(PredefinedSetting.GAMES_FOLDER)) {
+                        //TODO create a dialog to manage game folders
+                        /*if (setting.equals(PredefinedSetting.GAMES_FOLDER)) {
                             String dir = settings().getString(PredefinedSetting.GAMES_FOLDER);
                             if (dir.equals("")) {
                                 return true;
@@ -641,7 +643,7 @@ public class SettingsScene extends BaseScene {
                                 return false;
                             }
                             return true;
-                        }
+                        }*/
                         return true;
                     }
 

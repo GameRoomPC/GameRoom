@@ -48,7 +48,6 @@ public enum PredefinedSetting {
     ,START_WITH_WINDOWS("startWithWindows", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     ,NO_MORE_ICON_TRAY_WARNING("noMoreIconTrayWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     , ENABLE_GAME_CONTROLLER_SUPPORT("enableXboxControllerSupport", new SettingValue(false,Boolean.class,CATEGORY_UI))
-    ,GAMES_FOLDER("gamesFolder", new SettingValue("",String.class,CATEGORY_SCAN))
     , SUPPORTER_KEY("supporterKey", new SettingValue("",String.class,CATEGORY_GENERAL))
     ,DISABLE_MAINSCENE_WALLPAPER("disableMainSceneWallpaper", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,DISABLE_SCROLLBAR_IN_FULLSCREEN("disableScrollbarFullScreen", new SettingValue(true,Boolean.class,CATEGORY_UI))

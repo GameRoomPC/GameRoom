@@ -185,7 +185,7 @@ public class MainScene extends BaseScene {
                         , 20 * Main.SCREEN_WIDTH / 1920
                         , 20 * Main.SCREEN_HEIGHT / 1080
                         , 20 * Main.SCREEN_WIDTH / 1920));
-                PathTextField field = new PathTextField(settings().getString(PredefinedSetting.GAMES_FOLDER), getWindow(), PathTextField.FILE_CHOOSER_FOLDER, "");
+                PathTextField field = new PathTextField("", getWindow(), PathTextField.FILE_CHOOSER_FOLDER, "");
 
                 alert.setBottom(field);
                 alert.setCenter(text);
@@ -199,7 +199,7 @@ public class MainScene extends BaseScene {
                         , new ButtonType(Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
                 Optional<ButtonType> result = alert.showAndWait();
                 if (result != null && result.isPresent() && result.get().getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                    settings().setSettingValue(PredefinedSetting.GAMES_FOLDER, field.getTextField().getText());
+                    settings().addGameFolder(new File(field.getTextField().getText()));
                 } else {
                     // ... user chose CANCEL or closed the dialog
                 }

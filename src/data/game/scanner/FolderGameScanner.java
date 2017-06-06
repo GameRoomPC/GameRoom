@@ -65,32 +65,32 @@ public class FolderGameScanner extends GameScanner {
     }
 
     public void scanAndAddGames() {
-        File gamesFolder = new File(settings().getString(PredefinedSetting.GAMES_FOLDER));
-
-        if (!gamesFolder.exists() || !gamesFolder.isDirectory()) {
-            return;
-        }
-        File[] children = gamesFolder.listFiles();
-        if (children == null) {
-            return;
-        }
-        for (File file : children) {
-            Callable<Object> task = new Callable<Object>() {
-                @Override
-                public Object call() throws Exception {
-                    GameEntry potentialEntry = new GameEntry(file.getName());
-                    potentialEntry.setPath(file.getAbsolutePath());
-                    if (checkValidToAdd(potentialEntry)) {
-                        if (isPotentiallyAGame(file)) {
-                            potentialEntry.setInstalled(true);
-                            addGameEntryFound(potentialEntry);
+        settings().getGameFolders().forEach(gamesFolder -> {
+            if (!gamesFolder.exists() || !gamesFolder.isDirectory()) {
+                return;
+            }
+            File[] children = gamesFolder.listFiles();
+            if (children == null) {
+                return;
+            }
+            for (File file : children) {
+                Callable<Object> task = new Callable<Object>() {
+                    @Override
+                    public Object call() throws Exception {
+                        GameEntry potentialEntry = new GameEntry(file.getName());
+                        potentialEntry.setPath(file.getAbsolutePath());
+                        if (checkValidToAdd(potentialEntry)) {
+                            if (isPotentiallyAGame(file)) {
+                                potentialEntry.setInstalled(true);
+                                addGameEntryFound(potentialEntry);
+                            }
                         }
+                        return null;
                     }
-                    return null;
-                }
-            };
-            GameWatcher.getInstance().submitTask(task);
-        }
+                };
+                GameWatcher.getInstance().submitTask(task);
+            }
+        });
     }
 
     /**

@@ -89,6 +89,7 @@ public class Main {
 
         LOGGER.info("Started app with screen true resolution : " + (int) TRUE_SCREEN_WIDTH + "x" + (int) TRUE_SCREEN_HEIGHT);
 
+        settings().load();
 
         SUPPORTER_MODE = !settings().getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(settings().getString(SUPPORTER_KEY));
         LOGGER.info("Supporter mode : "+ SUPPORTER_MODE);

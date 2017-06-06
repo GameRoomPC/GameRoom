@@ -15,25 +15,28 @@ import ui.scene.SettingsScene;
 import ui.theme.Theme;
 import ui.theme.UIScale;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
 import static system.application.settings.PredefinedSetting.STEAM_PROFILE;
 
-/** This is the main interface to access settings. This singleton is responsible reading/writing settings from/into the
- *  database. Settings are saved when the app closes (otherwise we could have an overload, e.g. when resizing the window).
- *
- *  Settings must be accessed only using {@link #settings()}.
- *
- *  This class uses three other classes to represent a setting, namely {@link PredefinedSetting} and {@link SettingValue}.
- *  {@link PredefinedSetting} is an enum that offers the list of settings that can be read and updated. Each of them is
- *  basically mapped into the {@link #settingsMap} to their current {@link SettingValue}. {@link #settingsMap} works like
- *  a cache of what's inside the database.
+/**
+ * This is the main interface to access settings. This singleton is responsible reading/writing settings from/into the
+ * database.
+ * <p>
+ * Settings must be accessed only using {@link #settings()}.
+ * <p>
+ * This class uses three other classes to represent a setting, namely {@link PredefinedSetting} and {@link SettingValue}.
+ * {@link PredefinedSetting} is an enum that offers the list of settings that can be read and updated. Each of them is
+ * basically mapped into the {@link #settingsMap} to their current {@link SettingValue}. {@link #settingsMap} works like
+ * a cache of what's inside the database.
  *
  * @author LM. Garret (admin@gameroom.me)
  * @date 03/07/2016
@@ -42,22 +45,24 @@ public class GeneralSettings {
     private static GeneralSettings INSTANCE;
     private HashMap<String, SettingValue> settingsMap = new HashMap<>();
 
-    public static GeneralSettings settings(){
-        if(INSTANCE == null){
+    public static GeneralSettings settings() {
+        if (INSTANCE == null) {
             INSTANCE = new GeneralSettings();
         }
         return INSTANCE;
     }
+
     public GeneralSettings() {
         load();
     }
 
-    /** Loads all the settings from the DB. Settings in the DB are represented as a pair, <id,value>.
-     *  Once the {@link SettingValue} have been created, we store it into the {@link #settingsMap} by using the corresponding
-     *  {@link PredefinedSetting}'s key as the HashMap key.
-     *
+    /**
+     * Loads all the settings from the DB. Settings in the DB are represented as a pair, <id,value>.
+     * Once the {@link SettingValue} have been created, we store it into the {@link #settingsMap} by using the corresponding
+     * {@link PredefinedSetting}'s key as the HashMap key.
      */
-    private void load() {
+    public void load() {
+        settingsMap.clear();
         try {
             try {
                 Connection connection = DataBase.getUserConnection();
@@ -88,9 +93,8 @@ public class GeneralSettings {
         }
     }
 
-    /** Saves settings into the DB. See {@link #load()} to understand how the mapping is done.
-     * This should not be called everytime a setting is updated but only when the app is closed; otherwise we could encounter
-     * overload, e.g. when resizing the window saving the width and height will be called hundred of times per sec.
+    /**
+     * Saves settings into the DB. See {@link #load()} to understand how the mapping is done.
      *
      * @throws SQLException in case an error occurred while saving settings to the db.
      */
@@ -115,7 +119,12 @@ public class GeneralSettings {
         int i = 1;
         for (PredefinedSetting setting : PredefinedSetting.values()) {
             statement.setString(i++, setting.getKey());
-            statement.setString(i++, settingsMap.get(setting.getKey()).toString());
+            SettingValue value = settingsMap.get(setting.getKey());
+            if (value == null) {
+                statement.setString(i++, setting.getDefaultValue().toString());
+            } else {
+                statement.setString(i++, value.toString());
+            }
         }
         statement.execute();
         statement.close();
@@ -224,33 +233,68 @@ public class GeneralSettings {
         return enabled;
     }
 
-    public void setGameScannersEnabled(ScannerProfile[] profiles) {
-        setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, profiles);
+    public ArrayList<File> getGameFolders() {
+        ArrayList<File> folders = new ArrayList<>();
+        try {
+            Connection connection = DataBase.getUserConnection();
+            PreparedStatement statement = connection.prepareStatement("select * from GameFolder");
+            ResultSet set = statement.executeQuery();
+            while (set.next()) {
+                String path = set.getString("path");
+                folders.add(new File(path));
+            }
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return folders;
     }
 
-    /*public void setGameScannerEnabled(boolean enabled, ScannerProfile profile){
-        ScannerProfile[] disabledProfiles = (ScannerProfile[]) settingsMap.get(PredefinedSetting.ENABLED_GAME_SCANNERS.getKey()).getSettingValue();
-        if(enabled == isGameScannerEnabled(profile)){
-            return;
+    /**
+     * Adds a game folder to be scanned
+     *
+     * @param folder the folder to add. Should not have been added before
+     * @return true if it could be added; false if there was an issue, the folder was null or already added.
+     */
+    public boolean addGameFolder(File folder) {
+        if (folder == null) {
+            return false;
         }
-        ScannerProfile[] futureDisabledProfiles = new ScannerProfile[0];
-        if(!enabled){
-            futureDisabledProfiles = new ScannerProfile[disabledProfiles.length + 1];
-            System.arraycopy(disabledProfiles, 0, futureDisabledProfiles, 0, disabledProfiles.length);
-            futureDisabledProfiles[futureDisabledProfiles.length - 1] = profile;
-        }else{
-            futureDisabledProfiles = new ScannerProfile[disabledProfiles.length - 1];
-            int offset = 0;
-            for (int i = 0; i < futureDisabledProfiles.length; i++) {
-                if(disabledProfiles[i].equals(profile)){
-                    offset++;
-                }
-                futureDisabledProfiles[i] = disabledProfiles[i+offset];
-            }
+        try {
+            Connection connection = DataBase.getUserConnection();
+            PreparedStatement statement = connection.prepareStatement("INSERT OR REPLACE INTO GameFolder (path) VALUES (?)");
+            statement.setString(1, folder.getAbsolutePath());
+            statement.execute();
+            statement.close();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        settings().setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, futureDisabledProfiles);
+        return false;
+    }
 
-    }*/
+    /**
+     * Removes a game folder to be scanned
+     *
+     * @param folder the folder to remove. Should have been added before
+     * @return true if it could be removed; false if there was an issue, the folder was null or not already added.
+     */
+    public boolean removeGameFolder(File folder) {
+        if (folder == null) {
+            return false;
+        }
+        try {
+            Connection connection = DataBase.getUserConnection();
+            PreparedStatement statement = connection.prepareStatement("DELETE GameFolder WHERE path=?");
+            statement.setString(1, folder.getAbsolutePath());
+            statement.executeQuery();
+            statement.close();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
     public void setSettingValue(PredefinedSetting key, Object value) {
         SettingValue settingValue;
@@ -276,13 +320,15 @@ public class GeneralSettings {
 
     /***************************SUPPORTER KEY (DE)ACTIVATION*******************************/
 
-    /** Put here all code that should be executed whenever the user activates his supporter key.
+    /**
+     * Put here all code that should be executed whenever the user activates his supporter key.
      */
     public void onSupporterModeActivated() {
 
     }
 
-    /** Put here all code that should be executed whenever the user revokes his supporter key.
+    /**
+     * Put here all code that should be executed whenever the user revokes his supporter key.
      */
     public void onSupporterModeDeactivated() {
         settings().setSettingValue(PredefinedSetting.THEME, Theme.DEFAULT_THEME);

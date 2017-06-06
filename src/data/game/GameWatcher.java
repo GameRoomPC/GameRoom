@@ -186,10 +186,9 @@ public class GameWatcher {
     }
 
     public void loadToAddEntries() {
-        ArrayList<GameEntry> toAddEntries = GameEntryUtils.loadToAddGames();
 
         ArrayList<GameEntry> savedEntries = new ArrayList<>();
-        toAddEntries.forEach(entry ->{
+        GameEntryUtils.loadToAddGames().forEach(entry ->{
             if (!GameEntryUtils.isGameIgnored(entry)) {
                 entry.setSavedLocally(true);
                 savedEntries.add(entry);
