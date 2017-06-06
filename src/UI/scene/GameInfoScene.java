@@ -19,10 +19,10 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import system.application.settings.PredefinedSetting;
+import ui.GeneralToast;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.InfoGameButton;
-import ui.GeneralToast;
 import ui.control.specific.YoutubePlayerAndButton;
 import ui.dialog.GameRoomAlert;
 
@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 
 /**
@@ -105,8 +106,8 @@ public class GameInfoScene extends BaseScene {
         if (entry.getImagePath(1) != null) {
             //Main.LOGGER.debug("Screenshot available : "+entry.getImagePath(1));
             Image screenshotImage = entry.getImage(1,
-                    Main.GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
-                    Main.GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
+                    settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
+                    settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
                     , false, true);
 
             backgroundView.setImage(screenshotImage);
@@ -121,7 +122,7 @@ public class GameInfoScene extends BaseScene {
 
     private void initTop() {
         StackPane topStackPane = createTop(entry.getName());
-        if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
+        if (!settings().getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
             try {
                 ytButton = new YoutubePlayerAndButton(entry, this);
                 entry.setOnGameLaunched(() -> ytButton.automaticPause());
@@ -187,7 +188,7 @@ public class GameInfoScene extends BaseScene {
         row_count++;
         /****************************END SEPARATORS************************************/
         addProperty("release_date", entry.getReleaseDate() != null ? GameEntry.DATE_DISPLAY_FORMAT.format(entry.getReleaseDate()) : "");
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
+        if (settings().getBoolean(PredefinedSetting.DEBUG_MODE)) {
 
             addProperty("added_date", entry.getAddedDate() != null ? ISO_LOCAL_DATE_TIME.format(entry.getAddedDate()) : "").setId("advanced-setting-label");
         }
@@ -246,17 +247,17 @@ public class GameInfoScene extends BaseScene {
         updateProperty("theme",GameTheme.getDisplayString(entry.getThemes()));
         updateProperty("description", editedEntry.getDescription());
         Image backgroundImage = editedEntry.getImage(1,
-                Main.GENERAL_SETTINGS.getWindowWidth(),
-                Main.GENERAL_SETTINGS.getWindowHeight()
+                settings().getWindowWidth(),
+                settings().getWindowHeight()
                 , false, true);
         //no need to fade transition here as it is the "right" image and no actual change
         double widthScale = 1;
         double heightScale = 1;
-        if (backgroundImage != null && backgroundImage.getWidth() != GENERAL_SETTINGS.getWindowWidth()) {
-            widthScale = (double) GENERAL_SETTINGS.getWindowWidth() / backgroundImage.getWidth();
+        if (backgroundImage != null && backgroundImage.getWidth() != settings().getWindowWidth()) {
+            widthScale = (double) settings().getWindowWidth() / backgroundImage.getWidth();
         }
-        if (backgroundImage != null && backgroundImage.getHeight() != GENERAL_SETTINGS.getWindowHeight()) {
-            heightScale = (double) GENERAL_SETTINGS.getWindowHeight() / backgroundImage.getHeight();
+        if (backgroundImage != null && backgroundImage.getHeight() != settings().getWindowHeight()) {
+            heightScale = (double) settings().getWindowHeight() / backgroundImage.getHeight();
         }
         backgroundView.setScaleX(widthScale);
         backgroundView.setScaleY(heightScale);

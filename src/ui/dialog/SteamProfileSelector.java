@@ -3,19 +3,17 @@ package ui.dialog;
 import data.game.scraper.SteamProfile;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.web.WebView;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.util.StringConverter;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 
 import java.util.List;
 
-import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.LOGGER;
+import static system.application.settings.GeneralSettings.settings;
 
 /**
  * Created by LM on 21/02/2017.
@@ -55,16 +53,16 @@ public class SteamProfileSelector extends GameRoomDialog<ButtonType> {
             }
         });
 
-        SteamProfile selectedProfile = GENERAL_SETTINGS.getSteamProfileToScan();
+        SteamProfile selectedProfile = settings().getSteamProfileToScan();
         if(selectedProfile != null && profiles.contains(selectedProfile)){
             comboBox.setValue(selectedProfile);
         }else if(profiles.size() > 1){
             comboBox.setValue(profiles.get(0));
-            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.STEAM_PROFILE,profiles.get(0));
+            settings().setSettingValue(PredefinedSetting.STEAM_PROFILE,profiles.get(0));
         }
 
         comboBox.setOnAction(event -> {
-            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.STEAM_PROFILE,comboBox.getValue());
+            settings().setSettingValue(PredefinedSetting.STEAM_PROFILE,comboBox.getValue());
         });
         return comboBox;
     }

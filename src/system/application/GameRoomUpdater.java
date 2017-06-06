@@ -23,6 +23,7 @@ import java.net.URL;
 import java.util.Date;
 import java.util.Optional;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 
 /**
@@ -69,8 +70,8 @@ public class GameRoomUpdater {
 
     public void start() {
         started = true;
-        if (GENERAL_SETTINGS != null) {
-            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.LAST_UPDATE_CHECK, new Date());
+        if (settings() != null) {
+            settings().setSettingValue(PredefinedSetting.LAST_UPDATE_CHECK, new Date());
         }
         Updater updater = new Updater();
         LOGGER.info("Starting updater");

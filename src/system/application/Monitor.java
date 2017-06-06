@@ -24,6 +24,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 
 /**
@@ -285,7 +286,7 @@ public class Monitor {
                 String dateString = line.substring(TIME_TAG.length(), line.indexOf('.'));
                 try {
                     resultDate = DATE_FORMAT.parse(dateString);
-                    if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
+                    if (settings().getBoolean(PredefinedSetting.DEBUG_MODE)) {
                         Main.LOGGER.debug("Found creation date of process : " + DEBUG_DATE_FORMAT.format(resultDate));
                     }
                 } catch (ParseException e) {

@@ -61,10 +61,14 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static data.io.FileUtils.getExtension;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 
 /**
@@ -253,8 +257,8 @@ public class GameEditScene extends BaseScene {
         if (entry.getImagePath(1) != null) {
             //Main.LOGGER.debug("Screenshot available : "+entry.getImagePath(1));
             Image screenshotImage = entry.getImage(1,
-                    Main.GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
-                    Main.GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
+                    settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
+                    settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
                     , false, true);
             backgroundView.setImage(screenshotImage);
         }
@@ -577,7 +581,7 @@ public class GameEditScene extends BaseScene {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
+                        Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                         ImageUtils.transitionToWindowBackground(img, backgroundView);
                         chosenImageFiles[1] = outputfile;
                     }
@@ -592,8 +596,8 @@ public class GameEditScene extends BaseScene {
         screenShotButtonsBox.setSpacing(20 * Main.SCREEN_WIDTH / 1920);
         screenShotButtonsBox.setAlignment(Pos.CENTER_LEFT);
 
-        double imgSize = GENERAL_SETTINGS.getWindowWidth() / 24;
-        //ImageButton screenshotFileButton = new ImageButton(new Image("res/ui/folderButton.png", , GENERAL_SETTINGS.getWindowWidth() / 24, false, true));
+        double imgSize = settings().getWindowWidth() / 24;
+        //ImageButton screenshotFileButton = new ImageButton(new Image("res/ui/folderButton.png", , settings().getWindowWidth() / 24, false, true));
         ImageButton screenshotFileButton = new ImageButton("folder-button", imgSize, imgSize);
         screenshotFileButton.setOnAction(event -> {
             chosenImageFiles[1] = imageChooser.showOpenDialog(getParentStage());
@@ -676,7 +680,7 @@ public class GameEditScene extends BaseScene {
         row_count++;
 
         /**************************YOUTUBE*********************************************/
-        if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
+        if (!settings().getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
             Label youtubeSoundtrackLabel = new Label(Main.getString("youtube_soundtrack_label") + " :");
             youtubeSoundtrackLabel.setTooltip(new Tooltip(Main.getString("youtube_soundtrack_tooltip")));
             //youtubeSoundtrackLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
@@ -702,7 +706,7 @@ public class GameEditScene extends BaseScene {
 
 
         /**************************CMD & ARGS*********************************************/
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)) {
+        if (settings().getBoolean(PredefinedSetting.ADVANCED_MODE)) {
             Label argsLabel = new Label(Main.getString("args_label") + " :");
             argsLabel.setTooltip(new Tooltip(Main.getString("args_tooltip")));
             //argsLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
@@ -863,8 +867,8 @@ public class GameEditScene extends BaseScene {
 
     private Pane createLeft(Image coverImage) {
         StackPane pane = new StackPane();
-        double coverWidth = GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO);
-        double coverHeight = GENERAL_SETTINGS.getWindowHeight() * 2 / 3;
+        double coverWidth = settings().getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO);
+        double coverHeight = settings().getWindowHeight() * 2 / 3;
 
         coverView = new ImageView();
         coverView.setFitWidth(coverWidth);
@@ -899,8 +903,8 @@ public class GameEditScene extends BaseScene {
             imageThread.start();
         }
 
-        double imgSize = GENERAL_SETTINGS.getWindowWidth() / 15;
-        //ImageButton changeImageButton = new ImageButton(new Image("res/ui/folderButton.png", GENERAL_SETTINGS.getWindowWidth() / 12, GENERAL_SETTINGS.getWindowWidth() / 12, false, true));
+        double imgSize = settings().getWindowWidth() / 15;
+        //ImageButton changeImageButton = new ImageButton(new Image("res/ui/folderButton.png", settings().getWindowWidth() / 12, settings().getWindowWidth() / 12, false, true));
         ImageButton changeImageButton = new ImageButton("folder-button", imgSize, imgSize);
         changeImageButton.setOpacity(0);
         changeImageButton.setFocusTraversable(false);
@@ -910,7 +914,7 @@ public class GameEditScene extends BaseScene {
                 chosenImageFiles[0] = imageChooser.showOpenDialog(getParentStage());
                 String localCoverPath = GameEntryUtils.coverPath(entry) + "." + getExtension(chosenImageFiles[0].getName());
 
-                Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
+                Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), settings().getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), settings().getWindowHeight() * 2 / 3, false, true);
                 ImageUtils.transitionToImage(img, coverView);
             }
         });
@@ -1059,7 +1063,7 @@ public class GameEditScene extends BaseScene {
                     , new OnDLDoneHandler() {
                         @Override
                         public void run(File outputfile) {
-                            Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
+                            Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), settings().getWindowHeight() * 2 / 3, false, true);
                             ImageUtils.transitionToImage(img, coverView);
 
                             chosenImageFiles[0] = outputfile;
@@ -1080,7 +1084,7 @@ public class GameEditScene extends BaseScene {
                         , new OnDLDoneHandler() {
                             @Override
                             public void run(File outputfile) {
-                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
+                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                                 ImageUtils.transitionToWindowBackground(img, backgroundView);
                             }
                         });
@@ -1098,7 +1102,7 @@ public class GameEditScene extends BaseScene {
                         , new OnDLDoneHandler() {
                             @Override
                             public void run(File outputfile) {
-                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
+                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                                 ImageUtils.transitionToWindowBackground(img, backgroundView);
 
                                 chosenImageFiles[1] = outputfile;
@@ -1125,7 +1129,7 @@ public class GameEditScene extends BaseScene {
                 }
             } else {
                 if (chosenImageFiles[1] != null) {
-                    Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
+                    Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                     ImageUtils.transitionToWindowBackground(img, backgroundView);
                     LOGGER.debug(chosenImageFiles[1].getAbsolutePath());
                 } else {

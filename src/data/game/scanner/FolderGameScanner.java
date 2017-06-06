@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 
 import static data.game.GameWatcher.formatNameForComparison;
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.MAIN_SCENE;
 
 /**
@@ -65,7 +65,7 @@ public class FolderGameScanner extends GameScanner {
     }
 
     public void scanAndAddGames() {
-        File gamesFolder = new File(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER));
+        File gamesFolder = new File(settings().getString(PredefinedSetting.GAMES_FOLDER));
 
         if (!gamesFolder.exists() || !gamesFolder.isDirectory()) {
             return;

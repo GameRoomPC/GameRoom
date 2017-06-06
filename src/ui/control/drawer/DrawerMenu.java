@@ -23,6 +23,7 @@ import ui.scene.SettingsScene;
 
 import java.util.HashMap;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 import static ui.control.drawer.submenu.SubMenuFactory.*;
 
@@ -52,7 +53,7 @@ public class DrawerMenu extends BorderPane {
         super();
         setFocusTraversable(false);
 
-        double storedWidth = Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.DRAWER_MENU_WIDTH);
+        double storedWidth = settings().getDouble(PredefinedSetting.DRAWER_MENU_WIDTH);
         if (storedWidth == 0 || storedWidth < SCREEN_WIDTH * MIN_WIDTH_RATIO || storedWidth > SCREEN_WIDTH * MAX_WIDTH_RATIO) {
             setMaxWidth(SCREEN_WIDTH * WIDTH_RATIO);
             setPrefWidth(SCREEN_WIDTH * WIDTH_RATIO);
@@ -72,7 +73,7 @@ public class DrawerMenu extends BorderPane {
         });
 
         setOnMouseExited(event -> {
-            if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
+            if (settings().getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
                 if (event.getX() > getWidth()) {
                     close(mainScene);
                 }
@@ -94,7 +95,7 @@ public class DrawerMenu extends BorderPane {
                 if (newRatio >= MIN_WIDTH_RATIO && newRatio <= MAX_WIDTH_RATIO) {
                     setPrefWidth(newWidth);
                     setMaxWidth(newWidth);
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DRAWER_MENU_WIDTH, newWidth);
+                    settings().setSettingValue(PredefinedSetting.DRAWER_MENU_WIDTH, newWidth);
                 }
             }
         });

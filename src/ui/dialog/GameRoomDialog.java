@@ -8,7 +8,7 @@ import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 import ui.theme.ThemeUtils;
 
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.MAIN_SCENE;
 
 /**
@@ -37,7 +37,7 @@ public abstract class GameRoomDialog<T> extends Dialog<T> {
         dialogPane.getStyleClass().add("dialog-pane");
         setDialogPane(dialogPane);
         ThemeUtils.applyCurrentTheme(dialogPane);
-        dialogPane.setStyle("-fx-font-size: "+Double.toString(GENERAL_SETTINGS.getUIScale().getFontSize())+"px;");
+        dialogPane.setStyle("-fx-font-size: "+Double.toString(settings().getUIScale().getFontSize())+"px;");
         initStyle(StageStyle.UNDECORATED);
         initModality(modality);
     }

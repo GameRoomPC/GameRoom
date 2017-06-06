@@ -6,9 +6,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import ui.scene.BaseScene;
 
-import java.io.File;
-
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 
 /**
  * Created by LM on 12/07/2016.
@@ -35,12 +33,12 @@ public class InfoGameButton extends GameButton {
 
     @Override
     protected int getCoverHeight() {
-        return GENERAL_SETTINGS.getWindowHeight() * 2 / 3;
+        return settings().getWindowHeight() * 2 / 3;
     }
 
     @Override
     protected int getCoverWidth() {
-        return (int) (GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * COVER_HEIGHT_WIDTH_RATIO));
+        return (int) (settings().getWindowHeight() * 2 / (3 * COVER_HEIGHT_WIDTH_RATIO));
     }
 
     @Override

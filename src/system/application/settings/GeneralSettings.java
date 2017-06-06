@@ -1,6 +1,5 @@
 package system.application.settings;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import data.game.scanner.ScanPeriod;
 import data.game.scanner.ScannerProfile;
@@ -16,7 +15,6 @@ import ui.scene.SettingsScene;
 import ui.theme.Theme;
 import ui.theme.UIScale;
 
-import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,22 +22,28 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Properties;
 
 import static system.application.settings.PredefinedSetting.STEAM_PROFILE;
 
-/**
+/** This is the main interface to access settings.
  * @author LM. Garret (admin@gameroom.me)
  * @date 03/07/2016
  */
 public class GeneralSettings {
+    private static GeneralSettings INSTANCE;
     private HashMap<String, SettingValue> settingsMap = new HashMap<>();
 
+    public static GeneralSettings settings(){
+        if(INSTANCE == null){
+            INSTANCE = new GeneralSettings();
+        }
+        return INSTANCE;
+    }
     public GeneralSettings() {
-        loadSettings();
+        load();
     }
 
-    private void loadSettings() {
+    private void load() {
         try {
             try {
                 Connection connection = DataBase.getUserConnection();
@@ -70,7 +74,7 @@ public class GeneralSettings {
         }
     }
 
-    public void saveSettings() throws SQLException {
+    public void save() throws SQLException {
         String sql = "INSERT OR REPLACE INTO Settings (id,value) VALUES ";
         String pair = "(?,?)";
         String comma = ", ";
@@ -224,7 +228,7 @@ public class GeneralSettings {
                 futureDisabledProfiles[i] = disabledProfiles[i+offset];
             }
         }
-        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, futureDisabledProfiles);
+        settings().setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, futureDisabledProfiles);
 
     }*/
 
@@ -244,7 +248,7 @@ public class GeneralSettings {
 
         settingsMap.put(key.getKey(), settingValue);
         try {
-            saveSettings();
+            save();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -255,8 +259,8 @@ public class GeneralSettings {
     }
 
     public void onSupporterModeDeactivated() {
-        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.THEME, Theme.DEFAULT_THEME);
-        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLE_STATIC_WALLPAPER, false);
+        settings().setSettingValue(PredefinedSetting.THEME, Theme.DEFAULT_THEME);
+        settings().setSettingValue(PredefinedSetting.ENABLE_STATIC_WALLPAPER, false);
         Platform.runLater(() -> {
             SettingsScene.displayRestartDialog();
             Main.restart(Main.MAIN_SCENE.getParentStage(), "Not in supporter mode anymore");

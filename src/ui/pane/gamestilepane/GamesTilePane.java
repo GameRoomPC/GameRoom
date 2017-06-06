@@ -34,7 +34,7 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.MAIN_SCENE;
 import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
 
@@ -542,7 +542,7 @@ public abstract class GamesTilePane extends BorderPane {
     }
 
     public void setForcedHidden(boolean forcedHidden) {
-        boolean wasHidden = GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS);
+        boolean wasHidden = settings().getBoolean(PredefinedSetting.HIDE_TILES_ROWS);
         switch (getId()) {
             case "lastPlayedTilePane":
             case "recentlyAddedTilePane":

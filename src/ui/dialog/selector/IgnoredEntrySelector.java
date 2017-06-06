@@ -22,7 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 
 /**
  * Created by LM on 19/08/2016.
@@ -55,7 +55,7 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
         mainPane.setPrefHeight(2.0 / 3 * Main.SCREEN_HEIGHT);
 
         GameEntryList list = new GameEntryList();
-
+        GameEntryUtils.loadIgnoredGames();
         list.addItems(GameEntryUtils.IGNORED_ENTRIES);
         statusLabel.setText(null);
 
@@ -109,7 +109,7 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
         @Override
         protected void addContent() {
             ImageView iconView = new ImageView();
-            double scale = GENERAL_SETTINGS.getUIScale().getScale();
+            double scale = settings().getUIScale().getScale();
             iconView.setFitHeight(32 * scale);
             iconView.setFitWidth(32 * scale);
 

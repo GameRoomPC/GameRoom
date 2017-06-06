@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 
 /**
@@ -57,8 +58,7 @@ public class SearchDialogTest extends Application {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         SCREEN_WIDTH = (int) screenSize.getWidth();
         SCREEN_HEIGHT = (int) screenSize.getHeight();
-        GENERAL_SETTINGS = new GeneralSettings();
-        Main.setRessourceBundle(ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE)));
+        Main.setRessourceBundle(ResourceBundle.getBundle("strings", settings().getLocale(PredefinedSetting.LOCALE)));
 
         launch(args);
     }

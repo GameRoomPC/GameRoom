@@ -24,6 +24,7 @@ import ui.scene.MainScene;
 
 import java.io.File;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 import static ui.scene.BaseScene.BACKGROUND_IMAGE_LOAD_RATIO;
 
@@ -106,13 +107,13 @@ public class AddIgnoreGameButton extends GameButton {
                     fadeInTimeline.setAutoReverse(false);
                     fadeInTimeline.play();
 
-                    if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
+                    if (!settings().getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
                         Task backGroundImageTask = new Task() {
                             @Override
                             protected Object call() throws Exception {
                                 Image screenshotImage = entry.getImage(1,
-                                        Main.GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
-                                        Main.GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
+                                        settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
+                                        settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
                                         , false, true);
 
                                 Main.runAndWait(() -> {

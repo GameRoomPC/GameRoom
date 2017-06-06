@@ -15,10 +15,8 @@ import java.io.InputStreamReader;
 import java.net.*;
 import java.util.Enumeration;
 
-import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
-import static ui.Main.SUPPORTER_MODE;
 
 /**
  * Created by LM on 05/08/2016.
@@ -205,7 +203,7 @@ public class KeyChecker {
     }
 
     public static boolean assumeSupporterMode(){
-        String supporterKey = GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY);
+        String supporterKey = settings().getString(PredefinedSetting.SUPPORTER_KEY);
         boolean valid = false;
         if(supporterKey == null || supporterKey.isEmpty()){
             valid = false;

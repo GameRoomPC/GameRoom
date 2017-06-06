@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
 
 /**
@@ -55,7 +55,7 @@ public class SteamOnlineScraper {
 
     private static void scanNonInstalledSteamGames(OnGameFound handler) {
         try {
-            SteamProfile profile = GENERAL_SETTINGS.getSteamProfileToScan();
+            SteamProfile profile = settings().getSteamProfileToScan();
             if (profile != null) {
                 JSONArray ownedArray = askGamesOwned(profile.getAccountId());
                 for (int i = 0; i < ownedArray.length(); i++) {
@@ -86,7 +86,7 @@ public class SteamOnlineScraper {
     }
 
     public static void checkIfCanScanSteam(boolean forceModify) {
-        SteamProfile selectedProfile = GENERAL_SETTINGS.getSteamProfileToScan();
+        SteamProfile selectedProfile = settings().getSteamProfileToScan();
         if (selectedProfile != null && !forceModify) {
             return;
         }
@@ -102,7 +102,7 @@ public class SteamOnlineScraper {
         }
 
         if (!forceModify && profiles.size() == 1) {
-            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.STEAM_PROFILE, profiles.get(0));
+            settings().setSettingValue(PredefinedSetting.STEAM_PROFILE, profiles.get(0));
         } else {
             Main.runAndWait(() -> {
                 SteamProfileSelector selector = new SteamProfileSelector(profiles);

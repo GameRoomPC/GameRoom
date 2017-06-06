@@ -13,7 +13,7 @@ import ui.theme.ThemeUtils;
 
 import java.util.Optional;
 
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.MAIN_SCENE;
 
 /**
@@ -31,7 +31,7 @@ public class GameRoomAlert extends Alert {
         setHeaderText(null);
         initStyle(StageStyle.UNDECORATED);
         ThemeUtils.applyCurrentTheme(this);
-        getDialogPane().setStyle("-fx-font-size: "+Double.toString(GENERAL_SETTINGS.getUIScale().getFontSize())+"px;");
+        getDialogPane().setStyle("-fx-font-size: "+Double.toString(settings().getUIScale().getFontSize())+"px;");
 
         initOwner(MAIN_SCENE.getParentStage());
         initModality(Modality.WINDOW_MODAL);

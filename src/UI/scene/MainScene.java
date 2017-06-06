@@ -1,8 +1,8 @@
 package ui.scene;
 
 import data.game.GameWatcher;
-import data.game.entry.GameEntryUtils;
 import data.game.entry.GameEntry;
+import data.game.entry.GameEntryUtils;
 import data.game.scanner.FolderGameScanner;
 import data.game.scanner.OnScannerResultHandler;
 import data.http.images.ImageUtils;
@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Optional;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
 
@@ -130,29 +131,29 @@ public class MainScene extends BaseScene {
 
     private void loadPreviousUIValues() {
         Main.runAndWait(() -> {
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)) {
+            if (settings().getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)) {
                 lastPlayedTilePane.fold();
             } else {
                 lastPlayedTilePane.unfold();
             }
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED)) {
+            if (settings().getBoolean(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED)) {
                 recentlyAddedTilePane.fold();
             } else {
                 recentlyAddedTilePane.unfold();
             }
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_TOADD_ROW)) {
+            if (settings().getBoolean(PredefinedSetting.FOLDED_TOADD_ROW)) {
                 toAddTilePane.fold();
             } else {
                 toAddTilePane.unfold();
             }
-            double scrollBarVValue = GENERAL_SETTINGS.getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
+            double scrollBarVValue = settings().getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
             scrollPane.setVvalue(scrollBarVValue);
 
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS)) {
+            if (settings().getBoolean(PredefinedSetting.HIDE_TILES_ROWS)) {
                 forceHideTilesRows(true);
             }
 
-            if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
+            if (settings().getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
                 //TODO maybe try to hide the drawer menu ?
                 //drawerMenu.setVisible(false);
             }
@@ -161,11 +162,11 @@ public class MainScene extends BaseScene {
 
     public void saveScrollBarVValue() {
         double scrollBarVValue = scrollPane.getVvalue();
-        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SCROLLBAR_VVALUE, scrollBarVValue);
+        settings().setSettingValue(PredefinedSetting.SCROLLBAR_VVALUE, scrollBarVValue);
     }
 
     private void displayWelcomeMessage() {
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
+        if (settings().getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
             Platform.runLater(() -> {
                 GameRoomAlert.info(Main.getString("Welcome_message"));
                 GameRoomAlert.info(Main.getString("configure_scanner_messages"));
@@ -174,7 +175,7 @@ public class MainScene extends BaseScene {
                 Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
                 ignoredOptionnal.ifPresent(pairs -> {
                     if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
+                        settings().setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
                     }
                 });
                 GameRoomCustomAlert alert = new GameRoomCustomAlert();
@@ -184,7 +185,7 @@ public class MainScene extends BaseScene {
                         , 20 * Main.SCREEN_WIDTH / 1920
                         , 20 * Main.SCREEN_HEIGHT / 1080
                         , 20 * Main.SCREEN_WIDTH / 1920));
-                PathTextField field = new PathTextField(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER), getWindow(), PathTextField.FILE_CHOOSER_FOLDER, "");
+                PathTextField field = new PathTextField(settings().getString(PredefinedSetting.GAMES_FOLDER), getWindow(), PathTextField.FILE_CHOOSER_FOLDER, "");
 
                 alert.setBottom(field);
                 alert.setCenter(text);
@@ -198,11 +199,11 @@ public class MainScene extends BaseScene {
                         , new ButtonType(Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
                 Optional<ButtonType> result = alert.showAndWait();
                 if (result != null && result.isPresent() && result.get().getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.GAMES_FOLDER, field.getTextField().getText());
+                    settings().setSettingValue(PredefinedSetting.GAMES_FOLDER, field.getTextField().getText());
                 } else {
                     // ... user chose CANCEL or closed the dialog
                 }
-                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISPLAY_WELCOME_MESSAGE, false);
+                settings().setSettingValue(PredefinedSetting.DISPLAY_WELCOME_MESSAGE, false);
                 startGameWatcherService();
             });
         }
@@ -259,19 +260,19 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.addOnFoldedChangeListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FOLDED_ROW_LAST_PLAYED, newValue);
+                settings().setSettingValue(PredefinedSetting.FOLDED_ROW_LAST_PLAYED, newValue);
             }
         });
         recentlyAddedTilePane.addOnFoldedChangeListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED, newValue);
+                settings().setSettingValue(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED, newValue);
             }
         });
         toAddTilePane.addOnFoldedChangeListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FOLDED_TOADD_ROW, newValue);
+                settings().setSettingValue(PredefinedSetting.FOLDED_TOADD_ROW, newValue);
             }
         });
 
@@ -359,8 +360,8 @@ public class MainScene extends BaseScene {
 
                         Platform.runLater(() -> {
                             Image screenshotImage = entry.getImage(1,
-                                    Main.GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
-                                    Main.GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
+                                    settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
+                                    settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
                                     , false, true);
                             setImageBackground(screenshotImage);
                         });
@@ -391,10 +392,10 @@ public class MainScene extends BaseScene {
                 });
                 home();
 
-                double scrollBarVValue = GENERAL_SETTINGS.getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
+                double scrollBarVValue = settings().getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
                 scrollPane.setVvalue(scrollBarVValue);
 
-                if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && SUPPORTER_MODE) {
+                if (settings().getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && SUPPORTER_MODE) {
                     File workingDir = FILES_MAP.get("working_dir");
                     if (workingDir != null && workingDir.listFiles() != null) {
                         for (File file : workingDir.listFiles()) {
@@ -476,13 +477,13 @@ public class MainScene extends BaseScene {
     }
 
     public void toggleTilesRows() {
-        boolean wasHidden = GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS);
-        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TILES_ROWS, !wasHidden);
+        boolean wasHidden = settings().getBoolean(PredefinedSetting.HIDE_TILES_ROWS);
+        settings().setSettingValue(PredefinedSetting.HIDE_TILES_ROWS, !wasHidden);
         forceHideTilesRows(!wasHidden);
     }
 
     public void toggleScrollBar(boolean fullScreen) {
-        boolean disableInFullscreen = GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_SCROLLBAR_IN_FULLSCREEN);
+        boolean disableInFullscreen = settings().getBoolean(PredefinedSetting.DISABLE_SCROLLBAR_IN_FULLSCREEN);
         if (scrollPane != null) {
             if (fullScreen && disableInFullscreen) {
                 scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -675,7 +676,7 @@ public class MainScene extends BaseScene {
     }
 
     private void startGameWatcherService() {
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
+        if (settings().getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
             return;
         }
         //toAddTilePane.disableFoldButton(true);
@@ -782,10 +783,10 @@ public class MainScene extends BaseScene {
     }
 
     public void setImageBackground(Image img, boolean isStatic) {
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && !isStatic) {
+        if (settings().getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && !isStatic) {
             return;
         }
-        if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
+        if (!settings().getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
             if (!backgroundView.isVisible()) {
                 backgroundView.setVisible(true);
             }

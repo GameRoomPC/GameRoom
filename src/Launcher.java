@@ -1,5 +1,4 @@
 import data.game.entry.GameEntryUtils;
-import data.game.entry.GameEntry;
 import data.game.scraper.IGDBScraper;
 import data.io.DataBase;
 import data.io.FileUtils;
@@ -29,16 +28,14 @@ import ui.scene.BaseScene;
 import ui.scene.MainScene;
 import ui.scene.SettingsScene;
 
-import javax.xml.crypto.Data;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.UUID;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 
 /**
@@ -56,7 +53,7 @@ public class Launcher extends Application {
         /*System.setErr(new PrintStream(System.err) {
             public void print(final String string) {
                 LOGGER.error(string);
-                if (DEV_MODE || GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
+                if (DEV_MODE || settings().getBoolean(PredefinedSetting.DEBUG_MODE)) {
                     Platform.runLater(() -> {
                         if (console[0] == null) {
                             console[0] = new ConsoleOutputDialog();
@@ -184,7 +181,7 @@ public class Launcher extends Application {
         initPrimaryStage(primaryStage, MAIN_SCENE);
         initTrayIcon();
         initXboxController(primaryStage);
-        setFullScreen(primaryStage, GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN));
+        setFullScreen(primaryStage, settings().getBoolean(PredefinedSetting.FULL_SCREEN));
         openStage(primaryStage, true);
 
         if (!DEV_MODE) {
@@ -209,7 +206,7 @@ public class Launcher extends Application {
         Platform.runLater(() -> {
             primaryStage.setWidth(primaryStage.getWidth());
             primaryStage.setHeight(primaryStage.getHeight());
-            primaryStage.setMaximized(GENERAL_SETTINGS.getBoolean(PredefinedSetting.WINDOW_MAXIMIZED));
+            primaryStage.setMaximized(settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED));
         });
     }
 
@@ -222,9 +219,9 @@ public class Launcher extends Application {
             primaryStage.getScene().getRoot().setMouseTransparent(!newValue);
             GeneralToast.enableToasts(newValue);
 
-            if (newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
+            if (newValue && settings().getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
                 gameController.startThreads();
-            } else if (!newValue && Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
+            } else if (!newValue && settings().getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
                 gameController.stopThreads();
             }
         };
@@ -237,7 +234,7 @@ public class Launcher extends Application {
         fullScreenListener = (observable, oldValue, newValue) -> {
             setFullScreen(primaryStage, newValue);
         };
-        GENERAL_SETTINGS.getBooleanProperty(PredefinedSetting.FULL_SCREEN).addListener((fullScreenListener));
+        settings().getBooleanProperty(PredefinedSetting.FULL_SCREEN).addListener((fullScreenListener));
 
         MAIN_SCENE.setParentStage(primaryStage);
 
@@ -248,8 +245,8 @@ public class Launcher extends Application {
             @Override
             public void handle(javafx.scene.input.KeyEvent event) {
                 if (event.getCode() == KeyCode.F11) {
-                    boolean wasFullScreen = GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN);
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FULL_SCREEN, !wasFullScreen);
+                    boolean wasFullScreen = settings().getBoolean(PredefinedSetting.FULL_SCREEN);
+                    settings().setSettingValue(PredefinedSetting.FULL_SCREEN, !wasFullScreen);
                 }
                 if (event.getCode() == KeyCode.F10) {
                     //TODO toggle drawerMenu of MainScene
@@ -260,15 +257,15 @@ public class Launcher extends Application {
             }
         });
         maximizedListener = (observable, oldValue, newValue) -> {
-            if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN)) {
-                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.WINDOW_MAXIMIZED, newValue);
+            if (!settings().getBoolean(PredefinedSetting.FULL_SCREEN)) {
+                settings().setSettingValue(PredefinedSetting.WINDOW_MAXIMIZED, newValue);
             }
         };
         primaryStage.maximizedProperty().addListener(maximizedListener);
     }
 
     private void setFullScreen(Stage primaryStage, boolean fullScreen) {
-        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FULL_SCREEN, fullScreen);
+        settings().setSettingValue(PredefinedSetting.FULL_SCREEN, fullScreen);
         primaryStage.setFullScreen(fullScreen);
 
         if (MAIN_SCENE != null) {
@@ -321,7 +318,7 @@ public class Launcher extends Application {
 
                 }
             });
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
+            if (settings().getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
                 gameController.startThreads();
             }
 
@@ -342,7 +339,7 @@ public class Launcher extends Application {
         FileUtils.clearFolder(Main.FILES_MAP.get("temp"));
 
         try {
-            GENERAL_SETTINGS.saveSettings();
+            settings().save();
             DataBase.getUserConnection().close();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -404,13 +401,13 @@ public class Launcher extends Application {
                 if (event.getEventType().equals(WindowEvent.WINDOW_CLOSE_REQUEST)) {
                     if (!DEV_MODE) {
                         MAIN_SCENE.getParentStage().hide();
-                        if (trayMessageCount < 2 && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING) && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS)) {
+                        if (trayMessageCount < 2 && !settings().getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING) && !settings().getBoolean(PredefinedSetting.NO_NOTIFICATIONS)) {
                             TRAY_ICON.displayMessage("GameRoom"
                                     , Main.getString("tray_icon_still_running"), TrayIcon.MessageType.NONE);
                             trayMessageCount++;
                         } else {
-                            if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING)) {
-                                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING, true);
+                            if (!settings().getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING)) {
+                                settings().setSettingValue(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING, true);
                             }
                         }
                     }
@@ -449,7 +446,7 @@ public class Launcher extends Application {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    String dir = GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER);
+                    String dir = settings().getString(PredefinedSetting.GAMES_FOLDER);
                     File gamesFolder = new File(dir);
                     if (gamesFolder.exists() && gamesFolder.isDirectory())
                         Desktop.getDesktop().open(gamesFolder);
@@ -484,7 +481,7 @@ public class Launcher extends Application {
         popup.addSeparator();
         popup.add(gameRoomFolderItem);
 
-        File gameFolder = new File(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER));
+        File gameFolder = new File(settings().getString(PredefinedSetting.GAMES_FOLDER));
         if (gameFolder.exists() && gameFolder.isDirectory()) {
             popup.add(gamesFolderItem);
         }

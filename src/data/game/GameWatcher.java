@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 
 /**
@@ -69,7 +70,7 @@ public class GameWatcher {
         localGameScanners.add(new FolderGameScanner(this));
         onlineGameScanners.add(new LauncherScanner(this, ScannerProfile.STEAM_ONLINE));
 
-        SCAN_PERIOD = GENERAL_SETTINGS.getScanPeriod();
+        SCAN_PERIOD = settings().getScanPeriod();
     }
 
     private void initService() {

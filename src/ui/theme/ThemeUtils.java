@@ -11,6 +11,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
 
 /**
@@ -24,7 +25,7 @@ public class ThemeUtils {
 
     private static String getThemeCSS() {
         File themeCSS = Main.FILES_MAP.get("theme_css");
-        Theme currentTheme = Main.GENERAL_SETTINGS.getTheme();
+        Theme currentTheme = settings().getTheme();
 
         if(!KeyChecker.assumeSupporterMode()){
             return DEFAULT_THEME_CSS;

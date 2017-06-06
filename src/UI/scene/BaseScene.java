@@ -12,7 +12,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
@@ -24,8 +23,7 @@ import ui.Main;
 import ui.control.button.ImageButton;
 import ui.theme.ThemeUtils;
 
-import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.LOGGER;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.SCREEN_WIDTH;
 
 /**
@@ -48,12 +46,12 @@ public abstract class BaseScene extends Scene {
     private ImageButton backButton;
 
     BaseScene(StackPane stackPane, Stage parentStage) {
-        super(stackPane, Main.GENERAL_SETTINGS.getWindowWidth(), Main.GENERAL_SETTINGS.getWindowHeight());
+        super(stackPane, settings().getWindowWidth(), settings().getWindowHeight());
         this.rootStackPane = stackPane;
         rootStackPane.getStyleClass().add("base-scene-root");
         setParentStage(parentStage);
         ThemeUtils.applyCurrentTheme(this);
-        getRoot().setStyle("-fx-font-size: " + Double.toString(GENERAL_SETTINGS.getUIScale().getFontSize()) + "px;");
+        getRoot().setStyle("-fx-font-size: " + Double.toString(settings().getUIScale().getFontSize()) + "px;");
 
         backgroundView = new ImageView();
         maskView = new ImageView();
@@ -87,14 +85,14 @@ public abstract class BaseScene extends Scene {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneWidth, Number newSceneWidth) {
                 //ui.Main.LOGGER.debug("New window's width : "+ newSceneWidth);
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.WINDOW_WIDTH, newSceneWidth.intValue());
+                settings().setSettingValue(PredefinedSetting.WINDOW_WIDTH, newSceneWidth.intValue());
             }
         });
         heightProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneHeight, Number newSceneHeight) {
                 //ui.Main.LOGGER.debug("New window's height : "+ newSceneHeight);
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.WINDOW_HEIGHT, newSceneHeight.intValue());
+                settings().setSettingValue(PredefinedSetting.WINDOW_HEIGHT, newSceneHeight.intValue());
             }
         });
 
@@ -131,7 +129,7 @@ public abstract class BaseScene extends Scene {
                 }
                 scene2.getWrappingPane().setOpacity(0);
                 stage.setScene(scene2);
-                stage.setFullScreen(GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN));
+                stage.setFullScreen(settings().getBoolean(PredefinedSetting.FULL_SCREEN));
                 Timeline fadeInTimeline = new Timeline(
                         new KeyFrame(Duration.seconds(0),
                                 new KeyValue(scene2.getWrappingPane().opacityProperty(), 0, Interpolator.LINEAR),

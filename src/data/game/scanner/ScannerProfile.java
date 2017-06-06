@@ -3,6 +3,8 @@ package data.game.scanner;
 import data.game.entry.Platform;
 import ui.Main;
 
+import static system.application.settings.GeneralSettings.settings;
+
 /**
  * Created by LM on 04/01/2017.
  */
@@ -38,6 +40,6 @@ public enum ScannerProfile {
     }
 
     public boolean isEnabled(){
-        return Main.GENERAL_SETTINGS.isGameScannerEnabled(this);
+        return settings().isGameScannerEnabled(this);
     }
 }

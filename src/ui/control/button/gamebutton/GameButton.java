@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.Optional;
 
 import static javafx.scene.input.MouseEvent.*;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 import static ui.scene.BaseScene.BACKGROUND_IMAGE_LOAD_RATIO;
 
@@ -200,7 +201,7 @@ public abstract class GameButton extends BorderPane {
     private void initNameText() {
         titleBox = new HBox();
         titleBox.setSpacing(3*Main.SCREEN_WIDTH/1920);
-        BorderPane.setMargin(titleBox, new Insets(10 * GENERAL_SETTINGS.getWindowHeight() / 1080, 0, 0, 0));
+        BorderPane.setMargin(titleBox, new Insets(10 * settings().getWindowHeight() / 1080, 0, 0, 0));
         setAlignment(titleBox, Pos.CENTER);
 
         titleLabel = new Label(entry.getName());
@@ -216,7 +217,7 @@ public abstract class GameButton extends BorderPane {
         titleBox.getChildren().addAll(titleLogoView,titleLabel);
 
         monitoredChangeListener = (observable, oldValue, newValue) -> {
-            if(GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)){
+            if(settings().getBoolean(PredefinedSetting.DEBUG_MODE)){
                 if(!oldValue && newValue){
                     titleLabel.setId("advanced-setting-label");
                 }else if(!newValue){
@@ -454,13 +455,13 @@ public abstract class GameButton extends BorderPane {
                     if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
                         playButton.fireEvent(new MouseEvent(MOUSE_ENTERED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
                     }
-                    if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
+                    if (!settings().getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
                         Task backGroundImageTask = new Task() {
                             @Override
                             protected Object call() throws Exception {
                                 Image screenshotImage = entry.getImage(1,
-                                        Main.GENERAL_SETTINGS.getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO,
-                                        Main.GENERAL_SETTINGS.getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO
+                                        settings().getWindowWidth()*BACKGROUND_IMAGE_LOAD_RATIO,
+                                        settings().getWindowHeight()*BACKGROUND_IMAGE_LOAD_RATIO
                                         , false, true);
 
                                 Main.runAndWait(() -> {

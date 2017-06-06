@@ -7,15 +7,13 @@ import javafx.animation.Timeline;
 import javafx.scene.control.Button;
 import javafx.scene.effect.Bloom;
 import javafx.scene.effect.ColorAdjust;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
 
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 
 /**
  * Created by LM on 03/07/2016.
@@ -50,7 +48,7 @@ public class ImageButton extends Button {
 
         view = new ImageView();
         view.setSmooth(true);
-        double scale = GENERAL_SETTINGS.getUIScale().getScale();
+        double scale = settings().getUIScale().getScale();
         view.setFitWidth(width*scale);
         view.setFitHeight(height*scale);
 
@@ -149,7 +147,7 @@ public class ImageButton extends Button {
         view = new ImageView();
         view.setPreserveRatio(true);
         view.setSmooth(true);
-        double scale = GENERAL_SETTINGS.getUIScale().getScale();
+        double scale = settings().getUIScale().getScale();
         view.setFitWidth(width*scale);
         view.setFitHeight(height*scale);
         view.setId(id);

@@ -20,6 +20,7 @@ import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 
 
@@ -43,8 +44,8 @@ public class GameStarter {
     public void start() throws IOException {
         Main.LOGGER.info("Starting game : " + entry.getName());
         originalPowerMode = PowerMode.getActivePowerMode();
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isMonitored() && entry.isInstalled()) {
-            GENERAL_SETTINGS.getPowerMode(PredefinedSetting.GAMING_POWER_MODE).activate();
+        if (settings().getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isMonitored() && entry.isInstalled()) {
+            settings().getPowerMode(PredefinedSetting.GAMING_POWER_MODE).activate();
         }
         entry.setSavedLocally(true);
         entry.setLastPlayedDate(LocalDateTime.now());
@@ -55,9 +56,9 @@ public class GameStarter {
         Task<Long> monitor = new Task() {
             @Override
             protected Object call() throws Exception {
-                if (GENERAL_SETTINGS.getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.CLOSE)) {
+                if (settings().getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.CLOSE)) {
                     Main.forceStop(MAIN_SCENE.getParentStage(), "launchAction = OnLaunchAction.CLOSE");
-                } else if (GENERAL_SETTINGS.getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.HIDE)) {
+                } else if (settings().getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.HIDE)) {
                     Main.LOGGER.debug("Hiding");
                     Platform.runLater(new Runnable() {
                         @Override
@@ -89,7 +90,7 @@ public class GameStarter {
                     }
 
                     String cmdAfter = entry.getCmd(GameEntry.CMD_AFTER_END);
-                    String commandsAfterString = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_AFTER_END] + (cmdAfter != null ? "\n" + cmdAfter : "");
+                    String commandsAfterString = settings().getStrings(PredefinedSetting.CMD)[GameEntry.CMD_AFTER_END] + (cmdAfter != null ? "\n" + cmdAfter : "");
                     LOGGER.debug("commandsAfter : \"" + commandsAfterString + "\"");
                     String[] commandsAfter = commandsAfterString.split("\n");
                     File postLog = new File(LOG_FOLDER + "post_" + entry.getName() + ".log");
@@ -117,7 +118,7 @@ public class GameStarter {
                     String notificationText = GameEntry.getPlayTimeFormatted(Math.round(newValue / 1000.0), GameEntry.TIME_FORMAT_HMS_CASUAL) + " "
                             + Main.getString("tray_icon_time_recorded") + " "
                             + entry.getName();
-                    if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_NOTIFICATIONS) && newValue != 0) {
+                    if (!settings().getBoolean(PredefinedSetting.NO_NOTIFICATIONS) && newValue != 0) {
                         Main.TRAY_ICON.displayMessage("GameRoom", notificationText, TrayIcon.MessageType.INFO);
                     }
                     GeneralToast.displayToast(notificationText, MAIN_SCENE.getParentStage());
@@ -134,7 +135,7 @@ public class GameStarter {
     }
 
     void onStop() {
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE)) {
+        if (settings().getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE)) {
             originalPowerMode.activate();
         }
         if (MAIN_SCENE != null) {
@@ -147,7 +148,7 @@ public class GameStarter {
 
         Terminal terminal = new Terminal();
         String cmdBefore = entry.getCmd(GameEntry.CMD_BEFORE_START);
-        String commandsBeforeString = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_BEFORE_START] + (cmdBefore != null ? "\n" + cmdBefore : "");
+        String commandsBeforeString = settings().getStrings(PredefinedSetting.CMD)[GameEntry.CMD_BEFORE_START] + (cmdBefore != null ? "\n" + cmdBefore : "");
         String[] commandsBefore = commandsBeforeString.split("\n");
 
         if (entry.isSteamGame() || entry.getPath().startsWith(STEAM_PREFIX)) {

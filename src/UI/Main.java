@@ -30,6 +30,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static system.application.settings.GeneralSettings.settings;
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
 
 public class Main {
@@ -57,8 +58,6 @@ public class Main {
     private final static char AUTO_TAG_CHAR = '%';
     private final static Pattern AUTO_TAG_PATTERN = Pattern.compile("\\"+ AUTO_TAG_CHAR +"(.*)\\"+ AUTO_TAG_CHAR);
     private final static String NO_STRING = "\'no_string\'";
-
-    public static GeneralSettings GENERAL_SETTINGS;
 
     public static final Logger LOGGER = LogManager.getLogger(Main.class);
 
@@ -90,14 +89,13 @@ public class Main {
 
         LOGGER.info("Started app with screen true resolution : " + (int) TRUE_SCREEN_WIDTH + "x" + (int) TRUE_SCREEN_HEIGHT);
 
-        GENERAL_SETTINGS = new GeneralSettings();
 
-        SUPPORTER_MODE = !GENERAL_SETTINGS.getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(SUPPORTER_KEY));
+        SUPPORTER_MODE = !settings().getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(settings().getString(SUPPORTER_KEY));
         LOGGER.info("Supporter mode : "+ SUPPORTER_MODE);
-        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
-        SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
-        GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
-        GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
+        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", settings().getLocale(PredefinedSetting.LOCALE));
+        SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", settings().getLocale(PredefinedSetting.LOCALE));
+        GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", settings().getLocale(PredefinedSetting.LOCALE));
+        GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", settings().getLocale(PredefinedSetting.LOCALE));
         //if(!DEV_MODE){
         //startUpdater();
         //}

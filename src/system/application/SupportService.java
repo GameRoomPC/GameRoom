@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 
 /**
@@ -81,17 +82,17 @@ public class SupportService {
     }
 
     private void checkAndDisplaySupportAlert(){
-        if(GENERAL_SETTINGS != null){
+        if(settings() != null){
             if(!KeyChecker.assumeSupporterMode()){
                 LOGGER.info("Checking if have to display support dialog");
-                Date lastMessageDate = GENERAL_SETTINGS.getDate(PredefinedSetting.LAST_SUPPORT_MESSAGE);
+                Date lastMessageDate = settings().getDate(PredefinedSetting.LAST_SUPPORT_MESSAGE);
                 Date currentDate = new Date();
 
                 long elapsedTime = currentDate.getTime() - lastMessageDate.getTime();
 
                 if(elapsedTime >= SUPPORT_ALERT_FREQ){
                     Platform.runLater(() -> displaySupportAlert());
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.LAST_SUPPORT_MESSAGE,new Date());
+                    settings().setSettingValue(PredefinedSetting.LAST_SUPPORT_MESSAGE,new Date());
                 }
             }
         }
@@ -146,13 +147,13 @@ public class SupportService {
     }
 
     private void checkForUpdates(){
-        if(GENERAL_SETTINGS == null){
+        if(settings() == null){
             return;
         }
         if(DEV_MODE){
             return;
         }
-        Date lastCheck = GENERAL_SETTINGS.getDate(PredefinedSetting.LAST_UPDATE_CHECK);
+        Date lastCheck = settings().getDate(PredefinedSetting.LAST_UPDATE_CHECK);
         long elapsed = System.currentTimeMillis() - lastCheck.getTime();
         if(elapsed >= UPDATE_CHECK_FREQ){
             if(!GameRoomUpdater.getInstance().isStarted()){
