@@ -3,7 +3,6 @@ package system.application.settings;
 import com.google.gson.JsonSyntaxException;
 import data.game.scanner.ScanPeriod;
 import data.game.scanner.ScannerProfile;
-import data.game.scraper.SteamPreEntry;
 import data.game.scraper.SteamProfile;
 import data.io.DataBase;
 import javafx.application.Platform;

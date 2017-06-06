@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS runs_on (
 CREATE TABLE IF NOT EXISTS Emulator (
 	id integer PRIMARY KEY,
 	name text,
+    default_path text,
 	path text,
 	default_args_schema text,
 	args_schema text
@@ -197,7 +198,7 @@ INSERT OR REPLACE INTO GameGenre(igdb_id,name_key) VALUES
 	(32,"indie"),
 	(33,"arcade");
 	
-INSERT OR REPLACE INTO Platform(id,name_key,is_launcher) VALUES
+INSERT OR IGNORE INTO Platform(id,name_key,is_launcher) VALUES
 	(1,"steam",1),
 	(2,"steam_online",1),
 	(3,"origin",1),
@@ -208,10 +209,10 @@ INSERT OR REPLACE INTO Platform(id,name_key,is_launcher) VALUES
 	(8,"gamecube",0),
 	(9,"n64",0);
 	
-INSERT OR REPLACE INTO Emulator(id,name,path,default_args_schema) VALUES
+INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
 	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %p");
 	
-INSERT OR REPLACE INTO emulates(platform_id, emu_id) VALUES
+INSERT OR IGNORE INTO emulates(platform_id, emu_id) VALUES
 	(1,7),
 	(1,8);
 	

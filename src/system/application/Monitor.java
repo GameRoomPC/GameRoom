@@ -1,5 +1,6 @@
 package system.application;
 
+import data.game.entry.Emulator;
 import data.game.entry.GameEntry;
 import data.game.scraper.SteamLocalScraper;
 import data.io.FileUtils;
@@ -16,10 +17,7 @@ import java.io.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -51,13 +49,25 @@ public class Monitor {
     private ArrayList<StandbyInterval> standbyIntervals = new ArrayList<>();
 
     private Date creationDate = null;
+    private String processName;
 
     Monitor(GameStarter starter) throws IOException {
         this.gameStarter = starter;
+        if(getGameEntry().getPlatform().equals(data.game.entry.Platform.NONE)){
+            processName = getGameEntry().getProcessName();
+        }else{
+            Emulator e = Emulator.getChosenEmulator(getGameEntry().getPlatform());
+            if(e == null){
+                //TODO replace hardcoded text
+                GameRoomAlert.error("There is no emulator configured for platform "+getGameEntry().getPlatform());
+            }else{
+                processName = e.getProcessName();
+            }
+        }
         if (!isSteamGame()) {
             DATE_FORMAT.setTimeZone(Calendar.getInstance().getTimeZone());
 
-            vbsWatcher = FileUtils.newTempFile(getGameEntry().getProcessName() + "_watcher.vbs");
+            vbsWatcher = FileUtils.newTempFile(processName + "_watcher.vbs");
             vbsWatcher.deleteOnExit();
             FileWriter fw = new java.io.FileWriter(vbsWatcher);
 
@@ -65,7 +75,7 @@ public class Monitor {
                     + "Set locator = CreateObject(\"WbemScripting.SWbemLocator\")\n"
                     + "Set service = locator.ConnectServer()\n"
                     + "Set processes = service.ExecQuery _\n"
-                    + " (\"select * from Win32_Process where name='" + getGameEntry().getProcessName() + "'\")\n"
+                    + " (\"select * from Win32_Process where name='" + processName + "'\")\n"
                     + "For Each process in processes\n"
                     + "wscript.echo process.Name \n"
                     + "wscript.echo \"" + TIME_TAG + "\" & process.CreationDate \n"
@@ -98,7 +108,7 @@ public class Monitor {
         if (!KEEP_THREADS_RUNNING) {
             return 0;
         }
-        Main.LOGGER.info("Monitoring " + getGameEntry().getProcessName());
+        Main.LOGGER.info("Monitoring " + processName);
         if (awaitingRestart) {
             awaitingRestart = false;
             if (MAIN_SCENE != null) {
@@ -124,7 +134,7 @@ public class Monitor {
         if (!KEEP_THREADS_RUNNING) {
             return 0;
         }
-        Main.LOGGER.info(getGameEntry().getProcessName() + " killed");
+        Main.LOGGER.info(processName + " killed");
 
         long result = computeTrueRunningTime();
         Main.LOGGER.debug("\tComputed playtime : " + GameEntry.getPlayTimeFormatted(Math.round(result / 1000), GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
@@ -142,7 +152,7 @@ public class Monitor {
                                     + getGameEntry().getName()
                                     + Main.getString("restarts"), MAIN_SCENE.getParentStage());
                         }
-                        Main.LOGGER.info(getGameEntry().getProcessName() + " : waiting until next launch to count playtime.");
+                        Main.LOGGER.info(processName + " : waiting until next launch to count playtime.");
                         return MONITOR_AGAIN;
                     }
                     gameStarter.onStop();
@@ -302,7 +312,7 @@ public class Monitor {
         if (isSteamGame()) {
             return SteamLocalScraper.isSteamGameRunning(getGameEntry().getPlatformGameID());
         } else {
-            return isProcessRunning(getGameEntry().getProcessName());
+            return isProcessRunning(processName);
         }
     }
 

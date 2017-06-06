@@ -218,5 +218,4 @@ public class Platform {
         }
         return nameKey;
     }
-
 }

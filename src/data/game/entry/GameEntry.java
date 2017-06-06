@@ -159,8 +159,11 @@ public class GameEntry {
         statement.setInt(16, igdb_id);
         statement.setBoolean(17, waitingToBeScrapped);
         statement.setBoolean(18, toAdd);
+        statement.setBoolean(19, ignored);
+        statement.setBoolean(20, runAsAdmin);
+
         if (inDb) {
-            statement.setInt(19, id);
+            statement.setInt(21, id);
         }
 
         statement.execute();
@@ -258,7 +261,6 @@ public class GameEntry {
             }
         }
     }
-
     private void saveSerie() throws SQLException {
         if (serie != null) {
             PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from regroups where game_id= ?");

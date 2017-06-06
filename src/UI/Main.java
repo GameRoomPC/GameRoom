@@ -1,5 +1,6 @@
 package ui;
 
+import data.game.entry.Emulator;
 import data.http.images.ImageDownloaderService;
 import data.http.key.KeyChecker;
 import data.io.DataBase;
@@ -54,6 +55,7 @@ public class Main {
     public static ResourceBundle GAME_GENRES_BUNDLE;
     public static ResourceBundle GAME_THEMES_BUNDLE;
 
+
     private final static String MANUAL_TAG= "\\$string\\$";
     private final static char AUTO_TAG_CHAR = '%';
     private final static Pattern AUTO_TAG_PATTERN = Pattern.compile("\\"+ AUTO_TAG_CHAR +"(.*)\\"+ AUTO_TAG_CHAR);
@@ -90,6 +92,7 @@ public class Main {
         LOGGER.info("Started app with screen true resolution : " + (int) TRUE_SCREEN_WIDTH + "x" + (int) TRUE_SCREEN_HEIGHT);
 
         settings().load();
+        Emulator.loadEmulators();
 
         SUPPORTER_MODE = !settings().getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(settings().getString(SUPPORTER_KEY));
         LOGGER.info("Supporter mode : "+ SUPPORTER_MODE);
@@ -97,6 +100,7 @@ public class Main {
         SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", settings().getLocale(PredefinedSetting.LOCALE));
         GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", settings().getLocale(PredefinedSetting.LOCALE));
         GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", settings().getLocale(PredefinedSetting.LOCALE));
+
         //if(!DEV_MODE){
         //startUpdater();
         //}

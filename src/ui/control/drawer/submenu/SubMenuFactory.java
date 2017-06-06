@@ -93,6 +93,37 @@ public final class SubMenuFactory {
 
         addMenu.addItem(folderItem);
 
+        //************EMULATOR****************
+        //TODO add dialog, option to add folder of isos, add .elf support etc..
+        TextItem emulatedItem = new TextItem("add_emulated_game");
+        emulatedItem.setOnAction(event -> {
+            GameRoomAlert.info(Main.getString("add_single_app_long"));
+            mainScene.getRootStackPane().setMouseTransparent(true);
+
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle(Main.getString("select_program"));
+            fileChooser.setInitialDirectory(
+                    new File(System.getProperty("user.home"))
+            );
+            //TODO fix internet shorcuts problem (bug submitted)
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("ISO", "*.iso")
+            );
+            try {
+                File selectedFile = fileChooser.showOpenDialog(mainScene.getParentStage());
+                if (selectedFile != null) {
+                    mainScene.fadeTransitionTo(new GameEditScene(mainScene, selectedFile), mainScene.getParentStage());
+                }
+            } catch (NullPointerException ne) {
+                ne.printStackTrace();
+                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
+                alert.setContentText(Main.getString("warning_internet_shortcut"));
+                alert.showAndWait();
+            }
+            mainScene.getRootStackPane().setMouseTransparent(false);
+        });
+        addMenu.addItem(emulatedItem);
+
         return addMenu;
     }
 

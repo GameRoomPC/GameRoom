@@ -253,6 +253,7 @@ public class GameInfoScene extends BaseScene {
         //no need to fade transition here as it is the "right" image and no actual change
         double widthScale = 1;
         double heightScale = 1;
+
         if (backgroundImage != null && backgroundImage.getWidth() != settings().getWindowWidth()) {
             widthScale = (double) settings().getWindowWidth() / backgroundImage.getWidth();
         }

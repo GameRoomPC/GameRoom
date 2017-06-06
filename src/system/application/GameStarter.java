@@ -1,5 +1,6 @@
 package system.application;
 
+import data.game.entry.Emulator;
 import data.io.FileUtils;
 import data.game.entry.GameEntry;
 import javafx.application.Platform;
@@ -11,6 +12,7 @@ import system.os.PowerMode;
 import system.os.Terminal;
 import ui.Main;
 import ui.GeneralToast;
+import ui.dialog.GameRoomAlert;
 
 import java.awt.*;
 import java.io.File;
@@ -19,6 +21,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
@@ -188,7 +194,17 @@ public class GameStarter {
             commands.add("powershell.exe");
             commands.add("Start-Process");
         }
-        commands.add('"' + entry.getPath() + '"');
+        if(entry.getPlatform().equals(data.game.entry.Platform.NONE)){
+            commands.add('"' + entry.getPath() + '"');
+        }else{
+            Emulator e = Emulator.getChosenEmulator(entry.getPlatform());
+            if(e == null){
+                //TODO replace hardcoded text
+                GameRoomAlert.error("There is no emulator configured for platform "+entry.getPlatform());
+            }else{
+                commands.addAll(e.getCommandsToExecute(entry));
+            }
+        }
         Collections.addAll(commands, args);
         if(entry.mustRunAsAdmin()){
             commands.add("-verb");

@@ -596,6 +596,7 @@ public class SettingsScene extends BaseScene {
                         Main.setSettingsBundle(ResourceBundle.getBundle("settings", localeComboBox.getValue()));
                         Main.GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", localeComboBox.getValue());
                         Main.GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", localeComboBox.getValue());
+
                         settings().setSettingValue(PredefinedSetting.LOCALE, localeComboBox.getValue());
 
                         displayRestartDialog();
