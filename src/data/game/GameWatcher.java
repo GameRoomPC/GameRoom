@@ -10,6 +10,7 @@ import data.game.scraper.OnDLDoneHandler;
 import data.http.images.ImageUtils;
 import javafx.application.Platform;
 import org.json.JSONArray;
+import system.application.settings.PredefinedSetting;
 import ui.GeneralToast;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
@@ -71,6 +72,9 @@ public class GameWatcher {
         onlineGameScanners.add(new LauncherScanner(this, ScannerProfile.STEAM_ONLINE));
 
         SCAN_PERIOD = settings().getScanPeriod();
+        if(SCAN_PERIOD == null){
+            SCAN_PERIOD = (ScanPeriod) PredefinedSetting.SCAN_PERIOD.getDefaultValue().getSettingValue();
+        }
     }
 
     private void initService() {

@@ -12,10 +12,10 @@ CREATE TABLE IF NOT EXISTS GameEntry (
 	added_date datetime,
 	last_played_date datetime,
 	initial_playtime integer,
-	installed integer default 1,
 	cover_hash text,
 	wp_hash text,
 	igdb_id integer,
+	installed integer default 1,
 	waiting_scrap integer default 0,
 	toAdd integer default 0,
 	ignored integer default 0
