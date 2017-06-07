@@ -169,7 +169,7 @@ public class Platform {
         return platform;
     }
 
-    private static void initWithDb() throws SQLException {
+    public static void initWithDb() throws SQLException {
         Connection connection = DataBase.getUserConnection();
         Statement statement = connection.createStatement();
         ResultSet set = statement.executeQuery("select * from Platform");
@@ -216,7 +216,8 @@ public class Platform {
         if (nameKey == null) {
             return "-";
         }
-        return nameKey;
+        String s = Main.getString(nameKey);
+        return s.equals(Main.NO_STRING) ? nameKey : s;
     }
 
     public boolean isLauncher() {

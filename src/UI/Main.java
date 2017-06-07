@@ -59,7 +59,7 @@ public class Main {
     private final static String MANUAL_TAG= "\\$string\\$";
     private final static char AUTO_TAG_CHAR = '%';
     private final static Pattern AUTO_TAG_PATTERN = Pattern.compile("\\"+ AUTO_TAG_CHAR +"(.*)\\"+ AUTO_TAG_CHAR);
-    private final static String NO_STRING = "\'no_string\'";
+    public final static String NO_STRING = "\'no_string\'";
 
     public static Logger LOGGER;
 

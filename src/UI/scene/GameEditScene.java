@@ -64,6 +64,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -119,7 +120,7 @@ public class GameEditScene extends BaseScene {
         }
         String path = chosenFile.getAbsolutePath();
         try {
-            if(FileUtils.getExtension(chosenFile).equals("lnk")){
+            if (FileUtils.getExtension(chosenFile).equals("lnk")) {
                 WindowsShortcut shortcut = new WindowsShortcut(chosenFile);
                 chosenFile = new File(shortcut.getRealFilename());
                 path = chosenFile.getAbsolutePath();
@@ -206,7 +207,7 @@ public class GameEditScene extends BaseScene {
                     if (entry.isToAdd()) {
                         entry.setToAdd(false);
                     }
-                    GeneralToast.displayToast(Main.getString("saving")+ " "+ entry.getName(), getParentStage(), GeneralToast.DURATION_SHORT);
+                    GeneralToast.displayToast(Main.getString("saving") + " " + entry.getName(), getParentStage(), GeneralToast.DURATION_SHORT);
 
                     entry.setSavedLocally(true);
                     entry.saveEntry();
@@ -316,10 +317,10 @@ public class GameEditScene extends BaseScene {
         allSeries.sort(new Comparator<Serie>() {
             @Override
             public int compare(Serie o1, Serie o2) {
-                if(o1 == null || o1.getName() == null){
+                if (o1 == null || o1.getName() == null) {
                     return -1;
                 }
-                if(o2 == null || o2.getName() == null){
+                if (o2 == null || o2.getName() == null) {
                     return 1;
                 }
                 return o1.getName().compareTo(o2.getName());
@@ -473,16 +474,41 @@ public class GameEditScene extends BaseScene {
             }
         });
 
+        /**************************PLATFORM*********************************************/
+        if (!entry.getPlatform().isLauncher() || entry.getPlatform().equals(data.game.entry.Platform.NONE)) {
+            try {
+                data.game.entry.Platform.initWithDb();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            final ObservableList<data.game.entry.Platform> platforms = FXCollections.observableArrayList(data.game.entry.Platform.values());
+            platforms.removeIf(data.game.entry.Platform::isLauncher);
+            platforms.sort(Comparator.comparing(data.game.entry.Platform::getName));
+            platforms.add(0,data.game.entry.Platform.NONE);
+
+            // Create the CheckComboBox with the data
+            final ComboBox<data.game.entry.Platform> platformComboBox = new ComboBox<data.game.entry.Platform>(platforms);
+            platformComboBox.setId("platform");
+            if (entry.getPlatform() != null) {
+                platformComboBox.getSelectionModel().select(entry.getPlatform());
+            }
+            platformComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                entry.setPlatform(newValue);
+            });
+
+            Label platformLabel = new Label(Main.getString("platform") + " :");
+            platformLabel.setTooltip(new Tooltip(Main.getString("platform")));
+            contentPane.add(platformLabel, 0, row_count);
+            contentPane.add(platformComboBox, 1, row_count);
+            row_count++;
+        }
+
         /************************** DEVS AND PUBLISHER*********************************************/
 
         final ObservableList<Company> allCompanies = FXCollections.observableArrayList();
         allCompanies.addAll(Company.values());
-        allCompanies.sort(new Comparator<Company>() {
-            @Override
-            public int compare(Company o1, Company o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
+        allCompanies.sort(Comparator.comparing(Company::getName));
 
         /**************************DEVELOPER*********************************************/
         // Create the CheckComboBox with the data
@@ -635,10 +661,10 @@ public class GameEditScene extends BaseScene {
                                                      GameEntry gameEntry = entry;
                                                      try {
                                                          JSONObject gameData = IGDBScraper.getGameData(gameEntry.getIgdb_id());
-                                                         if(gameData != null){
+                                                         if (gameData != null) {
                                                              gameEntry.setIgdb_imageHashs(IGDBScraper.getScreenshotHash(gameData));
                                                              openImageSelector(gameEntry);
-                                                         }else{
+                                                         } else {
                                                              //TODO localize
                                                              GameRoomAlert.info("No screenshot for this game on IGDB");
                                                          }
@@ -880,9 +906,9 @@ public class GameEditScene extends BaseScene {
                             }
                         } else if (property.equals("serie")) {
                             if (node instanceof ComboBox) {
-                                ((ComboBox<Serie>)node).getSelectionModel().select((Serie) newValue);
+                                ((ComboBox<Serie>) node).getSelectionModel().select((Serie) newValue);
                             }
-                        }else if (newValue instanceof LocalDateTime) {
+                        } else if (newValue instanceof LocalDateTime) {
                             if (node instanceof TextField) {
                                 ((TextField) node).setText(newValue != null ? GameEntry.DATE_DISPLAY_FORMAT.format((LocalDateTime) newValue) : "");
                             }
@@ -1223,13 +1249,13 @@ public class GameEditScene extends BaseScene {
         }
     }
 
-    private static boolean checkPowershellAvailable(){
+    private static boolean checkPowershellAvailable() {
         Terminal t = new Terminal(false);
         try {
-            String[] output = t.execute("powershell","/?");
-            if(output != null){
-                for(String s : output){
-                    if(s.contains("PowerShell[.exe]")){
+            String[] output = t.execute("powershell", "/?");
+            if (output != null) {
+                for (String s : output) {
+                    if (s.contains("PowerShell[.exe]")) {
                         t.getProcess().destroy();
                         return true;
                     }
