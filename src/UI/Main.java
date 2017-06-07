@@ -206,6 +206,7 @@ public class Main {
             action.run();
             return;
         }
+
         final CountDownLatch doneLatch = new CountDownLatch(1);
 
         // queue on JavaFX thread and wait for completion

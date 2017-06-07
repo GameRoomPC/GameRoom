@@ -15,7 +15,6 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import static data.io.FileUtils.getExtension;
 
@@ -116,12 +115,17 @@ public class GameEntry {
         if (savedLocally && !deleted) {
             try {
                 saveDirectFields();
-                saveGenres();
-                saveThemes();
-                saveDevs();
-                savePublishers();
-                saveSerie();
-                savePlatform();
+
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+
+                saveGenres(batchStatement);
+                saveThemes(batchStatement);
+                saveDevs(batchStatement);
+                savePublishers(batchStatement);
+                saveSerie(batchStatement);
+                savePlatform(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -176,121 +180,76 @@ public class GameEntry {
         //connection.commit();
     }
 
-    private void saveGenres() throws SQLException {
-        if (genres != null) {
+    private void saveGenres(Statement batchStatement) throws SQLException {
+        batchStatement.addBatch("delete from has_genre where game_id= " + id);
+
+        if (genres != null && !genres.isEmpty()) {
+            String insertSQL = "INSERT OR REPLACE INTO has_genre(game_id,genre_id) VALUES ";
             for (GameGenre genre : genres) {
                 if (genre != null) {
-                    int genreId = GameGenre.getIGDBId(genre.getKey());
-                    if (genreId != -1) {
-                        PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from has_genre where game_id= ?");
-                        deleteStatement.setInt(1, id);
-                        deleteStatement.execute();
-                        deleteStatement.close();
-
-                        PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO has_genre(game_id,genre_id) VALUES (?,?)");
-                        genreStatement.setInt(1, id);
-                        genreStatement.setInt(2, genreId);
-                        genreStatement.execute();
-                        genreStatement.close();
-                        //DataBase.commit();
-                    }
+                    insertSQL+="("+id+","+GameGenre.getIGDBId(genre.getKey())+"),";
                 }
             }
+            batchStatement.addBatch(insertSQL.substring(0,insertSQL.length()-1));
         }
     }
 
-    private void saveThemes() throws SQLException {
-        if (themes != null) {
+    private void saveThemes(Statement batchStatement) throws SQLException {
+        batchStatement.addBatch("delete from has_theme where game_id= " + id);
+
+        if (themes != null && !themes.isEmpty()) {
+            String insertSQL = "INSERT OR REPLACE INTO has_theme(game_id,theme_id) VALUES ";
             for (GameTheme theme : themes) {
                 if (theme != null) {
-                    int themeID = GameTheme.getIGDBId(theme.getKey());
-                    if (themeID != -1) {
-                        PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from has_theme where game_id= ?");
-                        deleteStatement.setInt(1, id);
-                        deleteStatement.execute();
-                        deleteStatement.close();
-
-                        PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO has_theme(game_id,theme_id) VALUES (?,?)");
-                        genreStatement.setInt(1, id);
-                        genreStatement.setInt(2, themeID);
-                        genreStatement.execute();
-                        genreStatement.close();
-                        //DataBase.commit();
-                    }
+                    insertSQL+="("+id+","+theme.getIGDBId(theme.getKey())+"),";
                 }
             }
+            batchStatement.addBatch(insertSQL.substring(0,insertSQL.length()-1));
         }
     }
 
-    private void saveDevs() throws SQLException {
+    private void saveDevs(Statement batchStatement) throws SQLException {
+        batchStatement.addBatch("delete from develops where game_id= " + id);
+
         if (developers != null && !developers.isEmpty()) {
+            String insertSQL = "INSERT OR REPLACE INTO develops(game_id,dev_id) VALUES ";
             for (Company c : developers) {
                 if (c != null) {
-                    PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from develops where game_id= ?");
-                    deleteStatement.setInt(1, id);
-                    deleteStatement.execute();
-                    deleteStatement.close();
-
-                    PreparedStatement insertStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO develops(game_id,dev_id) VALUES (?,?)");
-                    insertStatement.setInt(1, id);
-                    insertStatement.setInt(2, c.getId());
-                    insertStatement.execute();
-                    insertStatement.close();
-                    //DataBase.commit();
+                    insertSQL+="("+id+","+c.getId()+"),";
                 }
             }
+            batchStatement.addBatch(insertSQL.substring(0,insertSQL.length()-1));
         }
     }
 
-    private void savePublishers() throws SQLException {
+    private void savePublishers(Statement batchStatement) throws SQLException {
+        batchStatement.addBatch("delete from publishes where game_id= " + id);
+
         if (publishers != null && !publishers.isEmpty()) {
+            String insertSQL = "INSERT OR REPLACE INTO publishes(game_id,pub_id) VALUES ";
             for (Company c : publishers) {
                 if (c != null) {
-                    PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from publishes where game_id= ?");
-                    deleteStatement.setInt(1, id);
-                    deleteStatement.execute();
-                    deleteStatement.close();
-
-                    PreparedStatement insertStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO publishes(game_id,pub_id) VALUES (?,?)");
-                    insertStatement.setInt(1, id);
-                    insertStatement.setInt(2, c.getId());
-                    insertStatement.execute();
-                    insertStatement.close();
-                    //DataBase.commit();
+                    insertSQL+="("+id+","+c.getId()+"),";
                 }
             }
+            batchStatement.addBatch(insertSQL.substring(0,insertSQL.length()-1));
         }
     }
-    private void saveSerie() throws SQLException {
+
+    private void saveSerie(Statement batchStatement) throws SQLException {
         if (serie != null) {
-            PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from regroups where game_id= ?");
-            deleteStatement.setInt(1, id);
-            deleteStatement.execute();
-            deleteStatement.close();
-
-            PreparedStatement serieStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO regroups(game_id,serie_id) VALUES (?,?)");
-            serieStatement2.setInt(1, id);
-            serieStatement2.setInt(2, serie.getId());
-            serieStatement2.execute();
-            serieStatement2.close();
-            //DataBase.commit();
+            batchStatement.addBatch("delete from regroups where game_id= " + id);
+            batchStatement.addBatch("INSERT OR REPLACE INTO regroups(game_id,serie_id) VALUES (" + id + "," + serie.getId() + ")");
         }
     }
 
-    private void savePlatform() throws SQLException {
+    private void savePlatform(Statement batchStatement) throws SQLException {
         if (platform != null) {
-            PreparedStatement deleteStatement = DataBase.getUserConnection().prepareStatement("delete from runs_on where game_id= ?");
-            deleteStatement.setInt(1, id);
-            deleteStatement.execute();
-            deleteStatement.close();
-
-            PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR REPLACE INTO runs_on(platformGameId,platform_id,game_id) VALUES (?,?,?)");
-            genreStatement.setInt(1, platformGameId);
-            genreStatement.setInt(2, platform.getId());
-            genreStatement.setInt(3, id);
-            genreStatement.execute();
-            genreStatement.close();
-            //DataBase.commit();
+            batchStatement.addBatch("delete from runs_on where game_id=" + id);
+            batchStatement.addBatch("INSERT OR REPLACE INTO runs_on(platformGameId,platform_id,game_id) VALUES " +
+                    "(" + platformGameId + ","
+                    + platform.getId() + ","
+                    + id + ")");
         }
     }
 
@@ -335,10 +294,10 @@ public class GameEntry {
         File currFile = getImagePath(index);
         if (currFile == null) {
             return null;
-        } else if(currFile.exists()) {
+        } else if (currFile.exists()) {
             return new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth, backGroundloading);
-        } else{
-            return new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir")+File.separator+currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
+        } else {
+            return new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir") + File.separator + currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
         }
     }
 
@@ -630,7 +589,10 @@ public class GameEntry {
         this.genres = genres;
         if (savedLocally && !deleted) {
             try {
-                saveGenres();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveGenres(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -645,7 +607,10 @@ public class GameEntry {
         this.themes = themes;
         if (savedLocally && !deleted) {
             try {
-                saveThemes();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveThemes(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -663,7 +628,10 @@ public class GameEntry {
         this.serie = serie;
         if (savedLocally && !deleted) {
             try {
-                saveSerie();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveSerie(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -689,7 +657,10 @@ public class GameEntry {
         }
         if (savedLocally && !deleted) {
             try {
-                savePlatform();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                savePlatform(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -1154,7 +1125,10 @@ public class GameEntry {
         genres.add(genre);
         if (savedLocally && !deleted) {
             try {
-                saveGenres();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveGenres(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -1168,7 +1142,10 @@ public class GameEntry {
         genres.remove(genre);
         if (savedLocally && !deleted) {
             try {
-                saveGenres();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveGenres(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -1182,7 +1159,10 @@ public class GameEntry {
         themes.add(theme);
         if (savedLocally && !deleted) {
             try {
-                saveThemes();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveThemes(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -1196,7 +1176,10 @@ public class GameEntry {
         themes.remove(theme);
         if (savedLocally && !deleted) {
             try {
-                saveThemes();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveThemes(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -1210,7 +1193,10 @@ public class GameEntry {
         developers.add(dev);
         if (savedLocally && !deleted) {
             try {
-                saveDevs();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveDevs(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -1224,7 +1210,10 @@ public class GameEntry {
         developers.remove(dev);
         if (savedLocally && !deleted) {
             try {
-                saveDevs();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveDevs(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -1244,7 +1233,10 @@ public class GameEntry {
         this.developers = developers;
         if (savedLocally && !deleted) {
             try {
-                saveDevs();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveDevs(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -1259,7 +1251,10 @@ public class GameEntry {
         this.publishers = publishers;
         if (savedLocally && !deleted) {
             try {
-                savePublishers();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                savePublishers(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -1273,7 +1268,10 @@ public class GameEntry {
         publishers.add(dev);
         if (savedLocally && !deleted) {
             try {
-                savePublishers();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                savePublishers(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -1287,7 +1285,10 @@ public class GameEntry {
         publishers.remove(dev);
         if (savedLocally && !deleted) {
             try {
-                savePublishers();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                savePublishers(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -1318,7 +1319,10 @@ public class GameEntry {
         }
         if (savedLocally && !deleted) {
             try {
-                savePlatform();
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                savePlatform(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }

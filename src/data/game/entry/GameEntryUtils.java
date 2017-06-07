@@ -48,9 +48,8 @@ public class GameEntryUtils {
      * @return true if this entry is ignored, false otherwise
      */
     public static boolean isGameIgnored(GameEntry entry){
-        ArrayList<GameEntry> ignoredGames = IGNORED_ENTRIES;
         boolean ignored = false;
-        for (GameEntry ignoredEntry : ignoredGames) {
+        for (GameEntry ignoredEntry : IGNORED_ENTRIES) {
             ignored = ignoredEntry.getPath().toLowerCase().contains(entry.getPath().toLowerCase())
                     || entry.getPath().toLowerCase().contains(ignoredEntry.getPath().toLowerCase());
             if (ignored) {
