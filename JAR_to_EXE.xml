@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<project nameKey="GameRoom.exe">
-    <target nameKey="Pack for Release">
+<project name="GameRoom.exe">
+    <target name="Pack for Release">
         <loadfile property="implementation.version" srcFile="src/META-INF/MANIFEST.MF">
             <filterchain>
                 <!-- following filter tokenize input file and return only

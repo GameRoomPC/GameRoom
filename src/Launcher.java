@@ -16,11 +16,14 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.boris.winrun4j.DDE;
 import system.application.Monitor;
 import system.application.settings.PredefinedSetting;
 import system.device.ControllerButtonListener;
 import system.device.GameController;
+import system.os.WinReg;
 import ui.GeneralToast;
 import ui.Main;
 import ui.dialog.ConsoleOutputDialog;
@@ -32,6 +35,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 
@@ -49,8 +53,22 @@ public class Launcher extends Application {
     private static ChangeListener<Boolean> maximizedListener;
     private static ChangeListener<Boolean> fullScreenListener;
 
+    private static String DATA_PATH;
+
     public static void main(String[] args) throws URISyntaxException {
-        /*System.setErr(new PrintStream(System.err) {
+        Main.DEV_MODE = getArg(ARGS_FLAG_DEV, args, false) != null;
+
+        if(DEV_MODE){
+            String appdataFolder = System.getenv("APPDATA");
+            DATA_PATH = appdataFolder + File.separator + System.getProperty("working.dir");
+        }else{
+            DATA_PATH = WinReg.readDataPath();
+        }
+
+        System.setProperty("data.dir",DATA_PATH);
+        Main.LOGGER = LogManager.getLogger(Main.class);
+
+        System.setErr(new PrintStream(System.err) {
             public void print(final String string) {
                 LOGGER.error(string);
                 if (DEV_MODE || settings().getBoolean(PredefinedSetting.DEBUG_MODE)) {
@@ -69,7 +87,7 @@ public class Launcher extends Application {
                 //System.out.print(string);
                 LOGGER.debug(string);
             }
-        });*/
+        });
 
         System.out.println("\n\n==========================================NEW START============================================");
 
@@ -77,8 +95,6 @@ public class Launcher extends Application {
         for (String arg : args) {
             Main.LOGGER.debug("\t\"" + arg + "\"");
         }
-
-        Main.DEV_MODE = getArg(ARGS_FLAG_DEV, args, false) != null;
 
         if (!DEV_MODE) {
             DDE.addActivationListener(s -> {
@@ -130,10 +146,9 @@ public class Launcher extends Application {
     }
 
     private static void initFiles() {
-        String appdataFolder = System.getenv("APPDATA");
-        String gameRoomPath = appdataFolder + File.separator + System.getProperty("working.dir");
-        System.out.println("afinfwoeifbnw " + gameRoomPath);
-        File gameRoomFolder = FileUtils.initOrCreateFolder(gameRoomPath);
+
+        System.out.println("datapath : " + DATA_PATH);
+        File gameRoomFolder = FileUtils.initOrCreateFolder(DATA_PATH);
 
         File configProperties = new File("config.properties");
         File logFolder = new File("log");

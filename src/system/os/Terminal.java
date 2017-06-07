@@ -46,6 +46,11 @@ public class Terminal {
     }
 
     public String[] execute(String command, String... args) throws IOException {
+        StringBuilder cmdLine = new StringBuilder(command);
+        for(String arg : args){
+            cmdLine.append(" ").append(arg);
+        }
+
         ArrayList<String> commands = new ArrayList<String>();
 
         commands.addAll(Arrays.asList("cmd.exe", "/c", "chcp", "65001", "&", "cmd.exe", "/c", command));
@@ -63,7 +68,7 @@ public class Terminal {
         // read any errors from the attempted command
         if (redirectErrorStream) {
             while ((s = stdError.readLine()) != null) {
-                Main.LOGGER.error("[cmd=" + command + "] " + s);
+                System.err.println("[cmd=\"" + cmdLine.toString() + "\"] " + s);
             }
         }
         String[] result = stdInput.lines().toArray(size -> new String[size]);

@@ -61,7 +61,7 @@ public class Main {
     private final static Pattern AUTO_TAG_PATTERN = Pattern.compile("\\"+ AUTO_TAG_CHAR +"(.*)\\"+ AUTO_TAG_CHAR);
     private final static String NO_STRING = "\'no_string\'";
 
-    public static final Logger LOGGER = LogManager.getLogger(Main.class);
+    public static Logger LOGGER;
 
     public static final HashMap<String, File> FILES_MAP = new HashMap<>();
 

@@ -3,10 +3,10 @@ package data.io;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import static ui.Main.DEV_MODE;
@@ -73,9 +73,17 @@ public class DataBase {
         String url = getDBUrl();
 
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("sql/init.sql").getFile());
+        InputStream stream = classLoader.getResourceAsStream("sql/init.sql");
+        BufferedReader r = new BufferedReader(new InputStreamReader(stream));
 
-        List<String> lines = Files.readAllLines(file.toPath());
+        List<String> lines = new ArrayList<>();
+        String line;
+        while ((line=r.readLine()) != null) {
+            lines.add(line);
+        }
+        r.close();
+        stream.close();
+
         String sql = "";
 
         try (Connection conn = DriverManager.getConnection(url)) {
