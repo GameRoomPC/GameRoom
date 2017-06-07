@@ -206,6 +206,8 @@ public class GameEditScene extends BaseScene {
                     if (entry.isToAdd()) {
                         entry.setToAdd(false);
                     }
+                    GeneralToast.displayToast(Main.getString("saving")+ " "+ entry.getName(), getParentStage(), GeneralToast.DURATION_SHORT);
+
                     entry.setSavedLocally(true);
                     entry.saveEntry();
 

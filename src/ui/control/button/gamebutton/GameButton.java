@@ -43,6 +43,8 @@ import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static javafx.scene.input.MouseEvent.*;
 import static system.application.settings.GeneralSettings.settings;
@@ -56,6 +58,8 @@ public abstract class GameButton extends BorderPane {
     private static HashMap<String,Image> DEFAULT_IMAGES = new HashMap<>();
     private static Image DEFAULT_PLAY_IMAGE;
     private static Image DEFAULT_INFO_IMAGE;
+    private final static ExecutorService executorService = Executors.newCachedThreadPool();
+
 
 
     private final static double RATIO_NOTINSTALLEDIMAGE_COVER = 1 / 3.0;
@@ -139,23 +143,8 @@ public abstract class GameButton extends BorderPane {
 
 
         setLauncherLogo();
+        showCover();
 
-        double width = getCoverWidth();
-        double height = getCoverHeight();
-
-        Task coverTask = new Task() {
-            @Override
-            protected Object call() throws Exception {
-                Image coverImage = entry.getImage(0, width, height, false, true);
-                if(!ImageUtils.imagesEquals(coverImage,coverView.getImage())) {
-                    ImageUtils.transitionToImage(coverImage, coverView);
-                }
-                return null;
-            }
-        };
-        Thread setCoverThread = new Thread(coverTask);
-        setCoverThread.setDaemon(true);
-        setCoverThread.start();
         initNotInstalled();
     }
     private void setLauncherLogo(){
@@ -690,5 +679,30 @@ public abstract class GameButton extends BorderPane {
             notInstalledImage.setImage(null);
             notInstalledImage.setVisible(false);
         }
+    }
+
+    public void clearCover(){
+        coverView.setImage(null);
+    }
+
+    public void showCover(){
+        double width = getCoverWidth();
+        double height = getCoverHeight();
+
+        Task coverTask = new Task() {
+            @Override
+            protected Object call() throws Exception {
+                Image coverImage = entry.getImage(0, width, height, false, true);
+                if(!ImageUtils.imagesEquals(coverImage,coverView.getImage())) {
+                    ImageUtils.transitionToImage(coverImage, coverView);
+                }
+                return null;
+            }
+        };
+        executorService.submit(coverTask);
+    }
+
+    public static ExecutorService getExecutorService(){
+        return executorService;
     }
 }

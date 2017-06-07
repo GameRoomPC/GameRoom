@@ -193,6 +193,7 @@ public class GameWatcher {
     public void loadToAddEntries() {
 
         ArrayList<GameEntry> savedEntries = new ArrayList<>();
+        GameEntryUtils.loadIgnoredGames();
         GameEntryUtils.loadToAddGames().forEach(entry ->{
             if (!GameEntryUtils.isGameIgnored(entry)) {
                 entry.setSavedLocally(true);
@@ -464,14 +465,16 @@ public class GameWatcher {
     }
 
     public GameButton onGameFound(GameEntry foundEntry) {
-        if (!FolderGameScanner.gameAlreadyIn(foundEntry, entriesToAdd)) {
-            foundEntry.setAddedDate(LocalDateTime.now());
-            foundEntry.setToAdd(true);
-            foundEntry.setSavedLocally(true);
-            foundEntry.saveEntry();
-            foundEntry.setName(cleanName(foundEntry.getName()));
+        if (!FolderGameScanner.gameAlreadyIn(foundEntry, entriesToAdd) && !GameEntryUtils.isGameIgnored(foundEntry)) {
+            if(!foundEntry.isInDb()) {
+                foundEntry.setAddedDate(LocalDateTime.now());
+                foundEntry.setToAdd(true);
+                foundEntry.setSavedLocally(true);
+                foundEntry.saveEntry();
+                foundEntry.setName(cleanName(foundEntry.getName()));
 
-            Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
+                Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
+            }
             entriesToAdd.add(foundEntry);
             return onGameFoundHandler.gameToAddFound(foundEntry);
         }

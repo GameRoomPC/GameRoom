@@ -113,6 +113,7 @@ public class GameEntry {
 
     public void saveEntry() {
         if (savedLocally && !deleted) {
+            long start = System.currentTimeMillis();
             try {
                 saveDirectFields();
 
@@ -124,11 +125,13 @@ public class GameEntry {
                 savePublishers(batchStatement);
                 saveSerie(batchStatement);
                 savePlatform(batchStatement);
+
                 batchStatement.executeBatch();
                 batchStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+            Main.LOGGER.debug(name+" saved in " + (System.currentTimeMillis() - start) + "ms");
         }
     }
 
@@ -1352,5 +1355,9 @@ public class GameEntry {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean isInDb() {
+        return inDb;
     }
 }

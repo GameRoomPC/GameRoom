@@ -26,6 +26,7 @@ import system.device.GameController;
 import system.os.WinReg;
 import ui.GeneralToast;
 import ui.Main;
+import ui.control.button.gamebutton.GameButton;
 import ui.dialog.ConsoleOutputDialog;
 import ui.scene.BaseScene;
 import ui.scene.MainScene;
@@ -350,6 +351,7 @@ public class Launcher extends Application {
                 MAIN_SCENE.saveScrollBarVValue();
             });
         }
+        GameButton.getExecutorService().shutdownNow();
         FileUtils.clearFolder(Main.FILES_MAP.get("cache"));
         FileUtils.clearFolder(Main.FILES_MAP.get("temp"));
 

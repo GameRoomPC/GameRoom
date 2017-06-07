@@ -181,6 +181,7 @@ public class OldGameEntry {
         statement.setBoolean(17, waitingToBeScrapped);
         statement.setBoolean(18, toAdd);
         statement.setBoolean(19, ignored);
+        statement.setBoolean(19, false);
         statement.execute();
         statement.close();
         //connection.commit();
