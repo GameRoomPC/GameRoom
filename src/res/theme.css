@@ -819,6 +819,18 @@
 	-fx-image: url("icons/launcher/uplay.png");
 }
 
+#wii-icon{
+	-fx-image: url("icons/launcher/wii.png");
+}
+
+#n64-icon{
+	-fx-image: url("icons/launcher/n64.png");
+}
+
+#gamecube-icon{
+	-fx-image: url("icons/launcher/gamecube.png");
+}
+
 /**************OTHERS****************/
 
 #folder-button{
