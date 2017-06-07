@@ -23,22 +23,23 @@ public class Platform {
     public final static int DEFAULT_ID = -1;
     public final static int NONE_ID = -2;
 
-    public final static Platform NONE = new Platform(NONE_ID, NONE_ID, "default");
+    public final static Platform NONE = new Platform(NONE_ID, NONE_ID, "default",true);
 
 
     private int igdb_id = DEFAULT_ID;
     private int id = DEFAULT_ID;
 
     private String nameKey;
+    private boolean isLauncher;
 
-
-    private Platform(int id, int igdb_id, String nameKey) {
+    private Platform(int id, int igdb_id, String nameKey,boolean isLauncher) {
         if (nameKey == null || nameKey.isEmpty()) {
             throw new IllegalArgumentException("Platform's nameKey was either null or empty : \"" + nameKey + "\"");
         }
         this.igdb_id = igdb_id;
         this.nameKey = nameKey;
         this.id = id;
+        this.isLauncher = isLauncher;
 
         if (id != NONE_ID) {
             insertInDB();
@@ -47,12 +48,8 @@ public class Platform {
         }
     }
 
-    public Platform(int igdb_id, String nameKey) {
-        this(DEFAULT_ID, igdb_id, nameKey);
-    }
-
     public Platform(String nameKey) {
-        this(DEFAULT_ID, DEFAULT_ID, nameKey);
+        this(DEFAULT_ID, DEFAULT_ID, nameKey,true);
     }
 
     public int insertInDB() {
@@ -121,7 +118,8 @@ public class Platform {
             if (set.next()) {
                 int platformId = set.getInt("id");
                 String key = set.getString("name_key");
-                Platform newPlatform = new Platform(platformId, igdb_id, key);
+                boolean isLauncher = set.getBoolean("is_launcher");
+                Platform newPlatform = new Platform(platformId, igdb_id, key, isLauncher);
                 ID_MAP.put(platformId, newPlatform);
 
                 return newPlatform;
@@ -156,7 +154,8 @@ public class Platform {
                     int platformId = set.getInt("id");
                     int igdbId = set.getInt("igdb_id");
                     String key = set.getString("name_key");
-                    Platform newPlatform = new Platform(platformId, igdbId, key);
+                    boolean isLauncher = set.getBoolean("is_launcher");
+                    Platform newPlatform = new Platform(platformId, igdbId, key, isLauncher);
                     ID_MAP.put(platformId, newPlatform);
 
                     return newPlatform;
@@ -178,7 +177,8 @@ public class Platform {
             int id = set.getInt("id");
             int igdbId = set.getInt("igdb_id");
             String key = set.getString("name_key");
-            ID_MAP.put(id, new Platform(id, igdbId, key));
+            boolean isLauncher = set.getBoolean("is_launcher");
+            ID_MAP.put(id, new Platform(id, igdbId, key,isLauncher));
         }
         statement.close();
     }
@@ -217,5 +217,9 @@ public class Platform {
             return "-";
         }
         return nameKey;
+    }
+
+    public boolean isLauncher() {
+        return isLauncher;
     }
 }
