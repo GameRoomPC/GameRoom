@@ -343,7 +343,7 @@ public class GameWatcher {
                                                 public void run(File outputfile) {
                                                     try {
                                                         toScrapEntry.setSavedLocally(true);
-                                                        toScrapEntry.updateImage(1, outputfile);
+                                                        toScrapEntry.updateImage(0, outputfile);
                                                         toScrapEntry.setSavedLocally(false);
                                                     } catch (Exception e) {
                                                             Main.LOGGER.error("GameWatcher : could not move image for game "+toScrapEntry.getName());
