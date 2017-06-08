@@ -190,6 +190,14 @@ public class GameEditScene extends BaseScene {
                     }
                 }
                 if (allConditionsMet) {
+                    if (entry.isToAdd()) {
+                        entry.setToAdd(false);
+                    }
+                    GeneralToast.displayToast(Main.getString("saving") + " " + entry.getName(), getParentStage(), GeneralToast.DURATION_SHORT);
+
+                    entry.setSavedLocally(true);
+                    entry.saveEntry();
+
                     for (int i = 0; i < chosenImageFiles.length; i++) {
                         if (chosenImageFiles[i] != null) {
                             try {
@@ -200,13 +208,6 @@ public class GameEditScene extends BaseScene {
                             }
                         }
                     }
-                    if (entry.isToAdd()) {
-                        entry.setToAdd(false);
-                    }
-                    GeneralToast.displayToast(Main.getString("saving") + " " + entry.getName(), getParentStage(), GeneralToast.DURATION_SHORT);
-
-                    entry.setSavedLocally(true);
-                    entry.saveEntry();
 
                     switch (mode) {
                         case MODE_ADD:
