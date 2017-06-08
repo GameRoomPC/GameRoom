@@ -30,16 +30,16 @@ public class Platform {
     private int id = DEFAULT_ID;
 
     private String nameKey;
-    private boolean isLauncher;
+    private boolean isPC;
 
-    private Platform(int id, int igdb_id, String nameKey,boolean isLauncher) {
+    private Platform(int id, int igdb_id, String nameKey,boolean isPC) {
         if (nameKey == null || nameKey.isEmpty()) {
             throw new IllegalArgumentException("Platform's nameKey was either null or empty : \"" + nameKey + "\"");
         }
         this.igdb_id = igdb_id;
         this.nameKey = nameKey;
         this.id = id;
-        this.isLauncher = isLauncher;
+        this.isPC = isPC;
 
         if (id != NONE_ID) {
             insertInDB();
@@ -118,8 +118,8 @@ public class Platform {
             if (set.next()) {
                 int platformId = set.getInt("id");
                 String key = set.getString("name_key");
-                boolean isLauncher = set.getBoolean("is_launcher");
-                Platform newPlatform = new Platform(platformId, igdb_id, key, isLauncher);
+                boolean isPC = set.getBoolean("is_pc");
+                Platform newPlatform = new Platform(platformId, igdb_id, key, isPC);
                 ID_MAP.put(platformId, newPlatform);
 
                 return newPlatform;
@@ -154,8 +154,8 @@ public class Platform {
                     int platformId = set.getInt("id");
                     int igdbId = set.getInt("igdb_id");
                     String key = set.getString("name_key");
-                    boolean isLauncher = set.getBoolean("is_launcher");
-                    Platform newPlatform = new Platform(platformId, igdbId, key, isLauncher);
+                    boolean isPC = set.getBoolean("is_pc");
+                    Platform newPlatform = new Platform(platformId, igdbId, key, isPC);
                     ID_MAP.put(platformId, newPlatform);
 
                     return newPlatform;
@@ -177,8 +177,8 @@ public class Platform {
             int id = set.getInt("id");
             int igdbId = set.getInt("igdb_id");
             String key = set.getString("name_key");
-            boolean isLauncher = set.getBoolean("is_launcher");
-            ID_MAP.put(id, new Platform(id, igdbId, key,isLauncher));
+            boolean isPC = set.getBoolean("is_pc");
+            ID_MAP.put(id, new Platform(id, igdbId, key,isPC));
         }
         statement.close();
     }
@@ -220,7 +220,7 @@ public class Platform {
         return s.equals(Main.NO_STRING) ? nameKey : s;
     }
 
-    public boolean isLauncher() {
-        return isLauncher;
+    public boolean isPC() {
+        return isPC;
     }
 }

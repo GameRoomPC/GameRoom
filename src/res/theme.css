@@ -831,6 +831,10 @@
 	-fx-image: url("icons/launcher/gamecube.png");
 }
 
+#ps2-icon{
+	-fx-image: url("icons/launcher/ps2.png");
+}
+
 /**************OTHERS****************/
 
 #folder-button{

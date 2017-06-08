@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS Platform (
 	id integer PRIMARY KEY,
 	name_key text,
 	igdb_id integer unique,
-	is_launcher integer default 0
+	is_pc integer default 0
 );
 
 CREATE TABLE IF NOT EXISTS runs_on (
@@ -198,7 +198,7 @@ INSERT OR REPLACE INTO GameGenre(igdb_id,name_key) VALUES
 	(32,"indie"),
 	(33,"arcade");
 	
-INSERT OR IGNORE INTO Platform(id,name_key,is_launcher) VALUES
+INSERT OR IGNORE INTO Platform(id,name_key,is_pc) VALUES
 	(1,"steam",1),
 	(2,"steam_online",1),
 	(3,"origin",1),
@@ -207,13 +207,16 @@ INSERT OR IGNORE INTO Platform(id,name_key,is_launcher) VALUES
 	(6,"gog",1),
 	(7,"wii",0),
 	(8,"gamecube",0),
-	(9,"n64",0);
+	(9,"n64",0),
+	(10,"ps2",0);
 	
 INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
-	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %p");
-	
+	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %p"),
+	(2,"PCSX2", "C:\Program Files (x86)\PCSX2 1.4.0\pcsx2.exe","--fullscreen --nogui %p");
+
 INSERT OR IGNORE INTO emulates(platform_id, emu_id) VALUES
 	(7,1),
-	(8,1);
+	(8,1),
+	(10,2);
 	
 	

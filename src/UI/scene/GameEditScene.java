@@ -45,8 +45,6 @@ import ui.Main;
 import ui.control.ValidEntryCondition;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
-import ui.GeneralToast;
-import ui.control.drawer.submenu.CheckBoxItem;
 import ui.control.textfield.AppPathField;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
@@ -62,8 +60,6 @@ import ui.scene.exitaction.ExitAction;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -475,7 +471,7 @@ public class GameEditScene extends BaseScene {
         });
 
         /**************************PLATFORM*********************************************/
-        if (!entry.getPlatform().isLauncher() || entry.getPlatform().equals(data.game.entry.Platform.NONE)) {
+        if (!entry.getPlatform().isPC() || entry.getPlatform().equals(data.game.entry.Platform.NONE)) {
             try {
                 data.game.entry.Platform.initWithDb();
             } catch (SQLException e) {
@@ -483,7 +479,7 @@ public class GameEditScene extends BaseScene {
             }
 
             final ObservableList<data.game.entry.Platform> platforms = FXCollections.observableArrayList(data.game.entry.Platform.values());
-            platforms.removeIf(data.game.entry.Platform::isLauncher);
+            platforms.removeIf(data.game.entry.Platform::isPC);
             platforms.sort(Comparator.comparing(data.game.entry.Platform::getName));
             platforms.add(0,data.game.entry.Platform.NONE);
 
