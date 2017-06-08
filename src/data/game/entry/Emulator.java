@@ -7,10 +7,7 @@ import java.io.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Created by LM on 11/02/2017.
@@ -74,6 +71,7 @@ public class Emulator {
             ResultSet set = statement.executeQuery();
 
             if (set.next()) {
+                loadEmulators();
                 int emuId = set.getInt("emu_id");
                 return EMULATOR_MAPPING.get(emuId);
             }
@@ -100,6 +98,23 @@ public class Emulator {
         }
 
         save();
+    }
+
+    public Collection<Platform> getSupportedPlatforms() {
+        ArrayList<Platform> platforms = new ArrayList<>();
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("SELECT * FROM emulates WHERE emu_id=?");
+            statement.setInt(1, sqlId);
+            ResultSet set = statement.executeQuery();
+
+            while (set.next()) {
+                int platformId = set.getInt("platform_id");
+                platforms.add(Platform.getFromId(platformId));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return platforms;
     }
 
     private void save() {
@@ -151,4 +166,29 @@ public class Emulator {
     public Integer getSQLId() {
         return sqlId;
     }
+
+    public String getArgSchema() {
+        return argSchema;
+    }
+
+    public void setArgSchema(String argSchema) {
+        this.argSchema = argSchema;
+    }
+
+    @Override
+    public int hashCode(){
+        return sqlId;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (!Emulator.class.isAssignableFrom(obj.getClass())) {
+            return false;
+        }
+        return this.hashCode() == obj.hashCode();
+    }
+
 }

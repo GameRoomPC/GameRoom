@@ -23,7 +23,7 @@ public class Platform {
     public final static int DEFAULT_ID = -1;
     public final static int NONE_ID = -2;
 
-    public final static Platform NONE = new Platform(NONE_ID, NONE_ID, "default",true);
+    public final static Platform NONE = new Platform(NONE_ID, NONE_ID, "default", true);
 
 
     private int igdb_id = DEFAULT_ID;
@@ -32,7 +32,7 @@ public class Platform {
     private String nameKey;
     private boolean isPC;
 
-    private Platform(int id, int igdb_id, String nameKey,boolean isPC) {
+    private Platform(int id, int igdb_id, String nameKey, boolean isPC) {
         if (nameKey == null || nameKey.isEmpty()) {
             throw new IllegalArgumentException("Platform's nameKey was either null or empty : \"" + nameKey + "\"");
         }
@@ -49,7 +49,7 @@ public class Platform {
     }
 
     public Platform(String nameKey) {
-        this(DEFAULT_ID, DEFAULT_ID, nameKey,true);
+        this(DEFAULT_ID, DEFAULT_ID, nameKey, true);
     }
 
     public int insertInDB() {
@@ -178,7 +178,7 @@ public class Platform {
             int igdbId = set.getInt("igdb_id");
             String key = set.getString("name_key");
             boolean isPC = set.getBoolean("is_pc");
-            ID_MAP.put(id, new Platform(id, igdbId, key,isPC));
+            ID_MAP.put(id, new Platform(id, igdbId, key, isPC));
         }
         statement.close();
     }
@@ -192,11 +192,15 @@ public class Platform {
     }
 
     public String getName() {
-        return Main.getString(nameKey);
+        if (nameKey == null) {
+            return "-";
+        }
+        String s = Main.getString(nameKey);
+        return s.equals(Main.NO_STRING) ? nameKey : s;
     }
 
     public String getIconCSSId() {
-        if(id == STEAM_ONLINE_ID){
+        if (id == STEAM_ONLINE_ID) {
             //TODO implement a cleaner way to have icons for this
             return "steam-icon";
         }
@@ -213,14 +217,25 @@ public class Platform {
 
     @Override
     public String toString() {
-        if (nameKey == null) {
-            return "-";
-        }
-        String s = Main.getString(nameKey);
-        return s.equals(Main.NO_STRING) ? nameKey : s;
+        return getName();
     }
 
     public boolean isPC() {
         return isPC;
+    }
+
+    public void setChosenEmulator(Emulator chosenEmulator) {
+        try {
+            Connection connection = DataBase.getUserConnection();
+            Statement statement = connection.createStatement();
+            statement.addBatch("UPDATE emulates SET user_choice = 0 WHERE platform_id = " + id);
+            if (chosenEmulator != null) {
+                statement.addBatch("UPDATE emulates SET user_choice = 1 WHERE platform_id = " + id + " AND emu_id=" + chosenEmulator.getSQLId());
+            }
+            statement.executeBatch();
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

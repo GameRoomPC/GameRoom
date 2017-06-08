@@ -2,7 +2,9 @@ package ui.scene;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.GameWatcher;
+import data.game.entry.Emulator;
 import data.game.entry.GameEntry;
+import data.game.entry.Platform;
 import data.game.scanner.ScanPeriod;
 import data.game.scraper.SteamOnlineScraper;
 import data.game.scraper.SteamProfile;
@@ -10,6 +12,7 @@ import data.http.key.KeyChecker;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
+import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -36,9 +39,11 @@ import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ActivationKeyDialog;
 import ui.dialog.GameRoomAlert;
+import ui.dialog.GameRoomDialog;
 import ui.dialog.WebBrowser;
 import ui.dialog.selector.GameScannerSelector;
 import ui.dialog.selector.IgnoredEntrySelector;
+import ui.pane.EmulatorSettingsPane;
 import ui.theme.Theme;
 import ui.theme.ThemeUtils;
 import ui.theme.UIScale;
@@ -49,6 +54,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static system.application.settings.GeneralSettings.settings;
+import static system.application.settings.SettingValue.CATEGORY_ON_GAME_START;
 import static system.application.settings.SettingValue.CATEGORY_SCAN;
 import static ui.Main.*;
 
@@ -297,6 +303,28 @@ public class SettingsScene extends BaseScene {
 
         flowPaneHashMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getCategory()).getChildren().add(createLine(steamIgnoredGamesLabel, manageSteamGamesIgnoredButton));
 */
+        /***********************EMULATORS********************************/
+        Label emulatorsLabel = new Label(Main.getSettingsString("emulators_label") + " : ");
+        emulatorsLabel.setTooltip(new Tooltip(Main.getSettingsString("emulators_tooltip")));
+        Button manageEmulatorsButton = new Button(Main.getString("manage"));
+
+        manageEmulatorsButton.setOnAction(event -> {
+            GameRoomDialog dialog = new GameRoomDialog() {
+                @Override
+                public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+                    return super.buildEventDispatchChain(tail);
+                }
+            };
+            //TODO replace by a true menu to configure each emulator
+            EmulatorSettingsPane pane = new EmulatorSettingsPane(Emulator.getPossibleEmulators(Platform.getFromId(7)).get(0),dialog.getOwner());
+            pane.setMaxWidth(3*settings().getWindowWidth()/5.0);
+            dialog.setGraphic(pane);
+            dialog.showAndWait();
+        });
+
+        flowPaneHashMap.get(CATEGORY_ON_GAME_START).getChildren().add(createLine(emulatorsLabel, manageEmulatorsButton));
+
+
         /***********************SUPPORTER KEY****************************/
         //TODO see if possible to have 2 IGDB keys, for supporters
 

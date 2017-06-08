@@ -106,8 +106,10 @@ CREATE TABLE IF NOT EXISTS played (
 
 CREATE TABLE IF NOT EXISTS Platform (
 	id integer PRIMARY KEY,
-	name_key text,
 	igdb_id integer unique,
+	name_key text,
+	default_supported_extensions text,
+	supported_extensions text,
 	is_pc integer default 0
 );
 
@@ -144,7 +146,9 @@ CREATE TABLE IF NOT EXISTS Settings (
 );
 
 CREATE TABLE IF NOT EXISTS GameFolder (
-	path text PRIMARY KEY
+	path text PRIMARY KEY,
+	platform_folder integer default -2,
+	FOREIGN KEY(platform_id) REFERENCES Platform(id)
 );
 
 CREATE TABLE IF NOT EXISTS GameScanners (
@@ -198,17 +202,18 @@ INSERT OR REPLACE INTO GameGenre(igdb_id,name_key) VALUES
 	(32,"indie"),
 	(33,"arcade");
 	
-INSERT OR IGNORE INTO Platform(id,name_key,is_pc) VALUES
-	(1,"steam",1),
-	(2,"steam_online",1),
-	(3,"origin",1),
-	(4,"uplay",1),
-	(5,"battlenet",1),
-	(6,"gog",1),
-	(7,"wii",0),
-	(8,"gamecube",0),
-	(9,"n64",0),
-	(10,"ps2",0);
+INSERT OR IGNORE INTO Platform(id,name_key,is_pc,default_supported_extensions) VALUES
+	(-2,"default",1,""),
+	(1,"steam",1,""),
+	(2,"steam_online",1,""),
+	(3,"origin",1,""),
+	(4,"uplay",1,""),
+	(5,"battlenet",1,""),
+	(6,"gog",1,""),
+	(7,"wii",0,"iso"),
+	(8,"gamecube",0,"iso"),
+	(9,"n64",0,"n64"),
+	(10,"ps2",0,"iso,elf");
 	
 INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
 	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %p"),
