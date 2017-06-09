@@ -843,7 +843,7 @@
 }
 
 #ps3-icon{
-	-fx-image: url("icons/launcher/ps2.png");
+	-fx-image: url("icons/launcher/ps3.png");
 }
 
 #wiiu-icon{
@@ -971,4 +971,31 @@ checkbox-drawer-item:hover{
 #search-bar{
     -fx-background-color: -dark;
     -fx-effect: dropshadow( gaussian , black , 10,0,0,0 );
+}
+
+/******** LIST VIEW ****************/
+.dark-list-view .list-cell:filled:selected:focused,
+ .dark-list-view .list-cell:filled:selected {
+    -fx-background-color: derive(-flatter-red, 0.0%);
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.dark-list-view .list-cell:even {
+    -fx-background-color: -dark;
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.dark-list-view .list-cell:odd {
+    -fx-background-color: derive(-dark, 20.0%);
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.dark-list-view .list-cell:filled:hover {
+    -fx-background-color: derive(-flatter-red, 10.0%);;
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.dark-list-view {
+  -fx-background-insets: 0;
+  -fx-padding: 0;
 }
