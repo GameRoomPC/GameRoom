@@ -35,6 +35,7 @@ import system.os.PowerMode;
 import system.os.mslinks.ShellLink;
 import ui.Main;
 import ui.control.ValidEntryCondition;
+import ui.control.button.HelpButton;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
 import ui.dialog.ActivationKeyDialog;
@@ -317,7 +318,7 @@ public class SettingsScene extends BaseScene {
             };
             //TODO replace by a true menu to configure each emulator
             EmulatorSettingsPane pane = new EmulatorSettingsPane(Emulator.getPossibleEmulators(Platform.getFromId(7)).get(0),dialog.getOwner());
-            pane.setMaxWidth(3*settings().getWindowWidth()/5.0);
+            pane.setMaxWidth(2.5*settings().getWindowWidth()/5.0);
             dialog.setGraphic(pane);
             dialog.showAndWait();
         });
@@ -517,13 +518,6 @@ public class SettingsScene extends BaseScene {
      */
     private void addPropertyLine(PredefinedSetting setting, boolean advancedSetting, ChangeListener changeListener) {
         if (!advancedSetting || (advancedSetting && settings().getBoolean(PredefinedSetting.ADVANCED_MODE))) {
-            Label label = new Label(setting.getLabel() + " :");
-            label.setTooltip(new Tooltip(setting.getTooltip()));
-            if ((advancedSetting && settings().getBoolean(PredefinedSetting.ADVANCED_MODE))) {
-                //label.setStyle(ADVANCE_MODE_LABEL_STYLE);
-                label.setId("advanced-setting-label");
-            }
-
             Node node2 = null;
             if (setting.isClass(Boolean.class)) {
                 /**************** BOOLEAN **************/
@@ -780,7 +774,7 @@ public class SettingsScene extends BaseScene {
             if (node2 != null) {
                 node2.setId(setting.getKey());
             }
-            flowPaneHashMap.get(setting.getCategory()).getChildren().add(createLine(label, node2));
+            flowPaneHashMap.get(setting.getCategory()).getChildren().add(createLine(setting,advancedSetting, node2));
         }
     }
 
@@ -802,6 +796,29 @@ public class SettingsScene extends BaseScene {
                 }
             }
         }
+    }
+
+    private HBox createLine(PredefinedSetting setting, boolean advancedSetting, Node nodeRight){
+        Node left = null;
+        Label label = new Label(setting.getLabel() + " :");
+        if ((advancedSetting && settings().getBoolean(PredefinedSetting.ADVANCED_MODE))) {
+            //label.setStyle(ADVANCE_MODE_LABEL_STYLE);
+            label.setId("advanced-setting-label");
+        }
+
+        String tooltip = setting.getTooltip();
+        if(!tooltip.equals(setting.getLabel())){
+            HBox hBox = new HBox();
+            hBox.setAlignment(Pos.CENTER_LEFT);
+            hBox.setSpacing(5 * SCREEN_WIDTH / 1920);
+            hBox.getChildren().addAll(label,new HelpButton(tooltip));
+            left = hBox;
+        }else{
+            label.setTooltip(new Tooltip(tooltip));
+            left = label;
+        }
+
+        return createLine(left,nodeRight);
     }
 
     private HBox createLine(Node nodeLeft, Node nodeRight) {

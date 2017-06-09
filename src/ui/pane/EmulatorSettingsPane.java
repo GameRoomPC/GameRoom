@@ -12,13 +12,11 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.*;
 import javafx.stage.Window;
 import org.controlsfx.control.CheckComboBox;
 import ui.Main;
+import ui.control.button.HelpButton;
 import ui.control.textfield.PathTextField;
 
 import java.io.File;
@@ -52,8 +50,8 @@ public class EmulatorSettingsPane extends BorderPane {
         topPane.getStyleClass().add("header");
 
         Label titleLabel = new Label(emulator.toString());
-        titleLabel.setId("titleLabel");
-        titleLabel.getStyleClass().add("title-label");
+        //titleLabel.setId("titleLabel");
+        //titleLabel.getStyleClass().add("title-label");
 
         topPane.getChildren().add(titleLabel);
         StackPane.setAlignment(titleLabel, Pos.CENTER);
@@ -137,9 +135,14 @@ public class EmulatorSettingsPane extends BorderPane {
                 emulator.setArgSchema(newValue);
             }
         });
-        Label argLabel = new Label(Main.getString("emulator_args_schema") + " :");
-        argLabel.setTooltip(new Tooltip(Main.getString("emulator_args_schema_tooltip")));
-        contentPane.add(argLabel, 0, rowCount);
+
+        HBox argBox = new HBox();
+        argBox.setAlignment(Pos.CENTER_LEFT);
+        argBox.setSpacing(5 * SCREEN_WIDTH / 1920);
+        argBox.getChildren().addAll( new Label(Main.getString("emulator_args_schema") + " :")
+                ,new HelpButton(Main.getString("emulator_args_schema_tooltip")));
+
+        contentPane.add(argBox, 0, rowCount);
         contentPane.add(textField, 1, rowCount);
         rowCount++;
 

@@ -148,14 +148,14 @@ public abstract class GameButton extends BorderPane {
         initNotInstalled();
     }
     private void setLauncherLogo(){
-        double width = 18*Main.SCREEN_WIDTH/1920;
-        double height =  18*Main.SCREEN_HEIGHT/1080;
+        double width = 20*Main.SCREEN_WIDTH/1920;
+        double height =  20*Main.SCREEN_HEIGHT/1080;
 
 
         String titleLogoId = entry.getPlatform().getIconCSSId();
 
         if(titleLogoId != null) {
-            titleLogoView.setSmooth(true);
+            titleLogoView.setSmooth(false);
             titleLogoView.setPreserveRatio(true);
             titleLogoView.setFitWidth(width);
             titleLogoView.setFitHeight(height);

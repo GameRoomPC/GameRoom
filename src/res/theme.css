@@ -835,7 +835,19 @@
 	-fx-image: url("icons/launcher/ps2.png");
 }
 
+#ps3-icon{
+	-fx-image: url("icons/launcher/ps2.png");
+}
+
+#wiiu-icon{
+	-fx-image: url("icons/launcher/wiiu.png");
+}
+
 /**************OTHERS****************/
+
+#help-icon{
+    -fx-image: url("icons/dialog/confirmationIcon.png");
+}
 
 #folder-button{
 	-fx-image: url("icons/folder.png");
