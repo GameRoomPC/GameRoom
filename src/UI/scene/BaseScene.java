@@ -217,6 +217,7 @@ public abstract class BaseScene extends Scene {
             box.getChildren().addAll(iconView, titleLabel);
             box.setAlignment(Pos.CENTER);
             box.getStyleClass().add("title-box");
+            box.setPickOnBounds(false);
 
             titleNode = box;
         } else {
