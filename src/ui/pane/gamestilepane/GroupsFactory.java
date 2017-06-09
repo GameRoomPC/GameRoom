@@ -292,36 +292,38 @@ public class GroupsFactory {
         othersTilePane.setPrefTileHeight(originalTilePane.getTilePane().getPrefTileHeight());
         othersTilePane.setPrefTileWidth(originalTilePane.getTilePane().getPrefTileWidth());
         for(Platform platform : Platform.values()){
-            GroupRowTilePane tilePane = new GroupRowTilePane(mainScene) {
-                @Override
-                public boolean fillsRequirement(GameEntry entry) {
-                    return entry.getPlatform().equals(platform);
-                }
-            };
-            tilePane.setTitle(platform.getName());
-            tilePane.getIconButton().setImageViewId(platform.getIconCSSId());
-            tilePane.getIconButton().setManaged(true);
+            if(!platform.equals(Platform.NONE)) {
+                GroupRowTilePane tilePane = new GroupRowTilePane(mainScene) {
+                    @Override
+                    public boolean fillsRequirement(GameEntry entry) {
+                        return entry.getPlatform().equals(platform);
+                    }
+                };
+                tilePane.setTitle(platform.getName());
+                tilePane.getIconButton().setImageViewId(platform.getIconCSSId());
+                tilePane.getIconButton().setManaged(true);
 
-            for (GameButton button : originalTilePane.getGameButtons()) {
-                tilePane.addGame(button.getEntry());
-                othersTilePane.addGame(button.getEntry());
-            }
-            if (tilePane.getGameButtons().size() > 0) {
-                originalTilePane.getTilePane().prefTileWidthProperty().addListener(new ChangeListener<Number>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                        tilePane.setPrefTileWidth(newValue.doubleValue());
-                    }
-                });
-                originalTilePane.getTilePane().prefTileHeightProperty().addListener(new ChangeListener<Number>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                        tilePane.setPrefTileHeight(newValue.doubleValue());
-                    }
-                });
-                tilePane.setPrefTileHeight(originalTilePane.getTilePane().getPrefTileHeight());
-                tilePane.setPrefTileWidth(originalTilePane.getTilePane().getPrefTileWidth());
-                allTilePanes.add(tilePane);
+                for (GameButton button : originalTilePane.getGameButtons()) {
+                    tilePane.addGame(button.getEntry());
+                    othersTilePane.addGame(button.getEntry());
+                }
+                if (tilePane.getGameButtons().size() > 0) {
+                    originalTilePane.getTilePane().prefTileWidthProperty().addListener(new ChangeListener<Number>() {
+                        @Override
+                        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                            tilePane.setPrefTileWidth(newValue.doubleValue());
+                        }
+                    });
+                    originalTilePane.getTilePane().prefTileHeightProperty().addListener(new ChangeListener<Number>() {
+                        @Override
+                        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                            tilePane.setPrefTileHeight(newValue.doubleValue());
+                        }
+                    });
+                    tilePane.setPrefTileHeight(originalTilePane.getTilePane().getPrefTileHeight());
+                    tilePane.setPrefTileWidth(originalTilePane.getTilePane().getPrefTileWidth());
+                    allTilePanes.add(tilePane);
+                }
             }
         }
         allTilePanes.sort(new Comparator<RowCoverTilePane>() {
