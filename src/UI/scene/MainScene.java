@@ -11,16 +11,11 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ListChangeListener;
-import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -43,7 +38,7 @@ import ui.control.button.gamebutton.GameButton;
 import ui.control.drawer.DrawerMenu;
 import ui.control.drawer.GroupType;
 import ui.control.drawer.SortType;
-import ui.control.specific.SearchBar;
+import ui.control.specific.FloatingSearchBar;
 import ui.control.textfield.PathTextField;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.GameRoomCustomAlert;
@@ -89,7 +84,7 @@ public class MainScene extends BaseScene {
 
     private ArrayList<GroupRowTilePane> groupRowList = new ArrayList<>();
 
-    private SearchBar searchBar;
+    private FloatingSearchBar searchBar;
     private boolean showTilesPaneAgainAfterCancelSearch = false;
 
     private Label statusLabel;
@@ -472,7 +467,7 @@ public class MainScene extends BaseScene {
 
     private void initTop() {
 
-        searchBar = new SearchBar((observable, oldValue, newValue) -> {
+        searchBar = new FloatingSearchBar((observable, oldValue, newValue) -> {
             if (newValue != null && !newValue.equals("")) {
                 searchGame(newValue);
             } else if (newValue != null && newValue.equals("")) {
