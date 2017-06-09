@@ -13,6 +13,7 @@ import system.os.Terminal;
 import ui.Main;
 import ui.GeneralToast;
 import ui.dialog.GameRoomAlert;
+import ui.dialog.PlatformSettingsDialog;
 
 import java.awt.*;
 import java.io.File;
@@ -57,6 +58,9 @@ public class GameStarter {
             if (e.getMessage().equals("no_emu_configured")) {
                 onPostGameLaunch(0);
                 GameRoomAlert.error("There is no emulator configured for platform " + entry.getPlatform());
+                PlatformSettingsDialog dialog = new PlatformSettingsDialog(entry.getPlatform());
+                dialog.showAndWait();
+                start();
                 return;
             } else {
                 e.printStackTrace();

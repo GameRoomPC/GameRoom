@@ -33,15 +33,19 @@ public class PlatformSettingsDialog extends GameRoomDialog<ButtonType> {
     private ComboBox<SteamProfile> comboBox;
 
     public PlatformSettingsDialog() {
+        this(null);
+    }
+
+    public PlatformSettingsDialog(Platform focusedPlatform) {
         super();
         mainPane.getStyleClass().add("container");
         ButtonType okButton = new ButtonType(Main.getString("close"), ButtonBar.ButtonData.OK_DONE);
         getDialogPane().getButtonTypes().addAll(okButton);
 
-        mainPane.setLeft(createLeftPane());
+        mainPane.setLeft(createLeftPane(focusedPlatform));
     }
 
-    private Node createLeftPane() {
+    private Node createLeftPane(Platform focusedPlatform) {
 
         ListView<Platform> listView = new ListView<Platform>();
         ObservableList<Platform> items = FXCollections.observableArrayList (Platform.values());
@@ -89,7 +93,7 @@ public class PlatformSettingsDialog extends GameRoomDialog<ButtonType> {
                 mainPane.setCenter(pane);
             }
         });
-        listView.getSelectionModel().select(0);
+        listView.getSelectionModel().select(focusedPlatform == null ? 0 : items.indexOf(focusedPlatform));
 
         SearchBar bar = new SearchBar((observable, oldValue, newValue) -> {
             listView.setItems(
