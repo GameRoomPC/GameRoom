@@ -53,7 +53,7 @@ public class Monitor {
 
     Monitor(GameStarter starter) throws IOException {
         this.gameStarter = starter;
-        if(getGameEntry().getPlatform().equals(data.game.entry.Platform.NONE)){
+        if(getGameEntry().getPlatform().isPC()){
             processName = getGameEntry().getProcessName();
         }else{
             Emulator e = Emulator.getChosenEmulator(getGameEntry().getPlatform());

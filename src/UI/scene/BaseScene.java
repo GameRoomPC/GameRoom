@@ -10,10 +10,12 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -191,27 +193,61 @@ public abstract class BaseScene extends Scene {
         return titleLabel;
     }
 
-    StackPane createTop(EventHandler<ActionEvent> backButtonEventHandler, String title) {
+    StackPane createTop(EventHandler<ActionEvent> backButtonEventHandler, String title, String iconCSSId) {
         StackPane topPane = new StackPane();
         topPane.getStyleClass().add("header");
         backButton = createBackButton(backButtonEventHandler);
+
         Label titleLabel = createTitleLabel(title);
         titleLabel.getStyleClass().add("title-label");
 
-        topPane.getChildren().addAll(backButton, titleLabel);
-        StackPane.setAlignment(backButton, Pos.CENTER_LEFT);
-        StackPane.setAlignment(titleLabel, Pos.CENTER);
-        StackPane.setMargin(titleLabel, new Insets(30 * Main.SCREEN_HEIGHT / 1080
+        Node titleNode = null;
+        if (iconCSSId != null) {
+            ImageView iconView = new ImageView();
+            double width = 42 * Main.SCREEN_WIDTH / 1920 * settings().getUIScale().getScale();
+            double height = 42 * Main.SCREEN_HEIGHT / 1080 * settings().getUIScale().getScale();
+            iconView.setSmooth(false);
+            iconView.setPreserveRatio(true);
+            iconView.setFitWidth(width);
+            iconView.setFitHeight(height);
+            iconView.setId(iconCSSId);
+
+            HBox box = new HBox();
+            box.setSpacing(15 * Main.SCREEN_WIDTH / 1920);
+            box.getChildren().addAll(iconView, titleLabel);
+            box.setAlignment(Pos.CENTER);
+            box.getStyleClass().add("title-box");
+
+            titleNode = box;
+        } else {
+            titleNode = titleLabel;
+        }
+
+        topPane.getChildren().addAll(backButton, titleNode);
+        StackPane.setAlignment(titleNode, Pos.CENTER);
+        StackPane.setMargin(titleNode, new Insets(30 * Main.SCREEN_HEIGHT / 1080
                 , 12 * Main.SCREEN_WIDTH / 1920
                 , 15 * Main.SCREEN_HEIGHT / 1080
                 , 15 * Main.SCREEN_WIDTH / 1920));
+
+        StackPane.setAlignment(backButton, Pos.CENTER_LEFT);
         return topPane;
+    }
+
+    StackPane createTop(EventHandler<ActionEvent> backButtonEventHandler, String title) {
+        return createTop(backButtonEventHandler,title,null);
     }
 
     StackPane createTop(String title) {
         return createTop(event -> {
             fadeTransitionTo(previousScene, parentStage);
-        }, title);
+        }, title,null);
+    }
+
+    StackPane createTop(String title,String iconCSSId) {
+        return createTop(event -> {
+            fadeTransitionTo(previousScene, parentStage);
+        }, title,iconCSSId);
     }
 
     void disableBackButton() {

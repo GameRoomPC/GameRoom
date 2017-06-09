@@ -40,59 +40,10 @@ public class Platform {
         this.nameKey = nameKey;
         this.id = id;
         this.isPC = isPC;
-
-        if (id != NONE_ID) {
-            insertInDB();
-        } else {
-            ID_MAP.put(id, this);
-        }
     }
 
     public Platform(String nameKey) {
         this(DEFAULT_ID, DEFAULT_ID, nameKey, true);
-    }
-
-    public int insertInDB() {
-        try {
-            id = getIdInDb();
-            String sql = "UPDATE Platform set name_key=?" + (igdb_id < 0 ? "" : ", igdb_id=?") + " where id=?" + id;
-            PreparedStatement platformStatement = DataBase.getUserConnection().prepareStatement(sql);
-            platformStatement.setString(1, nameKey);
-            if (igdb_id >= 0) {
-                platformStatement.setInt(2, igdb_id);
-            }
-            platformStatement.execute();
-            platformStatement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
-    }
-
-    private boolean isInDB() {
-        return getIdInDb() != DEFAULT_ID;
-    }
-
-    private int getIdInDb() {
-        if (nameKey == null || nameKey.isEmpty()) {
-            throw new IllegalArgumentException("Platform's nameKey was either null or empty : \"" + nameKey + "\"");
-        }
-        int id = DEFAULT_ID;
-        try {
-            Connection connection = DataBase.getUserConnection();
-            PreparedStatement getIdQuery = connection.prepareStatement("SELECT id FROM Platform WHERE name_key = ?");
-            getIdQuery.setString(1, nameKey);
-            ResultSet result = getIdQuery.executeQuery();
-
-            if (result.next()) {
-                id = result.getInt(1);
-                result.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return id;
     }
 
     public static Platform getFromIGDBId(int igdb_id) {
@@ -237,5 +188,21 @@ public class Platform {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public int hashCode(){
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (!Platform.class.isAssignableFrom(obj.getClass())) {
+            return false;
+        }
+        return this.hashCode() == obj.hashCode();
     }
 }

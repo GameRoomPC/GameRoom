@@ -194,7 +194,7 @@ public class GameStarter {
             commands.add("powershell.exe");
             commands.add("Start-Process");
         }
-        if(entry.getPlatform().equals(data.game.entry.Platform.NONE)){
+        if(entry.getPlatform().isPC()){
             commands.add('"' + entry.getPath() + '"');
         }else{
             Emulator e = Emulator.getChosenEmulator(entry.getPlatform());

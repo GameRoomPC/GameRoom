@@ -27,7 +27,8 @@
     -fx-stroke: transparent;
 }
 
-.header > .title-label{
+.header > .title-label,
+.header > .title-box > .title-label{
     -fx-font-size: 2.5em;
     -fx-text-fill: -fx-text-base-color;
 }

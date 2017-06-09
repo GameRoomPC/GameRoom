@@ -11,11 +11,16 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
+import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -407,6 +412,33 @@ public class MainScene extends BaseScene {
                         }
                     }
                 }
+                /*ObjectBinding<Bounds> visibleBounds = Bindings.createObjectBinding(() -> {
+                    Bounds viewportBounds = scrollPane.getViewportBounds();
+                    Bounds viewportBoundsInScene = scrollPane.localToScene(viewportBounds);
+                    Bounds viewportBoundsInPane = tilesPaneWrapper.sceneToLocal(viewportBoundsInScene);
+                    return viewportBoundsInPane ;
+                }, scrollPane.hvalueProperty(), scrollPane.vvalueProperty(), scrollPane.viewportBoundsProperty());
+
+
+                FilteredList<GameButton> visibleNodes = new FilteredList<>(tilePane.getGameButtons());
+                visibleNodes.predicateProperty().bind(Bindings.createObjectBinding(() ->
+                                gameButton -> gameButton.getBoundsInParent().intersects(visibleBounds.get()),
+                        visibleBounds));
+
+
+                visibleNodes.addListener((ListChangeListener.Change<? extends GameButton> c) -> {
+                    if(c.next()){
+                        c.getAddedSubList().forEach(o -> {
+                            o.clearCover();
+                            Main.LOGGER.debug("clearedCover: "+o.getEntry().getName());
+                        });
+                        c.getRemoved().forEach(o -> {
+                            o.showCover();
+                            Main.LOGGER.debug("showedCover: "+o.getEntry().getName());
+                        });
+                        System.out.println();
+                    }
+                });*/
             }
         });
         loadGamesTask.progressProperty().addListener(new ChangeListener<Number>() {
