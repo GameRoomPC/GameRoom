@@ -61,7 +61,7 @@ public class DataBase {
                 //USER_CONNECTION.setAutoCommit(false);
                 DatabaseMetaData meta = USER_CONNECTION.getMetaData();
                 System.out.println("The driver name is " + meta.getDriverName());
-                System.out.println("A new database has been created, path is \"" + url + "\"");
+                System.out.println("DB path is \"" + url + "\"");
             }
 
         } catch (SQLException e) {

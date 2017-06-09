@@ -127,14 +127,14 @@ CREATE TABLE IF NOT EXISTS Emulator (
 	name text,
     default_path text,
 	path text,
-	default_args_schema text,
-	args_schema text
+	default_args_schema text
 );
 
 CREATE TABLE IF NOT EXISTS emulates (
 	platform_id integer,
 	emu_id integer,
 	user_choice integer default 0,
+	args_schema text,
 	FOREIGN KEY(platform_id) REFERENCES Platform(id),
 	FOREIGN KEY(emu_id) REFERENCES Emulator(id),
 	PRIMARY KEY (platform_id, emu_id)
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS Settings (
 CREATE TABLE IF NOT EXISTS GameFolder (
 	path text PRIMARY KEY,
 	platform_folder integer default -2,
-	FOREIGN KEY(platform_id) REFERENCES Platform(id)
+	FOREIGN KEY(platform_folder) REFERENCES Platform(id)
 );
 
 CREATE TABLE IF NOT EXISTS GameScanners (
@@ -214,16 +214,24 @@ INSERT OR IGNORE INTO Platform(id,name_key,is_pc,default_supported_extensions) V
 	(8,"gamecube",0,"iso"),
 	(9,"n64",0,"n64"),
 	(10,"ps2",0,"iso,elf"),
-	(10,"ps3",0,"iso"),
-	(10,"wiiu",0,"iso");
+	(11,"ps3",0,"iso"),
+	(12,"wiiu",0,"iso");
 	
 INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
 	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %p"),
-	(2,"PCSX2", "C:\Program Files (x86)\PCSX2 1.4.0\pcsx2.exe","--fullscreen --nogui %p");
+	(2,"PCSX2", "C:\Program Files (x86)\PCSX2 1.4.0\pcsx2.exe","--fullscreen --nogui %p"),
+	(3,"cemu", "C:\Program Files (x86)\cemu\Cemu.exe","--fullscreen --nogui %p"),
+	(4,"Project64","C:\Program Files (x86)\Project64 2.3\Project64.exe","%p"),
+	(5,"RetroArch","C:\Program Files (x86)\retroarch.exe","-f -L ""path/to/core"" %p");
 
-INSERT OR IGNORE INTO emulates(platform_id, emu_id) VALUES
-	(7,1),
-	(8,1),
-	(10,2);
+INSERT OR IGNORE INTO emulates(emu_id,platform_id) VALUES
+	(1,7),
+	(1,8),
+	(2,10),
+	(3,12),
+	(4,9),
+	(5,7),
+	(5,8),
+	(5,9);
 	
 	

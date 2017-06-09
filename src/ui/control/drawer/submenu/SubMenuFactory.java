@@ -105,10 +105,10 @@ public final class SubMenuFactory {
             fileChooser.setInitialDirectory(
                     new File(System.getProperty("user.home"))
             );
-            //TODO fix internet shorcuts problem (bug submitted)
-            fileChooser.getExtensionFilters().addAll(
+            //TODO get from db all possible file extension
+            /*fileChooser.getExtensionFilters().addAll(
                     new FileChooser.ExtensionFilter("ISO", "*.iso")
-            );
+            );*/
             try {
                 File selectedFile = fileChooser.showOpenDialog(mainScene.getParentStage());
                 if (selectedFile != null) {

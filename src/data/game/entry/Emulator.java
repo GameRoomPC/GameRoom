@@ -21,7 +21,6 @@ public class Emulator {
     private File defaultPath; //should never be modified
     private File path;
     private String defaultArgSchema; // should never be modified
-    private String argSchema;
 
     private final static HashMap<Integer, Emulator> EMULATOR_MAPPING = new HashMap<>();
 
@@ -92,10 +91,6 @@ public class Emulator {
             path = new File(pathString);
         }
         defaultArgSchema = set.getString("default_args_schema");
-        argSchema = set.getString("args_schema");
-        if (argSchema == null) {
-            argSchema = defaultArgSchema;
-        }
 
         save();
     }
@@ -120,11 +115,9 @@ public class Emulator {
     private void save() {
         try {
             PreparedStatement statement = DataBase.getUserConnection()
-                    .prepareStatement("UPDATE Emulator SET path=?,args_schema =?" +
-                            "WHERE id = ?");
+                    .prepareStatement("UPDATE Emulator SET path=? WHERE id = ?");
             statement.setString(1, path.getAbsolutePath());
-            statement.setString(2, argSchema);
-            statement.setInt(3, sqlId);
+            statement.setInt(2, sqlId);
             statement.execute();
             statement.close();
         } catch (SQLException e) {
@@ -148,7 +141,7 @@ public class Emulator {
 
 
     public List<String> getCommandsToExecute(GameEntry entry) {
-        String[] args = argSchema.split("\\s");
+        String[] args = getArgSchema(entry.getPlatform()).split("\\s");
 
         ArrayList<String> cmds = new ArrayList<>();
         cmds.add("\"" + path.getAbsolutePath() + "\"");
@@ -167,12 +160,37 @@ public class Emulator {
         return sqlId;
     }
 
-    public String getArgSchema() {
-        return argSchema;
+    public String getArgSchema(Platform platform) {
+        if(platform == null || platform.isPC()){
+            return defaultArgSchema;
+        }
+
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("SELECT args_schema FROM emulates WHERE emu_id=? AND platform_id=?");
+            statement.setInt(1, sqlId);
+            statement.setInt(2,platform.getId());
+            ResultSet set = statement.executeQuery();
+
+            if (set.next()) {
+                String argSchema = set.getString("args_schema");
+                return argSchema == null || argSchema.isEmpty() ? defaultArgSchema : argSchema;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return defaultArgSchema;
     }
 
-    public void setArgSchema(String argSchema) {
-        this.argSchema = argSchema;
+    public void setArgSchema(String argSchema, Platform platform) {
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement("UPDATE emulates SET args_schema=? WHERE emu_id=? AND platform_id=?");
+            statement.setString(1,argSchema);
+            statement.setInt(1, sqlId);
+            statement.setInt(2,platform.getId());
+            statement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

@@ -127,16 +127,16 @@ public class EmulatorSettingsPane extends BorderPane {
 
         /************ARGS SCHEMA*********/
         //TODO add a resest option
-        TextField textField = new TextField(emulator.getArgSchema());
+        /*TextField textField = new TextField(emulator.getArgSchema());
         textField.setPrefColumnCount(50);
         textField.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 emulator.setArgSchema(newValue);
             }
-        });
+        });*/
 
-        HBox argBox = new HBox();
+        /*HBox argBox = new HBox();
         argBox.setAlignment(Pos.CENTER_LEFT);
         argBox.setSpacing(5 * SCREEN_WIDTH / 1920);
         argBox.getChildren().addAll( new Label(Main.getString("emulator_args_schema") + " :")
@@ -144,7 +144,7 @@ public class EmulatorSettingsPane extends BorderPane {
 
         contentPane.add(argBox, 0, rowCount);
         contentPane.add(textField, 1, rowCount);
-        rowCount++;
+        rowCount++;*/
 
 
         /**** DO NOT ADD ANY CONTENT PAST HERE ****/
