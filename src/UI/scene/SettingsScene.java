@@ -38,10 +38,7 @@ import ui.control.ValidEntryCondition;
 import ui.control.button.HelpButton;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
-import ui.dialog.ActivationKeyDialog;
-import ui.dialog.GameRoomAlert;
-import ui.dialog.GameRoomDialog;
-import ui.dialog.WebBrowser;
+import ui.dialog.*;
 import ui.dialog.selector.GameScannerSelector;
 import ui.dialog.selector.IgnoredEntrySelector;
 import ui.pane.platform.EmulatorSettingsPane;
@@ -311,20 +308,7 @@ public class SettingsScene extends BaseScene {
         Button manageEmulatorsButton = new Button(Main.getString("manage"));
 
         manageEmulatorsButton.setOnAction(event -> {
-            GameRoomDialog dialog = new GameRoomDialog() {
-                @Override
-                public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-                    return super.buildEventDispatchChain(tail);
-                }
-            };
-
-            ButtonType okButton = new ButtonType(Main.getString("close"), ButtonBar.ButtonData.OK_DONE);
-            dialog.getDialogPane().getButtonTypes().addAll(okButton);
-
-            //TODO replace by a true menu to configure each platform
-            PlatformSettingsPane pane = new PlatformSettingsPane(Platform.getFromId(7));
-            pane.setMaxWidth(2*settings().getWindowWidth()/5.0);
-            dialog.setGraphic(pane);
+            PlatformSettingsDialog dialog = new PlatformSettingsDialog();
             dialog.showAndWait();
         });
 

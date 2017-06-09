@@ -41,4 +41,8 @@ public abstract class GameRoomDialog<T> extends Dialog<T> {
         initStyle(StageStyle.UNDECORATED);
         initModality(modality);
     }
+
+    public BorderPane getMainPane() {
+        return mainPane;
+    }
 }

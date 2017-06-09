@@ -1,0 +1,111 @@
+package ui.dialog;
+
+import data.game.entry.Emulator;
+import data.game.entry.Platform;
+import data.game.scraper.SteamProfile;
+import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.effect.Blend;
+import javafx.scene.effect.BlendMode;
+import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.ColorInput;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import ui.Main;
+import ui.control.specific.FloatingSearchBar;
+import ui.control.specific.SearchBar;
+import ui.pane.platform.PlatformSettingsPane;
+
+import java.util.Comparator;
+
+import static system.application.settings.GeneralSettings.settings;
+
+/**
+ * @author LM. Garret (admin@gameroom.me)
+ * @date 09/06/2017.
+ */
+public class PlatformSettingsDialog extends GameRoomDialog<ButtonType> {
+    private ComboBox<SteamProfile> comboBox;
+
+    public PlatformSettingsDialog() {
+        super();
+        mainPane.getStyleClass().add("container");
+        ButtonType okButton = new ButtonType(Main.getString("close"), ButtonBar.ButtonData.OK_DONE);
+        getDialogPane().getButtonTypes().addAll(okButton);
+
+        mainPane.setLeft(createLeftPane());
+    }
+
+    private Node createLeftPane() {
+
+        ListView<Platform> listView = new ListView<Platform>();
+        ObservableList<Platform> items = FXCollections.observableArrayList (Platform.values());
+        items.sort(Comparator.comparing(Platform::getName));
+        items.removeIf(Platform::isPC);
+        items.removeIf(platform -> platform.equals(Platform.NONE));
+        items.removeIf(platform -> Emulator.getPossibleEmulators(platform).isEmpty());
+        listView.setItems(items);
+        listView.getStyleClass().add("dark-list-view");
+
+        listView.setCellFactory(param -> new ListCell<Platform>() {
+            private ImageView imageView = new ImageView();
+            @Override
+            public void updateItem(Platform platform, boolean empty) {
+                super.updateItem(platform, empty);
+                if (empty || platform == null) {
+                    imageView.setId("");
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    double width = 30*Main.SCREEN_WIDTH/1920;
+                    double height =  30*Main.SCREEN_HEIGHT/1080;
+
+                    imageView.setId(platform.getIconCSSId());
+                    imageView.setFitWidth(width);
+                    imageView.setFitHeight(height);
+
+                    setText(platform.getName());
+                    setGraphic(imageView);
+                }
+                getStyleClass().add("dark-list-cell");
+            }
+        });
+        listView.setEditable(false);
+        listView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue != null) {
+                PlatformSettingsPane pane = new PlatformSettingsPane(newValue,getOwner());
+                pane.setMaxWidth(3 * settings().getWindowWidth() / 5.0);
+                pane.setPrefWidth(2.5 * settings().getWindowWidth() / 5.0);
+                pane.setPadding(new Insets(10 * Main.SCREEN_WIDTH / 1920,
+                        20 * Main.SCREEN_HEIGHT / 1080,
+                        10 * Main.SCREEN_WIDTH / 1920,
+                        20 * Main.SCREEN_HEIGHT / 1080
+                ));
+                mainPane.setCenter(pane);
+            }
+        });
+        listView.getSelectionModel().select(0);
+
+        SearchBar bar = new SearchBar((observable, oldValue, newValue) -> {
+            listView.setItems(
+                    items.filtered(platform -> platform.getName().trim().toLowerCase().contains(newValue.trim().toLowerCase()))
+            );
+            listView.refresh();
+        });
+
+        VBox box = new VBox();
+        box.setSpacing(5*Main.SCREEN_HEIGHT/1080);
+        box.getChildren().addAll(bar,listView);
+        box.setPadding(new Insets(10 * Main.SCREEN_WIDTH / 1920,
+                0 * Main.SCREEN_HEIGHT / 1080,
+                10 * Main.SCREEN_WIDTH / 1920,
+                20 * Main.SCREEN_HEIGHT / 1080
+        ));
+        return box;
+    }
+}

@@ -1,4 +1,4 @@
-package ui.pane;
+package ui.pane.platform;
 
 import data.game.entry.Emulator;
 import data.game.entry.Platform;
@@ -51,7 +51,7 @@ public class EmulatorSettingsPane extends BorderPane {
 
         Label titleLabel = new Label(emulator.toString());
         //titleLabel.setId("titleLabel");
-        //titleLabel.getStyleClass().add("title-label");
+        titleLabel.getStyleClass().add("small-title-label");
 
         topPane.getChildren().add(titleLabel);
         StackPane.setAlignment(titleLabel, Pos.CENTER);
@@ -71,14 +71,11 @@ public class EmulatorSettingsPane extends BorderPane {
         contentPane.setVgap(20 * SCREEN_WIDTH / 1920);
         contentPane.setHgap(10 * SCREEN_WIDTH / 1920);
         ColumnConstraints cc1 = new ColumnConstraints();
-        cc1.setPercentWidth(20);
+        cc1.setPercentWidth(30);
         contentPane.getColumnConstraints().add(cc1);
         ColumnConstraints cc2 = new ColumnConstraints();
         cc2.setPercentWidth(70);
         contentPane.getColumnConstraints().add(cc2);
-        ColumnConstraints cc3 = new ColumnConstraints();
-        cc3.setPercentWidth(10);
-        contentPane.getColumnConstraints().add(cc3);
 
         /********PROGRAM PATH **************/
         PathTextField pathField = new PathTextField(emulator.getPath().getAbsolutePath(), window, PathTextField.FILE_CHOOSER_APPS, Main.getString("select_program"));
@@ -99,7 +96,7 @@ public class EmulatorSettingsPane extends BorderPane {
         rowCount++;
 
         /******** EMULATES CHOICES *********/
-        final ObservableList<Platform> supportedPlatforms = FXCollections.observableArrayList(emulator.getSupportedPlatforms());
+        /*final ObservableList<Platform> supportedPlatforms = FXCollections.observableArrayList(emulator.getSupportedPlatforms());
         supportedPlatforms.sort(Comparator.comparing(Platform::getName));
 
         final CheckComboBox<Platform> platformComboBox = new CheckComboBox<Platform>(supportedPlatforms);
@@ -123,7 +120,7 @@ public class EmulatorSettingsPane extends BorderPane {
         platformLabel.setTooltip(new Tooltip(Main.getString("platform_label")));
         contentPane.add(platformLabel, 0, rowCount);
         contentPane.add(platformComboBox, 1, rowCount);
-        rowCount++;
+        rowCount++;*/
 
         /************ARGS SCHEMA*********/
         //TODO add a resest option
