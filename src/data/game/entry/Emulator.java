@@ -209,4 +209,10 @@ public class Emulator {
         return this.hashCode() == obj.hashCode();
     }
 
+    public static Emulator getFromId(int emuId) {
+        if(EMULATOR_MAPPING.isEmpty()){
+            loadEmulators();
+        }
+        return EMULATOR_MAPPING.get(emuId);
+    }
 }

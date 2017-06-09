@@ -44,7 +44,8 @@ import ui.dialog.GameRoomDialog;
 import ui.dialog.WebBrowser;
 import ui.dialog.selector.GameScannerSelector;
 import ui.dialog.selector.IgnoredEntrySelector;
-import ui.pane.EmulatorSettingsPane;
+import ui.pane.platform.EmulatorSettingsPane;
+import ui.pane.platform.PlatformSettingsPane;
 import ui.theme.Theme;
 import ui.theme.ThemeUtils;
 import ui.theme.UIScale;
@@ -316,9 +317,13 @@ public class SettingsScene extends BaseScene {
                     return super.buildEventDispatchChain(tail);
                 }
             };
-            //TODO replace by a true menu to configure each emulator
-            EmulatorSettingsPane pane = new EmulatorSettingsPane(Emulator.getPossibleEmulators(Platform.getFromId(7)).get(0),dialog.getOwner());
-            pane.setMaxWidth(2.5*settings().getWindowWidth()/5.0);
+
+            ButtonType okButton = new ButtonType(Main.getString("close"), ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().addAll(okButton);
+
+            //TODO replace by a true menu to configure each platform
+            PlatformSettingsPane pane = new PlatformSettingsPane(Platform.getFromId(7));
+            pane.setMaxWidth(2*settings().getWindowWidth()/5.0);
             dialog.setGraphic(pane);
             dialog.showAndWait();
         });

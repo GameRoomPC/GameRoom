@@ -190,6 +190,22 @@ public class Platform {
         }
     }
 
+    public Emulator getChosenEmulator() {
+        try {
+            Connection connection = DataBase.getUserConnection();
+            Statement statement = connection.createStatement();
+            ResultSet set = statement.executeQuery("SELECT emu_id from emulates WHERE user_choice = 1 AND platform_id = " + id);
+            if(set.next()){
+                int emuId = set.getInt("emu_id");
+                return Emulator.getFromId(emuId);
+            }
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     @Override
     public int hashCode(){
         return id;
