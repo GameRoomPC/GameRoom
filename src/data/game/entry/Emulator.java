@@ -185,8 +185,8 @@ public class Emulator {
         try {
             PreparedStatement statement = DataBase.getUserConnection().prepareStatement("UPDATE emulates SET args_schema=? WHERE emu_id=? AND platform_id=?");
             statement.setString(1,argSchema);
-            statement.setInt(1, sqlId);
-            statement.setInt(2,platform.getId());
+            statement.setInt(2, sqlId);
+            statement.setInt(3,platform.getId());
             statement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
