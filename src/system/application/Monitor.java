@@ -24,6 +24,7 @@ import java.util.concurrent.FutureTask;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
+import static ui.dialog.GameRoomAlert.error;
 
 /**
  * Created by LM on 24/07/2016.
@@ -58,8 +59,7 @@ public class Monitor {
         }else{
             Emulator e = Emulator.getChosenEmulator(getGameEntry().getPlatform());
             if(e == null){
-                //TODO replace hardcoded text
-                GameRoomAlert.error("There is no emulator configured for platform "+getGameEntry().getPlatform());
+                GameRoomAlert.error(Main.getString("error_no_emu_configured")+" "+getGameEntry().getPlatform());
             }else{
                 processName = e.getProcessName();
             }

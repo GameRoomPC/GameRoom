@@ -156,7 +156,6 @@ public class GameStarter {
         } else {
             Emulator e = Emulator.getChosenEmulator(entry.getPlatform());
             if (e == null) {
-                //TODO replace hardcoded text
                 throw new IllegalStateException("no_emu_configured");
             } else {
                 commands.addAll(e.getCommandsToExecute(entry));

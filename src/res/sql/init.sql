@@ -215,7 +215,7 @@ INSERT OR IGNORE INTO Platform(id,name_key,is_pc,default_supported_extensions) V
 	(9,"n64",0,"n64"),
 	(10,"ps2",0,"iso,elf"),
 	(11,"ps3",0,"iso"),
-	(12,"wiiu",0,"iso");
+	(12,"wiiu",0,"iso,wux");
 	
 INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
 	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %p"),

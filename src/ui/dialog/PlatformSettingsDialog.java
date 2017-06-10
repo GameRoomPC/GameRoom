@@ -48,11 +48,7 @@ public class PlatformSettingsDialog extends GameRoomDialog<ButtonType> {
     private Node createLeftPane(Platform focusedPlatform) {
 
         ListView<Platform> listView = new ListView<Platform>();
-        ObservableList<Platform> items = FXCollections.observableArrayList (Platform.values());
-        items.sort(Comparator.comparing(Platform::getName));
-        items.removeIf(Platform::isPC);
-        items.removeIf(platform -> platform.equals(Platform.NONE));
-        items.removeIf(platform -> Emulator.getPossibleEmulators(platform).isEmpty());
+        ObservableList<Platform> items = FXCollections.observableArrayList (Platform.getEmulablePlatforms());
         listView.setItems(items);
         listView.getStyleClass().add("dark-list-view");
 

@@ -479,9 +479,7 @@ public class GameEditScene extends BaseScene {
                 e.printStackTrace();
             }
 
-            final ObservableList<data.game.entry.Platform> platforms = FXCollections.observableArrayList(data.game.entry.Platform.values());
-            platforms.removeIf(data.game.entry.Platform::isPC);
-            platforms.sort(Comparator.comparing(data.game.entry.Platform::getName));
+            final ObservableList<data.game.entry.Platform> platforms = FXCollections.observableArrayList(data.game.entry.Platform.getEmulablePlatforms());
             platforms.add(0,data.game.entry.Platform.NONE);
 
             // Create the CheckComboBox with the data

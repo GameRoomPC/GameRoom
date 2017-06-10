@@ -1,10 +1,14 @@
 package data.game.entry;
 
 import data.io.DataBase;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import ui.Main;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 
 /**
@@ -23,7 +27,7 @@ public class Platform {
     public final static int DEFAULT_ID = -1;
     public final static int NONE_ID = -2;
 
-    public final static Platform NONE = new Platform(NONE_ID, NONE_ID, "default", true);
+    public final static Platform NONE = new Platform(NONE_ID, NONE_ID, "default", true,"");
 
 
     private int igdb_id = DEFAULT_ID;
@@ -31,8 +35,9 @@ public class Platform {
 
     private String nameKey;
     private boolean isPC;
+    private String supportedExtensions;
 
-    private Platform(int id, int igdb_id, String nameKey, boolean isPC) {
+    private Platform(int id, int igdb_id, String nameKey, boolean isPC, String supportedExtensions) {
         if (nameKey == null || nameKey.isEmpty()) {
             throw new IllegalArgumentException("Platform's nameKey was either null or empty : \"" + nameKey + "\"");
         }
@@ -40,10 +45,11 @@ public class Platform {
         this.nameKey = nameKey;
         this.id = id;
         this.isPC = isPC;
+        this.supportedExtensions=supportedExtensions;
     }
 
     public Platform(String nameKey) {
-        this(DEFAULT_ID, DEFAULT_ID, nameKey, true);
+        this(DEFAULT_ID, DEFAULT_ID, nameKey, true,"");
     }
 
     public static Platform getFromIGDBId(int igdb_id) {
@@ -70,7 +76,11 @@ public class Platform {
                 int platformId = set.getInt("id");
                 String key = set.getString("name_key");
                 boolean isPC = set.getBoolean("is_pc");
-                Platform newPlatform = new Platform(platformId, igdb_id, key, isPC);
+                String supportedExtensions = set.getString("supported_extensions");
+                if(supportedExtensions == null){
+                    supportedExtensions = set.getString("default_supported_extensions");
+                }
+                Platform newPlatform = new Platform(platformId, igdb_id, key, isPC,supportedExtensions);
                 ID_MAP.put(platformId, newPlatform);
 
                 return newPlatform;
@@ -106,7 +116,11 @@ public class Platform {
                     int igdbId = set.getInt("igdb_id");
                     String key = set.getString("name_key");
                     boolean isPC = set.getBoolean("is_pc");
-                    Platform newPlatform = new Platform(platformId, igdbId, key, isPC);
+                    String supportedExtensions = set.getString("supported_extensions");
+                    if(supportedExtensions == null){
+                        supportedExtensions = set.getString("default_supported_extensions");
+                    }
+                    Platform newPlatform = new Platform(platformId, igdbId, key, isPC,supportedExtensions);
                     ID_MAP.put(platformId, newPlatform);
 
                     return newPlatform;
@@ -129,7 +143,11 @@ public class Platform {
             int igdbId = set.getInt("igdb_id");
             String key = set.getString("name_key");
             boolean isPC = set.getBoolean("is_pc");
-            ID_MAP.put(id, new Platform(id, igdbId, key, isPC));
+            String supportedExtensions = set.getString("supported_extensions");
+            if(supportedExtensions == null){
+                supportedExtensions = set.getString("default_supported_extensions");
+            }
+            ID_MAP.put(id, new Platform(id, igdbId, key, isPC,supportedExtensions));
         }
         statement.close();
     }
@@ -160,6 +178,15 @@ public class Platform {
 
     public static Collection<Platform> values() {
         return ID_MAP.values();
+    }
+
+    public static Collection<Platform> getEmulablePlatforms(){
+        ArrayList<Platform> items = new ArrayList<>(Platform.values());
+        items.removeIf(Platform::isPC);
+        items.removeIf(platform -> platform.equals(Platform.NONE));
+        items.removeIf(platform -> Emulator.getPossibleEmulators(platform).isEmpty());
+        items.sort(Comparator.comparing(Platform::getName));
+        return items;
     }
 
     public int getId() {
@@ -220,5 +247,36 @@ public class Platform {
             return false;
         }
         return this.hashCode() == obj.hashCode();
+    }
+
+    public String[] getSupportedExtensions(){
+        if(supportedExtensions == null){
+            return new String[0];
+        }
+        String[] cpy = supportedExtensions.split(",");
+        for (int i = 0; i < cpy.length; i++) {
+            cpy[i] = "*."+cpy[i];
+        }
+        return cpy;
+    }
+
+    public void setSupportedExtensions(String[] supportedExtensions){
+        StringBuilder newValue = new StringBuilder("");
+        if(supportedExtensions != null){
+            for(String s : supportedExtensions){
+                newValue.append(s).append(",");
+            }
+            newValue = newValue.deleteCharAt(newValue.length() - 1);
+        }
+        this.supportedExtensions=newValue.toString();
+        try {
+            Connection connection = DataBase.getUserConnection();
+            PreparedStatement statement = connection.prepareStatement("UPDATE Platform SET supported_extensions=? WHERE id =" + id);
+            statement.setString(1,this.supportedExtensions);
+            statement.execute();
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

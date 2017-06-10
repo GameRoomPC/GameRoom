@@ -1,5 +1,6 @@
 package ui.control.drawer.submenu;
 
+import data.game.entry.Platform;
 import data.io.FileUtils;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Slider;
@@ -105,10 +106,12 @@ public final class SubMenuFactory {
             fileChooser.setInitialDirectory(
                     new File(System.getProperty("user.home"))
             );
-            //TODO get from db all possible file extension
-            /*fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("ISO", "*.iso")
-            );*/
+            Platform.getEmulablePlatforms().forEach(platform -> {
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(platform.getName(),platform.getSupportedExtensions()));
+            });
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter(Main.getString("all_files"), "*")
+            );
             try {
                 File selectedFile = fileChooser.showOpenDialog(mainScene.getParentStage());
                 if (selectedFile != null) {
