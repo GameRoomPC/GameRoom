@@ -31,6 +31,7 @@ import static system.application.settings.GeneralSettings.settings;
  */
 public class PlatformSettingsDialog extends GameRoomDialog<ButtonType> {
     private ComboBox<SteamProfile> comboBox;
+    private PlatformSettingsPane currentCenterPane;
 
     public PlatformSettingsDialog() {
         this(null);
@@ -78,15 +79,15 @@ public class PlatformSettingsDialog extends GameRoomDialog<ButtonType> {
         listView.setEditable(false);
         listView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue != null) {
-                PlatformSettingsPane pane = new PlatformSettingsPane(newValue,getOwner());
-                pane.setMaxWidth(3 * settings().getWindowWidth() / 5.0);
-                pane.setPrefWidth(2.5 * settings().getWindowWidth() / 5.0);
-                pane.setPadding(new Insets(10 * Main.SCREEN_WIDTH / 1920,
+                currentCenterPane = new PlatformSettingsPane(newValue,getOwner());
+                currentCenterPane.setMaxWidth(3 * settings().getWindowWidth() / 5.0);
+                currentCenterPane.setPrefWidth(2.5 * settings().getWindowWidth() / 5.0);
+                currentCenterPane.setPadding(new Insets(10 * Main.SCREEN_WIDTH / 1920,
                         20 * Main.SCREEN_HEIGHT / 1080,
                         10 * Main.SCREEN_WIDTH / 1920,
                         20 * Main.SCREEN_HEIGHT / 1080
                 ));
-                mainPane.setCenter(pane);
+                mainPane.setCenter(currentCenterPane);
             }
         });
         listView.getSelectionModel().select(focusedPlatform == null ? 0 : items.indexOf(focusedPlatform));

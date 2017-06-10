@@ -2,8 +2,6 @@ package ui.pane.platform;
 
 import data.game.entry.Emulator;
 import data.game.entry.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventDispatchChain;
@@ -15,10 +13,8 @@ import javafx.scene.layout.*;
 import javafx.stage.Window;
 import ui.Main;
 import ui.control.button.HelpButton;
-import ui.control.textfield.PathTextField;
 import ui.dialog.GameRoomDialog;
 
-import java.io.File;
 import java.sql.SQLException;
 import java.util.Comparator;
 
@@ -110,6 +106,27 @@ public class PlatformSettingsPane extends BorderPane {
         contentPane.add(pathLabel, 0, rowCount);
         contentPane.add(pathField, 1, rowCount);
         rowCount++;*/
+
+        /************SUPPORTED EXTENSIONS*********/
+        //TODO add a reset option
+        TextField extField = new TextField();
+        extField.setPrefColumnCount(40);
+        if(chosenEmulator != null){
+            extField.setText(platform.getSupportedExtensionsString());
+        }
+        extField.textProperty().addListener((observable, oldValue, newValue) -> platform.setSupportedExtensions(newValue));
+        extField.setManaged(chosenEmulator != null);
+        extField.setVisible(chosenEmulator != null);
+
+        HBox extBox = new HBox();
+        extBox.setAlignment(Pos.CENTER_LEFT);
+        extBox.setSpacing(5 * SCREEN_WIDTH / 1920);
+        extBox.getChildren().addAll( new Label(Main.getString("romExtensions") + " :")
+                ,new HelpButton(Main.getString("romExtensions_tooltip")));
+
+        contentPane.add(extBox, 0, rowCount);
+        contentPane.add(extField, 1, rowCount);
+        rowCount++;
 
         /************ARGS SCHEMA*********/
         //TODO add a reset option

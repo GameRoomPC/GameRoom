@@ -94,7 +94,7 @@
     -fx-background-insets:  0.0;
     -fx-background-radius: 2.0;
     -fx-border-width: 0.0;
-    -fx-padding: 0.7em;
+    -fx-padding: 0.5em;
     -fx-text-fill: -fx-text-base-color;
     -fx-alignment: CENTER;
     -fx-content-display: LEFT;
@@ -135,7 +135,7 @@
     -fx-background-color: white;
     -fx-background-insets:  0.0;
     -fx-background-radius: 2.0;
-    -fx-padding: 0.7em;
+    -fx-padding: 0.5em;
     -fx-border-width: 0.0;
     -fx-prompt-text-fill: derive(-dark, 50.0%);
     -fx-highlight-fill: rgb(94.0, 203.0, 234.0);
@@ -151,7 +151,7 @@
 }
 
 .text-area .content {
-    -fx-padding: 0.7em;
+    -fx-padding: 0.5em;
     -fx-border-width: 0.0;
     -fx-background-color: transparent;
 }
@@ -269,12 +269,12 @@
 
 .combo-box-base > .label,
 .choice-box > .label {
-    -fx-padding:0.7em 1.7em 0.7em 0.7em;
+    -fx-padding:0.5em 1.7em 0.5em 0.5em;
 }
 
 .combo-box-base > .arrow-button,
 .choice-box > .open-button {
-    -fx-padding: 1.2em 0.7em 1.2em 0.5em;
+    -fx-padding: 1.2em 0.5em 1.2em 0.5em;
     -fx-background-radius: 0.0 2.0 2.0 0.0;
 }
 

@@ -260,6 +260,14 @@ public class Platform {
         return cpy;
     }
 
+    public String getSupportedExtensionsString(){
+        return supportedExtensions == null ? "" : supportedExtensions;
+    }
+
+    public void setSupportedExtensions(String supportedExtensions){
+        setSupportedExtensions(supportedExtensions.split(","));
+    }
+
     public void setSupportedExtensions(String[] supportedExtensions){
         StringBuilder newValue = new StringBuilder("");
         if(supportedExtensions != null){
