@@ -14,6 +14,7 @@ import ui.Main;
 import ui.GeneralToast;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.PlatformSettingsDialog;
+import ui.scene.SettingsScene;
 
 import java.awt.*;
 import java.io.File;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
@@ -35,7 +37,9 @@ import static ui.Main.*;
  * Created by LM on 14/07/2016.
  */
 public class GameStarter {
-    private static String STEAM_PREFIX = "steam";
+    private final static String ERR_NO_EMU = "no_emu_configured";
+    private final static String ERR_NOT_SUPPORTER = "not_supporter";
+    private final static String STEAM_PREFIX = "steam";
     private GameEntry entry;
     private PowerMode originalPowerMode;
     private static String LOG_FOLDER;
@@ -55,16 +59,23 @@ public class GameStarter {
         try {
             startGame();
         } catch (IllegalStateException e) {
-            if (e.getMessage().equals("no_emu_configured")) {
-                onPostGameLaunch(0);
-                GameRoomAlert.error("There is no emulator configured for platform " + entry.getPlatform());
-                PlatformSettingsDialog dialog = new PlatformSettingsDialog(entry.getPlatform());
-                dialog.showAndWait();
-                start();
-                return;
-            } else {
-                e.printStackTrace();
+            switch (e.getMessage()){
+                case ERR_NO_EMU:
+                    onPostGameLaunch(0);
+                    GameRoomAlert.error("There is no emulator configured for platform " + entry.getPlatform());
+                    PlatformSettingsDialog dialog = new PlatformSettingsDialog(entry.getPlatform());
+                    dialog.showAndWait();
+                    start();
+                    break;
+                case ERR_NOT_SUPPORTER:
+                    SettingsScene.checkAndDisplayRegisterDialog();
+                    break;
+                default:
+                    e.printStackTrace();
+                    GameRoomAlert.error(e.getMessage());
+                    break;
             }
+            return;
         }
 
         Task<Long> monitor = new Task() {
@@ -126,6 +137,10 @@ public class GameStarter {
             terminal.execute(commandsBefore, preLog, getGameParentFolder());
 
             File gameLog = new File(LOG_FOLDER + entry.getProcessName() + ".log");
+            List<String> commands = getStartGameCMD();
+            if(commands.isEmpty()){
+
+            }
             ProcessBuilder gameProcessBuilder = new ProcessBuilder(getStartGameCMD()).inheritIO();
 
             gameProcessBuilder.redirectOutput(gameLog);
@@ -154,11 +169,15 @@ public class GameStarter {
         if (entry.getPlatform().isPC()) {
             commands.add('"' + entry.getPath() + '"');
         } else {
-            Emulator e = Emulator.getChosenEmulator(entry.getPlatform());
-            if (e == null) {
-                throw new IllegalStateException("no_emu_configured");
-            } else {
-                commands.addAll(e.getCommandsToExecute(entry));
+            if (SUPPORTER_MODE) {
+                Emulator e = Emulator.getChosenEmulator(entry.getPlatform());
+                if (e == null) {
+                    throw new IllegalStateException(ERR_NO_EMU);
+                } else {
+                    commands.addAll(e.getCommandsToExecute(entry));
+                }
+            }else{
+                throw new IllegalStateException(ERR_NOT_SUPPORTER);
             }
         }
         Collections.addAll(commands, args);

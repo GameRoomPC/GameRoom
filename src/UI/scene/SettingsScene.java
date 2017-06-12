@@ -308,8 +308,11 @@ public class SettingsScene extends BaseScene {
         Button manageEmulatorsButton = new Button(Main.getString("manage"));
 
         manageEmulatorsButton.setOnAction(event -> {
-            PlatformSettingsDialog dialog = new PlatformSettingsDialog();
-            dialog.showAndWait();
+            boolean registered = SettingsScene.checkAndDisplayRegisterDialog();
+            if (registered) {
+                PlatformSettingsDialog dialog = new PlatformSettingsDialog();
+                dialog.showAndWait();
+            }
         });
 
         flowPaneHashMap.get(CATEGORY_ON_GAME_START).getChildren().add(createLine(emulatorsLabel, manageEmulatorsButton));

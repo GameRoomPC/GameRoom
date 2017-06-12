@@ -42,7 +42,7 @@ public final class SubMenuFactory {
         singleAppItem.setOnAction(event -> {
             if (!settings().getBoolean(PredefinedSetting.NO_MORE_ADD_APP_WARNING)) {
                 GameRoomAlert.info(Main.getString("add_single_app_long"));
-                settings().setSettingValue(PredefinedSetting.NO_MORE_ADD_APP_WARNING,true);
+                settings().setSettingValue(PredefinedSetting.NO_MORE_ADD_APP_WARNING, true);
             }
             mainScene.getRootStackPane().setMouseTransparent(true);
 
@@ -71,12 +71,13 @@ public final class SubMenuFactory {
         });
         addMenu.addItem(singleAppItem);
 
+        //TODO change to "load from links", and add option to directly add a GameFolder
         TextItem folderItem = new TextItem("add_folder_app");
         folderItem.setTooltip(new Tooltip(Main.getString("add_folder_app_long")));
         folderItem.setOnAction(event -> {
-            if(!settings().getBoolean(PredefinedSetting.NO_MORE_ADD_FOLDER_WARNING)) {
+            if (!settings().getBoolean(PredefinedSetting.NO_MORE_ADD_FOLDER_WARNING)) {
                 GameRoomAlert.info(Main.getString("add_folder_app_long"));
-                settings().setSettingValue(PredefinedSetting.NO_MORE_ADD_APP_WARNING,true);
+                settings().setSettingValue(PredefinedSetting.NO_MORE_ADD_APP_WARNING, true);
             }
 
             mainScene.getRootStackPane().setMouseTransparent(true);
@@ -103,35 +104,39 @@ public final class SubMenuFactory {
         //************EMULATOR****************
         TextItem emulatedItem = new TextItem("add_emulated_game");
         emulatedItem.setOnAction(event -> {
-            if (!settings().getBoolean(PredefinedSetting.NO_MORE_ADD_APP_WARNING)) {
-                GameRoomAlert.info(Main.getString("add_single_app_long"));
-                settings().setSettingValue(PredefinedSetting.NO_MORE_ADD_APP_WARNING,true);
-            }
-            mainScene.getRootStackPane().setMouseTransparent(true);
-
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(Main.getString("select_program"));
-            fileChooser.setInitialDirectory(
-                    new File(System.getProperty("user.home"))
-            );
-            Platform.getEmulablePlatforms().forEach(platform -> {
-                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(platform.getName(), platform.getSupportedExtensions()));
-            });
-            fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter(Main.getString("all_files"), "*")
-            );
-            try {
-                File selectedFile = fileChooser.showOpenDialog(mainScene.getParentStage());
-                if (selectedFile != null) {
-                    mainScene.fadeTransitionTo(new GameEditScene(mainScene, selectedFile), mainScene.getParentStage());
+            boolean registered = SettingsScene.checkAndDisplayRegisterDialog();
+            if (registered) {
+                if (!settings().getBoolean(PredefinedSetting.NO_MORE_ADD_APP_WARNING)) {
+                    GameRoomAlert.info(Main.getString("add_single_app_long"));
+                    settings().setSettingValue(PredefinedSetting.NO_MORE_ADD_APP_WARNING, true);
                 }
-            } catch (NullPointerException ne) {
-                ne.printStackTrace();
-                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
-                alert.setContentText(Main.getString("warning_internet_shortcut"));
-                alert.showAndWait();
+
+                mainScene.getRootStackPane().setMouseTransparent(true);
+
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle(Main.getString("select_program"));
+                fileChooser.setInitialDirectory(
+                        new File(System.getProperty("user.home"))
+                );
+                Platform.getEmulablePlatforms().forEach(platform -> {
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(platform.getName(), platform.getSupportedExtensions()));
+                });
+                fileChooser.getExtensionFilters().addAll(
+                        new FileChooser.ExtensionFilter(Main.getString("all_files"), "*")
+                );
+                try {
+                    File selectedFile = fileChooser.showOpenDialog(mainScene.getParentStage());
+                    if (selectedFile != null) {
+                        mainScene.fadeTransitionTo(new GameEditScene(mainScene, selectedFile), mainScene.getParentStage());
+                    }
+                } catch (NullPointerException ne) {
+                    ne.printStackTrace();
+                    GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
+                    alert.setContentText(Main.getString("warning_internet_shortcut"));
+                    alert.showAndWait();
+                }
+                mainScene.getRootStackPane().setMouseTransparent(false);
             }
-            mainScene.getRootStackPane().setMouseTransparent(false);
         });
         addMenu.addItem(emulatedItem);
 

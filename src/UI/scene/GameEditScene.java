@@ -471,7 +471,7 @@ public class GameEditScene extends BaseScene {
         });
 
         /**************************PLATFORM*********************************************/
-        if (!entry.getPlatform().isPC() || entry.getPlatform().equals(data.game.entry.Platform.NONE)) {
+        if (!entry.getPlatform().isPC() || entry.getPlatform().equals(data.game.entry.Platform.NONE) && SUPPORTER_MODE) {
             try {
                 data.game.entry.Platform.initWithDb();
             } catch (SQLException e) {
