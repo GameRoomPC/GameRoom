@@ -219,11 +219,11 @@ INSERT OR IGNORE INTO Platform(id,name_key,is_pc,default_supported_extensions) V
 	(12,"wiiu",0,"iso,wux");
 	
 INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
-	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %p"),
-	(2,"PCSX2", "C:\Program Files (x86)\PCSX2 1.4.0\pcsx2.exe","--fullscreen --nogui %p"),
-	(3,"cemu", "C:\Program Files (x86)\cemu\Cemu.exe","-f -g %p"),
+	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %a %p"),
+	(2,"PCSX2", "C:\Program Files (x86)\PCSX2 1.4.0\pcsx2.exe","--fullscreen --nogui %a %p"),
+	(3,"cemu", "C:\Program Files (x86)\cemu\Cemu.exe","-f -g %a %p"),
 	(4,"Project64","C:\Program Files (x86)\Project64 2.3\Project64.exe","%p"),
-	(5,"RetroArch","C:\Program Files (x86)\retroarch.exe","-f -L ""path/to/core"" %p");
+	(5,"RetroArch","C:\Program Files (x86)\retroarch.exe","-f -L ""path/to/core"" %a %p");
 
 INSERT OR IGNORE INTO emulates(emu_id,platform_id) VALUES
 	(1,7),

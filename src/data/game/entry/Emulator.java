@@ -8,6 +8,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by LM on 11/02/2017.
@@ -15,6 +17,8 @@ import java.util.*;
 public class Emulator {
 
     private final static String PATH_MARKER = "%p";
+    private final static String ENTRY_ARGS_MARKER = "%a";
+    private final static Pattern CMD_SPLIT_PATTERN = Pattern.compile("([^\"]\\S*|\".+?\")\\s*");
 
     private int sqlId;
     private String name;
@@ -139,15 +143,20 @@ public class Emulator {
         save();
     }
 
-
     public List<String> getCommandsToExecute(GameEntry entry) {
-        String[] args = getArgSchema(entry.getPlatform()).split("\\s");
-
         ArrayList<String> cmds = new ArrayList<>();
         cmds.add("\"" + path.getAbsolutePath() + "\"");
+        String emuArgs = getArgSchema(entry.getPlatform());
+        String entryArgs = entry.getArgs();
+        if (emuArgs != null) {
+            emuArgs = emuArgs.replace(ENTRY_ARGS_MARKER, entryArgs != null ? entryArgs : "");
+            emuArgs = emuArgs.replace(PATH_MARKER, "\"" + entry.getPath() + "\"");
 
-        for (String arg : args) {
-            cmds.add(arg.replace(PATH_MARKER, "\"" + entry.getPath() + "\""));
+            Matcher m = CMD_SPLIT_PATTERN.matcher(emuArgs);
+
+            while(m.find()){
+                cmds.add(m.group(1).replace("\"",""));
+            }
         }
         return cmds;
     }
@@ -161,14 +170,14 @@ public class Emulator {
     }
 
     public String getArgSchema(Platform platform) {
-        if(platform == null || platform.isPC()){
+        if (platform == null || platform.isPC()) {
             return defaultArgSchema;
         }
 
         try {
             PreparedStatement statement = DataBase.getUserConnection().prepareStatement("SELECT args_schema FROM emulates WHERE emu_id=? AND platform_id=?");
             statement.setInt(1, sqlId);
-            statement.setInt(2,platform.getId());
+            statement.setInt(2, platform.getId());
             ResultSet set = statement.executeQuery();
 
             if (set.next()) {
@@ -184,9 +193,9 @@ public class Emulator {
     public void setArgSchema(String argSchema, Platform platform) {
         try {
             PreparedStatement statement = DataBase.getUserConnection().prepareStatement("UPDATE emulates SET args_schema=? WHERE emu_id=? AND platform_id=?");
-            statement.setString(1,argSchema);
+            statement.setString(1, argSchema);
             statement.setInt(2, sqlId);
-            statement.setInt(3,platform.getId());
+            statement.setInt(3, platform.getId());
             statement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -194,7 +203,7 @@ public class Emulator {
     }
 
     @Override
-    public int hashCode(){
+    public int hashCode() {
         return sqlId;
     }
 
@@ -210,7 +219,7 @@ public class Emulator {
     }
 
     public static Emulator getFromId(int emuId) {
-        if(EMULATOR_MAPPING.isEmpty()){
+        if (EMULATOR_MAPPING.isEmpty()) {
             loadEmulators();
         }
         return EMULATOR_MAPPING.get(emuId);
