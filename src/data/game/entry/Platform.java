@@ -5,6 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import ui.Main;
 
+import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,7 +28,7 @@ public class Platform {
     public final static int DEFAULT_ID = -1;
     public final static int NONE_ID = -2;
 
-    public final static Platform NONE = new Platform(NONE_ID, NONE_ID, "default", true,"");
+    public final static Platform NONE = new Platform(NONE_ID, NONE_ID, "default", true, "");
 
 
     private int igdb_id = DEFAULT_ID;
@@ -35,8 +36,23 @@ public class Platform {
 
     private String nameKey;
     private boolean isPC;
+    private String defaultSupportedExtensions;
     private String supportedExtensions;
+    private String ROMFolder="";
 
+    private Platform(ResultSet set) throws SQLException {
+        id = set.getInt("id");
+        nameKey = set.getString("name_key");
+        isPC = set.getBoolean("is_pc");
+        defaultSupportedExtensions =  set.getString("default_supported_extensions");
+        supportedExtensions = set.getString("supported_extensions");
+        if (supportedExtensions == null) {
+            supportedExtensions = defaultSupportedExtensions;
+        }
+        ROMFolder = set.getString("path");
+    }
+
+    //should only be used to build the NONE platform
     private Platform(int id, int igdb_id, String nameKey, boolean isPC, String supportedExtensions) {
         if (nameKey == null || nameKey.isEmpty()) {
             throw new IllegalArgumentException("Platform's nameKey was either null or empty : \"" + nameKey + "\"");
@@ -45,52 +61,7 @@ public class Platform {
         this.nameKey = nameKey;
         this.id = id;
         this.isPC = isPC;
-        this.supportedExtensions=supportedExtensions;
-    }
-
-    public Platform(String nameKey) {
-        this(DEFAULT_ID, DEFAULT_ID, nameKey, true,"");
-    }
-
-    public static Platform getFromIGDBId(int igdb_id) {
-        if (ID_MAP.isEmpty()) {
-            try {
-                initWithDb();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        for (Platform platform : ID_MAP.values()) {
-            if (platform.getIGDBId() == igdb_id) {
-                return platform;
-            }
-        }
-        //try to see if it exists in db
-        try {
-            Connection connection = DataBase.getUserConnection();
-            PreparedStatement statement = connection.prepareStatement("select * from Platform where igdb_id = ?");
-            statement.setInt(1, igdb_id);
-            ResultSet set = statement.executeQuery();
-            if (set.next()) {
-                int platformId = set.getInt("id");
-                String key = set.getString("name_key");
-                boolean isPC = set.getBoolean("is_pc");
-                String supportedExtensions = set.getString("supported_extensions");
-                if(supportedExtensions == null){
-                    supportedExtensions = set.getString("default_supported_extensions");
-                }
-                Platform newPlatform = new Platform(platformId, igdb_id, key, isPC,supportedExtensions);
-                ID_MAP.put(platformId, newPlatform);
-
-                return newPlatform;
-            }
-            statement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        this.supportedExtensions = supportedExtensions;
     }
 
     public static Platform getFromId(int id) {
@@ -108,20 +79,15 @@ public class Platform {
             //try to see if it exists in db
             try {
                 Connection connection = DataBase.getUserConnection();
-                PreparedStatement statement = connection.prepareStatement("select * from Platform where id = ?");
+                PreparedStatement statement = connection.prepareStatement("SELECT * \n" +
+                        "FROM Platform\n" +
+                        "LEFT JOIN GameFolder ON GameFolder.platform_id = Platform.id\n" +
+                        "WHERE Platform.id=?");
                 statement.setInt(1, id);
                 ResultSet set = statement.executeQuery();
                 if (set.next()) {
-                    int platformId = set.getInt("id");
-                    int igdbId = set.getInt("igdb_id");
-                    String key = set.getString("name_key");
-                    boolean isPC = set.getBoolean("is_pc");
-                    String supportedExtensions = set.getString("supported_extensions");
-                    if(supportedExtensions == null){
-                        supportedExtensions = set.getString("default_supported_extensions");
-                    }
-                    Platform newPlatform = new Platform(platformId, igdbId, key, isPC,supportedExtensions);
-                    ID_MAP.put(platformId, newPlatform);
+                    Platform newPlatform = new Platform(set);
+                    ID_MAP.put(newPlatform.getId(), newPlatform);
 
                     return newPlatform;
                 }
@@ -137,17 +103,12 @@ public class Platform {
     public static void initWithDb() throws SQLException {
         Connection connection = DataBase.getUserConnection();
         Statement statement = connection.createStatement();
-        ResultSet set = statement.executeQuery("select * from Platform");
+        ResultSet set = statement.executeQuery("SELECT * \n" +
+                "FROM Platform\n" +
+                "LEFT JOIN GameFolder ON GameFolder.platform_id = Platform.id\n");
         while (set.next()) {
-            int id = set.getInt("id");
-            int igdbId = set.getInt("igdb_id");
-            String key = set.getString("name_key");
-            boolean isPC = set.getBoolean("is_pc");
-            String supportedExtensions = set.getString("supported_extensions");
-            if(supportedExtensions == null){
-                supportedExtensions = set.getString("default_supported_extensions");
-            }
-            ID_MAP.put(id, new Platform(id, igdbId, key, isPC,supportedExtensions));
+            Platform platform = new Platform(set);
+            ID_MAP.put(platform.getId(), platform);
         }
         statement.close();
     }
@@ -180,7 +141,7 @@ public class Platform {
         return ID_MAP.values();
     }
 
-    public static Collection<Platform> getEmulablePlatforms(){
+    public static Collection<Platform> getEmulablePlatforms() {
         ArrayList<Platform> items = new ArrayList<>(Platform.values());
         items.removeIf(Platform::isPC);
         items.removeIf(platform -> platform.equals(Platform.NONE));
@@ -222,7 +183,7 @@ public class Platform {
             Connection connection = DataBase.getUserConnection();
             Statement statement = connection.createStatement();
             ResultSet set = statement.executeQuery("SELECT emu_id from emulates WHERE user_choice = 1 AND platform_id = " + id);
-            if(set.next()){
+            if (set.next()) {
                 int emuId = set.getInt("emu_id");
                 return Emulator.getFromId(emuId);
             }
@@ -234,7 +195,7 @@ public class Platform {
     }
 
     @Override
-    public int hashCode(){
+    public int hashCode() {
         return id;
     }
 
@@ -249,42 +210,80 @@ public class Platform {
         return this.hashCode() == obj.hashCode();
     }
 
-    public String[] getSupportedExtensions(){
-        if(supportedExtensions == null){
+    public String[] getSupportedExtensions() {
+        if (supportedExtensions == null) {
             return new String[0];
         }
         String[] cpy = supportedExtensions.split(",");
         for (int i = 0; i < cpy.length; i++) {
-            cpy[i] = "*."+cpy[i];
+            cpy[i] = "*." + cpy[i];
         }
         return cpy;
     }
 
-    public String getSupportedExtensionsString(){
+    public String getSupportedExtensionsString() {
         return supportedExtensions == null ? "" : supportedExtensions;
     }
 
-    public void setSupportedExtensions(String supportedExtensions){
+    public void setSupportedExtensions(String supportedExtensions) {
         setSupportedExtensions(supportedExtensions.split(","));
     }
 
-    public void setSupportedExtensions(String[] supportedExtensions){
+    public void setSupportedExtensions(String[] supportedExtensions) {
         StringBuilder newValue = new StringBuilder("");
-        if(supportedExtensions != null){
-            for(String s : supportedExtensions){
+        if (supportedExtensions != null) {
+            for (String s : supportedExtensions) {
                 newValue.append(s).append(",");
             }
             newValue = newValue.deleteCharAt(newValue.length() - 1);
         }
-        this.supportedExtensions=newValue.toString();
+        this.supportedExtensions = newValue.toString();
         try {
             Connection connection = DataBase.getUserConnection();
             PreparedStatement statement = connection.prepareStatement("UPDATE Platform SET supported_extensions=? WHERE id =" + id);
-            statement.setString(1,this.supportedExtensions);
+            statement.setString(1, this.supportedExtensions);
             statement.execute();
             statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setROMFolder(String path) {
+        this.ROMFolder = path;
+        try {
+            Connection connection = DataBase.getUserConnection();
+            Statement statement = connection.createStatement();
+            ResultSet set = statement.executeQuery("SELECT id from GameFolder WHERE platform_id = " + id);
+            int folderId = -666;
+            if (set.next()) {
+                folderId = set.getInt("id");
+            }
+            statement.close();
+            if (folderId == -666) {
+                PreparedStatement insertStatement = connection
+                        .prepareStatement("INSERT INTO GameFolder(path,platform_id) VALUES (?,?)");
+                insertStatement.setString(1, path);
+                insertStatement.setInt(2, id);
+                insertStatement.execute();
+                insertStatement.close();
+            } else {
+                PreparedStatement updateStatement = connection.prepareStatement("UPDATE GameFolder SET path=? WHERE id=" + folderId);
+                updateStatement.setString(1, path);
+                updateStatement.execute();
+                updateStatement.close();
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getDefaultSupportedExtensionsString() {
+        return defaultSupportedExtensions;
+    }
+
+    public String getROMFolder() {
+        return ROMFolder;
     }
 }

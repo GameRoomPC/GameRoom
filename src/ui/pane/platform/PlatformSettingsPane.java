@@ -2,6 +2,8 @@ package ui.pane.platform;
 
 import data.game.entry.Emulator;
 import data.game.entry.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventDispatchChain;
@@ -13,6 +15,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Window;
 import ui.Main;
 import ui.control.button.HelpButton;
+import ui.control.textfield.PathTextField;
 import ui.dialog.GameRoomDialog;
 
 import java.sql.SQLException;
@@ -82,77 +85,87 @@ public class PlatformSettingsPane extends BorderPane {
         contentPane.setVgap(20 * SCREEN_WIDTH / 1920);
         contentPane.setHgap(10 * SCREEN_WIDTH / 1920);
         ColumnConstraints cc1 = new ColumnConstraints();
-        cc1.setPercentWidth(30);
+        cc1.setPercentWidth(20);
         contentPane.getColumnConstraints().add(cc1);
         ColumnConstraints cc2 = new ColumnConstraints();
         cc2.setPercentWidth(70);
         contentPane.getColumnConstraints().add(cc2);
+        ColumnConstraints cc3 = new ColumnConstraints();
+        cc3.setPercentWidth(10);
+        contentPane.getColumnConstraints().add(cc3);
 
         /********PROGRAM PATH **************/
-        //TODO add a better folder management to have a folder per platform
-        /*PathTextField pathField = new PathTextField(emulator.getPath().getAbsolutePath(), window, PathTextField.FILE_CHOOSER_APPS, Main.getString("select_program"));
-        pathField.getTextField().setPrefColumnCount(50);
+        PathTextField pathField = new PathTextField(platform.getROMFolder(), window, PathTextField.FILE_CHOOSER_FOLDER, Main.getString("select_a_folder"));
+        pathField.getTextField().setPrefColumnCount(40);
         pathField.getTextField().textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                File newPath = new File(newValue);
-                if (newPath.exists()) {
-                    emulator.setPath(newPath);
-                }
+                platform.setROMFolder(newValue);
             }
         });
-        Label pathLabel = new Label(Main.getString("path") + " :");
-        pathLabel.setTooltip(new Tooltip(Main.getString("path")));
+        Label pathLabel = new Label(Main.getString("rom_folder") + " :");
+        pathLabel.setTooltip(new Tooltip(Main.getString("rom_folder")));
         contentPane.add(pathLabel, 0, rowCount);
         contentPane.add(pathField, 1, rowCount);
-        rowCount++;*/
+        rowCount++;
 
         /************SUPPORTED EXTENSIONS*********/
-        //TODO add a reset option
         TextField extField = new TextField();
         extField.setPrefColumnCount(40);
-        if(chosenEmulator != null){
-            extField.setText(platform.getSupportedExtensionsString());
-        }
+        extField.setText(platform.getSupportedExtensionsString());
         extField.textProperty().addListener((observable, oldValue, newValue) -> platform.setSupportedExtensions(newValue));
-        extField.setManaged(chosenEmulator != null);
-        extField.setVisible(chosenEmulator != null);
 
         HBox extBox = new HBox();
         extBox.setAlignment(Pos.CENTER_LEFT);
         extBox.setSpacing(5 * SCREEN_WIDTH / 1920);
-        extBox.getChildren().addAll( new Label(Main.getString("romExtensions") + " :")
-                ,new HelpButton(Main.getString("romExtensions_tooltip")));
+        extBox.getChildren().addAll(new Label(Main.getString("romExtensions") + " :")
+                , new HelpButton(Main.getString("romExtensions_tooltip")));
+
+        Button extResetButton = new Button(Main.getString("default"));
+        extResetButton.setOnAction(event -> {
+            String defaultExts = platform.getDefaultSupportedExtensionsString();
+            extField.setText(defaultExts != null ? defaultExts : "");
+        });
 
         contentPane.add(extBox, 0, rowCount);
         contentPane.add(extField, 1, rowCount);
+        contentPane.add(extResetButton, 2, rowCount);
         rowCount++;
 
         /************ARGS SCHEMA*********/
         //TODO add a reset option
         TextField argField = new TextField();
         argField.setPrefColumnCount(40);
-        if(chosenEmulator != null){
+        if (chosenEmulator != null) {
             argField.setText(chosenEmulator.getArgSchema(platform));
         }
-        argField.textProperty().addListener((observable, oldValue, newValue) -> platform.getChosenEmulator().setArgSchema(newValue,platform));
+        argField.textProperty().addListener((observable, oldValue, newValue) -> platform.getChosenEmulator().setArgSchema(newValue, platform));
         argField.setManaged(chosenEmulator != null);
         argField.setVisible(chosenEmulator != null);
 
         HBox argBox = new HBox();
         argBox.setAlignment(Pos.CENTER_LEFT);
         argBox.setSpacing(5 * SCREEN_WIDTH / 1920);
-        argBox.getChildren().addAll( new Label(Main.getString("emulator_args_schema") + " :")
-                ,new HelpButton(Main.getString("emulator_args_schema_tooltip")));
+        argBox.getChildren().addAll(new Label(Main.getString("emulator_args_schema") + " :")
+                , new HelpButton(Main.getString("emulator_args_schema_tooltip")));
         argBox.setVisible(chosenEmulator != null);
-        argBox.setManaged(chosenEmulator!=null);
+        argBox.setManaged(chosenEmulator != null);
 
-        Button configureButton = new Button("configure");
-        configureButton.setVisible(chosenEmulator != null);
-        configureButton.setManaged(chosenEmulator!=null);
+        Button argResetButton = new Button(Main.getString("default"));
+        argResetButton.setOnAction(event -> {
+            if (platform.getChosenEmulator() != null) {
+                String defaultArgs = platform.getChosenEmulator().getDefaultArgSchema();
+                argField.setText(defaultArgs != null ? defaultArgs : "");
+            }
+        });
+        argResetButton.setVisible(chosenEmulator != null);
+        argResetButton.setManaged(chosenEmulator != null);
 
         /******** EMULATOR CHOICE *********/
-        //TODO add a configure button
+        Button configureButton = new Button("configure");
+        configureButton.setVisible(chosenEmulator != null);
+        configureButton.setManaged(chosenEmulator != null);
+
         final ObservableList<Emulator> possibleEmulators = FXCollections.observableArrayList(Emulator.getPossibleEmulators(platform));
         possibleEmulators.sort(Comparator.comparing(Emulator::toString));
 
@@ -170,6 +183,8 @@ public class PlatformSettingsPane extends BorderPane {
             argField.setVisible(true);
             argField.setManaged(true);
             argField.setText(newValue.getArgSchema(platform));
+            argResetButton.setVisible(true);
+            argResetButton.setManaged(true);
             configureButton.setVisible(true);
             configureButton.setManaged(true);
         });
@@ -183,14 +198,14 @@ public class PlatformSettingsPane extends BorderPane {
             };
             ButtonType okButton = new ButtonType(Main.getString("close"), ButtonBar.ButtonData.OK_DONE);
             dialog.getDialogPane().getButtonTypes().add(okButton);
-            EmulatorSettingsPane pane = new EmulatorSettingsPane(emuComboBox.getValue(),window);
-            pane.setMaxWidth(1.5*Main.SCREEN_WIDTH/4);
+            EmulatorSettingsPane pane = new EmulatorSettingsPane(emuComboBox.getValue(), window);
+            pane.setMaxWidth(1.5 * Main.SCREEN_WIDTH / 4);
             dialog.getMainPane().setCenter(pane);
             dialog.showAndWait();
         });
 
-        HBox box = new HBox(10*Main.SCREEN_WIDTH/1920);
-        box.getChildren().addAll(emuComboBox,configureButton);
+        HBox box = new HBox(10 * Main.SCREEN_WIDTH / 1920);
+        box.getChildren().addAll(emuComboBox, configureButton);
 
         Label platformLabel = new Label(Main.getString("emulate_with") + " :");
         platformLabel.setTooltip(new Tooltip(Main.getString("emulate_with")));

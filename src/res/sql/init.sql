@@ -146,9 +146,10 @@ CREATE TABLE IF NOT EXISTS Settings (
 );
 
 CREATE TABLE IF NOT EXISTS GameFolder (
-	path text PRIMARY KEY,
-	platform_folder integer default -2,
-	FOREIGN KEY(platform_folder) REFERENCES Platform(id)
+    id integer PRIMARY KEY AUTOINCREMENT,
+	path text,
+	platform_id integer default -2,
+	FOREIGN KEY(platform_id) REFERENCES Platform(id)
 );
 
 CREATE TABLE IF NOT EXISTS GameScanners (

@@ -53,7 +53,11 @@ public class PathTextField extends StackPane {
             @Override
             public void handle(ActionEvent event) {
                 try {
-                    File initialDir = new File(field.getText());
+                    String path = field.getText();
+                    if(path == null || path.isEmpty()){
+                        path = System.getProperty("user.home");
+                    }
+                    File initialDir = new File(path);
                     switch (fileChooserCode) {
                         case FILE_CHOOSER_APPS:
                             FileChooser fileChooser = new FileChooser();
@@ -82,7 +86,7 @@ public class PathTextField extends StackPane {
                             DirectoryChooser folderChooser = new DirectoryChooser();
                             folderChooser.setTitle(fileChooserTitle);
 
-                            if (initialPath.equals("")) {
+                            if (initialPath == null || initialPath.equals("")) {
                                 initialDir = new File(System.getProperty("user.home"));
                             }
                             folderChooser.setInitialDirectory(initialDir);

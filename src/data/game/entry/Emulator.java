@@ -215,4 +215,8 @@ public class Emulator {
         }
         return EMULATOR_MAPPING.get(emuId);
     }
+
+    public String getDefaultArgSchema() {
+        return defaultArgSchema;
+    }
 }

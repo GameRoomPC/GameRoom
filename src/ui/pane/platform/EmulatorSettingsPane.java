@@ -95,56 +95,8 @@ public class EmulatorSettingsPane extends BorderPane {
         contentPane.add(pathField, 1, rowCount);
         rowCount++;
 
-        /******** EMULATES CHOICES *********/
-        /*final ObservableList<Platform> supportedPlatforms = FXCollections.observableArrayList(emulator.getSupportedPlatforms());
-        supportedPlatforms.sort(Comparator.comparing(Platform::getName));
+        //TODO add a "found" indicator for emulator path
 
-        final CheckComboBox<Platform> platformComboBox = new CheckComboBox<Platform>(supportedPlatforms);
-        for (Platform platform : supportedPlatforms) {
-            if (emulator.equals(Emulator.getChosenEmulator(platform))) {
-                platformComboBox.getCheckModel().check(platformComboBox.getCheckModel().getItemIndex(platform));
-            }
-        }
-
-        platformComboBox.getCheckModel().getCheckedItems().addListener((ListChangeListener<Platform>) c -> {
-            while (c.next()) {
-                c.getAddedSubList().forEach(o -> {
-                    o.setChosenEmulator(emulator);
-                });
-                c.getRemoved().forEach(o -> {
-                    o.setChosenEmulator(null);
-                });
-            }
-        });
-        Label platformLabel = new Label(Main.getString("use_for") + " :");
-        platformLabel.setTooltip(new Tooltip(Main.getString("platform_label")));
-        contentPane.add(platformLabel, 0, rowCount);
-        contentPane.add(platformComboBox, 1, rowCount);
-        rowCount++;*/
-
-        /************ARGS SCHEMA*********/
-        //TODO add a resest option
-        /*TextField textField = new TextField(emulator.getArgSchema());
-        textField.setPrefColumnCount(50);
-        textField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                emulator.setArgSchema(newValue);
-            }
-        });*/
-
-        /*HBox argBox = new HBox();
-        argBox.setAlignment(Pos.CENTER_LEFT);
-        argBox.setSpacing(5 * SCREEN_WIDTH / 1920);
-        argBox.getChildren().addAll( new Label(Main.getString("emulator_args_schema") + " :")
-                ,new HelpButton(Main.getString("emulator_args_schema_tooltip")));
-
-        contentPane.add(argBox, 0, rowCount);
-        contentPane.add(textField, 1, rowCount);
-        rowCount++;*/
-
-
-        /**** DO NOT ADD ANY CONTENT PAST HERE ****/
         setCenter(contentPane);
     }
 }
