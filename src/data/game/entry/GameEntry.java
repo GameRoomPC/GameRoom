@@ -363,6 +363,7 @@ public class GameEntry {
     }
 
     public int getAggregated_rating() {
+        //TODO fix in MainScene sorting by aggregated_rating returns only zeros
         return aggregated_rating;
     }
 
@@ -1088,37 +1089,37 @@ public class GameEntry {
     }
 
     public static String getSQLInitLine() {
-        String temp = "INSERT OR REPLACE INTO GameEntry (";
+        StringBuilder temp = new StringBuilder("INSERT OR REPLACE INTO GameEntry (");
 
         for (int i = 0; i < SQL_PARAMS.length; i++) {
-            temp += SQL_PARAMS[i];
+            temp.append(SQL_PARAMS[i]);
             if (i != SQL_PARAMS.length - 1) {
-                temp += ",";
+                temp.append(",");
             }
         }
 
-        temp += ") VALUES (";
+        temp.append(") VALUES (");
         for (int i = 0; i < SQL_PARAMS.length; i++) {
-            temp += "?";
+            temp.append("?");
             if (i != SQL_PARAMS.length - 1) {
-                temp += ",";
+                temp.append(",");
             }
         }
         return temp + ");";
     }
 
     public static String getSQLUpdateLine() {
-        String temp = "UPDATE GameEntry set ";
+        StringBuilder temp = new StringBuilder("UPDATE GameEntry set ");
 
         for (int i = 0; i < SQL_PARAMS.length; i++) {
-            temp += SQL_PARAMS[i] + "=?";
+            temp.append(SQL_PARAMS[i]).append("=?");
             if (i != SQL_PARAMS.length - 1) {
-                temp += ", ";
+                temp.append(", ");
             }
         }
 
-        temp += " WHERE id = ?";
-        return temp;
+        temp.append(" WHERE id = ?");
+        return temp.toString();
     }
 
     public void addGenre(GameGenre genre) {
