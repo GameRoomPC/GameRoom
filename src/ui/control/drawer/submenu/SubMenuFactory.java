@@ -40,7 +40,10 @@ public final class SubMenuFactory {
         TextItem singleAppItem = new TextItem("add_single_app");
         singleAppItem.setTooltip(new Tooltip(Main.getString("add_single_app_long")));
         singleAppItem.setOnAction(event -> {
-            GameRoomAlert.info(Main.getString("add_single_app_long"));
+            if (!settings().getBoolean(PredefinedSetting.NO_MORE_ADD_APP_WARNING)) {
+                GameRoomAlert.info(Main.getString("add_single_app_long"));
+                settings().setSettingValue(PredefinedSetting.NO_MORE_ADD_APP_WARNING,true);
+            }
             mainScene.getRootStackPane().setMouseTransparent(true);
 
             FileChooser fileChooser = new FileChooser();
@@ -71,7 +74,10 @@ public final class SubMenuFactory {
         TextItem folderItem = new TextItem("add_folder_app");
         folderItem.setTooltip(new Tooltip(Main.getString("add_folder_app_long")));
         folderItem.setOnAction(event -> {
-            GameRoomAlert.info(Main.getString("add_folder_app_long"));
+            if(!settings().getBoolean(PredefinedSetting.NO_MORE_ADD_FOLDER_WARNING)) {
+                GameRoomAlert.info(Main.getString("add_folder_app_long"));
+                settings().setSettingValue(PredefinedSetting.NO_MORE_ADD_APP_WARNING,true);
+            }
 
             mainScene.getRootStackPane().setMouseTransparent(true);
 
@@ -95,10 +101,12 @@ public final class SubMenuFactory {
         addMenu.addItem(folderItem);
 
         //************EMULATOR****************
-        //TODO add dialog, option to add folder of isos, add .elf support etc..
         TextItem emulatedItem = new TextItem("add_emulated_game");
         emulatedItem.setOnAction(event -> {
-            GameRoomAlert.info(Main.getString("add_single_app_long"));
+            if (!settings().getBoolean(PredefinedSetting.NO_MORE_ADD_APP_WARNING)) {
+                GameRoomAlert.info(Main.getString("add_single_app_long"));
+                settings().setSettingValue(PredefinedSetting.NO_MORE_ADD_APP_WARNING,true);
+            }
             mainScene.getRootStackPane().setMouseTransparent(true);
 
             FileChooser fileChooser = new FileChooser();
@@ -107,7 +115,7 @@ public final class SubMenuFactory {
                     new File(System.getProperty("user.home"))
             );
             Platform.getEmulablePlatforms().forEach(platform -> {
-                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(platform.getName(),platform.getSupportedExtensions()));
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(platform.getName(), platform.getSupportedExtensions()));
             });
             fileChooser.getExtensionFilters().addAll(
                     new FileChooser.ExtensionFilter(Main.getString("all_files"), "*")
@@ -287,8 +295,8 @@ public final class SubMenuFactory {
 
         CheckBoxItem noWallPaperCheckBox = new CheckBoxItem(Main.getSettingsString("disableMainSceneWallpaper_label"), false);
         noWallPaperCheckBox.setTooltip(new Tooltip(Main.getSettingsString("disableMainSceneWallpaper_tooltip")));
-        noWallPaperCheckBox.setSelected(disabledWallpaper && ! staticWallPaper);
-        settings().setSettingValue(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER,disabledWallpaper && ! staticWallPaper);
+        noWallPaperCheckBox.setSelected(disabledWallpaper && !staticWallPaper);
+        settings().setSettingValue(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER, disabledWallpaper && !staticWallPaper);
         noWallPaperCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             settings().setSettingValue(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER, newValue);
             if (newValue) {

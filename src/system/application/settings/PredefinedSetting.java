@@ -72,6 +72,8 @@ public enum PredefinedSetting {
     , LAST_SUPPORT_MESSAGE("lastSupportMessage", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , LAST_UPDATE_CHECK("lastUpdateCheck", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , DRAWER_MENU_WIDTH("drawerMenuWidth", new SettingValue(0,Double.class,CATEGORY_NONE))
+    ,NO_MORE_ADD_APP_WARNING("noMoreAddAppWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
+    ,NO_MORE_ADD_FOLDER_WARNING("noMoreAddAppWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ;
 
 
