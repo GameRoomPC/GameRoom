@@ -203,8 +203,7 @@ public class GameEditScene extends BaseScene {
                             try {
                                 entry.updateImage(i, chosenImageFiles[i]);
                             } catch (IOException e) {
-                                //TODO localize
-                                GameRoomAlert.error("Could not move new images");
+                                GameRoomAlert.error(Main.getString("error_move_images"));
                             }
                         }
                     }
@@ -660,8 +659,7 @@ public class GameEditScene extends BaseScene {
                                                              gameEntry.setIgdb_imageHashs(IGDBScraper.getScreenshotHash(gameData));
                                                              openImageSelector(gameEntry);
                                                          } else {
-                                                             //TODO localize
-                                                             GameRoomAlert.info("No screenshot for this game on IGDB");
+                                                             GameRoomAlert.info(Main.getString("error_no_screenshot_igdb"));
                                                          }
                                                      } catch (JSONException jse) {
                                                          if (jse.toString().contains("[\"screenshots\"] not found")) {

@@ -133,7 +133,6 @@ public class PlatformSettingsPane extends BorderPane {
         rowCount++;
 
         /************ARGS SCHEMA*********/
-        //TODO add a reset option
         TextField argField = new TextField();
         argField.setPrefColumnCount(40);
         if (chosenEmulator != null) {
@@ -147,7 +146,7 @@ public class PlatformSettingsPane extends BorderPane {
         argBox.setAlignment(Pos.CENTER_LEFT);
         argBox.setSpacing(5 * SCREEN_WIDTH / 1920);
         argBox.getChildren().addAll(new Label(Main.getString("emulator_args_schema") + " :")
-                , new HelpButton(Main.getString("emulator_args_schema_tooltip")));
+                , new HelpButton(Main.getString("emulator_args_schema_tooltip"),true));
         argBox.setVisible(chosenEmulator != null);
         argBox.setManaged(chosenEmulator != null);
 
@@ -215,6 +214,7 @@ public class PlatformSettingsPane extends BorderPane {
 
         contentPane.add(argBox, 0, rowCount);
         contentPane.add(argField, 1, rowCount);
+        contentPane.add(argResetButton, 2, rowCount);
         rowCount++;
 
 
