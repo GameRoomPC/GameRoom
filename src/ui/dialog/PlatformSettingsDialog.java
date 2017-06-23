@@ -69,6 +69,7 @@ public class PlatformSettingsDialog extends GameRoomDialog<ButtonType> {
                     imageView.setId(platform.getIconCSSId());
                     imageView.setFitWidth(width);
                     imageView.setFitHeight(height);
+                    imageView.setSmooth(true);
 
                     setText(platform.getName());
                     setGraphic(imageView);
@@ -98,6 +99,7 @@ public class PlatformSettingsDialog extends GameRoomDialog<ButtonType> {
             );
             listView.refresh();
         });
+        bar.setId("search-bar-embedded");
 
         VBox box = new VBox();
         box.setSpacing(5*Main.SCREEN_HEIGHT/1080);

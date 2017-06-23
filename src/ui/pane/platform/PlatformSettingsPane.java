@@ -46,6 +46,7 @@ public class PlatformSettingsPane extends BorderPane {
     private void initTop() {
         StackPane topPane = new StackPane();
         topPane.getStyleClass().add("header");
+        topPane.getStyleClass().add("small-header");
 
         Label titleLabel = new Label(platform.getName());
         titleLabel.getStyleClass().add("small-title-label");
@@ -53,7 +54,7 @@ public class PlatformSettingsPane extends BorderPane {
         ImageView iconView = new ImageView();
         double width = 35 * Main.SCREEN_WIDTH / 1920 * settings().getUIScale().getScale();
         double height = 35 * Main.SCREEN_HEIGHT / 1080 * settings().getUIScale().getScale();
-        iconView.setSmooth(false);
+        iconView.setSmooth(true);
         iconView.setPreserveRatio(true);
         iconView.setFitWidth(width);
         iconView.setFitHeight(height);

@@ -1,6 +1,7 @@
 package ui.control.specific;
 
 import javafx.beans.value.ChangeListener;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -25,6 +26,7 @@ public class SearchBar extends HBox {
         searchField = new TextField();
         searchField.setFocusTraversable(false);
         searchField.textProperty().addListener(changeListener);
+        searchField.setPadding(new Insets(0,15*SCREEN_WIDTH/1080,0,0));
 
         getChildren().addAll(searchButton,searchField);
 
