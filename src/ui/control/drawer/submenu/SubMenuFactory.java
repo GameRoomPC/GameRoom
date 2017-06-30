@@ -23,8 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 import static system.application.settings.GeneralSettings.settings;
 
@@ -118,9 +117,17 @@ public final class SubMenuFactory {
                 fileChooser.setInitialDirectory(
                         new File(System.getProperty("user.home"))
                 );
+
+                Set<String> allExt = new HashSet<>();
                 Platform.getEmulablePlatforms().forEach(platform -> {
+                    Collections.addAll(allExt,platform.getSupportedExtensions());
                     fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(platform.getName(), platform.getSupportedExtensions()));
                 });
+                ArrayList<String> sortedExts = new ArrayList<String>();
+                sortedExts.addAll(allExt);
+                sortedExts.sort(String::compareTo);
+
+                fileChooser.getExtensionFilters().add(0,new FileChooser.ExtensionFilter(Main.getString("all_rom_exts"),sortedExts));
                 fileChooser.getExtensionFilters().addAll(
                         new FileChooser.ExtensionFilter(Main.getString("all_files"), "*")
                 );
@@ -206,6 +213,14 @@ public final class SubMenuFactory {
             mainScene.forceHideTilesRows(newValue);
         });
         editMenu.addItem(hidePanesCheckBox);
+
+        CheckBoxItem keepRatioCheckBox = new CheckBoxItem("keep_cover_ratio", true);
+        keepRatioCheckBox.setSelected(settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO));
+        keepRatioCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            settings().setSettingValue(PredefinedSetting.KEEP_COVER_RATIO, newValue);
+            mainScene.reloadCovers();
+        });
+        editMenu.addItem(keepRatioCheckBox);
 
         CheckBoxItem fullScreenCheckBox = new CheckBoxItem("fullscreen", true);
         fullScreenCheckBox.selectedProperty().bindBidirectional(settings().getBooleanProperty(PredefinedSetting.FULL_SCREEN));

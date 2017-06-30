@@ -534,7 +534,7 @@ public class MainScene extends BaseScene {
             });
             newItems.add(gameItem);
         }
-        
+
         newItems.sort(new Comparator<java.awt.MenuItem>() {
             @Override
             public int compare(java.awt.MenuItem o1, java.awt.MenuItem o2) {
@@ -975,5 +975,14 @@ public class MainScene extends BaseScene {
                 }
             }
         });
+    }
+
+    public void reloadCovers() {
+        tilePane.getGameButtons().forEach(GameButton::showCover);
+        toAddTilePane.getGameButtons().forEach(GameButton::showCover);
+        recentlyAddedTilePane.getGameButtons().forEach(GameButton::showCover);
+        lastPlayedTilePane.getGameButtons().forEach(GameButton::showCover);
+        groupRowList.forEach(groupRowTilePane -> groupRowTilePane.getGameButtons().forEach(GameButton::showCover));
+
     }
 }

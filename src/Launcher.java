@@ -410,7 +410,7 @@ public class Launcher extends Application {
             }
         });
         TRAY_ICON.setImageAutoSize(true);
-        Platform.setImplicitExit(DEV_MODE);
+        Platform.setImplicitExit(DEV_MODE && false);
 
         MAIN_SCENE.getParentStage().setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
