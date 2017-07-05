@@ -367,7 +367,7 @@ public abstract class GameButton extends BorderPane {
                         if (MAIN_SCENE != null) {
                             GeneralToast.displayToast(Main.getString("looking_for_game_exe"), MAIN_SCENE.getParentStage());
                         }
-                        AppSelectorDialog selector = new AppSelectorDialog(gamePath);
+                        AppSelectorDialog selector = new AppSelectorDialog(gamePath,entry.getPlatform().getSupportedExtensions());
                         selector.searchApps();
 
                         Optional<ButtonType> ignoredOptionnal = selector.showAndWait();

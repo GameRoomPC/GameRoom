@@ -32,16 +32,16 @@ CREATE TABLE IF NOT EXISTS Company (
 CREATE TABLE IF NOT EXISTS develops (
 	game_id integer,
 	dev_id integer,
-	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(dev_id) REFERENCES Company(id),
+	FOREIGN KEY(game_id) REFERENCES GameEntry(id) ON DELETE CASCADE,
+	FOREIGN KEY(dev_id) REFERENCES Company(id) ON DELETE CASCADE,
 	PRIMARY KEY (game_id, dev_id)
 );
 
 CREATE TABLE IF NOT EXISTS publishes (
 	game_id integer,
 	pub_id integer,
-	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(pub_id) REFERENCES Company(id),
+	FOREIGN KEY(game_id) REFERENCES GameEntry(id) ON DELETE CASCADE,
+	FOREIGN KEY(pub_id) REFERENCES Company(id) ON DELETE CASCADE,
     PRIMARY KEY (game_id, pub_id)
 );
 
@@ -55,8 +55,8 @@ CREATE TABLE IF NOT EXISTS Serie (
 CREATE TABLE IF NOT EXISTS regroups (
 	game_id integer,
 	serie_id integer,
-	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(serie_id) REFERENCES Serie(id),
+	FOREIGN KEY(game_id) REFERENCES GameEntry(id) ON DELETE CASCADE,
+	FOREIGN KEY(serie_id) REFERENCES Serie(id) ON DELETE CASCADE,
 	PRIMARY KEY (game_id, serie_id)
 );
 
@@ -70,8 +70,8 @@ CREATE TABLE IF NOT EXISTS GameGenre (
 CREATE TABLE IF NOT EXISTS has_genre (
 	game_id integer,
 	genre_id integer,
-	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(genre_id) REFERENCES GameGenre(id),
+	FOREIGN KEY(game_id) REFERENCES GameEntry(id) ON DELETE CASCADE,
+	FOREIGN KEY(genre_id) REFERENCES GameGenre(id) ON DELETE CASCADE,
 	PRIMARY KEY (game_id, genre_id)
 );
 
@@ -85,23 +85,17 @@ CREATE TABLE IF NOT EXISTS GameTheme (
 CREATE TABLE IF NOT EXISTS has_theme (
 	game_id integer,
 	theme_id integer,
-	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(theme_id) REFERENCES GameTheme(id),
+	FOREIGN KEY(game_id) REFERENCES GameEntry(id) ON DELETE CASCADE,
+	FOREIGN KEY(theme_id) REFERENCES GameTheme(id) ON DELETE CASCADE,
 	PRIMARY KEY (game_id, theme_id)
 );
 
 CREATE TABLE IF NOT EXISTS PlaySession (
 	id integer PRIMARY KEY AUTOINCREMENT,
 	start_date datetime,
-	time_played_seconds integer
-);
-
-CREATE TABLE IF NOT EXISTS played (
+	time_played_seconds integer,
 	game_id integer,
-	play_session_id integer,
-	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
-	FOREIGN KEY(play_session_id) REFERENCES PlaySession(id),
-	PRIMARY KEY (game_id, play_session_id)
+	FOREIGN KEY(game_id) REFERENCES GameEntry(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Platform (
@@ -117,8 +111,8 @@ CREATE TABLE IF NOT EXISTS runs_on (
 	platformGameId integer,
 	platform_id integer,
 	game_id integer unique,
-	FOREIGN KEY(platform_id) REFERENCES Platform(id),
-	FOREIGN KEY(game_id) REFERENCES GameEntry(id),
+	FOREIGN KEY(platform_id) REFERENCES Platform(id) ON DELETE CASCADE,
+	FOREIGN KEY(game_id) REFERENCES GameEntry(id) ON DELETE CASCADE,
 	PRIMARY KEY (platform_id, game_id)
 );
 
@@ -135,8 +129,8 @@ CREATE TABLE IF NOT EXISTS emulates (
 	emu_id integer,
 	user_choice integer default 0,
 	args_schema text,
-	FOREIGN KEY(platform_id) REFERENCES Platform(id),
-	FOREIGN KEY(emu_id) REFERENCES Emulator(id),
+	FOREIGN KEY(platform_id) REFERENCES Platform(id) ON DELETE CASCADE,
+	FOREIGN KEY(emu_id) REFERENCES Emulator(id) ON DELETE CASCADE,
 	PRIMARY KEY (platform_id, emu_id)
 );
 
@@ -149,7 +143,7 @@ CREATE TABLE IF NOT EXISTS GameFolder (
     id integer PRIMARY KEY AUTOINCREMENT,
 	path text,
 	platform_id integer default -2,
-	FOREIGN KEY(platform_id) REFERENCES Platform(id)
+	FOREIGN KEY(platform_id) REFERENCES Platform(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS GameScanners (
@@ -203,27 +197,28 @@ INSERT OR REPLACE INTO GameGenre(igdb_id,name_key) VALUES
 	(32,"indie"),
 	(33,"arcade");
 	
-INSERT OR IGNORE INTO Platform(id,name_key,is_pc,default_supported_extensions) VALUES
-	(-2,"default",1,""),
-	(1,"steam",1,""),
-	(2,"steam_online",1,""),
-	(3,"origin",1,""),
-	(4,"uplay",1,""),
-	(5,"battlenet",1,""),
-	(6,"gog",1,""),
-	(7,"wii",0,"iso"),
-	(8,"gamecube",0,"ciso,iso,wbfs"),
+INSERT OR REPLACE INTO Platform(id,name_key,is_pc,default_supported_extensions) VALUES
+	(-2,"default",1,"exe,jar,lnk"),
+	(1,"steam",1,"exe,jar,lnk"),
+	(2,"steam_online",1,"exe,jar,lnk"),
+	(3,"origin",1,"exe,jar,lnk"),
+	(4,"uplay",1,"exe,jar,lnk"),
+	(5,"battlenet",1,"exe,jar,lnk"),
+	(6,"gog",1,"exe,jar,lnk"),
+	(7,"wii",0,"ciso,iso,wbfs"),
+	(8,"gamecube",0,"iso"),
 	(9,"n64",0,"n64"),
 	(10,"ps2",0,"elf,gz,iso"),
-	(11,"ps3",0,"iso,pkg"),
-	(12,"wiiu",0,"iso,rpx,wud,wux,");
+	(11,"ps3",0,"iso,pkg,bin,elf"),
+	(12,"wiiu",0,"iso,rpx,wud,wux");
 	
 INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
 	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %a %p"),
 	(2,"PCSX2", "C:\Program Files (x86)\PCSX2 1.4.0\pcsx2.exe","--fullscreen --nogui %a %p"),
 	(3,"cemu", "C:\Program Files (x86)\cemu\Cemu.exe","-f -g %a %p"),
 	(4,"Project64","C:\Program Files (x86)\Project64 2.3\Project64.exe","%p"),
-	(5,"RetroArch","C:\Program Files (x86)\retroarch.exe","-f -L ""path/to/core"" %a %p");
+	(5,"RetroArch","C:\Program Files (x86)\retroarch.exe","-f -L ""path/to/core"" %a %p"),
+	(6,"RPCS3","C:\Program Files (x86)\rpcs3.exe","%a %p");
 
 INSERT OR IGNORE INTO emulates(emu_id,platform_id) VALUES
 	(1,7),
@@ -233,6 +228,7 @@ INSERT OR IGNORE INTO emulates(emu_id,platform_id) VALUES
 	(4,9),
 	(5,7),
 	(5,8),
-	(5,9);
+	(5,9),
+	(6,11);
 	
 	

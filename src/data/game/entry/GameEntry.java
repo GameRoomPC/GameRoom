@@ -131,7 +131,7 @@ public class GameEntry {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            Main.LOGGER.debug(name+" saved in " + (System.currentTimeMillis() - start) + "ms");
+            Main.LOGGER.debug(name + " saved in " + (System.currentTimeMillis() - start) + "ms");
         }
     }
 
@@ -190,10 +190,10 @@ public class GameEntry {
             String insertSQL = "INSERT OR REPLACE INTO has_genre(game_id,genre_id) VALUES ";
             for (GameGenre genre : genres) {
                 if (genre != null) {
-                    insertSQL+="("+id+","+GameGenre.getIGDBId(genre.getKey())+"),";
+                    insertSQL += "(" + id + "," + GameGenre.getIGDBId(genre.getKey()) + "),";
                 }
             }
-            batchStatement.addBatch(insertSQL.substring(0,insertSQL.length()-1));
+            batchStatement.addBatch(insertSQL.substring(0, insertSQL.length() - 1));
         }
     }
 
@@ -204,10 +204,10 @@ public class GameEntry {
             String insertSQL = "INSERT OR REPLACE INTO has_theme(game_id,theme_id) VALUES ";
             for (GameTheme theme : themes) {
                 if (theme != null) {
-                    insertSQL+="("+id+","+theme.getIGDBId(theme.getKey())+"),";
+                    insertSQL += "(" + id + "," + theme.getIGDBId(theme.getKey()) + "),";
                 }
             }
-            batchStatement.addBatch(insertSQL.substring(0,insertSQL.length()-1));
+            batchStatement.addBatch(insertSQL.substring(0, insertSQL.length() - 1));
         }
     }
 
@@ -218,10 +218,10 @@ public class GameEntry {
             String insertSQL = "INSERT OR REPLACE INTO develops(game_id,dev_id) VALUES ";
             for (Company c : developers) {
                 if (c != null) {
-                    insertSQL+="("+id+","+c.getId()+"),";
+                    insertSQL += "(" + id + "," + c.getId() + "),";
                 }
             }
-            batchStatement.addBatch(insertSQL.substring(0,insertSQL.length()-1));
+            batchStatement.addBatch(insertSQL.substring(0, insertSQL.length() - 1));
         }
     }
 
@@ -232,10 +232,10 @@ public class GameEntry {
             String insertSQL = "INSERT OR REPLACE INTO publishes(game_id,pub_id) VALUES ";
             for (Company c : publishers) {
                 if (c != null) {
-                    insertSQL+="("+id+","+c.getId()+"),";
+                    insertSQL += "(" + id + "," + c.getId() + "),";
                 }
             }
-            batchStatement.addBatch(insertSQL.substring(0,insertSQL.length()-1));
+            batchStatement.addBatch(insertSQL.substring(0, insertSQL.length() - 1));
         }
     }
 
@@ -532,18 +532,8 @@ public class GameEntry {
         deleted = true;
         try {
             PreparedStatement statement = DataBase.getUserConnection().prepareStatement(
-                    "delete from GameEntry where id = ?;" +
-                            "delete from runs_on where game_id = ?;" +
-                            "delete from has_theme where game_id = ?;" +
-                            "delete from has_genre where game_id = ?;" +
-                            "delete from publishes where game_id = ?;" +
-                            "delete from develops where game_id = ?;" +
-                            "delete from regroups where game_id = ?;" +
-                            "delete from played where game_id = ?;");
-            for (int i = 1; i < 8; i++) {
-
-                statement.setInt(1, id);
-            }
+                    "delete from GameEntry where id = ?;");
+            statement.setInt(1, id);
             statement.execute();
 
             statement.close();

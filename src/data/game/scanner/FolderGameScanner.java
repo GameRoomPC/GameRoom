@@ -28,7 +28,7 @@ public class FolderGameScanner extends GameScanner {
             , "DirectX12", "UPlayBrowser.exe", "UbisoftGameLauncherInstaller.exe", "FirewallInstall.exe"
             , "GDFInstall.exe", "pbsvc.exe"};
     private final static String[] PREFERRED_FOLDER = new String[]{"Bin", "Binary", "Binaries", "win32", "win64", "x64"};
-    private final static String[] VALID_EXECUTABLE_EXTENSION = new String[]{".exe", ".lnk", ".jar"};
+    public final static String[] VALID_EXECUTABLE_EXTENSION = new String[]{".exe", ".lnk", ".jar"};
 
     public final static Comparator<File> APP_FINDER_COMPARATOR = new Comparator<File>() {
         @Override
@@ -125,9 +125,10 @@ public class FolderGameScanner extends GameScanner {
      * Checks if the given file is a valid application or if the folder contains a valid application
      *
      * @param file the file/folder to check
+     * @param fileExtensions extensions of files considered valid for this kind of games
      * @return true if is/contains a valid application supported by GameRoom, false otherwise
      */
-    public static boolean isPotentiallyAGame(File file) {
+    public static boolean isPotentiallyAGame(File file,String[] fileExtensions) {
         try {
             Thread.sleep(50);
         } catch (InterruptedException ignored) {
@@ -153,18 +154,21 @@ public class FolderGameScanner extends GameScanner {
 
             boolean potentialGame = false;
             for (File subFile : sortedFiles) {
-                potentialGame = potentialGame || isPotentiallyAGame(subFile);
+                potentialGame = potentialGame || isPotentiallyAGame(subFile,fileExtensions);
                 if (potentialGame) {
                     return potentialGame;
                 }
             }
             return potentialGame;
         } else {
-            return fileHasValidExtension(file);
+            return fileHasValidExtension(file,fileExtensions);
         }
     }
+    public static boolean isPotentiallyAGame(File file) {
+        return isPotentiallyAGame(file,Platform.NONE.getSupportedExtensions());
+    }
 
-    @Override
+        @Override
     protected void displayStartToast() {
         if (MAIN_SCENE != null) {
             if (profile != null) {
@@ -279,16 +283,25 @@ public class FolderGameScanner extends GameScanner {
      * Checks if a file can be a supported application by GameRoom
      *
      * @param file the file to check
+     * @param extensions extensions of files that are considered valid
      * @return true if the file has a valid extension supported by GameRoom, false otherwise
      */
-    public static boolean fileHasValidExtension(File file) {
+    public static boolean fileHasValidExtension(File file,String[] extensions) {
         boolean hasAValidExtension = false;
-        for (String validExtension : VALID_EXECUTABLE_EXTENSION) {
-            hasAValidExtension = hasAValidExtension || file.getAbsolutePath().toLowerCase().endsWith(validExtension.toLowerCase());
+        if(extensions == null){
+            return false;
+        }
+        for (String validExtension : extensions) {
+            String ext = validExtension.replace("*","").trim().toLowerCase();
+            hasAValidExtension = hasAValidExtension || file.getAbsolutePath().toLowerCase().endsWith(ext);
             if (hasAValidExtension) {
                 return hasAValidExtension;
             }
         }
         return hasAValidExtension;
+    }
+
+    public static boolean fileHasValidExtension(File file) {
+        return fileHasValidExtension(file,Platform.NONE.getSupportedExtensions());
     }
 }

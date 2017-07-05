@@ -40,12 +40,14 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
     private Thread searchAppsThread;
     private volatile boolean KEEP_SEARCHING = true;
     private Label statusLabel;
+    private String[] extensions = new String[0];
 
-    public AppSelectorDialog(File folder) throws IllegalArgumentException {
+    public AppSelectorDialog(File folder,String[] extensions) throws IllegalArgumentException {
         if (folder == null || !folder.isDirectory()) {
             throw new IllegalArgumentException("Given folder is either null or not a dir : \"" + folder.getAbsolutePath() + "\"");
         }
         this.folder = folder;
+        this.extensions = extensions;
 
         Label titleLabel = new Label(Main.getString("select_an_app"));
         titleLabel.setWrapText(true);
@@ -129,7 +131,7 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
                 addAppFiles(children);
             }
         } else {
-            if (FolderGameScanner.isPotentiallyAGame(file) && KEEP_SEARCHING) {
+            if (FolderGameScanner.isPotentiallyAGame(file,extensions) && KEEP_SEARCHING) {
                 Platform.runLater(() -> {
                     list.addItem(file);
                     statusLabel.setVisible(false);

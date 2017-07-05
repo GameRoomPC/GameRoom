@@ -344,7 +344,7 @@ public class GameEditScene extends BaseScene {
         contentPane.add(new Label(Main.getString("game_path") + " :"), 0, row_count);
         Node pathNode = new Label();
         if (!entry.isSteamGame()) {
-            AppPathField gamePathField = new AppPathField(entry.getPath(), getWindow(), PathTextField.FILE_CHOOSER_APPS, Main.getString("select_picture"));
+            AppPathField gamePathField = new AppPathField(entry.getPath(), getWindow(), PathTextField.FILE_CHOOSER_APPS, Main.getString("select_a_file"),entry.getPlatform().getSupportedExtensions());
             gamePathField.getTextField().setPrefColumnCount(50);
             gamePathField.setId("game_path");
             gamePathField.getTextField().textProperty().addListener(new ChangeListener<String>() {
@@ -374,7 +374,7 @@ public class GameEditScene extends BaseScene {
                     return false;
                 } else if (!isSteamGame && file.isDirectory()) {
                     try {
-                        AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()));
+                        AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()),entry.getPlatform().getSupportedExtensions());
                         selector.searchApps();
                         Optional<ButtonType> appOptionnal = selector.showAndWait();
 
@@ -487,8 +487,12 @@ public class GameEditScene extends BaseScene {
             if (entry.getPlatform() != null) {
                 platformComboBox.getSelectionModel().select(entry.getPlatform());
             }
+            Node finalPathNode = pathNode;
             platformComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 entry.setPlatform(newValue);
+                if(finalPathNode instanceof PathTextField){
+                    ((PathTextField) finalPathNode).setExtensions(newValue.getSupportedExtensions());
+                }
             });
 
             Label platformLabel = new Label(Main.getString("platform") + " :");
