@@ -7,6 +7,8 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import system.application.settings.PredefinedSetting;
 import system.os.PowerMode;
 import system.os.Terminal;
@@ -52,20 +54,26 @@ public class GameStarter {
         }
     }
 
-    public void start() throws IOException {
+    public void start() {
         Main.LOGGER.info("Starting game : " + entry.getName());
 
         onPreGameLaunch();
         try {
             startGame();
-        } catch (IllegalStateException e) {
-            switch (e.getMessage()){
+        } catch (IllegalStateException | IOException e) {
+            onPostGameLaunch(0);
+            onStop();
+            switch (e.getMessage()) {
                 case ERR_NO_EMU:
-                    onPostGameLaunch(0);
                     GameRoomAlert.error("There is no emulator configured for platform " + entry.getPlatform());
-                    PlatformSettingsDialog dialog = new PlatformSettingsDialog(entry.getPlatform());
-                    dialog.showAndWait();
-                    start();
+                    ButtonType okButton = new ButtonType(Main.getString("start_game"), ButtonBar.ButtonData.OK_DONE);
+
+                    PlatformSettingsDialog dialog = new PlatformSettingsDialog(entry.getPlatform(),okButton);
+                    dialog.showAndWait().ifPresent(buttonType -> {
+                        if (buttonType.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                            start();
+                        }
+                    });
                     break;
                 case ERR_NOT_SUPPORTER:
                     SettingsScene.checkAndDisplayRegisterDialog();
@@ -138,7 +146,7 @@ public class GameStarter {
 
             File gameLog = new File(LOG_FOLDER + entry.getProcessName() + ".log");
             List<String> commands = getStartGameCMD();
-            if(commands.isEmpty()){
+            if (commands.isEmpty()) {
 
             }
             ProcessBuilder gameProcessBuilder = new ProcessBuilder(getStartGameCMD()).inheritIO();
@@ -176,7 +184,7 @@ public class GameStarter {
                 } else {
                     commands.addAll(e.getCommandsToExecute(entry));
                 }
-            }else{
+            } else {
                 throw new IllegalStateException(ERR_NOT_SUPPORTER);
             }
         }
@@ -188,7 +196,7 @@ public class GameStarter {
         return commands;
     }
 
-    private void onPreGameLaunch(){
+    private void onPreGameLaunch() {
         originalPowerMode = PowerMode.getActivePowerMode();
         if (settings().getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE) && !entry.isMonitored() && entry.isInstalled()) {
             settings().getPowerMode(PredefinedSetting.GAMING_POWER_MODE).activate();
@@ -198,7 +206,7 @@ public class GameStarter {
         entry.setSavedLocally(false);
     }
 
-    private void onPostGameLaunch(long playtime){
+    private void onPostGameLaunch(long playtime) {
         Main.LOGGER.debug("Adding " + Math.round(playtime / 1000.0) + "s to game " + entry.getName());
 
         if (entry.getOnGameStopped() != null) {
@@ -234,7 +242,7 @@ public class GameStarter {
 
         entry.setMonitored(false);
         MAIN_SCENE.updateGame(entry);
-        if(playtime > 0) {
+        if (playtime > 0) {
             String notificationText = GameEntry.getPlayTimeFormatted(Math.round(playtime / 1000.0), GameEntry.TIME_FORMAT_HMS_CASUAL) + " "
                     + Main.getString("tray_icon_time_recorded") + " "
                     + entry.getName();
@@ -254,7 +262,6 @@ public class GameStarter {
             MAIN_SCENE.updateGame(entry);
         }
     }
-
 
 
     private File getGameParentFolder() {

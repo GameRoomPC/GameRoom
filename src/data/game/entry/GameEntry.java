@@ -777,11 +777,7 @@ public class GameEntry {
     }
 
     public void startGame() {
-        try {
-            new GameStarter(this).start();
-        } catch (IOException ioe) {
-            GameRoomAlert.error(ioe.getMessage());
-        }
+        new GameStarter(this).start();
     }
 
     @Override

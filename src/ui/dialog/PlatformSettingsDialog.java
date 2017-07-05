@@ -37,11 +37,19 @@ public class PlatformSettingsDialog extends GameRoomDialog<ButtonType> {
         this(null);
     }
 
-    public PlatformSettingsDialog(Platform focusedPlatform) {
+    public PlatformSettingsDialog(Platform focusedPlatform){
+        this(focusedPlatform,null);
+    }
+
+    public PlatformSettingsDialog(Platform focusedPlatform, ButtonType buttonType) {
         super();
         mainPane.getStyleClass().add("container");
-        ButtonType okButton = new ButtonType(Main.getString("close"), ButtonBar.ButtonData.OK_DONE);
-        getDialogPane().getButtonTypes().addAll(okButton);
+        ButtonType okButton = new ButtonType(Main.getString("close"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        getDialogPane().getButtonTypes().add(okButton);
+
+        if(buttonType != null){
+            getDialogPane().getButtonTypes().add(buttonType);
+        }
 
         mainPane.setLeft(createLeftPane(focusedPlatform));
     }
