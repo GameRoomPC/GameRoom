@@ -468,9 +468,7 @@ public abstract class GameButton extends BorderPane {
                                 return null;
                             }
                         };
-                        Thread setBackgroundThread = new Thread(backGroundImageTask);
-                        setBackgroundThread.setDaemon(true);
-                        setBackgroundThread.start();
+                        executorService.submit(backGroundImageTask);
                     }
 
                 } else {
