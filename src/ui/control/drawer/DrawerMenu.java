@@ -297,12 +297,13 @@ public class DrawerMenu extends BorderPane {
     public void closeSubMenu(MainScene mainScene) {
         if (isSubMenuOpened()) {
             currentSubMenu.close(mainScene, this);
+            unselectAllButtons();
         }
         resizePane.setManaged(true);
     }
 
     public boolean isSubMenuOpened(){
-        return currentSubMenu != null;
+        return currentSubMenu != null && currentSubMenu.isActive();
     }
 
     private void initGroupButton(MainScene mainScene) {
