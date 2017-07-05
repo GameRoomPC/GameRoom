@@ -175,15 +175,21 @@ public abstract class GameButton extends BorderPane {
         initNameText();
 
         setOnKeyPressed(ke -> {
-            if (ke.getCode() == KeyCode.ENTER) {
-                if (!playButton.isDisabled())
-                    playButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
+            switch (ke.getCode()){
+                case ENTER:
+                    if (!playButton.isDisabled())
+                        playButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
+                    ke.consume();
+                    break;
+                case SPACE:
+                    if (!infoButton.isDisabled())
+                        infoButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
+                    ke.consume();
+                    break;
+                default:
+                    break;
+
             }
-            if (ke.getCode() == KeyCode.SPACE) {
-                if (!infoButton.isDisabled())
-                    infoButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
-            }
-            ke.consume();
         });
         setCenter(coverPane);
         setBottom(titleBox);
