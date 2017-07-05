@@ -4,8 +4,11 @@ import javafx.application.Platform;
 import javafx.beans.NamedArg;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogEvent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 import ui.Main;
@@ -35,6 +38,23 @@ public class GameRoomAlert extends Alert {
 
         initOwner(MAIN_SCENE.getParentStage());
         initModality(Modality.WINDOW_MODAL);
+
+        EventHandler<KeyEvent> fireOnEnter = event -> {
+            if (KeyCode.ENTER.equals(event.getCode())
+                    && event.getTarget() instanceof Button) {
+                ((Button) event.getTarget()).fire();
+            }
+        };
+
+        getButtonTypes().stream()
+                .map(getDialogPane()::lookupButton)
+                .forEach(button ->
+                        button.addEventHandler(
+                                KeyEvent.KEY_PRESSED,
+                                fireOnEnter
+                        )
+                );
+
     }
 
     public static ButtonType warning(String s){

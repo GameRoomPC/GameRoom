@@ -732,6 +732,10 @@
 }
 
 /************** MAIN SCENE BUTTONS ******************************/
+#main-quit-button{
+	-fx-image: url("icons/main/quit.png");
+}
+
 #main-settings-button{
 	-fx-image: url("icons/main/settings.png");
 }

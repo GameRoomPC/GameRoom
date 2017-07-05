@@ -971,7 +971,12 @@ public class MainScene extends BaseScene {
             @Override
             public void handle(javafx.scene.input.KeyEvent event) {
                 if (event.getCode() == KeyCode.ESCAPE) {
-                    drawerMenu.closeSubMenu(MainScene.this);
+                    if(drawerMenu.isSubMenuOpened()) {
+                        drawerMenu.closeSubMenu(MainScene.this);
+                    }else{
+                        drawerMenu.quitGameRoom();
+                    }
+
                 }
             }
         });
