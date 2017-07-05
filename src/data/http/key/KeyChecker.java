@@ -61,6 +61,13 @@ public class KeyChecker {
     }
 
     public static JSONObject activateKey(String key) throws IOException, UnirestException {
+        if(isKeyValid(key)){
+            //this allows the user to reactivate a key on the same device !
+            JSONObject obj = new JSONObject();
+            obj.put(FIELD_RESULT,RESULT_SUCCESS);
+            obj.put(FIELD_MESSAGE,"License_key_activated");
+            return obj;
+        }
         HttpResponse<String> response = Unirest.post(API_URL)
                 .field("secret_key", VALIDATION_KEY)
                 .field("slm_action", "slm_activate")

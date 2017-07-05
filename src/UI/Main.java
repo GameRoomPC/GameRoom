@@ -94,7 +94,10 @@ public class Main {
         settings().load();
         Emulator.loadEmulators();
 
-        SUPPORTER_MODE = !settings().getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(settings().getString(SUPPORTER_KEY));
+        SUPPORTER_MODE = settings().getString(SUPPORTER_KEY) != null
+                && !settings().getString(SUPPORTER_KEY).isEmpty()
+                && !settings().getString(SUPPORTER_KEY).equals("")
+                && KeyChecker.isKeyValid(settings().getString(SUPPORTER_KEY));
         LOGGER.info("Supporter mode : "+ SUPPORTER_MODE);
         RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", settings().getLocale(PredefinedSetting.LOCALE));
         SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", settings().getLocale(PredefinedSetting.LOCALE));
