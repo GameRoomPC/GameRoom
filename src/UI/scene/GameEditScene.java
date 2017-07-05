@@ -43,6 +43,7 @@ import system.os.WindowsShortcut;
 import ui.GeneralToast;
 import ui.Main;
 import ui.control.ValidEntryCondition;
+import ui.control.button.HelpButton;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.textfield.AppPathField;
@@ -334,14 +335,12 @@ public class GameEditScene extends BaseScene {
 
         serieComboBox.getSelectionModel().select(entry.getSerie());
 
-        Label serieLabel = new Label(Main.getString("serie") + " :");
-        serieLabel.setTooltip(new Tooltip(Main.getString("serie")));
-        contentPane.add(serieLabel, 0, row_count);
+        contentPane.add(createTitleLabel("serie",false), 0, row_count);
         contentPane.add(serieComboBox, 1, row_count);
         row_count++;
 
         /**************************PATH*********************************************/
-        contentPane.add(new Label(Main.getString("game_path") + " :"), 0, row_count);
+        contentPane.add(createTitleLabel("game_path",false), 0, row_count);
         Node pathNode = new Label();
         if (!entry.isSteamGame()) {
             AppPathField gamePathField = new AppPathField(entry.getPath(), getWindow(), PathTextField.FILE_CHOOSER_APPS, Main.getString("select_a_file"),entry.getPlatform().getSupportedExtensions());
@@ -408,7 +407,7 @@ public class GameEditScene extends BaseScene {
         row_count++;
 
         /**************************RUN AS ADMIN ****************************************/
-        contentPane.add(new Label(Main.getString("run_as_admin") + " :"), 0, row_count);
+        contentPane.add(createTitleLabel("run_as_admin",false), 0, row_count);
         CheckBox adminCheckBox = new CheckBox();
         adminCheckBox.setSelected(entry.mustRunAsAdmin());
         adminCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -419,9 +418,7 @@ public class GameEditScene extends BaseScene {
         contentPane.add(adminCheckBox, 1, row_count);
         row_count++;
         /**************************PLAYTIME*********************************************/
-        Label titlePlayTimeLabel = new Label(Main.getString("play_time") + " :");
-        titlePlayTimeLabel.setTooltip(new Tooltip(Main.getString("play_time")));
-        contentPane.add(titlePlayTimeLabel, 0, row_count);
+        contentPane.add(createTitleLabel("play_time",false), 0, row_count);
         PlayTimeField playTimeField = new PlayTimeField(entry);
 
         playTimeField.setId("play_time");
@@ -494,10 +491,7 @@ public class GameEditScene extends BaseScene {
                     ((PathTextField) finalPathNode).setExtensions(newValue.getSupportedExtensions());
                 }
             });
-
-            Label platformLabel = new Label(Main.getString("platform") + " :");
-            platformLabel.setTooltip(new Tooltip(Main.getString("platform")));
-            contentPane.add(platformLabel, 0, row_count);
+            contentPane.add(createTitleLabel("platform",false), 0, row_count);
             contentPane.add(platformComboBox, 1, row_count);
             row_count++;
         }
@@ -525,9 +519,7 @@ public class GameEditScene extends BaseScene {
                 entry.setDevelopers(newDevs);
             }
         });
-        Label devLabel = new Label(Main.getString("developer") + " :");
-        devLabel.setTooltip(new Tooltip(Main.getString("developer")));
-        contentPane.add(devLabel, 0, row_count);
+        contentPane.add(createTitleLabel("developer",false), 0, row_count);
         contentPane.add(devComboBox, 1, row_count);
         row_count++;
 
@@ -548,9 +540,7 @@ public class GameEditScene extends BaseScene {
                 entry.setPublishers(newPublishers);
             }
         });
-        Label pubLabel = new Label(Main.getString("publisher") + " :");
-        pubLabel.setTooltip(new Tooltip(Main.getString("publisher")));
-        contentPane.add(pubLabel, 0, row_count);
+        contentPane.add(createTitleLabel("publisher",false), 0, row_count);
         contentPane.add(pubComboBox, 1, row_count);
         row_count++;
 
@@ -581,9 +571,7 @@ public class GameEditScene extends BaseScene {
                 entry.setGenres(newGenres);
             }
         });
-        Label genreLabel = new Label(Main.getString("genre") + " :");
-        genreLabel.setTooltip(new Tooltip(Main.getString("genre")));
-        contentPane.add(genreLabel, 0, row_count);
+        contentPane.add(createTitleLabel("genre",false), 0, row_count);
         contentPane.add(genreComboBox, 1, row_count);
         row_count++;
 
@@ -614,9 +602,7 @@ public class GameEditScene extends BaseScene {
                 entry.setThemes(newThemes);
             }
         });
-        Label themeLabel = new Label(Main.getString("theme") + " :");
-        themeLabel.setTooltip(new Tooltip(Main.getString("theme")));
-        contentPane.add(themeLabel, 0, row_count);
+        contentPane.add(createTitleLabel("theme",false), 0, row_count);
         contentPane.add(themeComboBox, 1, row_count);
         row_count++;
 
@@ -634,9 +620,7 @@ public class GameEditScene extends BaseScene {
                 });
             }
         };
-        Label screenshotLabel = new Label(Main.getString("wallpaper") + " :");
-        screenshotLabel.setTooltip(new Tooltip(Main.getString("wallpaper")));
-        contentPane.add(screenshotLabel, 0, row_count);
+        contentPane.add(createTitleLabel("wallpaper",false), 0, row_count);
 
         HBox screenShotButtonsBox = new HBox();
         screenShotButtonsBox.setSpacing(20 * Main.SCREEN_WIDTH / 1920);
@@ -697,26 +681,8 @@ public class GameEditScene extends BaseScene {
         contentPane.add(screenShotButtonsBox, 1, row_count);
         row_count++;
 
-        /*validEntriesConditions.add(new ValidEntryCondition() {
-
-            @Override
-            public boolean isValid() {
-                if (!entry.getImagePath(1).isValid()) {
-                    message.replace(0,message.length(),Main.getString("background_picture_still_downloading"));
-                    return false;
-                }
-                return true;
-            }
-
-            @Override
-            public void onInvalid() {
-                setLineInvalid("game_name");
-            }
-        });*/
         /**************************DESCRIPTION*********************************************/
-        Label titleDescriptionLabel = new Label(Main.getString("game_description") + " :");
-        titleDescriptionLabel.setTooltip(new Tooltip(Main.getString("game_description")));
-        contentPane.add(titleDescriptionLabel, 0, row_count);
+        contentPane.add(createTitleLabel("game_description",false), 0, row_count);
         TextArea gameDescriptionField = new TextArea(entry.getDescription());
         gameDescriptionField.setWrapText(true);
         gameDescriptionField.setId("game_description");
@@ -732,11 +698,7 @@ public class GameEditScene extends BaseScene {
 
         /**************************YOUTUBE*********************************************/
         if (!settings().getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
-            Label youtubeSoundtrackLabel = new Label(Main.getString("youtube_soundtrack_label") + " :");
-            youtubeSoundtrackLabel.setTooltip(new Tooltip(Main.getString("youtube_soundtrack_tooltip")));
-            //youtubeSoundtrackLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
-            youtubeSoundtrackLabel.setId("advanced-setting-label");
-            contentPane.add(youtubeSoundtrackLabel, 0, row_count);
+            contentPane.add(createTitleLabel("youtube_soundtrack",true), 0, row_count);
             TextField youtubeSoundtrackField = new TextField(entry.getYoutubeSoundtrackHash().equals("") ? "" : YoutubeSoundtrackScrapper.toYoutubeUrl(entry.getYoutubeSoundtrackHash()));
             youtubeSoundtrackField.setId("youtube_soundtrack");
             youtubeSoundtrackField.textProperty().addListener(new ChangeListener<String>() {
@@ -758,11 +720,7 @@ public class GameEditScene extends BaseScene {
 
         /**************************CMD & ARGS*********************************************/
         if (settings().getBoolean(PredefinedSetting.ADVANCED_MODE)) {
-            Label argsLabel = new Label(Main.getString("args_label") + " :");
-            argsLabel.setTooltip(new Tooltip(Main.getString("args_tooltip")));
-            //argsLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
-            argsLabel.setId("advanced-setting-label");
-            contentPane.add(argsLabel, 0, row_count);
+            contentPane.add(createTitleLabel("args",true), 0, row_count);
             TextField argsField = new TextField(entry.getArgs());
             argsField.setId("args");
             argsField.textProperty().addListener(new ChangeListener<String>() {
@@ -774,11 +732,7 @@ public class GameEditScene extends BaseScene {
             contentPane.add(argsField, 1, row_count);
             row_count++;
 
-            Label cmdBeforeLabel = new Label(Main.getString("cmd_before_label") + " :");
-            cmdBeforeLabel.setTooltip(new Tooltip(Main.getString("cmd_before_tooltip")));
-            //cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
-            cmdBeforeLabel.setId("advanced-setting-label");
-            contentPane.add(cmdBeforeLabel, 0, row_count);
+            contentPane.add(createTitleLabel("cmd_before",true), 0, row_count);
             CMDTextField cmdBeforeField = new CMDTextField(entry.getCmd(GameEntry.CMD_BEFORE_START));
             cmdBeforeField.setWrapText(true);
             cmdBeforeField.setId("cmd_before");
@@ -791,11 +745,7 @@ public class GameEditScene extends BaseScene {
             contentPane.add(cmdBeforeField, 1, row_count);
             row_count++;
 
-            Label cmdAfterLabel = new Label(Main.getString("cmd_after_label") + " :");
-            cmdAfterLabel.setTooltip(new Tooltip(Main.getString("cmd_after_tooltip")));
-            //cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
-            cmdAfterLabel.setId("advanced-setting-label");
-            contentPane.add(cmdAfterLabel, 0, row_count);
+            contentPane.add(createTitleLabel("cmd_after",true), 0, row_count);
             CMDTextField cmdAfterField = new CMDTextField(entry.getCmd(GameEntry.CMD_AFTER_END));
             cmdAfterField.setWrapText(true);
             cmdAfterField.setId("cmd_after");
@@ -832,9 +782,8 @@ public class GameEditScene extends BaseScene {
     }
 
     private TextField createLineForProperty(String property, String initialValue, ChangeListener<String> changeListener) {
-        Label titleLabel = new Label(Main.getString(property) + " :");
-        titleLabel.setTooltip(new Tooltip(Main.getString(property)));
-        contentPane.add(titleLabel, 0, row_count);
+        Node titleNode = createTitleLabel(property,false);
+        contentPane.add(titleNode, 0, row_count);
         TextField textField = new TextField(initialValue);
         textField.setPrefColumnCount(50);
         textField.setId(property);
@@ -1262,5 +1211,28 @@ public class GameEditScene extends BaseScene {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    private Node createTitleLabel(String key, boolean advanced){
+        Node node = null;
+        String title = Main.getString(key);
+        Label label = new Label(title + " :");
+        if (advanced) {
+            //label.setStyle(ADVANCE_MODE_LABEL_STYLE);
+            label.setId("advanced-setting-label");
+        }
+
+        String tooltip = Main.getString(key+"_tooltip");
+        if(!tooltip.equals(title) && !tooltip.equals(Main.NO_STRING)){
+            HBox hBox = new HBox();
+            hBox.setAlignment(Pos.CENTER_LEFT);
+            hBox.setSpacing(5 * SCREEN_WIDTH / 1920);
+            hBox.getChildren().addAll(label,new HelpButton(tooltip));
+            node = hBox;
+        }else{
+            label.setTooltip(new Tooltip(title));
+            node = label;
+        }
+        return node;
     }
 }

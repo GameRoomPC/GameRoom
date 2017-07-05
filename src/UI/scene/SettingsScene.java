@@ -2,9 +2,7 @@ package ui.scene;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.GameWatcher;
-import data.game.entry.Emulator;
 import data.game.entry.GameEntry;
-import data.game.entry.Platform;
 import data.game.scanner.ScanPeriod;
 import data.game.scraper.SteamOnlineScraper;
 import data.game.scraper.SteamProfile;
@@ -12,7 +10,6 @@ import data.http.key.KeyChecker;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
-import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -41,8 +38,6 @@ import ui.control.textfield.PathTextField;
 import ui.dialog.*;
 import ui.dialog.selector.GameScannerSelector;
 import ui.dialog.selector.IgnoredEntrySelector;
-import ui.pane.platform.EmulatorSettingsPane;
-import ui.pane.platform.PlatformSettingsPane;
 import ui.theme.Theme;
 import ui.theme.ThemeUtils;
 import ui.theme.UIScale;
@@ -419,7 +414,7 @@ public class SettingsScene extends BaseScene {
 
         /***********************CMD****************************/
         if (settings().getBoolean(PredefinedSetting.ADVANCED_MODE)) {
-            Label cmdBeforeLabel = new Label(Main.getString("cmd_before_label") + " :");
+            Label cmdBeforeLabel = new Label(Main.getString("cmd_before") + " :");
             cmdBeforeLabel.setTooltip(new Tooltip(Main.getString("cmd_before_tooltip")));
             //cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
             cmdBeforeLabel.setId("advanced-setting-label");
@@ -437,7 +432,7 @@ public class SettingsScene extends BaseScene {
             });
             flowPaneHashMap.get(SettingValue.CATEGORY_ON_GAME_START).getChildren().add(createLine(cmdBeforeLabel, cmdBeforeField));
 
-            Label cmdAfterLabel = new Label(Main.getString("cmd_after_label") + " :");
+            Label cmdAfterLabel = new Label(Main.getString("cmd_after") + " :");
             cmdAfterLabel.setTooltip(new Tooltip(Main.getString("cmd_after_tooltip")));
             //cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
             cmdAfterLabel.setId("advanced-setting-label");
