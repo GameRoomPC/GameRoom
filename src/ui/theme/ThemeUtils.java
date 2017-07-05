@@ -27,11 +27,9 @@ public class ThemeUtils {
         File themeCSS = Main.FILES_MAP.get("theme_css");
         Theme currentTheme = settings().getTheme();
 
-        Long start = System.currentTimeMillis();
         if(!KeyChecker.assumeSupporterMode()){
             return DEFAULT_THEME_CSS;
         }
-        LOGGER.debug("Applying theme : " + (System.currentTimeMillis() - start) + "ms");
         if(themeCSS == null || !themeCSS.exists() || currentTheme.equals(Theme.DEFAULT_THEME)){
             return DEFAULT_THEME_CSS;
         }

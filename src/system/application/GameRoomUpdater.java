@@ -97,19 +97,25 @@ public class GameRoomUpdater {
 
     private void openUpdateDialog(ApplicationStatus status) {
         Platform.runLater(() -> {
-            UpdateDialog updateDialog = new UpdateDialog(currentVersion, status.getInfo(), changelogUrl);
-            Optional<ButtonType> result = updateDialog.showAndWait();
-            result.ifPresent(letter -> {
-                if (letter.getText().equals(Main.getString("update"))) {
-                    if (onUpdatePressedListener != null) {
-                        onUpdatePressedListener.changed(null, null, null);
+            try {
+                UpdateDialog updateDialog = new UpdateDialog(currentVersion, status.getInfo(), changelogUrl);
+                Optional<ButtonType> result = updateDialog.showAndWait();
+                result.ifPresent(letter -> {
+                    if (letter.getText().equals(Main.getString("update"))) {
+                        if (onUpdatePressedListener != null) {
+                            onUpdatePressedListener.changed(null, null, null);
+                        }
+                        downloadUpdate(status);
+                    } else {
+                        updateDialog.close();
+                        cancel();
                     }
-                    downloadUpdate(status);
-                } else {
-                    updateDialog.close();
-                    cancel();
-                }
-            });
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+                GameRoomAlert.error(Main.getString("error_check_updates"));
+                cancel();
+            }
         });
     }
 
