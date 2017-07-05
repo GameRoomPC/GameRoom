@@ -247,7 +247,6 @@ public class Main {
             for(String s : manuals){
                 result = result.replaceFirst(MANUAL_TAG,s);
             }
-
             return result;
 
         }catch (MissingResourceException e){

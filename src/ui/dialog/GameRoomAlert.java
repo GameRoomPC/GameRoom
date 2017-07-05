@@ -17,6 +17,7 @@ import ui.theme.ThemeUtils;
 import java.util.Optional;
 
 import static system.application.settings.GeneralSettings.settings;
+import static ui.Main.LOGGER;
 import static ui.Main.MAIN_SCENE;
 
 /**
@@ -25,16 +26,17 @@ import static ui.Main.MAIN_SCENE;
 public class GameRoomAlert extends Alert {
 
 
-    public GameRoomAlert(AlertType alertType){
-        this(alertType,"");
+    public GameRoomAlert(AlertType alertType) {
+        this(alertType, "");
     }
+
     public GameRoomAlert(@NamedArg("alertType") AlertType alertType, @NamedArg("contentText") String contentText, ButtonType... buttons) {
         super(alertType, contentText, buttons);
 
         setHeaderText(null);
         initStyle(StageStyle.UNDECORATED);
         ThemeUtils.applyCurrentTheme(this);
-        getDialogPane().setStyle("-fx-font-size: "+Double.toString(settings().getUIScale().getFontSize())+"px;");
+        getDialogPane().setStyle("-fx-font-size: " + Double.toString(settings().getUIScale().getFontSize()) + "px;");
 
         initOwner(MAIN_SCENE.getParentStage());
         initModality(Modality.WINDOW_MODAL);
@@ -57,27 +59,27 @@ public class GameRoomAlert extends Alert {
 
     }
 
-    public static ButtonType warning(String s){
+    public static ButtonType warning(String s) {
         return displayAlert(AlertType.WARNING, s);
     }
 
-    public static ButtonType confirmation(String s){
+    public static ButtonType confirmation(String s) {
         return displayAlert(AlertType.CONFIRMATION, s);
     }
 
-    public static ButtonType info(String s){
-        return displayAlert(AlertType.INFORMATION,s);
+    public static ButtonType info(String s) {
+        return displayAlert(AlertType.INFORMATION, s);
     }
 
-    public static ButtonType error(String s){
-        return displayAlert(AlertType.ERROR,s);
+    public static ButtonType error(String s) {
+        return displayAlert(AlertType.ERROR, s);
     }
 
-    public static ButtonType errorIGDB(){
+    public static ButtonType errorIGDB() {
         return error(Main.getString("error_igdb"));
     }
 
-    private static ButtonType displayAlert(AlertType type, String s){
+    private static ButtonType displayAlert(AlertType type, String s) {
         ButtonType[] buttonChosen = new ButtonType[1];
         Main.runAndWait(() -> {
             GameRoomAlert alert = new GameRoomAlert(type, s);
