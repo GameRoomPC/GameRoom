@@ -59,7 +59,7 @@ public abstract class GameButton extends BorderPane {
     private static HashMap<String, Image> DEFAULT_IMAGES = new HashMap<>();
     private static Image DEFAULT_PLAY_IMAGE;
     private static Image DEFAULT_INFO_IMAGE;
-    private final static ExecutorService executorService = Executors.newCachedThreadPool();
+    public final static ExecutorService executorService = Executors.newCachedThreadPool();
 
 
     private final static double RATIO_NOTINSTALLEDIMAGE_COVER = 1 / 3.0;

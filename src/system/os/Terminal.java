@@ -1,7 +1,5 @@
 package system.os;
 
-import ui.Main;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -9,6 +7,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.regex.Pattern;
+
+import static ui.Main.LOGGER;
+import static ui.control.button.gamebutton.GameButton.executorService;
 
 /**
  * Created by LM on 14/07/2016.
@@ -17,6 +19,9 @@ public class Terminal {
     private ProcessBuilder processBuilder;
     private boolean redirectErrorStream = true;
     private Process process;
+    //\s*([^"]\S*[^"]?|"[^"]*")\s*
+    //([^"]\S*|".+?")\s*
+    public final static Pattern CMD_SPLIT_PATTERN = Pattern.compile("\\s*([^\"]\\S*[^\"]?|\"[^\"]*\")\\s*");
 
     public Terminal() {
         this(true);
@@ -39,15 +44,26 @@ public class Terminal {
         processBuilder.redirectOutput(log);
         processBuilder.redirectError(log);
         processBuilder.command().addAll(Arrays.asList("cmd.exe", "/c", "chcp", "65001", "&"));
-        for (int i = 0; i < commands.length; i++) {
-            processBuilder.command().addAll(Arrays.asList("cmd.exe", "/c", commands[i], "&"));
-        }
-        Process preProcess = processBuilder.start();
+        Arrays.stream(commands).forEach(s -> {
+            //ArrayList<String> cmds = splitCMDLine(s);
+            processBuilder.command().addAll(Arrays.asList("cmd.exe", "/c", "\"" + s + "\"", "&"));
+        });
+        Process process = processBuilder.start();
+        executorService.submit(() -> {
+            try {
+                process.waitFor();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            process.destroy();
+            LOGGER.debug("Terminal : killed created process");
+        });
+        //TODO destroy
     }
 
     public String[] execute(String command, String... args) throws IOException {
         StringBuilder cmdLine = new StringBuilder(command);
-        for(String arg : args){
+        for (String arg : args) {
             cmdLine.append(" ").append(arg);
         }
 
@@ -79,7 +95,70 @@ public class Terminal {
         return result;
     }
 
-    public Process getProcess(){
+    public Process getProcess() {
         return process;
     }
+
+    /**
+     * Splits a given cmd line using the ' ' separator, excepting when it is surrounded by '"' char.
+     *
+     * @param line line of command line to split
+     * @return a String array containing separated elements of the command line
+     */
+    public static ArrayList<String> splitCMDLine(String line) {
+        ArrayList<String> strings = new ArrayList<>();
+        if (line == null || line.isEmpty()) {
+            return strings;
+        }
+        char previous = ' ';
+        char cur = ' ';
+        int openedQuotes = 0;
+
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < line.length(); i++) {
+            previous = cur;
+            cur = line.charAt(i);
+            if (cur == '"' && previous != '\\') {
+                if (openedQuotes == 0) {
+                    openedQuotes++;
+                } else {
+                    openedQuotes--;
+                    strings.add(builder.toString().trim());
+                    builder.setLength(0); // clears the buffer
+                }
+            } else if (Character.isWhitespace(cur) && !Character.isWhitespace(previous) && openedQuotes == 0) {
+                if (!builder.toString().trim().isEmpty()) {
+                    strings.add(builder.toString().trim());
+                }
+                builder.setLength(0); // clears the buffer
+            } else {
+                builder.append(cur);
+            }
+        }
+        strings.add(builder.toString());
+        builder.setLength(0);
+
+        return strings;
+    }
+
+    /**
+     * Unquotes a given string. For example, receiving ""test"" will output "test" (the remaining are the one to define a
+     * String but the value of the string will be test).
+     * <p>
+     * This is needed for the {@link ProcessBuilder} to execute {@link ProcessBuilder#command(String...)}
+     *
+     * @param s String to unqote
+     * @return the unqoted string
+     */
+    private static String unquote(String s) {
+        if (s == null || s.isEmpty() || s.length() < 2) {
+            return s;
+        }
+        if (s.startsWith("\"") && s.endsWith("\"")) {
+            return s.substring(1, s.length() - 1);
+        }
+        return s;
+    }
+
 }
