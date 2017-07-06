@@ -32,14 +32,12 @@ import system.os.PowerMode;
 import system.os.mslinks.ShellLink;
 import ui.Main;
 import ui.control.ValidEntryCondition;
+import ui.control.button.HelpButton;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
-import ui.dialog.ActivationKeyDialog;
-import ui.dialog.GameRoomAlert;
-import ui.dialog.WebBrowser;
-import ui.dialog.selector.GameFoldersIgnoredSelector;
+import ui.dialog.*;
 import ui.dialog.selector.GameScannerSelector;
-import ui.dialog.selector.SteamIgnoredSelector;
+import ui.dialog.selector.IgnoredEntrySelector;
 import ui.theme.Theme;
 import ui.theme.ThemeUtils;
 import ui.theme.UIScale;
@@ -49,6 +47,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static system.application.settings.GeneralSettings.settings;
+import static system.application.settings.SettingValue.CATEGORY_ON_GAME_START;
+import static system.application.settings.SettingValue.CATEGORY_SCAN;
 import static ui.Main.*;
 
 /**
@@ -74,24 +75,24 @@ public class SettingsScene extends BaseScene {
 
     private void initBottom() {
         //Removed as there is no need to display it if paying IGDB
-        Label igdbLabel = new Label(Main.getString("credit_igdb"));
+        /*Label igdbLabel = new Label(Main.getString("credit_igdb"));
         wrappingPane.setBottom(igdbLabel);
 
         BorderPane.setAlignment(igdbLabel, Pos.CENTER_RIGHT);
-        BorderPane.setMargin(igdbLabel, new Insets(15, 15, 15, 15));
+        BorderPane.setMargin(igdbLabel, new Insets(15, 15, 15, 15));*/
     }
 
     private void initCenter() {
         String[] categoriesToDisplay = new String[]{SettingValue.CATEGORY_GENERAL
-                , SettingValue.CATEGORY_SCAN
+                , CATEGORY_SCAN
                 , SettingValue.CATEGORY_ON_GAME_START
                 , SettingValue.CATEGORY_UI
         };
 
         for (String category : categoriesToDisplay) {
             FlowPane flowPane = new FlowPane();
-            flowPane.setHgap(50 * GENERAL_SETTINGS.getWindowHeight() / 1080);
-            flowPane.setVgap(30 * GENERAL_SETTINGS.getWindowWidth() / 1920);
+            flowPane.setHgap(50 * settings().getWindowHeight() / 1080);
+            flowPane.setVgap(30 * settings().getWindowWidth() / 1920);
             //tilePane.setPrefColumns(2);
             flowPane.setOrientation(Orientation.VERTICAL);
             //flowPane.setAlignment(Pos.TOP_LEFT);
@@ -159,7 +160,7 @@ public class SettingsScene extends BaseScene {
                 }
             }
         });
-        getNode(PredefinedSetting.START_MINIMIZED.getKey()).setDisable(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.START_WITH_WINDOWS));
+        getNode(PredefinedSetting.START_MINIMIZED.getKey()).setDisable(!settings().getBoolean(PredefinedSetting.START_WITH_WINDOWS));
         addPropertyLine(PredefinedSetting.DISABLE_GAME_MAIN_THEME, true, new ChangeListener() {
             @Override
             public void changed(ObservableValue observable, Object oldValue, Object newValue) {
@@ -206,7 +207,8 @@ public class SettingsScene extends BaseScene {
             }
         });
         addPropertyLine(PredefinedSetting.GAMING_POWER_MODE);
-        addPropertyLine(PredefinedSetting.GAMES_FOLDER);
+        //TODO create a dialog to manage game folders
+        //addPropertyLine(PredefinedSetting.GAMES_FOLDER);
 
         /***********************GAME SCANNERS GAMES IGNORED****************************/
         Label scannersLabel = new Label(Main.getSettingsString("enabledGameScanners_label") + " : ");
@@ -220,7 +222,7 @@ public class SettingsScene extends BaseScene {
                 Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
                 ignoredOptionnal.ifPresent(pairs -> {
                     if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
+                        settings().setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
                         GameWatcher.getInstance().start();
                     }
                 });
@@ -247,11 +249,21 @@ public class SettingsScene extends BaseScene {
             @Override
             public void handle(ActionEvent event) {
                 try {
-                    GameFoldersIgnoredSelector selector = new GameFoldersIgnoredSelector();
+                    IgnoredEntrySelector selector = new IgnoredEntrySelector();
                     Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
                     ignoredOptionnal.ifPresent(pairs -> {
                         if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_GAME_FOLDERS, selector.getSelectedEntries());
+                            selector.getSelectedEntries().forEach(entry -> {
+                                entry.setSavedLocally(true);
+                                entry.setIgnored(true);
+                                entry.setSavedLocally(false);
+                            });
+                            selector.getUnselectedEntries().forEach(entry -> {
+                                entry.setSavedLocally(true);
+                                entry.setIgnored(false);
+                                entry.setSavedLocally(false);
+                                GameWatcher.getInstance().loadToAddEntries();
+                            });
                         }
                     });
                 } catch (IOException e) {
@@ -259,10 +271,10 @@ public class SettingsScene extends BaseScene {
                 }
             }
         });
-        flowPaneHashMap.get(PredefinedSetting.IGNORED_GAME_FOLDERS.getCategory()).getChildren().add(createLine(gameFoldersIgnoredLabel, manageGameFoldersIgnoredButton));
+        flowPaneHashMap.get(CATEGORY_SCAN).getChildren().add(createLine(gameFoldersIgnoredLabel, manageGameFoldersIgnoredButton));
 
         /***********************STEAM GAMES IGNORED****************************/
-        Label steamIgnoredGamesLabel = new Label(Main.getSettingsString("manage_ignored_steam_games_label") + " : ");
+        /*Label steamIgnoredGamesLabel = new Label(Main.getSettingsString("manage_ignored_steam_games_label") + " : ");
         steamIgnoredGamesLabel.setTooltip(new Tooltip(Main.getSettingsString("manage_ignored_steam_games_tooltip")));
         Button manageSteamGamesIgnoredButton = new Button(Main.getString("manage"));
 
@@ -274,7 +286,7 @@ public class SettingsScene extends BaseScene {
                     Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
                     ignoredOptionnal.ifPresent(pairs -> {
                         if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS, selector.getSelectedEntries());
+                            settings().setSettingValue(PredefinedSetting.IGNORED_STEAM_APPS, selector.getSelectedEntries());
                         }
                     });
                 } catch (IOException e) {
@@ -284,11 +296,27 @@ public class SettingsScene extends BaseScene {
         });
 
         flowPaneHashMap.get(PredefinedSetting.IGNORED_STEAM_APPS.getCategory()).getChildren().add(createLine(steamIgnoredGamesLabel, manageSteamGamesIgnoredButton));
+*/
+        /***********************EMULATORS********************************/
+        Label emulatorsLabel = new Label(Main.getSettingsString("emulators_label") + " : ");
+        emulatorsLabel.setTooltip(new Tooltip(Main.getSettingsString("emulators_tooltip")));
+        Button manageEmulatorsButton = new Button(Main.getString("manage"));
+
+        manageEmulatorsButton.setOnAction(event -> {
+            boolean registered = SettingsScene.checkAndDisplayRegisterDialog();
+            if (registered) {
+                PlatformSettingsDialog dialog = new PlatformSettingsDialog();
+                dialog.showAndWait();
+            }
+        });
+
+        flowPaneHashMap.get(CATEGORY_ON_GAME_START).getChildren().add(createLine(emulatorsLabel, manageEmulatorsButton));
+
 
         /***********************SUPPORTER KEY****************************/
         //TODO see if possible to have 2 IGDB keys, for supporters
 
-        String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
+        String keyStatus = Main.SUPPORTER_MODE ? settings().getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
         String buttonText = Main.SUPPORTER_MODE ? Main.getString("deactivate") : Main.getString("activate");
 
         Label supporterKeyLabel = new Label(PredefinedSetting.SUPPORTER_KEY.getLabel() + " : " + keyStatus);
@@ -300,16 +328,16 @@ public class SettingsScene extends BaseScene {
             public void handle(ActionEvent event) {
                 if (SUPPORTER_MODE) {
                     try {
-                        JSONObject response = KeyChecker.deactivateKey(GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY));
+                        JSONObject response = KeyChecker.deactivateKey(settings().getString(PredefinedSetting.SUPPORTER_KEY));
                         if (response.getString(KeyChecker.FIELD_RESULT).equals(KeyChecker.RESULT_SUCCESS)) {
-                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SUPPORTER_KEY, "");
+                            settings().setSettingValue(PredefinedSetting.SUPPORTER_KEY, "");
                             SUPPORTER_MODE = false;
-                            String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
+                            String keyStatus = Main.SUPPORTER_MODE ? settings().getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
                             String buttonText = Main.SUPPORTER_MODE ? Main.getString("deactivate") : Main.getString("activate");
                             actDeactButton.setText(buttonText);
                             supporterKeyLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + " : " + keyStatus);
 
-                            Main.GENERAL_SETTINGS.onSupporterModeDeactivated();
+                            settings().onSupporterModeDeactivated();
                         } else {
                             Main.LOGGER.error("Error while trying to deactivate key : " + response.toString(4));
                         }
@@ -385,39 +413,39 @@ public class SettingsScene extends BaseScene {
         flowPaneHashMap.get(SettingValue.CATEGORY_GENERAL).getChildren().add(createLine(versionLabel, checkUpdatesButton));
 
         /***********************CMD****************************/
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)) {
-            Label cmdBeforeLabel = new Label(Main.getString("cmd_before_label") + " :");
+        if (settings().getBoolean(PredefinedSetting.ADVANCED_MODE)) {
+            Label cmdBeforeLabel = new Label(Main.getString("cmd_before") + " :");
             cmdBeforeLabel.setTooltip(new Tooltip(Main.getString("cmd_before_tooltip")));
             //cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
             cmdBeforeLabel.setId("advanced-setting-label");
 
-            CMDTextField cmdBeforeField = new CMDTextField(GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_BEFORE_START]);
+            CMDTextField cmdBeforeField = new CMDTextField(settings().getStrings(PredefinedSetting.CMD)[GameEntry.CMD_BEFORE_START]);
             cmdBeforeField.setWrapText(true);
             cmdBeforeField.setId("cmd_before");
             cmdBeforeField.textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                    String[] cmds = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD);
+                    String[] cmds = settings().getStrings(PredefinedSetting.CMD);
                     cmds[GameEntry.CMD_BEFORE_START] = newValue;
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.CMD, cmds);
+                    settings().setSettingValue(PredefinedSetting.CMD, cmds);
                 }
             });
             flowPaneHashMap.get(SettingValue.CATEGORY_ON_GAME_START).getChildren().add(createLine(cmdBeforeLabel, cmdBeforeField));
 
-            Label cmdAfterLabel = new Label(Main.getString("cmd_after_label") + " :");
+            Label cmdAfterLabel = new Label(Main.getString("cmd_after") + " :");
             cmdAfterLabel.setTooltip(new Tooltip(Main.getString("cmd_after_tooltip")));
             //cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
             cmdAfterLabel.setId("advanced-setting-label");
 
-            CMDTextField cmdAfterField = new CMDTextField(GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD)[GameEntry.CMD_AFTER_END]);
+            CMDTextField cmdAfterField = new CMDTextField(settings().getStrings(PredefinedSetting.CMD)[GameEntry.CMD_AFTER_END]);
             cmdAfterField.setWrapText(true);
             cmdAfterField.setId("cmd_after");
             cmdAfterField.textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                    String[] cmds = GENERAL_SETTINGS.getStrings(PredefinedSetting.CMD);
+                    String[] cmds = settings().getStrings(PredefinedSetting.CMD);
                     cmds[GameEntry.CMD_AFTER_END] = newValue;
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.CMD, cmds);
+                    settings().setSettingValue(PredefinedSetting.CMD, cmds);
                 }
             });
             flowPaneHashMap.get(SettingValue.CATEGORY_ON_GAME_START).getChildren().add(createLine(cmdAfterLabel, cmdAfterField));
@@ -434,7 +462,7 @@ public class SettingsScene extends BaseScene {
         addPropertyLine(PredefinedSetting.DEBUG_MODE, true);
 
         /***********************OPEN LOG FOLDER **************************************/
-        if ((GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE))) {
+        if ((settings().getBoolean(PredefinedSetting.ADVANCED_MODE))) {
             Label logLabel = new Label(Main.getString("open_logs_folder") + " : ");
             //logLabel.setStyle(ADVANCE_MODE_LABEL_STYLE);
             logLabel.setId("advanced-setting-label");
@@ -476,24 +504,17 @@ public class SettingsScene extends BaseScene {
      * @return null if value class is not recognized, a line to edit the value otherwise
      */
     private void addPropertyLine(PredefinedSetting setting, boolean advancedSetting, ChangeListener changeListener) {
-        if (!advancedSetting || (advancedSetting && GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE))) {
-            Label label = new Label(setting.getLabel() + " :");
-            label.setTooltip(new Tooltip(setting.getTooltip()));
-            if ((advancedSetting && GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE))) {
-                //label.setStyle(ADVANCE_MODE_LABEL_STYLE);
-                label.setId("advanced-setting-label");
-            }
-
+        if (!advancedSetting || (advancedSetting && settings().getBoolean(PredefinedSetting.ADVANCED_MODE))) {
             Node node2 = null;
             if (setting.isClass(Boolean.class)) {
                 /**************** BOOLEAN **************/
                 CheckBox checkBox = new CheckBox();
-                checkBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(setting));
+                checkBox.setSelected(settings().getBoolean(setting));
                 checkBox.setWrapText(true);
                 checkBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
                     @Override
                     public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                        Main.GENERAL_SETTINGS.setSettingValue(setting, newValue);
+                        settings().setSettingValue(setting, newValue);
                         if (changeListener != null) {
                             changeListener.changed(observable, oldValue, newValue);
                         }
@@ -515,12 +536,12 @@ public class SettingsScene extends BaseScene {
                         return null;
                     }
                 });
-                powerModeComboBox.setValue(GENERAL_SETTINGS.getPowerMode(PredefinedSetting.GAMING_POWER_MODE));
-                powerModeComboBox.setDisable(!GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE));
+                powerModeComboBox.setValue(settings().getPowerMode(PredefinedSetting.GAMING_POWER_MODE));
+                powerModeComboBox.setDisable(!settings().getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE));
                 powerModeComboBox.setOnAction(new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(ActionEvent event) {
-                        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.GAMING_POWER_MODE, powerModeComboBox.getValue());
+                        settings().setSettingValue(PredefinedSetting.GAMING_POWER_MODE, powerModeComboBox.getValue());
                         if (changeListener != null) {
                             changeListener.changed(null, null, powerModeComboBox.getValue());
                         }
@@ -542,11 +563,11 @@ public class SettingsScene extends BaseScene {
                         return OnLaunchAction.fromString(string);
                     }
                 });
-                onLaunchActionComboBox.setValue(GENERAL_SETTINGS.getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION));
+                onLaunchActionComboBox.setValue(settings().getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION));
                 onLaunchActionComboBox.setOnAction(new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(ActionEvent event) {
-                        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ON_GAME_LAUNCH_ACTION, onLaunchActionComboBox.getValue());
+                        settings().setSettingValue(PredefinedSetting.ON_GAME_LAUNCH_ACTION, onLaunchActionComboBox.getValue());
                         if (onLaunchActionComboBox.getValue().equals(OnLaunchAction.CLOSE)) {
                             GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
                             alert.setContentText(Main.getString("onLaunch_close_dialog_warning"));
@@ -573,18 +594,19 @@ public class SettingsScene extends BaseScene {
                         return null;
                     }
                 });
-                localeComboBox.setValue(Main.GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
+                localeComboBox.setValue(settings().getLocale(PredefinedSetting.LOCALE));
                 localeComboBox.setOnAction(new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(ActionEvent event) {
                         if (changeListener != null) {
-                            changeListener.changed(null, Main.GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE), localeComboBox.getValue());
+                            changeListener.changed(null, settings().getLocale(PredefinedSetting.LOCALE), localeComboBox.getValue());
                         }
                         Main.setRessourceBundle(ResourceBundle.getBundle("strings", localeComboBox.getValue()));
                         Main.setSettingsBundle(ResourceBundle.getBundle("settings", localeComboBox.getValue()));
                         Main.GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", localeComboBox.getValue());
                         Main.GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", localeComboBox.getValue());
-                        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.LOCALE, localeComboBox.getValue());
+
+                        settings().setSettingValue(PredefinedSetting.LOCALE, localeComboBox.getValue());
 
                         displayRestartDialog();
                         Main.restart(getParentStage(), "Applying language");
@@ -600,13 +622,13 @@ public class SettingsScene extends BaseScene {
                 node2 = manageButton;
             } else if (setting.isClass(String.class)) {
                 /**************** PATH **************/
-                String p = GENERAL_SETTINGS.getString(setting);
+                String p = settings().getString(setting);
                 PathTextField gamesFolderField = new PathTextField(p, getWindow(), PathTextField.FILE_CHOOSER_FOLDER, Main.getString("select_a_folder"));
                 gamesFolderField.setId(setting.getKey());
                 gamesFolderField.getTextField().textProperty().addListener(new ChangeListener<String>() {
                     @Override
                     public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                        GENERAL_SETTINGS.setSettingValue(setting, newValue);
+                        settings().setSettingValue(setting, newValue);
 
                         if (changeListener != null) {
                             changeListener.changed(observable, oldValue, newValue);
@@ -617,8 +639,9 @@ public class SettingsScene extends BaseScene {
 
                     @Override
                     public boolean isValid() {
-                        if (setting.equals(PredefinedSetting.GAMES_FOLDER)) {
-                            String dir = GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER);
+                        //TODO create a dialog to manage game folders
+                        /*if (setting.equals(PredefinedSetting.GAMES_FOLDER)) {
+                            String dir = settings().getString(PredefinedSetting.GAMES_FOLDER);
                             if (dir.equals("")) {
                                 return true;
                             }
@@ -632,7 +655,7 @@ public class SettingsScene extends BaseScene {
                                 return false;
                             }
                             return true;
-                        }
+                        }*/
                         return true;
                     }
 
@@ -657,11 +680,11 @@ public class SettingsScene extends BaseScene {
                         return UIScale.fromString(string);
                     }
                 });
-                uiScaleComboBox.setValue(GENERAL_SETTINGS.getUIScale());
+                uiScaleComboBox.setValue(settings().getUIScale());
                 uiScaleComboBox.setOnAction(new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(ActionEvent event) {
-                        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.UI_SCALE, uiScaleComboBox.getValue());
+                        settings().setSettingValue(PredefinedSetting.UI_SCALE, uiScaleComboBox.getValue());
                         displayRestartDialog();
                         Main.restart(getParentStage(), "Applying new UI scale");
                         if (changeListener != null) {
@@ -685,14 +708,14 @@ public class SettingsScene extends BaseScene {
                         return ThemeUtils.getThemeFromName(string);
                     }
                 });
-                themeComboBox.setValue(GENERAL_SETTINGS.getTheme());
+                themeComboBox.setValue(settings().getTheme());
                 themeComboBox.setOnAction(new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(ActionEvent event) {
                         boolean registered = checkAndDisplayRegisterDialog();
                         if (registered) {
                             Theme chosenTheme = themeComboBox.getValue();
-                            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.THEME, chosenTheme);
+                            settings().setSettingValue(PredefinedSetting.THEME, chosenTheme);
                             try {
                                 if (changeListener != null) {
                                     changeListener.changed(null, null, themeComboBox.getValue());
@@ -723,11 +746,11 @@ public class SettingsScene extends BaseScene {
                         return ScanPeriod.fromString(string);
                     }
                 });
-                scanPeriodComboBox.setValue(GENERAL_SETTINGS.getScanPeriod());
+                scanPeriodComboBox.setValue(settings().getScanPeriod());
                 scanPeriodComboBox.setOnAction(new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(ActionEvent event) {
-                        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SCAN_PERIOD, scanPeriodComboBox.getValue());
+                        settings().setSettingValue(PredefinedSetting.SCAN_PERIOD, scanPeriodComboBox.getValue());
                         if (changeListener != null) {
                             changeListener.changed(null, null, scanPeriodComboBox.getValue());
                         }
@@ -738,7 +761,7 @@ public class SettingsScene extends BaseScene {
             if (node2 != null) {
                 node2.setId(setting.getKey());
             }
-            flowPaneHashMap.get(setting.getCategory()).getChildren().add(createLine(label, node2));
+            flowPaneHashMap.get(setting.getCategory()).getChildren().add(createLine(setting,advancedSetting, node2));
         }
     }
 
@@ -760,6 +783,29 @@ public class SettingsScene extends BaseScene {
                 }
             }
         }
+    }
+
+    private HBox createLine(PredefinedSetting setting, boolean advancedSetting, Node nodeRight){
+        Node left = null;
+        Label label = new Label(setting.getLabel() + " :");
+        if ((advancedSetting && settings().getBoolean(PredefinedSetting.ADVANCED_MODE))) {
+            //label.setStyle(ADVANCE_MODE_LABEL_STYLE);
+            label.setId("advanced-setting-label");
+        }
+
+        String tooltip = setting.getTooltip();
+        if(!tooltip.equals(setting.getLabel())){
+            HBox hBox = new HBox();
+            hBox.setAlignment(Pos.CENTER_LEFT);
+            hBox.setSpacing(5 * SCREEN_WIDTH / 1920);
+            hBox.getChildren().addAll(label,new HelpButton(tooltip));
+            left = hBox;
+        }else{
+            label.setTooltip(new Tooltip(tooltip));
+            left = label;
+        }
+
+        return createLine(left,nodeRight);
     }
 
     private HBox createLine(Node nodeLeft, Node nodeRight) {
@@ -900,9 +946,9 @@ public class SettingsScene extends BaseScene {
                         case KeyChecker.RESULT_SUCCESS:
                             GameRoomAlert.info(message);
 
-                            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SUPPORTER_KEY, dialog.getSupporterKey());
-                            SUPPORTER_MODE = KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY));
-                            String keyStatus = Main.SUPPORTER_MODE ? GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
+                            settings().setSettingValue(PredefinedSetting.SUPPORTER_KEY, dialog.getSupporterKey());
+                            SUPPORTER_MODE = KeyChecker.isKeyValid(settings().getString(PredefinedSetting.SUPPORTER_KEY));
+                            String keyStatus = Main.SUPPORTER_MODE ? settings().getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
                             String buttonText = Main.SUPPORTER_MODE ? Main.getString("deactivate") : Main.getString("activate");
                             if (actDeactButton != null) {
                                 actDeactButton.setText(buttonText);
@@ -910,7 +956,7 @@ public class SettingsScene extends BaseScene {
                             if (supporterModeLabel != null) {
                                 supporterModeLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + " : " + keyStatus);
                             }
-                            Main.GENERAL_SETTINGS.onSupporterModeActivated();
+                            settings().onSupporterModeActivated();
 
                             break;
                         case KeyChecker.RESULT_ERROR:

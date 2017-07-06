@@ -2,6 +2,7 @@ package data.game.scanner;
 
 import data.game.GameWatcher;
 import data.game.entry.GameEntry;
+import data.game.entry.Platform;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.GeneralToast;
@@ -69,5 +70,13 @@ public abstract class GameScanner {
 
     public ScannerProfile getScannerProfile() {
         return profile;
+    }
+
+    public Platform getPlatform(){
+        if(profile == null){
+            return Platform.NONE;
+        }
+        int platformID = profile.getPlatformId();
+        return Platform.getFromId(platformID);
     }
 }

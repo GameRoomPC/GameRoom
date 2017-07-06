@@ -37,7 +37,7 @@ public class UpdateDialog extends GameRoomDialog<ButtonType> {
                     + "    line-height: 150%;"
                     + "}";
 
-    public UpdateDialog(String currentVersion, String newVersion, URL changelogUrl) {
+    public UpdateDialog(String currentVersion, String newVersion, URL changelogUrl) throws IOException {
         super(Modality.WINDOW_MODAL);
         setTitle("GameRoom Updater");
 
@@ -70,42 +70,34 @@ public class UpdateDialog extends GameRoomDialog<ButtonType> {
         return pane;
     }
 
-    public Pane createChangelogArea(URL changelogURL) {
+    public Pane createChangelogArea(URL changelogURL) throws IOException {
         StackPane pane = new StackPane();
 
-        try {
-            PegDownProcessor pegProc = new PegDownProcessor();
-            StringBuilder htmlString = new StringBuilder();
+        PegDownProcessor pegProc = new PegDownProcessor();
+        StringBuilder htmlString = new StringBuilder();
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(changelogURL.openStream()));
 
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(changelogURL.openStream()));
+        String inputLine;
+        while ((inputLine = in.readLine()) != null)
+            htmlString.append(inputLine).append("\n");
+        in.close();
 
-            String inputLine;
-            while ((inputLine = in.readLine()) != null)
-                htmlString.append(inputLine).append("\n");
-            in.close();
+        WebView webview = new WebView();
+        webview.getEngine().getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+            if (newState == Worker.State.SUCCEEDED) {
+                Document doc = webview.getEngine().getDocument();
+                Element styleNode = doc.createElement("style");
+                Text styleContent = doc.createTextNode(CSS);
+                styleNode.appendChild(styleContent);
+                doc.getDocumentElement().getElementsByTagName("head").item(0).appendChild(styleNode);
+            }
+        });
 
-            WebView webview = new WebView();
-            webview.getEngine().getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
-                if (newState == Worker.State.SUCCEEDED) {
-                    Document doc = webview.getEngine().getDocument();
-                    Element styleNode = doc.createElement("style");
-                    Text styleContent = doc.createTextNode(CSS);
-                    styleNode.appendChild(styleContent);
-                    doc.getDocumentElement().getElementsByTagName("head").item(0).appendChild(styleNode);
-                }
-            });
+        webview.getEngine().loadContent(pegProc.markdownToHtml(htmlString.toString()).replaceAll("\\s*<a.*</a>\\s*", ""));
 
-            webview.getEngine().loadContent(pegProc.markdownToHtml(htmlString.toString()).replaceAll("\\s*<a.*</a>\\s*", ""));
+        pane.getChildren().add(webview);
 
-            pane.getChildren().add(webview);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            Label label = new Label(e.toString());
-            label.setWrapText(true);
-            pane.getChildren().add(label);
-        }
         pane.getStyleClass().add("changelog-scrollpane");
         pane.setPrefWidth(600 * Main.SCREEN_WIDTH / 1920);
         pane.setPrefHeight(500 * Main.SCREEN_HEIGHT / 1080);

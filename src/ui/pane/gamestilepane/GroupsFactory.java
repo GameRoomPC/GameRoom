@@ -1,9 +1,6 @@
 package ui.pane.gamestilepane;
 
-import data.game.entry.GameEntry;
-import data.game.entry.GameGenre;
-import data.game.entry.GameTheme;
-import data.game.scanner.ScannerProfile;
+import data.game.entry.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import ui.Main;
@@ -30,7 +27,7 @@ public class GroupsFactory {
                         return false;
                     }
                 }
-                return entry.getGenres() == null || entry.getGenres().length == 0;
+                return entry.getGenres() == null || entry.getGenres().isEmpty();
             }
         };
         othersTilePane.setTitle(Main.getString("others"));
@@ -112,7 +109,7 @@ public class GroupsFactory {
                         return false;
                     }
                 }
-                return entry.getThemes() == null || entry.getThemes().length == 0;
+                return entry.getThemes() == null || entry.getThemes().isEmpty();
             }
         };
         othersTilePane.setTitle(Main.getString("others"));
@@ -183,9 +180,9 @@ public class GroupsFactory {
     }
 
     public static ArrayList<GroupRowTilePane> createGroupsBySerie(GamesTilePane originalTilePane, MainScene mainScene) {
-        ArrayList<String> allSeries = new ArrayList<>();
+        ArrayList<Serie> allSeries = new ArrayList<>();
         for (GameButton button : originalTilePane.getGameButtons()) {
-            if (!allSeries.contains(button.getEntry().getSerie()) && button.getEntry().getSerie() != null && !button.getEntry().getSerie().trim().equals("")) {
+            if (!button.getEntry().getSerie().equals(Serie.NONE) && !allSeries.contains(button.getEntry().getSerie()) && !button.getEntry().getSerie().equals("")) {
                 allSeries.add(button.getEntry().getSerie());
             }
         }
@@ -200,7 +197,7 @@ public class GroupsFactory {
                         return false;
                     }
                 }
-                return entry.getSerie() == null || entry.getSerie().trim().equals("");
+                return entry.getSerie().equals(Serie.NONE);
             }
         };
         othersTilePane.setTitle(Main.getString("others"));
@@ -219,17 +216,17 @@ public class GroupsFactory {
         othersTilePane.setPrefTileHeight(originalTilePane.getTilePane().getPrefTileHeight());
         othersTilePane.setPrefTileWidth(originalTilePane.getTilePane().getPrefTileWidth());
 
-        for (String serie : allSeries) {
+        for (Serie serie : allSeries) {
             GroupRowTilePane tilePane = new GroupRowTilePane(mainScene) {
                 @Override
                 public boolean fillsRequirement(GameEntry entry) {
-                    if (entry.getSerie() == null) {
+                    if (entry.getSerie().equals(Serie.NONE)) {
                         return false;
                     }
                     return entry.getSerie().equals(serie);
                 }
             };
-            tilePane.setTitle(serie);
+            tilePane.setTitle(serie.getName());
             for (GameButton button : originalTilePane.getGameButtons()) {
                 tilePane.addGame(button.getEntry());
                 othersTilePane.addGame(button.getEntry());
@@ -276,14 +273,7 @@ public class GroupsFactory {
                         return false;
                     }
                 }
-                boolean notFromLaunchers = true;
-                for(ScannerProfile launcher : ScannerProfile.values()){
-                    notFromLaunchers = !isEntryFromLauncher(entry,launcher);
-                    if(!notFromLaunchers){
-                        break;
-                    }
-                }
-                return notFromLaunchers;
+                return entry.getPlatform().equals(Platform.NONE);
             }
         };
         othersTilePane.setTitle(Main.getString("others"));
@@ -301,37 +291,39 @@ public class GroupsFactory {
         });
         othersTilePane.setPrefTileHeight(originalTilePane.getTilePane().getPrefTileHeight());
         othersTilePane.setPrefTileWidth(originalTilePane.getTilePane().getPrefTileWidth());
-        for (ScannerProfile launcher : ScannerProfile.values()) {
-            GroupRowTilePane tilePane = new GroupRowTilePane(mainScene) {
-                @Override
-                public boolean fillsRequirement(GameEntry entry) {
-                    return isEntryFromLauncher(entry,launcher);
-                }
-            };
-            tilePane.setTitle(launcher.toString());
-            tilePane.getIconButton().setImageViewId(launcher.getIconCSSID());
-            tilePane.getIconButton().setManaged(true);
+        for(Platform platform : Platform.values()){
+            if(!platform.equals(Platform.NONE)) {
+                GroupRowTilePane tilePane = new GroupRowTilePane(mainScene) {
+                    @Override
+                    public boolean fillsRequirement(GameEntry entry) {
+                        return entry.getPlatform().equals(platform);
+                    }
+                };
+                tilePane.setTitle(platform.getName());
+                tilePane.getIconButton().setImageViewId(platform.getIconCSSId());
+                tilePane.getIconButton().setManaged(true);
 
-            for (GameButton button : originalTilePane.getGameButtons()) {
-                tilePane.addGame(button.getEntry());
-                othersTilePane.addGame(button.getEntry());
-            }
-            if (tilePane.getGameButtons().size() > 0) {
-                originalTilePane.getTilePane().prefTileWidthProperty().addListener(new ChangeListener<Number>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                        tilePane.setPrefTileWidth(newValue.doubleValue());
-                    }
-                });
-                originalTilePane.getTilePane().prefTileHeightProperty().addListener(new ChangeListener<Number>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                        tilePane.setPrefTileHeight(newValue.doubleValue());
-                    }
-                });
-                tilePane.setPrefTileHeight(originalTilePane.getTilePane().getPrefTileHeight());
-                tilePane.setPrefTileWidth(originalTilePane.getTilePane().getPrefTileWidth());
-                allTilePanes.add(tilePane);
+                for (GameButton button : originalTilePane.getGameButtons()) {
+                    tilePane.addGame(button.getEntry());
+                    othersTilePane.addGame(button.getEntry());
+                }
+                if (tilePane.getGameButtons().size() > 0) {
+                    originalTilePane.getTilePane().prefTileWidthProperty().addListener(new ChangeListener<Number>() {
+                        @Override
+                        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                            tilePane.setPrefTileWidth(newValue.doubleValue());
+                        }
+                    });
+                    originalTilePane.getTilePane().prefTileHeightProperty().addListener(new ChangeListener<Number>() {
+                        @Override
+                        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                            tilePane.setPrefTileHeight(newValue.doubleValue());
+                        }
+                    });
+                    tilePane.setPrefTileHeight(originalTilePane.getTilePane().getPrefTileHeight());
+                    tilePane.setPrefTileWidth(originalTilePane.getTilePane().getPrefTileWidth());
+                    allTilePanes.add(tilePane);
+                }
             }
         }
         allTilePanes.sort(new Comparator<RowCoverTilePane>() {
@@ -344,24 +336,5 @@ public class GroupsFactory {
             allTilePanes.add(othersTilePane);
         }
         return allTilePanes;
-    }
-
-    private static boolean isEntryFromLauncher(GameEntry entry, ScannerProfile profile){
-        switch (profile){
-            case STEAM:
-                return entry.isSteamGame() && !entry.isNotInstalled();
-            case STEAM_ONLINE:
-                return entry.isSteamGame() && entry.isNotInstalled();
-            case BATTLE_NET:
-                return entry.isBattlenetGame();
-            case GOG:
-                return entry.isGoGGame();
-            case ORIGIN:
-                return entry.isOriginGame();
-            case UPLAY:
-                return entry.isUplayGame();
-            default:
-                return false;
-        }
     }
 }

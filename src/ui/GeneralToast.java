@@ -7,7 +7,7 @@ import system.application.settings.PredefinedSetting;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 
 /**
  * Created by LM on 05/01/2017.
@@ -98,7 +98,7 @@ public class GeneralToast extends Tooltip {
         if(!window.isShowing() || !window.isFocused()){
             return;
         }
-        if (ENABLED && !GENERAL_SETTINGS.getBoolean(PredefinedSetting.NO_TOASTS)) {
+        if (ENABLED && !settings().getBoolean(PredefinedSetting.NO_TOASTS)) {
             CAN_INTERRUPT_TOAST = interruptible;
             Main.runAndWait(() -> {
                 show(window);

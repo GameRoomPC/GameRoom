@@ -1,7 +1,10 @@
 package ui;
 
+import data.game.entry.Emulator;
 import data.http.images.ImageDownloaderService;
 import data.http.key.KeyChecker;
+import data.io.DataBase;
+import data.migration.OldGameEntry;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
@@ -17,6 +20,10 @@ import ui.scene.MainScene;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -24,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static system.application.settings.GeneralSettings.settings;
 import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
 
 public class Main {
@@ -47,14 +55,13 @@ public class Main {
     public static ResourceBundle GAME_GENRES_BUNDLE;
     public static ResourceBundle GAME_THEMES_BUNDLE;
 
+
     private final static String MANUAL_TAG= "\\$string\\$";
     private final static char AUTO_TAG_CHAR = '%';
     private final static Pattern AUTO_TAG_PATTERN = Pattern.compile("\\"+ AUTO_TAG_CHAR +"(.*)\\"+ AUTO_TAG_CHAR);
-    private final static String NO_STRING = "\'no_string\'";
+    public final static String NO_STRING = "\'no_string\'";
 
-    public static GeneralSettings GENERAL_SETTINGS;
-
-    public static final Logger LOGGER = LogManager.getLogger(Main.class);
+    public static Logger LOGGER;
 
     public static final HashMap<String, File> FILES_MAP = new HashMap<>();
 
@@ -84,14 +91,19 @@ public class Main {
 
         LOGGER.info("Started app with screen true resolution : " + (int) TRUE_SCREEN_WIDTH + "x" + (int) TRUE_SCREEN_HEIGHT);
 
-        GENERAL_SETTINGS = new GeneralSettings();
+        settings().load();
+        Emulator.loadEmulators();
 
-        SUPPORTER_MODE = !GENERAL_SETTINGS.getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(GENERAL_SETTINGS.getString(SUPPORTER_KEY));
+        SUPPORTER_MODE = settings().getString(SUPPORTER_KEY) != null
+                && !settings().getString(SUPPORTER_KEY).isEmpty()
+                && !settings().getString(SUPPORTER_KEY).equals("")
+                && KeyChecker.isKeyValid(settings().getString(SUPPORTER_KEY));
         LOGGER.info("Supporter mode : "+ SUPPORTER_MODE);
-        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
-        SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
-        GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
-        GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", GENERAL_SETTINGS.getLocale(PredefinedSetting.LOCALE));
+        RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", settings().getLocale(PredefinedSetting.LOCALE));
+        SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", settings().getLocale(PredefinedSetting.LOCALE));
+        GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", settings().getLocale(PredefinedSetting.LOCALE));
+        GAME_THEMES_BUNDLE = ResourceBundle.getBundle("gamethemes", settings().getLocale(PredefinedSetting.LOCALE));
+
         //if(!DEV_MODE){
         //startUpdater();
         //}
@@ -197,6 +209,7 @@ public class Main {
             action.run();
             return;
         }
+
         final CountDownLatch doneLatch = new CountDownLatch(1);
 
         // queue on JavaFX thread and wait for completion
@@ -234,7 +247,6 @@ public class Main {
             for(String s : manuals){
                 result = result.replaceFirst(MANUAL_TAG,s);
             }
-
             return result;
 
         }catch (MissingResourceException e){

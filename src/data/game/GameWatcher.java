@@ -2,16 +2,16 @@ package data.game;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.LevenshteinDistance;
-import data.game.entry.AllGameEntries;
+import data.game.entry.GameEntryUtils;
 import data.game.entry.GameEntry;
 import data.game.scanner.*;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.images.ImageUtils;
-import data.http.key.KeyChecker;
 import data.io.FileUtils;
 import javafx.application.Platform;
 import org.json.JSONArray;
+import system.application.settings.PredefinedSetting;
 import ui.GeneralToast;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
@@ -21,10 +21,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 
 /**
@@ -73,14 +74,17 @@ public class GameWatcher {
         localGameScanners.add(new FolderGameScanner(this));
         onlineGameScanners.add(new LauncherScanner(this, ScannerProfile.STEAM_ONLINE));
 
-        SCAN_PERIOD = GENERAL_SETTINGS.getScanPeriod();
+        SCAN_PERIOD = settings().getScanPeriod();
+        if(SCAN_PERIOD == null){
+            SCAN_PERIOD = (ScanPeriod) PredefinedSetting.SCAN_PERIOD.getDefaultValue().getSettingValue();
+        }
     }
 
     private void initService() {
         serviceThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                initToAddEntries();
+                    loadToAddEntries();
                 if(!SCAN_PERIOD.equals(ScanPeriod.NEVER)) {
                     do {
                         long start = System.currentTimeMillis();
@@ -186,23 +190,22 @@ public class GameWatcher {
         }
     }
 
-    private void initToAddEntries() {
-        ArrayList<UUID> uuids = AllGameEntries.readUUIDS(FILES_MAP.get("to_add"));
+    public void loadToAddEntries() {
 
         ArrayList<GameEntry> savedEntries = new ArrayList<>();
-        for (UUID uuid : uuids) {
-            GameEntry entry = new GameEntry(uuid, true);
-            if (!FolderGameScanner.isGameIgnored(entry)) {
-                entry.setSavedLocaly(true);
+        GameEntryUtils.loadIgnoredGames();
+        GameEntryUtils.loadToAddGames().forEach(entry ->{
+            if (!GameEntryUtils.isGameIgnored(entry)) {
+                entry.setSavedLocally(true);
                 savedEntries.add(entry);
             }
-        }
+        });
         savedEntries.sort(new Comparator<GameEntry>() {
             @Override
             public int compare(GameEntry o1, GameEntry o2) {
                 int result = 0;
-                Date date1 = o1.getAddedDate();
-                Date date2 = o2.getAddedDate();
+                LocalDateTime date1 = o1.getAddedDate();
+                LocalDateTime date2 = o2.getAddedDate();
 
                 if (date1 == null && date2 != null) {
                     return 1;
@@ -229,14 +232,6 @@ public class GameWatcher {
         }
     }
 
-    private void validateKey() {
-        if (!Main.SUPPORTER_MODE) {
-            Main.SUPPORTER_MODE = !Main.GENERAL_SETTINGS.getString(SUPPORTER_KEY).equals("") && KeyChecker.isKeyValid(Main.GENERAL_SETTINGS.getString(SUPPORTER_KEY));
-            if (Main.SUPPORTER_MODE) {
-                IGDBScraper.key = IGDBScraper.IGDB_PRO_KEY;
-            }
-        }
-    }
 
     private void tryScrapToAddEntries() {
         CopyOnWriteArrayList<Integer> searchIGDBIDs = new CopyOnWriteArrayList<>();
@@ -250,14 +245,14 @@ public class GameWatcher {
 
         final boolean[] alreadyDisplayedIGDBError = {false};
         for (GameEntry entry : entriesToAdd) {
-            if (entry.isWaitingToBeScrapped() && !entry.isBeingScrapped() && !FolderGameScanner.isGameIgnored(entry)) {
+            if (entry.isWaitingToBeScrapped() && !entry.isBeingScraped() && !GameEntryUtils.isGameIgnored(entry)) {
                 Callable task = new Callable() {
                     @Override
                     public Object call() throws Exception {
                         try {
-                            entry.setSavedLocaly(true);
-                            entry.setBeingScrapped(true);
-                            entry.setSavedLocaly(false);
+                            entry.setSavedLocally(true);
+                            entry.setBeingScraped(true);
+                            entry.setSavedLocally(false);
                             JSONArray search_results = IGDBScraper.searchGame(entry.getName());
                             if (search_results != null) {
                                 int igdbId = LevenshteinDistance.closestName(entry.getName(), search_results);
@@ -276,10 +271,10 @@ public class GameWatcher {
                                     alreadyDisplayedIGDBError[0] = true;
                                 }
                             }
-                            entry.setSavedLocaly(true);
+                            entry.setSavedLocally(true);
                             entry.setWaitingToBeScrapped(false);
-                            entry.setBeingScrapped(false);
-                            entry.setSavedLocaly(false);
+                            entry.setBeingScraped(false);
+                            entry.setSavedLocally(false);
                             Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
                         }
                         return null;
@@ -323,8 +318,8 @@ public class GameWatcher {
                             }
                             for (GameEntry scrappedEntry : scrappedEntries) {
                                 GameEntry toScrapEntry = getGameWithIGDBId(scrappedEntry.getIgdb_id(), toScrapEntries);
-                                if (toScrapEntry != null && !FolderGameScanner.isGameIgnored(toScrapEntry)) {
-                                    toScrapEntry.setSavedLocaly(true);
+                                if (toScrapEntry != null && !GameEntryUtils.isGameIgnored(toScrapEntry)) {
+                                    toScrapEntry.setSavedLocally(true);
                                     if (toScrapEntry.getDescription() == null || toScrapEntry.getDescription().equals("")) {
                                         toScrapEntry.setDescription(scrappedEntry.getDescription());
                                     }
@@ -334,10 +329,10 @@ public class GameWatcher {
                                     toScrapEntry.setThemes(scrappedEntry.getThemes());
                                     toScrapEntry.setGenres(scrappedEntry.getGenres());
                                     toScrapEntry.setSerie(scrappedEntry.getSerie());
-                                    toScrapEntry.setDeveloper(scrappedEntry.getDeveloper());
-                                    toScrapEntry.setPublisher(scrappedEntry.getPublisher());
+                                    toScrapEntry.setDevelopers(scrappedEntry.getDevelopers());
+                                    toScrapEntry.setPublishers(scrappedEntry.getPublishers());
                                     toScrapEntry.setIgdb_id(scrappedEntry.getIgdb_id());
-                                    toScrapEntry.setSavedLocaly(false);
+                                    toScrapEntry.setSavedLocally(false);
 
                                     ImageUtils.downloadIGDBImageToCache(EXECUTOR_SERVICE
                                             , scrappedEntry.getIgdb_id()
@@ -348,17 +343,12 @@ public class GameWatcher {
                                                 @Override
                                                 public void run(File outputfile) {
                                                     try {
-                                                        File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + FileUtils.getExtension(outputfile));
-                                                        Files.copy(outputfile.getAbsoluteFile().toPath()
-                                                                , localCoverFile.getAbsoluteFile().toPath()
-                                                                , StandardCopyOption.REPLACE_EXISTING);
-                                                        toScrapEntry.setSavedLocaly(true);
-                                                        toScrapEntry.setImagePath(0, localCoverFile);
-                                                        toScrapEntry.setSavedLocaly(false);
+                                                        toScrapEntry.setSavedLocally(true);
+                                                        toScrapEntry.updateImage(0, outputfile);
+                                                        toScrapEntry.setSavedLocally(false);
                                                     } catch (Exception e) {
-                                                        toScrapEntry.setSavedLocaly(true);
-                                                        toScrapEntry.setImagePath(0, outputfile);
-                                                        toScrapEntry.setSavedLocaly(false);
+                                                            Main.LOGGER.error("GameWatcher : could not move image for game "+toScrapEntry.getName());
+                                                            e.printStackTrace();
                                                     }
 
                                                     Main.runAndWait(() -> {
@@ -374,22 +364,17 @@ public class GameWatcher {
                                                                 @Override
                                                                 public void run(File outputfile) {
                                                                     try {
-                                                                        File localCoverFile = new File(FILES_MAP.get("to_add") + File.separator + toScrapEntry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + FileUtils.getExtension(outputfile));
-                                                                        Files.copy(outputfile.getAbsoluteFile().toPath()
-                                                                                , localCoverFile.getAbsoluteFile().toPath()
-                                                                                , StandardCopyOption.REPLACE_EXISTING);
-                                                                        toScrapEntry.setSavedLocaly(true);
-                                                                        toScrapEntry.setImagePath(1, localCoverFile);
-                                                                        toScrapEntry.setSavedLocaly(false);
+                                                                        toScrapEntry.setSavedLocally(true);
+                                                                        toScrapEntry.updateImage(1, outputfile);
+                                                                        toScrapEntry.setSavedLocally(false);
                                                                     } catch (Exception e) {
-                                                                        toScrapEntry.setSavedLocaly(true);
-                                                                        toScrapEntry.setImagePath(1, outputfile);
-                                                                        toScrapEntry.setSavedLocaly(false);
+                                                                        Main.LOGGER.error("GameWatcher : could not move image for game "+toScrapEntry.getName());
+                                                                        e.printStackTrace();
                                                                     }
-                                                                    toScrapEntry.setSavedLocaly(true);
+                                                                    toScrapEntry.setSavedLocally(true);
                                                                     toScrapEntry.setWaitingToBeScrapped(false);
-                                                                    toScrapEntry.setBeingScrapped(false);
-                                                                    toScrapEntry.setSavedLocaly(false);
+                                                                    toScrapEntry.setBeingScraped(false);
+                                                                    toScrapEntry.setSavedLocally(false);
                                                                     Main.runAndWait(() -> {
                                                                         Main.MAIN_SCENE.updateGame(toScrapEntry);
                                                                     });
@@ -397,7 +382,6 @@ public class GameWatcher {
                                                             });
                                                 }
                                             });
-
                                 }
 
                                 i++;
@@ -416,12 +400,12 @@ public class GameWatcher {
                 }
             }
             for(GameEntry ge : toScrapEntries){
-                if(ge.isBeingScrapped()){ //this means that there was no id on igdb for this game
+                if(ge.isBeingScraped()){ //this means that there was no id on igdb for this game
                     //here we set it to false as IGDB was not able to find our game
-                    ge.setSavedLocaly(true);
-                    ge.setBeingScrapped(false);
+                    ge.setSavedLocally(true);
+                    ge.setBeingScraped(false);
                     ge.setWaitingToBeScrapped(ge.isWaitingToBeScrapped() && anErrorOccured);
-                    ge.setSavedLocaly(false);
+                    ge.setSavedLocally(false);
                     Main.runAndWait(() -> {
                         Main.MAIN_SCENE.updateGame(ge);
                     });
@@ -481,13 +465,16 @@ public class GameWatcher {
     }
 
     public GameButton onGameFound(GameEntry foundEntry) {
-        if (!FolderGameScanner.gameAlreadyIn(foundEntry, entriesToAdd)) {
-            foundEntry.setAddedDate(new Date());
-            foundEntry.setToAdd(true);
-            foundEntry.setSavedLocaly(true);
-            foundEntry.setName(cleanName(foundEntry.getName()));
+        if (!FolderGameScanner.gameAlreadyIn(foundEntry, entriesToAdd) && !GameEntryUtils.isGameIgnored(foundEntry)) {
+            if(!foundEntry.isInDb()) {
+                foundEntry.setAddedDate(LocalDateTime.now());
+                foundEntry.setToAdd(true);
+                foundEntry.setSavedLocally(true);
+                foundEntry.saveEntry();
+                foundEntry.setName(cleanName(foundEntry.getName()));
 
-            Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
+                Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
+            }
             entriesToAdd.add(foundEntry);
             return onGameFoundHandler.gameToAddFound(foundEntry);
         }
@@ -500,6 +487,8 @@ public class GameWatcher {
                 .replace("-", "")
                 .replace("_", "")
                 .replace(".", "")
+                .replace("!","")
+                .replace("?","")
                 .replace(" ", "");//remove spaces for a cleaner comparison;
     }
 
@@ -520,13 +509,10 @@ public class GameWatcher {
     public void removeGame(GameEntry entry) {
         ArrayList<GameEntry> toRemoveEntries = new ArrayList<>();
         for (GameEntry n : entriesToAdd) {
-            boolean delete = n.getUuid().equals(entry.getUuid())
+            boolean delete = n.getId() == entry.getId()
                     || FolderGameScanner.entryNameOrPathEquals(n, entry);
             if (delete) {
                 toRemoveEntries.add(n);
-                if (n.isToAdd()) { //check if not added to Games folder
-                    n.deletePermanently();
-                }
                 break;
             }
         }

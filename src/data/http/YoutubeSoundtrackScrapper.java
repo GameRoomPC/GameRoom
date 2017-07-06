@@ -105,6 +105,7 @@ public class YoutubeSoundtrackScrapper {
         pointsForKeyword.put("Transcription",-15);
         pointsForKeyword.put("Gameplay",-50);
         pointsForKeyword.put("Earrape",-100);
+        pointsForKeyword.put("Ear rape",-100);
         pointsForKeyword.put("Glitch",-100);
 
         for(int i=0; i<videoMetadatas.size(); i++){

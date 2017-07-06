@@ -14,12 +14,21 @@ import ui.theme.UIScale;
 
 import java.io.File;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 
 import static system.application.settings.SettingValue.*;
 
-/**
- * Created by LM on 08/08/2016.
+/** This is the list of possible settings through the app.
+ *  Each Setting has :
+ *      - a {@link String} {@link #key} that uniquely identifies it (useful for DB and HashMap storing, see {@link GeneralSettings}.)
+ *      - a default {@link SettingValue}, {@link #defaultValue}. It can be overriden (in this case it saved into the DB).
+ *  See {@link SettingValue} to understand which restriction there are on this.
+ *  Those {@link PredefinedSetting} can then be used along with the {@link GeneralSettings} instance to read and update
+ *  the setting value.
+ *
+ * @author LM. Garret (admin@gameroom.me)
+ * @date 08/08/2016
  */
 public enum PredefinedSetting {
     LOCALE("locale", new SettingValue(Locale.getDefault(),Locale.class,CATEGORY_GENERAL))
@@ -40,7 +49,6 @@ public enum PredefinedSetting {
     ,START_WITH_WINDOWS("startWithWindows", new SettingValue(false,Boolean.class,CATEGORY_GENERAL))
     ,NO_MORE_ICON_TRAY_WARNING("noMoreIconTrayWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     , ENABLE_GAME_CONTROLLER_SUPPORT("enableXboxControllerSupport", new SettingValue(false,Boolean.class,CATEGORY_UI))
-    ,GAMES_FOLDER("gamesFolder", new SettingValue("",String.class,CATEGORY_SCAN))
     , SUPPORTER_KEY("supporterKey", new SettingValue("",String.class,CATEGORY_GENERAL))
     ,DISABLE_MAINSCENE_WALLPAPER("disableMainSceneWallpaper", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,DISABLE_SCROLLBAR_IN_FULLSCREEN("disableScrollbarFullScreen", new SettingValue(true,Boolean.class,CATEGORY_UI))
@@ -64,6 +72,9 @@ public enum PredefinedSetting {
     , LAST_SUPPORT_MESSAGE("lastSupportMessage", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , LAST_UPDATE_CHECK("lastUpdateCheck", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , DRAWER_MENU_WIDTH("drawerMenuWidth", new SettingValue(0,Double.class,CATEGORY_NONE))
+    ,NO_MORE_ADD_APP_WARNING("noMoreAddAppWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
+    ,NO_MORE_ADD_FOLDER_WARNING("noMoreAddAppWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
+    ,KEEP_COVER_RATIO("keepCoverRatio", new SettingValue(false,Boolean.class,CATEGORY_NONE));
     ;
 
 
@@ -74,6 +85,12 @@ public enum PredefinedSetting {
         this.key = key;
         this.defaultValue = setting;
     }
+    /** Gets the localized label used to name a setting.
+     * Labels are stored along with tooltips in a other properties files than usual for usual strings;
+     *
+     * @return the corresponding label to this setting
+     * @throws NullPointerException if the label was not set
+     */
     public String getLabel(){
         String label = Main.getSettingsString(key +"_label");
         if(label == null){
@@ -82,6 +99,11 @@ public enum PredefinedSetting {
         return label!=null ? label : key;
     }
 
+    /** Gets the localized tooltip to be displayed when the user hovers over the label.
+     * Tooltips are stored along with labels in a other properties files than usual for usual strings;
+     *
+     * @return the corresponding tooltip to this setting, or the label if it has not been set. (see {@link #getLabel()}
+     */
     public String getTooltip(){
         String tooltip = Main.getSettingsString(key +"_tooltip");
         return tooltip!=null ? tooltip : getLabel();
@@ -109,5 +131,22 @@ public enum PredefinedSetting {
 
     public String getCategory() {
         return defaultValue.getCategory();
+    }
+
+    /** Given a key, it returns the corresponding {@link PredefinedSetting} from the enum above.
+     *
+     * @param key key used to identify the {@link PredefinedSetting}. If null, this returns null
+     * @return the corresponding {@link PredefinedSetting}, null if the key is null or unknown.
+     */
+    public static PredefinedSetting getFromKey(String key){
+        if(key == null){
+            return null;
+        }
+        for(PredefinedSetting setting : values()){
+            if(setting.getKey().equals(key)){
+                return setting;
+            }
+        }
+        return null;
     }
 }

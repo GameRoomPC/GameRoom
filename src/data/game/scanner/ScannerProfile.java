@@ -1,24 +1,27 @@
 package data.game.scanner;
 
+import data.game.entry.Platform;
 import ui.Main;
+
+import static system.application.settings.GeneralSettings.settings;
 
 /**
  * Created by LM on 04/01/2017.
  */
 public enum ScannerProfile {
-    STEAM(1, "steam_scanner_name", "steam-icon")
-    , STEAM_ONLINE(2, "steam_online_scanner_name", "steam-icon")
-    , GOG(3,"gog_scanner_name","gog-icon")
-    , ORIGIN(4,"origin_scanner_name","origin-icon")
-    , UPLAY(5,"uplay_scanner_name","uplay-icon")
-    , BATTLE_NET(6,"battle-net_scanner_name","battlenet-icon");
+    STEAM(Platform.STEAM_ID, "steam_scanner_name", "steam-icon")
+    , STEAM_ONLINE(Platform.STEAM_ONLINE_ID, "steam_online_scanner_name", "steam-icon")
+    , GOG(Platform.GOG_ID,"gog_scanner_name","gog-icon")
+    , ORIGIN(Platform.ORIGIN_ID,"origin_scanner_name","origin-icon")
+    , UPLAY(Platform.UPLAY_ID,"uplay_scanner_name","uplay-icon")
+    , BATTLE_NET(Platform.BATTLENET_ID,"battle-net_scanner_name","battlenet-icon");
 
-    private int code;
+    private int platformId;
     private String stringKey;
     private String iconCSSID;
 
-    ScannerProfile(int code, String stringKey, String iconCSSId) {
-        this.code = code;
+    ScannerProfile(int platformId, String stringKey, String iconCSSId) {
+        this.platformId = platformId;
         this.stringKey = stringKey;
         this.iconCSSID = iconCSSId;
     }
@@ -28,8 +31,8 @@ public enum ScannerProfile {
         return Main.getString(stringKey);
     }
 
-    public int getCode() {
-        return code;
+    public int getPlatformId() {
+        return platformId;
     }
 
     public String getIconCSSID() {
@@ -37,6 +40,6 @@ public enum ScannerProfile {
     }
 
     public boolean isEnabled(){
-        return Main.GENERAL_SETTINGS.isGameScannerEnabled(this);
+        return settings().isGameScannerEnabled(this);
     }
 }

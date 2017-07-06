@@ -10,11 +10,12 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -24,8 +25,7 @@ import ui.Main;
 import ui.control.button.ImageButton;
 import ui.theme.ThemeUtils;
 
-import static ui.Main.GENERAL_SETTINGS;
-import static ui.Main.LOGGER;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.SCREEN_WIDTH;
 
 /**
@@ -48,12 +48,12 @@ public abstract class BaseScene extends Scene {
     private ImageButton backButton;
 
     BaseScene(StackPane stackPane, Stage parentStage) {
-        super(stackPane, Main.GENERAL_SETTINGS.getWindowWidth(), Main.GENERAL_SETTINGS.getWindowHeight());
+        super(stackPane, settings().getWindowWidth(), settings().getWindowHeight());
         this.rootStackPane = stackPane;
         rootStackPane.getStyleClass().add("base-scene-root");
         setParentStage(parentStage);
         ThemeUtils.applyCurrentTheme(this);
-        getRoot().setStyle("-fx-font-size: " + Double.toString(GENERAL_SETTINGS.getUIScale().getFontSize()) + "px;");
+        getRoot().setStyle("-fx-font-size: " + Double.toString(settings().getUIScale().getFontSize()) + "px;");
 
         backgroundView = new ImageView();
         maskView = new ImageView();
@@ -87,14 +87,14 @@ public abstract class BaseScene extends Scene {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneWidth, Number newSceneWidth) {
                 //ui.Main.LOGGER.debug("New window's width : "+ newSceneWidth);
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.WINDOW_WIDTH, newSceneWidth.intValue());
+                settings().setSettingValue(PredefinedSetting.WINDOW_WIDTH, newSceneWidth.intValue());
             }
         });
         heightProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneHeight, Number newSceneHeight) {
                 //ui.Main.LOGGER.debug("New window's height : "+ newSceneHeight);
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.WINDOW_HEIGHT, newSceneHeight.intValue());
+                settings().setSettingValue(PredefinedSetting.WINDOW_HEIGHT, newSceneHeight.intValue());
             }
         });
 
@@ -131,7 +131,7 @@ public abstract class BaseScene extends Scene {
                 }
                 scene2.getWrappingPane().setOpacity(0);
                 stage.setScene(scene2);
-                stage.setFullScreen(GENERAL_SETTINGS.getBoolean(PredefinedSetting.FULL_SCREEN));
+                stage.setFullScreen(settings().getBoolean(PredefinedSetting.FULL_SCREEN));
                 Timeline fadeInTimeline = new Timeline(
                         new KeyFrame(Duration.seconds(0),
                                 new KeyValue(scene2.getWrappingPane().opacityProperty(), 0, Interpolator.LINEAR),
@@ -193,27 +193,62 @@ public abstract class BaseScene extends Scene {
         return titleLabel;
     }
 
-    StackPane createTop(EventHandler<ActionEvent> backButtonEventHandler, String title) {
+    StackPane createTop(EventHandler<ActionEvent> backButtonEventHandler, String title, String iconCSSId) {
         StackPane topPane = new StackPane();
         topPane.getStyleClass().add("header");
         backButton = createBackButton(backButtonEventHandler);
+
         Label titleLabel = createTitleLabel(title);
         titleLabel.getStyleClass().add("title-label");
 
-        topPane.getChildren().addAll(backButton, titleLabel);
-        StackPane.setAlignment(backButton, Pos.CENTER_LEFT);
-        StackPane.setAlignment(titleLabel, Pos.CENTER);
-        StackPane.setMargin(titleLabel, new Insets(30 * Main.SCREEN_HEIGHT / 1080
+        Node titleNode = null;
+        if (iconCSSId != null) {
+            ImageView iconView = new ImageView();
+            double width = 42 * Main.SCREEN_WIDTH / 1920 * settings().getUIScale().getScale();
+            double height = 42 * Main.SCREEN_HEIGHT / 1080 * settings().getUIScale().getScale();
+            iconView.setSmooth(false);
+            iconView.setPreserveRatio(true);
+            iconView.setFitWidth(width);
+            iconView.setFitHeight(height);
+            iconView.setId(iconCSSId);
+
+            HBox box = new HBox();
+            box.setSpacing(15 * Main.SCREEN_WIDTH / 1920);
+            box.getChildren().addAll(iconView, titleLabel);
+            box.setAlignment(Pos.CENTER);
+            box.getStyleClass().add("title-box");
+            box.setPickOnBounds(false);
+
+            titleNode = box;
+        } else {
+            titleNode = titleLabel;
+        }
+
+        topPane.getChildren().addAll(backButton, titleNode);
+        StackPane.setAlignment(titleNode, Pos.CENTER);
+        StackPane.setMargin(titleNode, new Insets(30 * Main.SCREEN_HEIGHT / 1080
                 , 12 * Main.SCREEN_WIDTH / 1920
                 , 15 * Main.SCREEN_HEIGHT / 1080
                 , 15 * Main.SCREEN_WIDTH / 1920));
+
+        StackPane.setAlignment(backButton, Pos.CENTER_LEFT);
         return topPane;
+    }
+
+    StackPane createTop(EventHandler<ActionEvent> backButtonEventHandler, String title) {
+        return createTop(backButtonEventHandler,title,null);
     }
 
     StackPane createTop(String title) {
         return createTop(event -> {
             fadeTransitionTo(previousScene, parentStage);
-        }, title);
+        }, title,null);
+    }
+
+    StackPane createTop(String title,String iconCSSId) {
+        return createTop(event -> {
+            fadeTransitionTo(previousScene, parentStage);
+        }, title,iconCSSId);
     }
 
     void disableBackButton() {

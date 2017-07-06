@@ -59,6 +59,18 @@ public abstract class SelectListPane<T> extends ScrollPane {
     public ArrayList<T> getSelectedValues(){
         return (multiSelection) ? selectedValues : null;
     }
+
+    public ArrayList<T> getUnselectedValues(){
+        if(!multiSelection){
+            return null;
+        }
+        ArrayList<T> unselectedValues = new ArrayList<>();
+        items.forEach(tListItem -> {
+            unselectedValues.add(tListItem.getValue());
+        });
+        unselectedValues.removeAll(selectedValues);
+        return unselectedValues;
+    }
     public T  getSelectedValue(){
         return (selected != -1 && !multiSelection) ? items.get(selected).getValue() : null;
     }

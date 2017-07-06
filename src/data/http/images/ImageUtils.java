@@ -1,7 +1,6 @@
 package data.http.images;
 
 import data.game.scraper.OnDLDoneHandler;
-import data.http.HTTPDownloader;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -16,10 +15,9 @@ import ui.Main;
 import ui.scene.BaseScene;
 
 import java.io.File;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.scene.BaseScene.FADE_IN_OUT_TIME;
 
 /**
@@ -103,8 +101,8 @@ public class ImageUtils {
 
     public static void transitionToWindowBackground(Image img, ImageView imageView) {
         if (img != null) {
-            double widthScale = (double) GENERAL_SETTINGS.getWindowWidth() / img.getWidth();
-            double heightScale = (double) GENERAL_SETTINGS.getWindowHeight() / img.getHeight();
+            double widthScale = (double) settings().getWindowWidth() / img.getWidth();
+            double heightScale = (double) settings().getWindowHeight() / img.getHeight();
 
             /*if (imageView.getScaleX() != widthScale) {
                 imageView.setScaleX(widthScale);

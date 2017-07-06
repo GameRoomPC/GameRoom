@@ -1,5 +1,6 @@
 package ui.control.textfield;
 
+import data.game.entry.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -32,10 +33,16 @@ public class PathTextField extends StackPane {
     private ImageButton folderButton;
     protected HBox buttonsBox;
     private String initialPath;
+    private String[] extensions;
 
     public PathTextField(String initialPath, Window ownerWindow, int fileChooserCode, String fileChooserTitle) {
+        this(initialPath,ownerWindow,fileChooserCode,fileChooserTitle, Platform.NONE.getSupportedExtensions());
+    }
+
+    public PathTextField(String initialPath, Window ownerWindow, int fileChooserCode, String fileChooserTitle, String[] extensions) {
         super();
         this.initialPath = initialPath;
+        this.extensions = extensions;
         field = new TextField(initialPath);
         buttonsBox = new HBox(5 * Main.SCREEN_WIDTH / 1920);
         buttonsBox.setFocusTraversable(false);
@@ -53,7 +60,11 @@ public class PathTextField extends StackPane {
             @Override
             public void handle(ActionEvent event) {
                 try {
-                    File initialDir = new File(field.getText());
+                    String path = field.getText();
+                    if(path == null || path.isEmpty()){
+                        path = System.getProperty("user.home");
+                    }
+                    File initialDir = new File(path);
                     switch (fileChooserCode) {
                         case FILE_CHOOSER_APPS:
                             FileChooser fileChooser = new FileChooser();
@@ -67,10 +78,16 @@ public class PathTextField extends StackPane {
 
                             fileChooser.setInitialDirectory(initialDir);
                             fileChooser.setTitle(fileChooserTitle);
-                            fileChooser.getExtensionFilters().addAll(
-                                    new FileChooser.ExtensionFilter("EXE", "*.exe"),
-                                    new FileChooser.ExtensionFilter("JAR", "*.jar")
-                            );
+                            if(PathTextField.this.extensions != null){
+                                for(String ext : PathTextField.this.extensions){
+                                    if(ext != null && !ext.isEmpty()) {
+                                        fileChooser.getExtensionFilters().add(0, new FileChooser.ExtensionFilter(ext.replace("*.","").toUpperCase(), ext.toLowerCase()));
+                                    }
+                                }
+                            }
+                            fileChooser.getExtensionFilters().add(0,new FileChooser.ExtensionFilter(Main.getString("supported_files"),PathTextField.this.extensions));
+                            fileChooser.getExtensionFilters().add(1,new FileChooser.ExtensionFilter(Main.getString("all_files"),"*.*"));
+
 
                             File selectedFile = fileChooser.showOpenDialog(ownerWindow);
 
@@ -82,7 +99,7 @@ public class PathTextField extends StackPane {
                             DirectoryChooser folderChooser = new DirectoryChooser();
                             folderChooser.setTitle(fileChooserTitle);
 
-                            if (initialPath.equals("")) {
+                            if (initialPath == null || initialPath.equals("")) {
                                 initialDir = new File(System.getProperty("user.home"));
                             }
                             folderChooser.setInitialDirectory(initialDir);
@@ -115,4 +132,11 @@ public class PathTextField extends StackPane {
         return folderButton;
     }
 
+    public String[] getExtensions() {
+        return extensions;
+    }
+
+    public void setExtensions(String[] extensions) {
+        this.extensions = extensions;
+    }
 }

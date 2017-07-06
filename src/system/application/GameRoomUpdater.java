@@ -23,6 +23,7 @@ import java.net.URL;
 import java.util.Date;
 import java.util.Optional;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 
 /**
@@ -69,8 +70,8 @@ public class GameRoomUpdater {
 
     public void start() {
         started = true;
-        if (GENERAL_SETTINGS != null) {
-            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.LAST_UPDATE_CHECK, new Date());
+        if (settings() != null) {
+            settings().setSettingValue(PredefinedSetting.LAST_UPDATE_CHECK, new Date());
         }
         Updater updater = new Updater();
         LOGGER.info("Starting updater");
@@ -96,19 +97,25 @@ public class GameRoomUpdater {
 
     private void openUpdateDialog(ApplicationStatus status) {
         Platform.runLater(() -> {
-            UpdateDialog updateDialog = new UpdateDialog(currentVersion, status.getInfo(), changelogUrl);
-            Optional<ButtonType> result = updateDialog.showAndWait();
-            result.ifPresent(letter -> {
-                if (letter.getText().equals(Main.getString("update"))) {
-                    if (onUpdatePressedListener != null) {
-                        onUpdatePressedListener.changed(null, null, null);
+            try {
+                UpdateDialog updateDialog = new UpdateDialog(currentVersion, status.getInfo(), changelogUrl);
+                Optional<ButtonType> result = updateDialog.showAndWait();
+                result.ifPresent(letter -> {
+                    if (letter.getText().equals(Main.getString("update"))) {
+                        if (onUpdatePressedListener != null) {
+                            onUpdatePressedListener.changed(null, null, null);
+                        }
+                        downloadUpdate(status);
+                    } else {
+                        updateDialog.close();
+                        cancel();
                     }
-                    downloadUpdate(status);
-                } else {
-                    updateDialog.close();
-                    cancel();
-                }
-            });
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+                GameRoomAlert.error(Main.getString("error_check_updates"));
+                cancel();
+            }
         });
     }
 

@@ -1,5 +1,6 @@
 package ui.control.drawer.submenu;
 
+import data.game.entry.Platform;
 import data.io.FileUtils;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Slider;
@@ -22,8 +23,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
+
+import static system.application.settings.GeneralSettings.settings;
 
 /**
  * Created by LM on 10/02/2017.
@@ -37,7 +39,10 @@ public final class SubMenuFactory {
         TextItem singleAppItem = new TextItem("add_single_app");
         singleAppItem.setTooltip(new Tooltip(Main.getString("add_single_app_long")));
         singleAppItem.setOnAction(event -> {
-            GameRoomAlert.info(Main.getString("add_single_app_long"));
+            if (!settings().getBoolean(PredefinedSetting.NO_MORE_ADD_APP_WARNING)) {
+                GameRoomAlert.info(Main.getString("add_single_app_long"));
+                settings().setSettingValue(PredefinedSetting.NO_MORE_ADD_APP_WARNING, true);
+            }
             mainScene.getRootStackPane().setMouseTransparent(true);
 
             FileChooser fileChooser = new FileChooser();
@@ -65,10 +70,14 @@ public final class SubMenuFactory {
         });
         addMenu.addItem(singleAppItem);
 
+        //TODO change to "load from links", and add option to directly add a GameFolder
         TextItem folderItem = new TextItem("add_folder_app");
         folderItem.setTooltip(new Tooltip(Main.getString("add_folder_app_long")));
         folderItem.setOnAction(event -> {
-            GameRoomAlert.info(Main.getString("add_folder_app_long"));
+            if (!settings().getBoolean(PredefinedSetting.NO_MORE_ADD_FOLDER_WARNING)) {
+                GameRoomAlert.info(Main.getString("add_folder_app_long"));
+                settings().setSettingValue(PredefinedSetting.NO_MORE_ADD_APP_WARNING, true);
+            }
 
             mainScene.getRootStackPane().setMouseTransparent(true);
 
@@ -90,6 +99,53 @@ public final class SubMenuFactory {
         });
 
         addMenu.addItem(folderItem);
+
+        //************EMULATOR****************
+        TextItem emulatedItem = new TextItem("add_emulated_game");
+        emulatedItem.setOnAction(event -> {
+            boolean registered = SettingsScene.checkAndDisplayRegisterDialog();
+            if (registered) {
+                if (!settings().getBoolean(PredefinedSetting.NO_MORE_ADD_APP_WARNING)) {
+                    GameRoomAlert.info(Main.getString("add_single_app_long"));
+                    settings().setSettingValue(PredefinedSetting.NO_MORE_ADD_APP_WARNING, true);
+                }
+
+                mainScene.getRootStackPane().setMouseTransparent(true);
+
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle(Main.getString("select_program"));
+                fileChooser.setInitialDirectory(
+                        new File(System.getProperty("user.home"))
+                );
+
+                Set<String> allExt = new HashSet<>();
+                Platform.getEmulablePlatforms().forEach(platform -> {
+                    Collections.addAll(allExt,platform.getSupportedExtensions());
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(platform.getName(), platform.getSupportedExtensions()));
+                });
+                ArrayList<String> sortedExts = new ArrayList<String>();
+                sortedExts.addAll(allExt);
+                sortedExts.sort(String::compareTo);
+
+                fileChooser.getExtensionFilters().add(0,new FileChooser.ExtensionFilter(Main.getString("all_rom_exts"),sortedExts));
+                fileChooser.getExtensionFilters().addAll(
+                        new FileChooser.ExtensionFilter(Main.getString("all_files"), "*")
+                );
+                try {
+                    File selectedFile = fileChooser.showOpenDialog(mainScene.getParentStage());
+                    if (selectedFile != null) {
+                        mainScene.fadeTransitionTo(new GameEditScene(mainScene, selectedFile), mainScene.getParentStage());
+                    }
+                } catch (NullPointerException ne) {
+                    ne.printStackTrace();
+                    GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
+                    alert.setContentText(Main.getString("warning_internet_shortcut"));
+                    alert.showAndWait();
+                }
+                mainScene.getRootStackPane().setMouseTransparent(false);
+            }
+        });
+        addMenu.addItem(emulatedItem);
 
         return addMenu;
     }
@@ -144,22 +200,30 @@ public final class SubMenuFactory {
     public static SubMenu createEditSubMenu(MainScene mainScene, DrawerMenu drawerMenu) {
         SubMenu editMenu = new SubMenu("customize", mainScene, drawerMenu);
         CheckBoxItem keepDrawerCheckBox = new CheckBoxItem("keep_drawer_opened", true);
-        keepDrawerCheckBox.setSelected(!Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR));
+        keepDrawerCheckBox.setSelected(!settings().getBoolean(PredefinedSetting.HIDE_TOOLBAR));
         keepDrawerCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TOOLBAR, !newValue);
+            settings().setSettingValue(PredefinedSetting.HIDE_TOOLBAR, !newValue);
         });
         editMenu.addItem(keepDrawerCheckBox);
 
         CheckBoxItem hidePanesCheckBox = new CheckBoxItem("show_hide_top_panes", true);
-        hidePanesCheckBox.setSelected(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS));
+        hidePanesCheckBox.setSelected(settings().getBoolean(PredefinedSetting.HIDE_TILES_ROWS));
         hidePanesCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TILES_ROWS, newValue);
+            settings().setSettingValue(PredefinedSetting.HIDE_TILES_ROWS, newValue);
             mainScene.forceHideTilesRows(newValue);
         });
         editMenu.addItem(hidePanesCheckBox);
 
+        CheckBoxItem keepRatioCheckBox = new CheckBoxItem("keep_cover_ratio", true);
+        keepRatioCheckBox.setSelected(settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO));
+        keepRatioCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            settings().setSettingValue(PredefinedSetting.KEEP_COVER_RATIO, newValue);
+            mainScene.reloadCovers();
+        });
+        editMenu.addItem(keepRatioCheckBox);
+
         CheckBoxItem fullScreenCheckBox = new CheckBoxItem("fullscreen", true);
-        fullScreenCheckBox.selectedProperty().bindBidirectional(Main.GENERAL_SETTINGS.getBooleanProperty(PredefinedSetting.FULL_SCREEN));
+        fullScreenCheckBox.selectedProperty().bindBidirectional(settings().getBooleanProperty(PredefinedSetting.FULL_SCREEN));
 
         editMenu.addItem(fullScreenCheckBox);
 
@@ -175,30 +239,30 @@ public final class SubMenuFactory {
         sizeSlider.setOnMouseReleased(event -> {
             editMenu.setManaged(true);
             editMenu.setOpacity(1.0);
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
+            if (settings().getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
                 drawerMenu.setManaged(true);
                 drawerMenu.setOpacity(1.0);
             }
-            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
+            settings().setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
         });
         sizeSlider.setOnMousePressed(event -> {
             editMenu.setManaged(false);
             editMenu.setOpacity(0.7);
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
+            if (settings().getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
                 drawerMenu.setManaged(false);
                 drawerMenu.setOpacity(0.7);
             }
         });
 
         sizeSlider.setOnMouseDragExited(event -> {
-            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
+            settings().setSettingValue(PredefinedSetting.TILE_ZOOM, sizeSlider.getValue());
         });
         sizeSlider.setPrefWidth(Main.SCREEN_WIDTH / 12);
         sizeSlider.setMaxWidth(Main.SCREEN_WIDTH / 12);
         sizeSlider.setPrefHeight(Main.SCREEN_WIDTH / 160);
         sizeSlider.setMaxHeight(Main.SCREEN_WIDTH / 160);
 
-        double sizeSliderValue = Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.TILE_ZOOM);
+        double sizeSliderValue = settings().getDouble(PredefinedSetting.TILE_ZOOM);
         if (sizeSliderValue <= MIN_TILE_ZOOM) {
             sizeSliderValue = MIN_TILE_ZOOM + 0.00001; //extreme values of the slider are buggy
         } else if (sizeSliderValue >= MAX_TILE_ZOOM) {
@@ -213,9 +277,9 @@ public final class SubMenuFactory {
         editMenu.addItem(sizeBox);
 
         ButtonItem browseButton = new ButtonItem("browse");
-        browseButton.setManaged(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER));
-        browseButton.setVisible(Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER));
-        browseButton.setMouseTransparent(!Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER));
+        browseButton.setManaged(settings().getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER));
+        browseButton.setVisible(settings().getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER));
+        browseButton.setMouseTransparent(!settings().getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER));
         browseButton.setOnAction(event -> {
             FileChooser imageChooser = new FileChooser();
             imageChooser.setTitle(Main.getString("select_picture"));
@@ -238,23 +302,23 @@ public final class SubMenuFactory {
 
                     mainScene.setChangeBackgroundNextTime(false);
                     mainScene.setImageBackground(new Image("file:///" + copiedPath,
-                            Main.GENERAL_SETTINGS.getWindowWidth(),
-                            Main.GENERAL_SETTINGS.getWindowHeight()
+                            settings().getWindowWidth(),
+                            settings().getWindowHeight()
                             , false, true), true);
                 }
             } catch (NullPointerException | IOException ne) {
                 ne.printStackTrace();
             }
         });
-        boolean staticWallPaper = Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER);
-        boolean disabledWallpaper = Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER);
+        boolean staticWallPaper = settings().getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER);
+        boolean disabledWallpaper = settings().getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER);
 
         CheckBoxItem noWallPaperCheckBox = new CheckBoxItem(Main.getSettingsString("disableMainSceneWallpaper_label"), false);
         noWallPaperCheckBox.setTooltip(new Tooltip(Main.getSettingsString("disableMainSceneWallpaper_tooltip")));
-        noWallPaperCheckBox.setSelected(disabledWallpaper && ! staticWallPaper);
-        Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER,disabledWallpaper && ! staticWallPaper);
+        noWallPaperCheckBox.setSelected(disabledWallpaper && !staticWallPaper);
+        settings().setSettingValue(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER, disabledWallpaper && !staticWallPaper);
         noWallPaperCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER, newValue);
+            settings().setSettingValue(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER, newValue);
             if (newValue) {
                 mainScene.setChangeBackgroundNextTime(false);
                 mainScene.setImageBackground(null);
@@ -268,7 +332,7 @@ public final class SubMenuFactory {
         backgroundImageCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             boolean registered = SettingsScene.checkAndDisplayRegisterDialog();
             if (registered) {
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLE_STATIC_WALLPAPER, newValue);
+                settings().setSettingValue(PredefinedSetting.ENABLE_STATIC_WALLPAPER, newValue);
                 browseButton.setManaged(newValue);
                 browseButton.setVisible(newValue);
                 browseButton.setMouseTransparent(!newValue);

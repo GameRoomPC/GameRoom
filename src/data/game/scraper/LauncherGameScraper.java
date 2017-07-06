@@ -2,6 +2,7 @@ package data.game.scraper;
 
 import data.game.GameWatcher;
 import data.game.entry.GameEntry;
+import data.game.entry.Platform;
 import data.game.scanner.FolderGameScanner;
 import data.game.scanner.GameScanner;
 import system.os.Terminal;
@@ -90,7 +91,7 @@ public class LauncherGameScraper {
                                     }
                                     GameEntry potentialEntry = new GameEntry(name);
                                     potentialEntry.setPath(file.getAbsolutePath());
-                                    potentialEntry.setNotInstalled(false);
+                                    potentialEntry.setInstalled(true);
 
                                     int id = 0;
                                     try {
@@ -101,22 +102,7 @@ public class LauncherGameScraper {
                                     } catch (NumberFormatException nfe) {
                                         //no id to scrap!
                                     }
-                                    switch (scanner.getScannerProfile()) {
-                                        case GOG:
-                                            potentialEntry.setGog_id(id);
-                                            break;
-                                        case UPLAY:
-                                            potentialEntry.setUplay_id(id);
-                                            break;
-                                        case BATTLE_NET:
-                                            potentialEntry.setBattlenet_id(id);
-                                            break;
-                                        case ORIGIN:
-                                            potentialEntry.setOrigin_id(id);
-                                            break;
-                                        default:
-                                            break;
-                                    }
+                                    potentialEntry.setPlatform(scanner.getPlatform());
                                     scanner.checkAndAdd(potentialEntry);
                                 }
                             }
@@ -193,7 +179,7 @@ public class LauncherGameScraper {
                                 GameEntry entry = new GameEntry(name);
                                 entry.setPath(path);
                                 if (gameIsOrigin(root)) {
-                                    entry.setOrigin_id(0);
+                                    entry.setPlatform(Platform.ORIGIN_ID);
                                     scanner.checkAndAdd(entry);
                                 }
                             }
@@ -285,24 +271,9 @@ public class LauncherGameScraper {
                                     GameEntry entry = new GameEntry(name);
                                     entry.setPath(path);
 
-                                    switch (scanner.getScannerProfile()) {
-                                        case GOG:
-                                            entry.setGog_id(0);
-                                            break;
-                                        case UPLAY:
-                                            entry.setUplay_id(0);
-                                            break;
-                                        case BATTLE_NET:
-                                            entry.setBattlenet_id(0);
-                                            break;
-                                        case ORIGIN:
-                                            entry.setOrigin_id(0);
-                                            break;
-                                        default:
-                                            break;
-                                    }
+                                    entry.setPlatform(scanner.getPlatform());
 
-                                    entry.setNotInstalled(false);
+                                    entry.setInstalled(true);
                                     scanner.checkAndAdd(entry);
                                 }
                                 try {

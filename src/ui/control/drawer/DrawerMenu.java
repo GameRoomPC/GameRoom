@@ -1,5 +1,6 @@
 package ui.control.drawer;
 
+import data.game.entry.Platform;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -7,6 +8,8 @@ import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -18,11 +21,13 @@ import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.drawer.submenu.SubMenu;
 import ui.control.specific.ScanButton;
+import ui.dialog.GameRoomAlert;
 import ui.scene.MainScene;
 import ui.scene.SettingsScene;
 
 import java.util.HashMap;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 import static ui.control.drawer.submenu.SubMenuFactory.*;
 
@@ -52,7 +57,7 @@ public class DrawerMenu extends BorderPane {
         super();
         setFocusTraversable(false);
 
-        double storedWidth = Main.GENERAL_SETTINGS.getDouble(PredefinedSetting.DRAWER_MENU_WIDTH);
+        double storedWidth = settings().getDouble(PredefinedSetting.DRAWER_MENU_WIDTH);
         if (storedWidth == 0 || storedWidth < SCREEN_WIDTH * MIN_WIDTH_RATIO || storedWidth > SCREEN_WIDTH * MAX_WIDTH_RATIO) {
             setMaxWidth(SCREEN_WIDTH * WIDTH_RATIO);
             setPrefWidth(SCREEN_WIDTH * WIDTH_RATIO);
@@ -72,7 +77,7 @@ public class DrawerMenu extends BorderPane {
         });
 
         setOnMouseExited(event -> {
-            if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
+            if (settings().getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
                 if (event.getX() > getWidth()) {
                     close(mainScene);
                 }
@@ -94,7 +99,7 @@ public class DrawerMenu extends BorderPane {
                 if (newRatio >= MIN_WIDTH_RATIO && newRatio <= MAX_WIDTH_RATIO) {
                     setPrefWidth(newWidth);
                     setMaxWidth(newWidth);
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DRAWER_MENU_WIDTH, newWidth);
+                    settings().setSettingValue(PredefinedSetting.DRAWER_MENU_WIDTH, newWidth);
                 }
             }
         });
@@ -202,6 +207,7 @@ public class DrawerMenu extends BorderPane {
 
         initEditButton(mainScene);
         initSettingsButton(mainScene);
+        initQuitButton(mainScene);
 
         Rectangle r = new Rectangle(2.0, getHeight());
         r.heightProperty().bind(heightProperty());
@@ -289,10 +295,15 @@ public class DrawerMenu extends BorderPane {
     }
 
     public void closeSubMenu(MainScene mainScene) {
-        if (currentSubMenu != null) {
+        if (isSubMenuOpened()) {
             currentSubMenu.close(mainScene, this);
+            unselectAllButtons();
         }
         resizePane.setManaged(true);
+    }
+
+    public boolean isSubMenuOpened(){
+        return currentSubMenu != null && currentSubMenu.isActive();
     }
 
     private void initGroupButton(MainScene mainScene) {
@@ -351,6 +362,17 @@ public class DrawerMenu extends BorderPane {
         settingsButton.setTooltip(new Tooltip(Main.getString("Settings")));
 
         bottomButtonsBox.getChildren().add(settingsButton);
+    }
+
+    private void initQuitButton(MainScene mainScene) {
+        DrawerButton quitButton = new DrawerButton("main-quit-button", this);
+        quitButton.setFocusTraversable(false);
+        quitButton.setOnAction(event -> {
+            quitGameRoom();
+        });
+        quitButton.setTooltip(new Tooltip(Main.getString("quit")));
+
+        bottomButtonsBox.getChildren().add(quitButton);
     }
 
     private boolean isMenuActive(String id) {
@@ -420,5 +442,14 @@ public class DrawerMenu extends BorderPane {
 
     public double getButtonsPaneWidth() {
         return topMenuPane.getWidth();
+    }
+
+    public void quitGameRoom(){
+        //TODO display a dialog, and a option to never show dialog again ?
+        ButtonType buttonType = GameRoomAlert.confirmation(Main.getString("sure_to_quit"));
+        if (buttonType.equals(ButtonType.OK)) {
+            javafx.application.Platform.setImplicitExit(true);
+            javafx.application.Platform.exit();
+        }
     }
 }

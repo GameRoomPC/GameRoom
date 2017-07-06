@@ -16,8 +16,8 @@ import ui.scene.BaseScene;
 
 import java.net.MalformedURLException;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
-import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 07/08/2016.
@@ -33,7 +33,7 @@ public class YoutubePlayerAndButton {
         super();
         this.scene = scene;
 
-        double imgSize = Main.GENERAL_SETTINGS.getWindowWidth() / 35;
+        double imgSize = settings().getWindowWidth() / 35;
 
         //TODO inverse state (see link for code), and check that buttons enable itself when music starts https://github.com/n0xew/GameRoom/blob/c3cce2ce90225dc8c963269d47e7778c98a9e1f0/src/ui/control/specific/YoutubePlayerAndButton.java
         soundMuteButton = new DualImageButton("sound-button","mute-button", imgSize, imgSize);
@@ -138,9 +138,9 @@ public class YoutubePlayerAndButton {
             if (entry.getYoutubeSoundtrackHash().equals("")) {
                 String hash = YoutubeSoundtrackScrapper.getThemeYoutubeHash(entry,scene);
 
-                entry.setSavedLocaly(true);
+                entry.setSavedLocally(true);
                 entry.setYoutubeSoundtrackHash(hash);
-                entry.setSavedLocaly(false);
+                entry.setSavedLocally(false);
             }
             return entry.getYoutubeSoundtrackHash();
         } catch (Exception e) {

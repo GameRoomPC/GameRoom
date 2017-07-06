@@ -5,7 +5,6 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -29,13 +28,13 @@ import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.scene.MainScene;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.MAIN_SCENE;
 import static ui.control.button.gamebutton.GameButton.FADE_IN_OUT_TIME;
 
@@ -282,12 +281,7 @@ public abstract class GamesTilePane extends BorderPane {
     public final int indexOfTile(GameEntry entry) {
         int i = 0;
         for (Node n : tilesList) {
-            if (((GameButton) n).getEntry().getUuid().equals(entry.getUuid())) {
-                return i;
-            }
-            int steamId1 = ((GameButton) n).getEntry().getSteam_id();
-            int steamId2 = entry.getSteam_id();
-            if (steamId1 == steamId2 && steamId1 != -1) {
+            if (((GameButton) n).getEntry().getId() == entry.getId()) {
                 return i;
             }
             i++;
@@ -385,8 +379,8 @@ public abstract class GamesTilePane extends BorderPane {
             @Override
             public int compare(Node o1, Node o2) {
                 int result = 0;
-                Date date1 = ((GameButton) o1).getEntry().getReleaseDate();
-                Date date2 = ((GameButton) o2).getEntry().getReleaseDate();
+                LocalDateTime date1 = ((GameButton) o1).getEntry().getReleaseDate();
+                LocalDateTime date2 = ((GameButton) o2).getEntry().getReleaseDate();
 
                 if (date1 == null && date2 != null) {
                     return -1;
@@ -548,7 +542,7 @@ public abstract class GamesTilePane extends BorderPane {
     }
 
     public void setForcedHidden(boolean forcedHidden) {
-        boolean wasHidden = GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS);
+        boolean wasHidden = settings().getBoolean(PredefinedSetting.HIDE_TILES_ROWS);
         switch (getId()) {
             case "lastPlayedTilePane":
             case "recentlyAddedTilePane":
@@ -631,7 +625,7 @@ public abstract class GamesTilePane extends BorderPane {
         }
         boolean sameOrder = true;
         for (int i = 0; i < nodes1.size() && sameOrder; i++) {
-            sameOrder = ((GameButton) nodes1.get(i)).getEntry().getUuid().equals(((GameButton) nodes2.get(i)).getEntry().getUuid());
+            sameOrder = ((GameButton) nodes1.get(i)).getEntry().getId() == ((GameButton) nodes2.get(i)).getEntry().getId();
         }
         return sameOrder;
     }

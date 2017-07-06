@@ -1,13 +1,12 @@
 package ui.scene;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
-import data.http.images.ImageUtils;
-import data.game.entry.GameEntry;
-import data.game.entry.GameGenre;
-import data.game.entry.GameTheme;
+import data.game.entry.*;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.YoutubeSoundtrackScrapper;
+import data.http.images.ImageUtils;
+import data.io.FileUtils;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -41,12 +40,12 @@ import org.json.JSONObject;
 import system.application.settings.PredefinedSetting;
 import system.os.Terminal;
 import system.os.WindowsShortcut;
+import ui.GeneralToast;
 import ui.Main;
 import ui.control.ValidEntryCondition;
+import ui.control.button.HelpButton;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
-import ui.GeneralToast;
-import ui.control.drawer.submenu.CheckBoxItem;
 import ui.control.textfield.AppPathField;
 import ui.control.textfield.CMDTextField;
 import ui.control.textfield.PathTextField;
@@ -62,13 +61,19 @@ import ui.scene.exitaction.ExitAction;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.sql.SQLException;
 import java.text.ParseException;
-import java.util.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static data.io.FileUtils.getExtension;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 
 /**
@@ -112,9 +117,11 @@ public class GameEditScene extends BaseScene {
         }
         String path = chosenFile.getAbsolutePath();
         try {
-            WindowsShortcut shortcut = new WindowsShortcut(chosenFile);
-            chosenFile = new File(shortcut.getRealFilename());
-            path = chosenFile.getAbsolutePath();
+            if (FileUtils.getExtension(chosenFile).equals("lnk")) {
+                WindowsShortcut shortcut = new WindowsShortcut(chosenFile);
+                chosenFile = new File(shortcut.getRealFilename());
+                path = chosenFile.getAbsolutePath();
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -134,7 +141,7 @@ public class GameEditScene extends BaseScene {
         super(new StackPane(), previousScene.getParentStage());
         this.mode = mode;
         this.entry = entry;
-        this.entry.setSavedLocaly(false);
+        this.entry.setSavedLocally(false);
         init(previousScene, coverImage);
     }
 
@@ -184,21 +191,27 @@ public class GameEditScene extends BaseScene {
                     }
                 }
                 if (allConditionsMet) {
-                    for (int i = 0; i < chosenImageFiles.length; i++) {
-                        if (chosenImageFiles[i] != null) {
-                            String type = i == 0 ? ImageUtils.IGDB_TYPE_COVER : ImageUtils.IGDB_TYPE_SCREENSHOT;
-                            moveImage(entry, chosenImageFiles[i], type);
-                        }
-                    }
                     if (entry.isToAdd()) {
-                        entry.deleteFiles();
                         entry.setToAdd(false);
                     }
-                    entry.setSavedLocaly(true);
+                    GeneralToast.displayToast(Main.getString("saving") + " " + entry.getName(), getParentStage(), GeneralToast.DURATION_SHORT);
+
+                    entry.setSavedLocally(true);
+                    entry.saveEntry();
+
+                    for (int i = 0; i < chosenImageFiles.length; i++) {
+                        if (chosenImageFiles[i] != null) {
+                            try {
+                                entry.updateImage(i, chosenImageFiles[i]);
+                            } catch (IOException e) {
+                                GameRoomAlert.error(Main.getString("error_move_images"));
+                            }
+                        }
+                    }
 
                     switch (mode) {
                         case MODE_ADD:
-                            entry.setAddedDate(new Date());
+                            entry.setAddedDate(LocalDateTime.now());
                             MAIN_SCENE.addGame(entry);
                             GeneralToast.displayToast(entry.getName() + Main.getString("added_to_your_lib"), getParentStage());
                             break;
@@ -253,8 +266,8 @@ public class GameEditScene extends BaseScene {
         if (entry.getImagePath(1) != null) {
             //Main.LOGGER.debug("Screenshot available : "+entry.getImagePath(1));
             Image screenshotImage = entry.getImage(1,
-                    Main.GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
-                    Main.GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
+                    settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
+                    settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
                     , false, true);
             backgroundView.setImage(screenshotImage);
         }
@@ -294,18 +307,43 @@ public class GameEditScene extends BaseScene {
             }
         });
         /**************************SERIE*********************************************/
-        createLineForProperty("serie", entry.getSerie(), new ChangeListener<String>() {
+
+        // create the data to show in the CheckComboBox
+        final ObservableList<Serie> allSeries = FXCollections.observableArrayList();
+        allSeries.addAll(Serie.values());
+        allSeries.sort(new Comparator<Serie>() {
             @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                entry.setSerie(newValue);
+            public int compare(Serie o1, Serie o2) {
+                if (o1 == null || o1.getName() == null) {
+                    return -1;
+                }
+                if (o2 == null || o2.getName() == null) {
+                    return 1;
+                }
+                return o1.getName().compareTo(o2.getName());
             }
         });
+        // Create the CheckComboBox with the data
+        final ComboBox<Serie> serieComboBox = new ComboBox<Serie>(allSeries);
+        serieComboBox.setId("serie");
+        if (entry.getGenres() != null) {
+            serieComboBox.getSelectionModel().select(entry.getSerie());
+        }
+        serieComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            entry.setSerie(newValue);
+        });
+
+        serieComboBox.getSelectionModel().select(entry.getSerie());
+
+        contentPane.add(createTitleLabel("serie",false), 0, row_count);
+        contentPane.add(serieComboBox, 1, row_count);
+        row_count++;
 
         /**************************PATH*********************************************/
-        contentPane.add(new Label(Main.getString("game_path") + " :"), 0, row_count);
+        contentPane.add(createTitleLabel("game_path",false), 0, row_count);
         Node pathNode = new Label();
         if (!entry.isSteamGame()) {
-            AppPathField gamePathField = new AppPathField(entry.getPath(), getWindow(), PathTextField.FILE_CHOOSER_APPS, Main.getString("select_picture"));
+            AppPathField gamePathField = new AppPathField(entry.getPath(), getWindow(), PathTextField.FILE_CHOOSER_APPS, Main.getString("select_a_file"),entry.getPlatform().getSupportedExtensions());
             gamePathField.getTextField().setPrefColumnCount(50);
             gamePathField.setId("game_path");
             gamePathField.getTextField().textProperty().addListener(new ChangeListener<String>() {
@@ -335,7 +373,7 @@ public class GameEditScene extends BaseScene {
                     return false;
                 } else if (!isSteamGame && file.isDirectory()) {
                     try {
-                        AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()));
+                        AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()),entry.getPlatform().getSupportedExtensions());
                         selector.searchApps();
                         Optional<ButtonType> appOptionnal = selector.showAndWait();
 
@@ -369,7 +407,7 @@ public class GameEditScene extends BaseScene {
         row_count++;
 
         /**************************RUN AS ADMIN ****************************************/
-        contentPane.add(new Label(Main.getString("run_as_admin") + " :"), 0, row_count);
+        contentPane.add(createTitleLabel("run_as_admin",false), 0, row_count);
         CheckBox adminCheckBox = new CheckBox();
         adminCheckBox.setSelected(entry.mustRunAsAdmin());
         adminCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -380,9 +418,7 @@ public class GameEditScene extends BaseScene {
         contentPane.add(adminCheckBox, 1, row_count);
         row_count++;
         /**************************PLAYTIME*********************************************/
-        Label titlePlayTimeLabel = new Label(Main.getString("play_time") + " :");
-        titlePlayTimeLabel.setTooltip(new Tooltip(Main.getString("play_time")));
-        contentPane.add(titlePlayTimeLabel, 0, row_count);
+        contentPane.add(createTitleLabel("play_time",false), 0, row_count);
         PlayTimeField playTimeField = new PlayTimeField(entry);
 
         playTimeField.setId("play_time");
@@ -402,9 +438,9 @@ public class GameEditScene extends BaseScene {
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 if (!releaseDateField.getText().equals("")) {
                     try {
-                        Date date = GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText());
-                        entry.setReleaseDate(date);
-                    } catch (ParseException e) {
+                        LocalDateTime time = LocalDateTime.from(LocalDate.parse(releaseDateField.getText(), GameEntry.DATE_DISPLAY_FORMAT).atStartOfDay());
+                        entry.setReleaseDate(time);
+                    } catch (DateTimeParseException e) {
                         //well date not valid yet
                     }
                 }
@@ -415,9 +451,9 @@ public class GameEditScene extends BaseScene {
             public boolean isValid() {
                 if (!releaseDateField.getText().equals("")) {
                     try {
-                        Date date = GameEntry.DATE_DISPLAY_FORMAT.parse(releaseDateField.getText());
-                        entry.setReleaseDate(date);
-                    } catch (ParseException e) {
+                        LocalDateTime time = LocalDateTime.from(LocalDate.parse(releaseDateField.getText(), GameEntry.DATE_DISPLAY_FORMAT).atStartOfDay());
+                        entry.setReleaseDate(time);
+                    } catch (DateTimeParseException e) {
                         message.replace(0, message.length(), Main.getString("invalid_release_date"));
                         return false;
                     }
@@ -431,28 +467,88 @@ public class GameEditScene extends BaseScene {
             }
         });
 
+        /**************************PLATFORM*********************************************/
+        if (!entry.getPlatform().isPC() || entry.getPlatform().equals(data.game.entry.Platform.NONE) && SUPPORTER_MODE) {
+            try {
+                data.game.entry.Platform.initWithDb();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            final ObservableList<data.game.entry.Platform> platforms = FXCollections.observableArrayList(data.game.entry.Platform.getEmulablePlatforms());
+            platforms.add(0,data.game.entry.Platform.NONE);
+
+            // Create the CheckComboBox with the data
+            final ComboBox<data.game.entry.Platform> platformComboBox = new ComboBox<data.game.entry.Platform>(platforms);
+            platformComboBox.setId("platform");
+            if (entry.getPlatform() != null) {
+                platformComboBox.getSelectionModel().select(entry.getPlatform());
+            }
+            Node finalPathNode = pathNode;
+            platformComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                entry.setPlatform(newValue);
+                if(finalPathNode instanceof PathTextField){
+                    ((PathTextField) finalPathNode).setExtensions(newValue.getSupportedExtensions());
+                }
+            });
+            contentPane.add(createTitleLabel("platform",false), 0, row_count);
+            contentPane.add(platformComboBox, 1, row_count);
+            row_count++;
+        }
+
+        /************************** DEVS AND PUBLISHER*********************************************/
+
+        final ObservableList<Company> allCompanies = FXCollections.observableArrayList();
+        allCompanies.addAll(Company.values());
+        allCompanies.sort(Comparator.comparing(Company::getName));
 
         /**************************DEVELOPER*********************************************/
-        createLineForProperty("developer", entry.getDeveloper(), new ChangeListener<String>() {
+        // Create the CheckComboBox with the data
+        final CheckComboBox<Company> devComboBox = new CheckComboBox<Company>(allCompanies);
+        devComboBox.setId("developer");
+        if (entry.getDevelopers() != null) {
+            for (Company developer : entry.getDevelopers()) {
+                devComboBox.getCheckModel().check(devComboBox.getCheckModel().getItemIndex(developer));
+            }
+        }
+        devComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<Company>() {
             @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                entry.setDeveloper(newValue);
+            public void onChanged(Change<? extends Company> c) {
+                ArrayList<Company> newDevs = new ArrayList<>();
+                newDevs.addAll(devComboBox.getCheckModel().getCheckedItems());
+                entry.setDevelopers(newDevs);
             }
         });
+        contentPane.add(createTitleLabel("developer",false), 0, row_count);
+        contentPane.add(devComboBox, 1, row_count);
+        row_count++;
 
         /**************************PUBLISHER*********************************************/
-        createLineForProperty("publisher", entry.getPublisher(), new ChangeListener<String>() {
+        // Create the CheckComboBox with the data
+        final CheckComboBox<Company> pubComboBox = new CheckComboBox<Company>(allCompanies);
+        pubComboBox.setId("publisher");
+        if (entry.getPublishers() != null) {
+            for (Company publisher : entry.getPublishers()) {
+                pubComboBox.getCheckModel().check(pubComboBox.getCheckModel().getItemIndex(publisher));
+            }
+        }
+        pubComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<Company>() {
             @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                entry.setPublisher(newValue);
+            public void onChanged(Change<? extends Company> c) {
+                ArrayList<Company> newPublishers = new ArrayList<>();
+                newPublishers.addAll(pubComboBox.getCheckModel().getCheckedItems());
+                entry.setPublishers(newPublishers);
             }
         });
+        contentPane.add(createTitleLabel("publisher",false), 0, row_count);
+        contentPane.add(pubComboBox, 1, row_count);
+        row_count++;
 
         /**************************GENRE*********************************************/
 
         // create the data to show in the CheckComboBox
         final ObservableList<GameGenre> allGamesGenre = FXCollections.observableArrayList();
-        Collections.addAll(allGamesGenre, GameGenre.values());
+        allGamesGenre.addAll(GameGenre.values());
         allGamesGenre.sort(new Comparator<GameGenre>() {
             @Override
             public int compare(GameGenre o1, GameGenre o2) {
@@ -470,14 +566,12 @@ public class GameEditScene extends BaseScene {
         genreComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<GameGenre>() {
             @Override
             public void onChanged(Change<? extends GameGenre> c) {
-                GameGenre[] newGenres = new GameGenre[genreComboBox.getCheckModel().getCheckedIndices().size()];
-                newGenres = genreComboBox.getCheckModel().getCheckedItems().toArray(newGenres);
+                ArrayList<GameGenre> newGenres = new ArrayList<>();
+                newGenres.addAll(genreComboBox.getCheckModel().getCheckedItems());
                 entry.setGenres(newGenres);
             }
         });
-        Label genreLabel = new Label(Main.getString("genre") + " :");
-        genreLabel.setTooltip(new Tooltip(Main.getString("genre")));
-        contentPane.add(genreLabel, 0, row_count);
+        contentPane.add(createTitleLabel("genre",false), 0, row_count);
         contentPane.add(genreComboBox, 1, row_count);
         row_count++;
 
@@ -485,7 +579,7 @@ public class GameEditScene extends BaseScene {
 
         // create the data to show in the CheckComboBox
         final ObservableList<GameTheme> allGamesTheme = FXCollections.observableArrayList();
-        Collections.addAll(allGamesTheme, GameTheme.values());
+        allGamesTheme.addAll(GameTheme.values());
         allGamesTheme.sort(new Comparator<GameTheme>() {
             @Override
             public int compare(GameTheme o1, GameTheme o2) {
@@ -503,14 +597,12 @@ public class GameEditScene extends BaseScene {
         themeComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<GameTheme>() {
             @Override
             public void onChanged(Change<? extends GameTheme> c) {
-                GameTheme[] newTheme = new GameTheme[themeComboBox.getCheckModel().getCheckedIndices().size()];
-                newTheme = themeComboBox.getCheckModel().getCheckedItems().toArray(newTheme);
-                entry.setThemes(newTheme);
+                ArrayList<GameTheme> newThemes = new ArrayList<>();
+                newThemes.addAll(themeComboBox.getCheckModel().getCheckedItems());
+                entry.setThemes(newThemes);
             }
         });
-        Label themeLabel = new Label(Main.getString("theme") + " :");
-        themeLabel.setTooltip(new Tooltip(Main.getString("theme")));
-        contentPane.add(themeLabel, 0, row_count);
+        contentPane.add(createTitleLabel("theme",false), 0, row_count);
         contentPane.add(themeComboBox, 1, row_count);
         row_count++;
 
@@ -521,32 +613,25 @@ public class GameEditScene extends BaseScene {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
+                        Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                         ImageUtils.transitionToWindowBackground(img, backgroundView);
                         chosenImageFiles[1] = outputfile;
-                        File coverLocalImageFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
-                        entry.setImagePath(1, coverLocalImageFile);
                     }
                 });
             }
         };
-        Label screenshotLabel = new Label(Main.getString("wallpaper") + " :");
-        screenshotLabel.setTooltip(new Tooltip(Main.getString("wallpaper")));
-        contentPane.add(screenshotLabel, 0, row_count);
+        contentPane.add(createTitleLabel("wallpaper",false), 0, row_count);
 
         HBox screenShotButtonsBox = new HBox();
         screenShotButtonsBox.setSpacing(20 * Main.SCREEN_WIDTH / 1920);
         screenShotButtonsBox.setAlignment(Pos.CENTER_LEFT);
 
-        double imgSize = GENERAL_SETTINGS.getWindowWidth() / 24;
-        //ImageButton screenshotFileButton = new ImageButton(new Image("res/ui/folderButton.png", , GENERAL_SETTINGS.getWindowWidth() / 24, false, true));
+        double imgSize = settings().getWindowWidth() / 24;
+        //ImageButton screenshotFileButton = new ImageButton(new Image("res/ui/folderButton.png", , settings().getWindowWidth() / 24, false, true));
         ImageButton screenshotFileButton = new ImageButton("folder-button", imgSize, imgSize);
         screenshotFileButton.setOnAction(event -> {
             chosenImageFiles[1] = imageChooser.showOpenDialog(getParentStage());
             screenshotDlDoneHandler.run(chosenImageFiles[1]);
-            //backgroundView.setImage(new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth(), GENERAL_SETTINGS.getWindowHeight(), false, true));
-            File localScreenshotFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(chosenImageFiles[1].getName()));
-            entry.setImagePath(1, localScreenshotFile);
         });
         Label orLabel = new Label(Main.getString("or"));
 
@@ -558,12 +643,11 @@ public class GameEditScene extends BaseScene {
                                                      GameEntry gameEntry = entry;
                                                      try {
                                                          JSONObject gameData = IGDBScraper.getGameData(gameEntry.getIgdb_id());
-                                                         if(gameData != null){
+                                                         if (gameData != null) {
                                                              gameEntry.setIgdb_imageHashs(IGDBScraper.getScreenshotHash(gameData));
                                                              openImageSelector(gameEntry);
-                                                         }else{
-                                                             //TODO localize
-                                                             GameRoomAlert.info("No screenshot for this game on IGDB");
+                                                         } else {
+                                                             GameRoomAlert.info(Main.getString("error_no_screenshot_igdb"));
                                                          }
                                                      } catch (JSONException jse) {
                                                          if (jse.toString().contains("[\"screenshots\"] not found")) {
@@ -572,8 +656,8 @@ public class GameEditScene extends BaseScene {
                                                              jse.printStackTrace();
                                                          }
                                                      } catch (UnirestException e) {
-                                                             GameRoomAlert.errorIGDB();
-                                                             LOGGER.error(e.getMessage());
+                                                         GameRoomAlert.errorIGDB();
+                                                         LOGGER.error(e.getMessage());
                                                      }
                                                  } else {
                                                      SearchDialog dialog = new SearchDialog(createDoNotUpdateFielsMap(), entry.getName());
@@ -597,26 +681,8 @@ public class GameEditScene extends BaseScene {
         contentPane.add(screenShotButtonsBox, 1, row_count);
         row_count++;
 
-        /*validEntriesConditions.add(new ValidEntryCondition() {
-
-            @Override
-            public boolean isValid() {
-                if (!entry.getImagePath(1).isValid()) {
-                    message.replace(0,message.length(),Main.getString("background_picture_still_downloading"));
-                    return false;
-                }
-                return true;
-            }
-
-            @Override
-            public void onInvalid() {
-                setLineInvalid("game_name");
-            }
-        });*/
         /**************************DESCRIPTION*********************************************/
-        Label titleDescriptionLabel = new Label(Main.getString("game_description") + " :");
-        titleDescriptionLabel.setTooltip(new Tooltip(Main.getString("game_description")));
-        contentPane.add(titleDescriptionLabel, 0, row_count);
+        contentPane.add(createTitleLabel("game_description",false), 0, row_count);
         TextArea gameDescriptionField = new TextArea(entry.getDescription());
         gameDescriptionField.setWrapText(true);
         gameDescriptionField.setId("game_description");
@@ -631,12 +697,8 @@ public class GameEditScene extends BaseScene {
         row_count++;
 
         /**************************YOUTUBE*********************************************/
-        if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
-            Label youtubeSoundtrackLabel = new Label(Main.getString("youtube_soundtrack_label") + " :");
-            youtubeSoundtrackLabel.setTooltip(new Tooltip(Main.getString("youtube_soundtrack_tooltip")));
-            //youtubeSoundtrackLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
-            youtubeSoundtrackLabel.setId("advanced-setting-label");
-            contentPane.add(youtubeSoundtrackLabel, 0, row_count);
+        if (!settings().getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
+            contentPane.add(createTitleLabel("youtube_soundtrack",true), 0, row_count);
             TextField youtubeSoundtrackField = new TextField(entry.getYoutubeSoundtrackHash().equals("") ? "" : YoutubeSoundtrackScrapper.toYoutubeUrl(entry.getYoutubeSoundtrackHash()));
             youtubeSoundtrackField.setId("youtube_soundtrack");
             youtubeSoundtrackField.textProperty().addListener(new ChangeListener<String>() {
@@ -657,12 +719,8 @@ public class GameEditScene extends BaseScene {
 
 
         /**************************CMD & ARGS*********************************************/
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ADVANCED_MODE)) {
-            Label argsLabel = new Label(Main.getString("args_label") + " :");
-            argsLabel.setTooltip(new Tooltip(Main.getString("args_tooltip")));
-            //argsLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
-            argsLabel.setId("advanced-setting-label");
-            contentPane.add(argsLabel, 0, row_count);
+        if (settings().getBoolean(PredefinedSetting.ADVANCED_MODE)) {
+            contentPane.add(createTitleLabel("args",true), 0, row_count);
             TextField argsField = new TextField(entry.getArgs());
             argsField.setId("args");
             argsField.textProperty().addListener(new ChangeListener<String>() {
@@ -674,11 +732,7 @@ public class GameEditScene extends BaseScene {
             contentPane.add(argsField, 1, row_count);
             row_count++;
 
-            Label cmdBeforeLabel = new Label(Main.getString("cmd_before_label") + " :");
-            cmdBeforeLabel.setTooltip(new Tooltip(Main.getString("cmd_before_tooltip")));
-            //cmdBeforeLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
-            cmdBeforeLabel.setId("advanced-setting-label");
-            contentPane.add(cmdBeforeLabel, 0, row_count);
+            contentPane.add(createTitleLabel("cmd_before",true), 0, row_count);
             CMDTextField cmdBeforeField = new CMDTextField(entry.getCmd(GameEntry.CMD_BEFORE_START));
             cmdBeforeField.setWrapText(true);
             cmdBeforeField.setId("cmd_before");
@@ -691,11 +745,7 @@ public class GameEditScene extends BaseScene {
             contentPane.add(cmdBeforeField, 1, row_count);
             row_count++;
 
-            Label cmdAfterLabel = new Label(Main.getString("cmd_after_label") + " :");
-            cmdAfterLabel.setTooltip(new Tooltip(Main.getString("cmd_after_tooltip")));
-            //cmdAfterLabel.setStyle(SettingsScene.ADVANCE_MODE_LABEL_STYLE);
-            cmdAfterLabel.setId("advanced-setting-label");
-            contentPane.add(cmdAfterLabel, 0, row_count);
+            contentPane.add(createTitleLabel("cmd_after",true), 0, row_count);
             CMDTextField cmdAfterField = new CMDTextField(entry.getCmd(GameEntry.CMD_AFTER_END));
             cmdAfterField.setWrapText(true);
             cmdAfterField.setId("cmd_after");
@@ -732,9 +782,8 @@ public class GameEditScene extends BaseScene {
     }
 
     private TextField createLineForProperty(String property, String initialValue, ChangeListener<String> changeListener) {
-        Label titleLabel = new Label(Main.getString(property) + " :");
-        titleLabel.setTooltip(new Tooltip(Main.getString(property)));
-        contentPane.add(titleLabel, 0, row_count);
+        Node titleNode = createTitleLabel(property,false);
+        contentPane.add(titleNode, 0, row_count);
         TextField textField = new TextField(initialValue);
         textField.setPrefColumnCount(50);
         textField.setId(property);
@@ -777,21 +826,37 @@ public class GameEditScene extends BaseScene {
                             } else if (node instanceof PathTextField) {
                                 ((PathTextField) node).setText((String) newValue);
                             }
-                        } else if (newValue instanceof GameGenre[]) {
+                        } else if (property.equals("genre")) {
                             if (node instanceof CheckComboBox) {
-                                for (GameGenre genre : (GameGenre[]) newValue) {
+                                for (GameGenre genre : (ArrayList<GameGenre>) newValue) {
                                     ((CheckComboBox) node).getCheckModel().check(genre);
                                 }
                             }
-                        } else if (newValue instanceof GameTheme[]) {
+                        } else if (property.equals("theme")) {
                             if (node instanceof CheckComboBox) {
-                                for (GameTheme theme : (GameTheme[]) newValue) {
+                                for (GameTheme theme : (ArrayList<GameTheme>) newValue) {
                                     ((CheckComboBox) node).getCheckModel().check(theme);
                                 }
                             }
-                        } else if (newValue instanceof Date) {
+                        } else if (property.equals("developer")) {
+                            if (node instanceof CheckComboBox) {
+                                for (Company dev : (ArrayList<Company>) newValue) {
+                                    ((CheckComboBox) node).getCheckModel().check(dev);
+                                }
+                            }
+                        } else if (property.equals("publisher")) {
+                            if (node instanceof CheckComboBox) {
+                                for (Company pub : (ArrayList<Company>) newValue) {
+                                    ((CheckComboBox) node).getCheckModel().check(pub);
+                                }
+                            }
+                        } else if (property.equals("serie")) {
+                            if (node instanceof ComboBox) {
+                                ((ComboBox<Serie>) node).getSelectionModel().select((Serie) newValue);
+                            }
+                        } else if (newValue instanceof LocalDateTime) {
                             if (node instanceof TextField) {
-                                ((TextField) node).setText(newValue != null ? GameEntry.DATE_DISPLAY_FORMAT.format(newValue) : "");
+                                ((TextField) node).setText(newValue != null ? GameEntry.DATE_DISPLAY_FORMAT.format((LocalDateTime) newValue) : "");
                             }
                         }
                         break;
@@ -802,8 +867,8 @@ public class GameEditScene extends BaseScene {
 
     private Pane createLeft(Image coverImage) {
         StackPane pane = new StackPane();
-        double coverWidth = GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO);
-        double coverHeight = GENERAL_SETTINGS.getWindowHeight() * 2 / 3;
+        double coverWidth = settings().getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO);
+        double coverHeight = settings().getWindowHeight() * 2 / 3;
 
         coverView = new ImageView();
         coverView.setFitWidth(coverWidth);
@@ -838,8 +903,8 @@ public class GameEditScene extends BaseScene {
             imageThread.start();
         }
 
-        double imgSize = GENERAL_SETTINGS.getWindowWidth() / 15;
-        //ImageButton changeImageButton = new ImageButton(new Image("res/ui/folderButton.png", GENERAL_SETTINGS.getWindowWidth() / 12, GENERAL_SETTINGS.getWindowWidth() / 12, false, true));
+        double imgSize = settings().getWindowWidth() / 15;
+        //ImageButton changeImageButton = new ImageButton(new Image("res/ui/folderButton.png", settings().getWindowWidth() / 12, settings().getWindowWidth() / 12, false, true));
         ImageButton changeImageButton = new ImageButton("folder-button", imgSize, imgSize);
         changeImageButton.setOpacity(0);
         changeImageButton.setFocusTraversable(false);
@@ -847,11 +912,10 @@ public class GameEditScene extends BaseScene {
             @Override
             public void handle(ActionEvent event) {
                 chosenImageFiles[0] = imageChooser.showOpenDialog(getParentStage());
-                File localCoverFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + getExtension(chosenImageFiles[0].getName()));
-                Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
-                ImageUtils.transitionToImage(img, coverView);
+                String localCoverPath = GameEntryUtils.coverPath(entry) + "." + getExtension(chosenImageFiles[0].getName());
 
-                entry.setImagePath(0, localCoverFile);
+                Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), settings().getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), settings().getWindowHeight() * 2 / 3, false, true);
+                ImageUtils.transitionToImage(img, coverView);
             }
         });
         //COVER EFFECTS
@@ -927,14 +991,11 @@ public class GameEditScene extends BaseScene {
                     if (buttonType.equals(ButtonType.OK)) {
                         switch (mode) {
                             case MODE_ADD:
+                                entry.reloadFromDB();
                                 break;
                             case MODE_EDIT:
-                                try {
-                                    entry.loadEntry();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                    break;
-                                }
+                                entry.reloadFromDB();
+                                //was previously entry.loadEntry();
                                 break;
                             default:
                                 break;
@@ -984,8 +1045,8 @@ public class GameEditScene extends BaseScene {
         updateLineProperty("game_name", gameEntry.getName(), doNotUpdateFieldsMap);
         updateLineProperty("serie", gameEntry.getSerie(), doNotUpdateFieldsMap);
         updateLineProperty("release_date", gameEntry.getReleaseDate(), doNotUpdateFieldsMap);
-        updateLineProperty("developer", gameEntry.getDeveloper(), doNotUpdateFieldsMap);
-        updateLineProperty("publisher", gameEntry.getPublisher(), doNotUpdateFieldsMap);
+        updateLineProperty("developer", gameEntry.getDevelopers(), doNotUpdateFieldsMap);
+        updateLineProperty("publisher", gameEntry.getPublishers(), doNotUpdateFieldsMap);
         updateLineProperty("game_description", StringEscapeUtils.unescapeHtml(gameEntry.getDescription()), doNotUpdateFieldsMap);
         updateLineProperty("genre", gameEntry.getGenres(), doNotUpdateFieldsMap);
         updateLineProperty("theme", gameEntry.getThemes(), doNotUpdateFieldsMap);
@@ -1002,13 +1063,10 @@ public class GameEditScene extends BaseScene {
                     , new OnDLDoneHandler() {
                         @Override
                         public void run(File outputfile) {
-                            Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), GENERAL_SETTINGS.getWindowHeight() * 2 / 3, false, true);
+                            Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), settings().getWindowHeight() * 2 / 3, false, true);
                             ImageUtils.transitionToImage(img, coverView);
 
                             chosenImageFiles[0] = outputfile;
-                            File coverLocalImageFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_COVER + "." + getExtension(outputfile));
-                            entry.setImagePath(0, coverLocalImageFile);
-
                         }
                     });
         }
@@ -1026,9 +1084,8 @@ public class GameEditScene extends BaseScene {
                         , new OnDLDoneHandler() {
                             @Override
                             public void run(File outputfile) {
-                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
+                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                                 ImageUtils.transitionToWindowBackground(img, backgroundView);
-
                             }
                         });
             }
@@ -1045,13 +1102,10 @@ public class GameEditScene extends BaseScene {
                         , new OnDLDoneHandler() {
                             @Override
                             public void run(File outputfile) {
-                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
+                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                                 ImageUtils.transitionToWindowBackground(img, backgroundView);
 
                                 chosenImageFiles[1] = outputfile;
-                                File coverLocalImageFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + ImageUtils.IGDB_TYPE_SCREENSHOT + "." + getExtension(outputfile));
-                                entry.setImagePath(1, coverLocalImageFile);
-
                             }
                         });
                 validEntriesConditions.add(new ValidEntryCondition() {
@@ -1075,7 +1129,7 @@ public class GameEditScene extends BaseScene {
                 }
             } else {
                 if (chosenImageFiles[1] != null) {
-                    Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
+                    Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
                     ImageUtils.transitionToWindowBackground(img, backgroundView);
                     LOGGER.debug(chosenImageFiles[1].getAbsolutePath());
                 } else {
@@ -1121,14 +1175,10 @@ public class GameEditScene extends BaseScene {
                         if (buttonType.equals(ButtonType.OK)) {
                             switch (mode) {
                                 case MODE_ADD:
+                                    entry.reloadFromDB();
                                     break;
                                 case MODE_EDIT:
-                                    try {
-                                        entry.loadEntry();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                        break;
-                                    }
+                                    entry.reloadFromDB();
                                     break;
                                 default:
                                     break;
@@ -1145,45 +1195,13 @@ public class GameEditScene extends BaseScene {
         }
     }
 
-    public static void moveImage(GameEntry entry, File imageFile, String imageType) {
-        if (imageFile != null) {
-            if (!imageFile.exists()) {
-                imageFile = new File(FILES_MAP.get("working_dir").getPath() + File.separator + imageFile.getPath());
-            }
-            if (imageFile.exists()) {
-                File localCoverFile = new File(FILES_MAP.get("games") + File.separator + entry.getUuid().toString() + File.separator + imageType + "." + getExtension(imageFile.getName()));
-                try {
-                    if (!localCoverFile.getParentFile().exists()) {
-                        localCoverFile.getParentFile().mkdirs();
-                    }
-                    /*if (!localCoverFile.isValid()) {
-                        localCoverFile.createNewFile();
-                    }*/
-                    Files.copy(imageFile.toPath().toAbsolutePath()
-                            , localCoverFile.toPath().toAbsolutePath()
-                            , StandardCopyOption.REPLACE_EXISTING);
-                    int imageIndex = 0;
-                    if (imageType.equals(ImageUtils.IGDB_TYPE_SCREENSHOT)) {
-                        imageIndex = 1;
-                    }
-                    entry.setImagePath(imageIndex, localCoverFile);
-                    Main.LOGGER.debug("Moving from \n\t" + imageFile.toPath().toAbsolutePath() + "\n\tto " + localCoverFile.toPath().toAbsolutePath());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                LOGGER.error("Could not move non existing image : " + imageFile.getPath());
-            }
-        }
-    }
-
-    private static boolean checkPowershellAvailable(){
+    private static boolean checkPowershellAvailable() {
         Terminal t = new Terminal(false);
         try {
-            String[] output = t.execute("powershell","/?");
-            if(output != null){
-                for(String s : output){
-                    if(s.contains("PowerShell[.exe]")){
+            String[] output = t.execute("powershell", "/?");
+            if (output != null) {
+                for (String s : output) {
+                    if (s.contains("PowerShell[.exe]")) {
                         t.getProcess().destroy();
                         return true;
                     }
@@ -1195,4 +1213,26 @@ public class GameEditScene extends BaseScene {
         }
     }
 
+    private Node createTitleLabel(String key, boolean advanced){
+        Node node = null;
+        String title = Main.getString(key);
+        Label label = new Label(title + " :");
+        if (advanced) {
+            //label.setStyle(ADVANCE_MODE_LABEL_STYLE);
+            label.setId("advanced-setting-label");
+        }
+
+        String tooltip = Main.getString(key+"_tooltip");
+        if(!tooltip.equals(title) && !tooltip.equals(Main.NO_STRING)){
+            HBox hBox = new HBox();
+            hBox.setAlignment(Pos.CENTER_LEFT);
+            hBox.setSpacing(5 * SCREEN_WIDTH / 1920);
+            hBox.getChildren().addAll(label,new HelpButton(tooltip));
+            node = hBox;
+        }else{
+            label.setTooltip(new Tooltip(title));
+            node = label;
+        }
+        return node;
+    }
 }

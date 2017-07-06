@@ -15,8 +15,7 @@ import java.io.InputStreamReader;
 import java.net.*;
 import java.util.Enumeration;
 
-import static system.application.settings.PredefinedSetting.SUPPORTER_KEY;
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
 import static ui.Main.SUPPORTER_MODE;
 
@@ -63,6 +62,13 @@ public class KeyChecker {
     }
 
     public static JSONObject activateKey(String key) throws IOException, UnirestException {
+        if(isKeyValid(key)){
+            //this allows the user to reactivate a key on the same device !
+            JSONObject obj = new JSONObject();
+            obj.put(FIELD_RESULT,RESULT_SUCCESS);
+            obj.put(FIELD_MESSAGE,"License_key_activated");
+            return obj;
+        }
         HttpResponse<String> response = Unirest.post(API_URL)
                 .field("secret_key", VALIDATION_KEY)
                 .field("slm_action", "slm_activate")
@@ -205,7 +211,11 @@ public class KeyChecker {
     }
 
     public static boolean assumeSupporterMode(){
-        String supporterKey = GENERAL_SETTINGS.getString(PredefinedSetting.SUPPORTER_KEY);
+        if(SUPPORTER_MODE){
+            //we have already checked so no need to check again
+            return true;
+        }
+        String supporterKey = settings().getString(PredefinedSetting.SUPPORTER_KEY);
         boolean valid = false;
         if(supporterKey == null || supporterKey.isEmpty()){
             valid = false;

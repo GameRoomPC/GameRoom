@@ -1,5 +1,6 @@
 package ui.control.textfield;
 
+import data.game.entry.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -18,8 +19,8 @@ import static ui.Main.SCREEN_WIDTH;
  * Created by LM on 05/01/2017.
  */
 public class AppPathField extends PathTextField {
-    public AppPathField(String initialPath, Window ownerWindow, int fileChooserCode, String fileChooserTitle) {
-        super(initialPath, ownerWindow, fileChooserCode, fileChooserTitle);
+    public AppPathField(String initialPath, Window ownerWindow, int fileChooserCode, String fileChooserTitle, String[] extensions) {
+        super(initialPath, ownerWindow, fileChooserCode, fileChooserTitle,extensions);
 
         double imgSize = 50 * SCREEN_WIDTH / 1920;
         ImageButton searchButton = new ImageButton("search-button", imgSize, imgSize);
@@ -33,7 +34,7 @@ public class AppPathField extends PathTextField {
                 GameRoomAlert.error(Main.getString("invalid_gamesFolder_exist"));
             } else if (file.isDirectory()) {
                 try {
-                    AppSelectorDialog selector = new AppSelectorDialog(file);
+                    AppSelectorDialog selector = new AppSelectorDialog(file,getExtensions());
                     selector.searchApps();
                     Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
                     ignoredOptionnal.ifPresent(pairs -> {

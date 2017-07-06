@@ -1,6 +1,5 @@
 package ui.pane.gamestilepane;
 
-import data.http.images.ImageUtils;
 import data.game.entry.GameEntry;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tooltip;
@@ -10,11 +9,10 @@ import ui.control.button.gamebutton.AddIgnoreGameButton;
 import ui.control.button.gamebutton.GameButton;
 import ui.GeneralToast;
 import ui.dialog.ChoiceDialog;
-import ui.scene.GameEditScene;
 import ui.scene.MainScene;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Optional;
 
 import static ui.Main.MAIN_SCENE;
@@ -50,18 +48,11 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
                         entries.add(b.getEntry());
                     }
                     for (GameEntry entry : entries) {
-                        for (int i = 0; i < GameEntry.DEFAULT_IMAGES_PATHS.length; i++) {
-                            String type = i == 0 ? ImageUtils.IGDB_TYPE_COVER : ImageUtils.IGDB_TYPE_SCREENSHOT;
-                            GameEditScene.moveImage(entry, entry.getImagePath(i), type);
-                        }
-
-
                         if (entry.isToAdd()) {
-                            entry.deleteFiles();
                             entry.setToAdd(false);
                         }
-                        entry.setSavedLocaly(true);
-                        entry.setAddedDate(new Date());
+                        entry.setSavedLocally(true);
+                        entry.setAddedDate(LocalDateTime.now());
                         MAIN_SCENE.addGame(entry);
                     }
                     if(MAIN_SCENE!=null){
@@ -97,6 +88,11 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
             return getGameButtons().get(indexOfTile(entry));
         }
         return null;
+    }
+
+    @Override
+    public boolean isValidToAdd(GameEntry entry){
+        return entry.isToAdd() && !entry.isDeleted() && ! entry.isIgnored();
     }
 
 }

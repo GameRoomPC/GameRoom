@@ -1,22 +1,22 @@
 package data.game.entry;
 
-import data.io.FileUtils;
+import data.io.DataBase;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import system.application.GameStarter;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
 
-import java.io.*;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.UUID;
-import java.util.regex.Pattern;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+
+import static data.io.FileUtils.getExtension;
 
 /**
  * Created by LM on 02/07/2016.
@@ -25,9 +25,8 @@ public class GameEntry {
     public final static int CMD_BEFORE_START = 0;
     public final static int CMD_AFTER_END = 1;
 
-    public final static DateFormat DATE_DISPLAY_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
-    public final static DateFormat DATE_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss SSS");
-    private final static DateFormat DATE_OLD_STORE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+    public final static DateTimeFormatter DATE_DISPLAY_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
     public final static File[] DEFAULT_IMAGES_PATHS = {new File("res/defaultImages/cover.jpg"), null};
     private final static int IMAGES_NUMBER = 3;
 
@@ -35,281 +34,226 @@ public class GameEntry {
     public final static int TIME_FORMAT_FULL_DOUBLEDOTS = 1; //00:12:00, 00:05:13
     public final static int TIME_FORMAT_HALF_FULL_HMS = 2; // 12m0s, 5m13s
     public final static int TIME_FORMAT_ROUNDED_HMS = 3; // 12m, 5m
-    public static final int TIME_FORMAT_HMS_CASUAL = 4 ; //1h05, 20mn, l0s
+    public static final int TIME_FORMAT_HMS_CASUAL = 4; //1h05, 20mn, l0s
 
-
-    private boolean savedLocaly = false;
+    private boolean savedLocally = false;
 
     private String name = "";
-    private Date releaseDate;
+    private LocalDateTime releaseDate;
     private String description = "";
-    private String developer = "";
-    private String publisher = "";
-    private GameGenre[] genres;
-    private GameTheme[] themes;
-    private String serie = "";
+
+    private Serie serie = Serie.NONE;
+    private ArrayList<Company> developers = new ArrayList<>();
+    private ArrayList<Company> publishers = new ArrayList<>();
+    private ArrayList<GameGenre> genres = new ArrayList<>();
+    private ArrayList<GameTheme> themes = new ArrayList<>();
+
     private int aggregated_rating;
     private String path = "";
-    private UUID uuid;
+    private int id = -1;
     private String[] cmd = new String[4];
     private String args = "";
     private String youtubeSoundtrackHash = "";
-    private Date addedDate;
-    private Date lastPlayedDate;
-    private boolean notInstalled = false;
+    private LocalDateTime addedDate;
+    private LocalDateTime lastPlayedDate;
+    private boolean installed = true;
 
-    private File[] imagesPaths = new File[IMAGES_NUMBER];
+    private File[] imagesFiles = new File[IMAGES_NUMBER];
 
     private long playTime = 0; //Time in seconds
 
-
     private int igdb_id = -1;
-        /*FOR IGDB PURPOSE ONLY, should not be stored*/
+    /*FOR IGDB PURPOSE ONLY, should not be stored*/
     private String[] igdb_imageHash = new String[IMAGES_NUMBER];
 
+    private Platform platform = Platform.NONE;
+    private int platformGameId = 0;
+
+    private transient boolean inDb = false;
+    private boolean toAdd = false;
 
     private boolean waitingToBeScrapped = false;
-    private int steam_id = -1;
-    private int gog_id = -1;
-    private int uplay_id = -1;
-    private int origin_id = -1;
-    private int battlenet_id = -1;
-
-    private boolean toAdd = false;
-    private boolean beingScrapped;
+    private boolean beingScrapped = false;
+    private boolean ignored = false;
+    private transient boolean deleted = false;
     private boolean runAsAdmin = false;
 
     private transient Runnable onGameLaunched;
     private transient Runnable onGameStopped;
 
-    private transient boolean deleted = false;
 
     private transient SimpleBooleanProperty monitored = new SimpleBooleanProperty(false);
 
+    private final static String[] SQL_PARAMS = new String[]{"name",
+            "release_date",
+            "description",
+            "aggregated_rating",
+            "path",
+            "cmd_before",
+            "cmd_after",
+            "launch_args",
+            "yt_hash",
+            "added_date",
+            "last_played_date",
+            "initial_playtime",
+            "installed",
+            "cover_hash",
+            "wp_hash",
+            "igdb_id",
+            "waiting_scrap",
+            "toAdd",
+            "ignored",
+            "runAsAdmin"
+    };
+
     public GameEntry(String name) {
-        uuid = UUID.randomUUID();
         this.name = name;
     }
-    public GameEntry(UUID uuid, boolean toAdd) {
-        this.uuid = uuid;
-        this.toAdd = toAdd;
-        try {
-            loadEntry();
-        } catch (IOException e) {
-            e.printStackTrace();
+
+
+    public void saveEntry() {
+        if (savedLocally && !deleted) {
+            long start = System.currentTimeMillis();
+            try {
+                saveDirectFields();
+
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+
+                saveGenres(batchStatement);
+                saveThemes(batchStatement);
+                saveDevs(batchStatement);
+                savePublishers(batchStatement);
+                saveSerie(batchStatement);
+                savePlatform(batchStatement);
+
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            Main.LOGGER.debug(name + " saved in " + (System.currentTimeMillis() - start) + "ms");
         }
     }
 
-    public GameEntry(UUID uuid) {
-        this.uuid = uuid;
-        try {
-            loadEntry();
-        } catch (IOException e) {
-            e.printStackTrace();
+    private void saveDirectFields() throws SQLException {
+        Connection connection = DataBase.getUserConnection();
+        String sql = inDb ? getSQLUpdateLine() : getSQLInitLine();
+
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setString(1, name);
+        if (releaseDate != null) {
+            statement.setTimestamp(2, Timestamp.valueOf(releaseDate));
+        }
+        statement.setString(3, description);
+        statement.setInt(4, aggregated_rating);
+        statement.setString(5, path);
+        statement.setString(6, cmd[0]);
+        statement.setString(7, cmd[1]);
+        statement.setString(8, args);
+        statement.setString(9, youtubeSoundtrackHash);
+        if (addedDate != null) {
+            statement.setTimestamp(10, Timestamp.valueOf(addedDate));
+        } else {
+            statement.setTimestamp(10, Timestamp.valueOf(LocalDateTime.now()));
+        }
+        if (lastPlayedDate != null) {
+            statement.setTimestamp(11, Timestamp.valueOf(lastPlayedDate));
+        }
+        statement.setLong(12, playTime);
+        statement.setBoolean(13, installed);
+        statement.setString(14, igdb_imageHash[0]);
+        statement.setString(15, igdb_imageHash[1]);
+        statement.setInt(16, igdb_id);
+        statement.setBoolean(17, waitingToBeScrapped);
+        statement.setBoolean(18, toAdd);
+        statement.setBoolean(19, ignored);
+        statement.setBoolean(20, runAsAdmin);
+
+        if (inDb) {
+            statement.setInt(21, id);
+        }
+
+        statement.execute();
+        statement.close();
+
+        if (!inDb) {
+            id = DataBase.getLastId();
+            inDb = true;
+        }
+        //connection.commit();
+    }
+
+    private void saveGenres(Statement batchStatement) throws SQLException {
+        batchStatement.addBatch("delete from has_genre where game_id= " + id);
+
+        if (genres != null && !genres.isEmpty()) {
+            String insertSQL = "INSERT OR REPLACE INTO has_genre(game_id,genre_id) VALUES ";
+            for (GameGenre genre : genres) {
+                if (genre != null) {
+                    insertSQL += "(" + id + "," + GameGenre.getIGDBId(genre.getKey()) + "),";
+                }
+            }
+            batchStatement.addBatch(insertSQL.substring(0, insertSQL.length() - 1));
         }
     }
 
-    private File propertyFile() throws IOException {
-        File dir = new File((isToAdd() ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + uuid.toString());
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        File configFile = new File((isToAdd() ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + uuid.toString() + File.separator + "entry.properties");
-        if (!configFile.exists()) {
-            configFile.createNewFile();
-        }
-        return configFile;
-    }
+    private void saveThemes(Statement batchStatement) throws SQLException {
+        batchStatement.addBatch("delete from has_theme where game_id= " + id);
 
-    private void saveEntry() {
-        if (savedLocaly && !deleted) {
-            Properties prop = new Properties();
-            OutputStream output = null;
-            try {
-                output = new FileOutputStream(propertyFile());
-
-                // set the properties value
-                prop.setProperty("name", name);
-                prop.setProperty("releaseDate", releaseDate != null ? DATE_STORE_FORMAT.format(releaseDate) : "");
-                prop.setProperty("description", description);
-                prop.setProperty("developer", developer);
-                prop.setProperty("publisher", publisher);
-                prop.setProperty("serie", serie);
-                prop.setProperty("path", path);
-
-                for (int i = 0; i < IMAGES_NUMBER; i++) {
-                    if (imagesPaths[i] != null) {
-                        File relativeFile = FileUtils.relativizePath(imagesPaths[i],Main.FILES_MAP.get("working_dir"));
-                        prop.setProperty("image" + i, relativeFile.getPath());
-                    }
+        if (themes != null && !themes.isEmpty()) {
+            String insertSQL = "INSERT OR REPLACE INTO has_theme(game_id,theme_id) VALUES ";
+            for (GameTheme theme : themes) {
+                if (theme != null) {
+                    insertSQL += "(" + id + "," + theme.getIGDBId(theme.getKey()) + "),";
                 }
-                prop.setProperty("playTime", Long.toString(playTime));
-                prop.setProperty("steam_id", Integer.toString(steam_id));
-                prop.setProperty("gog_id", Integer.toString(gog_id));
-                prop.setProperty("origin_id", Integer.toString(origin_id));
-                prop.setProperty("uplay_id", Integer.toString(uplay_id));
-                prop.setProperty("battlenet_id", Integer.toString(battlenet_id));
-                prop.setProperty("igdb_id", Integer.toString(igdb_id));
-                prop.setProperty("genres", GameGenre.toJson(genres));
-                prop.setProperty("themes", GameTheme.toJson(themes));
-                prop.setProperty("aggregated_rating", Integer.toString(aggregated_rating));
-                for (int i = 0; i < cmd.length; i++) {
-                    if (cmd[i] != null) {
-                        prop.setProperty("cmd" + i, cmd[i]);
-                    }
-                }
-                prop.setProperty("addedDate", addedDate != null ? DATE_STORE_FORMAT.format(addedDate) : "");
-                prop.setProperty("lastPlayedDate", lastPlayedDate != null ? DATE_STORE_FORMAT.format(lastPlayedDate) : "");
-                prop.setProperty("notInstalled", Boolean.toString(notInstalled));
-                prop.setProperty("waitingToBeScrapped", Boolean.toString(waitingToBeScrapped));
-                prop.setProperty("toAdd", Boolean.toString(toAdd));
-                prop.setProperty("runAsAdmin", Boolean.toString(runAsAdmin));
-                prop.setProperty("args", args);
-                prop.setProperty("youtubeSoundtrackHash", youtubeSoundtrackHash);
-
-
-                // save properties to project root folder
-                prop.store(output, null);
-                output.close();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+            batchStatement.addBatch(insertSQL.substring(0, insertSQL.length() - 1));
         }
     }
 
-    public void loadEntry() throws IOException {
-        Properties prop = new Properties();
-        InputStream input = null;
+    private void saveDevs(Statement batchStatement) throws SQLException {
+        batchStatement.addBatch("delete from develops where game_id= " + id);
 
-        input = new FileInputStream(propertyFile());
-
-        // load a properties file
-        prop.load(input);
-
-        if (prop.getProperty("name") != null) {
-            name = prop.getProperty("name");
-        }
-        if (prop.getProperty("releaseDate") != null) {
-            try {
-                if (!prop.getProperty("releaseDate").equals("")) {
-                    try {
-                        releaseDate = DATE_STORE_FORMAT.parse(prop.getProperty("releaseDate"));
-                    }catch (ParseException dtpe){
-                        setReleaseDate(DATE_OLD_STORE_FORMAT.parse(prop.getProperty("releaseDate")));
-                    }
+        if (developers != null && !developers.isEmpty()) {
+            String insertSQL = "INSERT OR REPLACE INTO develops(game_id,dev_id) VALUES ";
+            for (Company c : developers) {
+                if (c != null) {
+                    insertSQL += "(" + id + "," + c.getId() + "),";
                 }
-            } catch (ParseException e) {
-                e.printStackTrace();
             }
+            batchStatement.addBatch(insertSQL.substring(0, insertSQL.length() - 1));
         }
-        if (prop.getProperty("description") != null) {
-            description = prop.getProperty("description");
-        }
-        if (prop.getProperty("developer") != null) {
-            developer = prop.getProperty("developer");
-        }
-        if (prop.getProperty("publisher") != null) {
-            publisher = prop.getProperty("publisher");
-        }
-        if (prop.getProperty("serie") != null) {
-            serie = prop.getProperty("serie");
-        }
-        if (prop.getProperty("path") != null) {
-            path = prop.getProperty("path");
-        }
-        if (prop.getProperty("playTime") != null) {
-            playTime = Long.parseLong(prop.getProperty("playTime"));
-        }
-        if (prop.getProperty("steam_id") != null) {
-            steam_id = Integer.parseInt(prop.getProperty("steam_id"));
-        }
-        if (prop.getProperty("gog_id") != null) {
-            gog_id = Integer.parseInt(prop.getProperty("gog_id"));
-        }
-        if (prop.getProperty("uplay_id") != null) {
-            uplay_id = Integer.parseInt(prop.getProperty("uplay_id"));
-        }
-        if (prop.getProperty("origin_id") != null) {
-            origin_id = Integer.parseInt(prop.getProperty("origin_id"));
-        }
-        if (prop.getProperty("battlenet_id") != null) {
-            battlenet_id = Integer.parseInt(prop.getProperty("battlenet_id"));
-        }
-        if (prop.getProperty("igdb_id") != null) {
-            igdb_id = Integer.parseInt(prop.getProperty("igdb_id"));
-        }
-        if (prop.getProperty("genres") != null) {
-            genres = GameGenre.fromJson(prop.getProperty("genres"));
-        }
-        if (prop.getProperty("themes") != null) {
-            themes = GameTheme.fromJson(prop.getProperty("themes"));
-        }
-        if (prop.getProperty("aggregated_rating") != null) {
-            aggregated_rating = Integer.parseInt(prop.getProperty("aggregated_rating"));
-        }
+    }
 
-        for (int i = 0; i < IMAGES_NUMBER; i++) {
-            if (prop.getProperty("image" + i) != null) {
-                File relativeFile = FileUtils.relativizePath(new File(prop.getProperty("image" + i)),Main.FILES_MAP.get("working_dir"));
-                imagesPaths[i] = relativeFile;
-            }
-        }
-        for (int i = 0; i < cmd.length; i++) {
-            cmd[i] = prop.getProperty("cmd" + i);
-        }
-        if (prop.getProperty("addedDate") != null) {
-            try {
-                if (!prop.getProperty("addedDate").equals("")) {
-                    try {
-                        addedDate = DATE_STORE_FORMAT.parse(prop.getProperty("addedDate"));
-                    }catch (ParseException dtpe){
-                        setAddedDate(DATE_OLD_STORE_FORMAT.parse(prop.getProperty("addedDate")));
-                    }
-                }
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            if(addedDate == null){
-                setSavedLocaly(true);
-                setAddedDate(new Date());
-                setSavedLocaly(false);
-            }
-        }
-        if (prop.getProperty("lastPlayedDate") != null) {
-            try {
-                if (!prop.getProperty("lastPlayedDate").equals("")) {
-                    try{
-                    lastPlayedDate = DATE_STORE_FORMAT.parse(prop.getProperty("lastPlayedDate"));
-                }catch (ParseException dtpe){
-                    setLastPlayedDate(DATE_OLD_STORE_FORMAT.parse(prop.getProperty("lastPlayedDate")));
-                }
-                }
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
-        if (prop.getProperty("notInstalled") != null) {
-            notInstalled = Boolean.parseBoolean(prop.getProperty("notInstalled"));
-        }
-        if (prop.getProperty("waitingToBeScrapped") != null) {
-            waitingToBeScrapped = Boolean.parseBoolean(prop.getProperty("waitingToBeScrapped"));
-        }
-        if (prop.getProperty("toAdd") != null) {
-            toAdd = Boolean.parseBoolean(prop.getProperty("toAdd"));
-        }
-        if (prop.getProperty("runAsAdmin") != null) {
-            runAsAdmin = Boolean.parseBoolean(prop.getProperty("runAsAdmin"));
-        }
-        if (prop.getProperty("youtubeSoundtrackHash") != null) {
-            youtubeSoundtrackHash = prop.getProperty("youtubeSoundtrackHash");
-        }
-        if (prop.getProperty("args") != null) {
-            args = prop.getProperty("args");
-        }
-        saveEntry();
+    private void savePublishers(Statement batchStatement) throws SQLException {
+        batchStatement.addBatch("delete from publishes where game_id= " + id);
 
-        input.close();
+        if (publishers != null && !publishers.isEmpty()) {
+            String insertSQL = "INSERT OR REPLACE INTO publishes(game_id,pub_id) VALUES ";
+            for (Company c : publishers) {
+                if (c != null) {
+                    insertSQL += "(" + id + "," + c.getId() + "),";
+                }
+            }
+            batchStatement.addBatch(insertSQL.substring(0, insertSQL.length() - 1));
+        }
+    }
 
+    private void saveSerie(Statement batchStatement) throws SQLException {
+        if (serie != null) {
+            batchStatement.addBatch("delete from regroups where game_id= " + id);
+            batchStatement.addBatch("INSERT OR REPLACE INTO regroups(game_id,serie_id) VALUES (" + id + "," + serie.getId() + ")");
+        }
+    }
+
+    private void savePlatform(Statement batchStatement) throws SQLException {
+        if (platform != null) {
+            batchStatement.addBatch("delete from runs_on where game_id=" + id);
+            batchStatement.addBatch("INSERT OR REPLACE INTO runs_on(platformGameId,platform_id,game_id) VALUES " +
+                    "(" + platformGameId + ","
+                    + platform.getId() + ","
+                    + id + ")");
+        }
     }
 
     public String getName() {
@@ -318,51 +262,45 @@ public class GameEntry {
 
     public void setName(String name) {
         this.name = name;
-        saveEntry();
     }
 
-    public Date getReleaseDate() {
+
+    public LocalDateTime getReleaseDate() {
         return releaseDate;
     }
 
-    public void setReleaseDate(Date releaseDate) {
+    public void setReleaseDate(LocalDateTime releaseDate) {
         this.releaseDate = releaseDate;
-        saveEntry();
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set release_date = ? where id = ?");
+                statement.setTimestamp(1, Timestamp.valueOf(releaseDate));
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    public String getDeveloper() {
-        return developer;
-    }
-
-    public void setDeveloper(String developer) {
-        this.developer = developer!=null ? developer : "";
-        saveEntry();
-    }
-
-    public String getPublisher() {
-        return publisher;
-    }
-
-    public void setPublisher(String publisher) {
-        this.publisher = publisher!= null ? publisher : "";
-        saveEntry();
-    }
-
-    public UUID getUuid() {
-        return uuid;
+    public int getId() {
+        return id;
     }
 
     public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth) {
-        return getImage(index,width,height,preserveRatio,smooth,false);
+        return getImage(index, width, height, preserveRatio, smooth, false);
     }
+
     private Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth, boolean backGroundloading) {
         File currFile = getImagePath(index);
         if (currFile == null) {
             return null;
-        } else if(currFile.exists()) {
+        } else if (currFile.exists()) {
             return new Image("file:" + File.separator + File.separator + File.separator + currFile.getAbsolutePath(), width, height, preserveRatio, smooth, backGroundloading);
-        } else{
-            return new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir")+File.separator+currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
+        } else {
+            return new Image("file:" + File.separator + File.separator + File.separator + Main.FILES_MAP.get("working_dir") + File.separator + currFile.getPath(), width, height, preserveRatio, smooth, backGroundloading);
         }
     }
 
@@ -373,12 +311,11 @@ public class GameEntry {
      * @return
      */
     public File getImagePath(int index) {
-        if (index < imagesPaths.length) {
-            File imagePath = imagesPaths[index];
-            File dir = Main.FILES_MAP.get("working_dir");
-            if(imagePath!=null && dir != null){
-                return FileUtils.relativizePath(imagePath,dir);
-            }else{
+        if (index < imagesFiles.length) {
+            File imagePath = imagesFiles[index];
+            if (imagePath != null) {
+                return new File(imagePath.getAbsolutePath());
+            } else {
                 return null;
             }
         }
@@ -391,7 +328,18 @@ public class GameEntry {
 
     public void setPath(String path) {
         this.path = path.trim();
-        saveEntry();
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set path = ? where id = ?");
+                statement.setString(1, path);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getDescription() {
@@ -399,98 +347,70 @@ public class GameEntry {
     }
 
     public void setDescription(String description) {
-        this.description = description!=null ? description : "";
-        saveEntry();
+        this.description = description != null ? description : "";
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set description = ? where id = ?");
+                statement.setString(1, description);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public int getAggregated_rating() {
+        //TODO fix in MainScene sorting by aggregated_rating returns only zeros
         return aggregated_rating;
     }
 
     public void setAggregated_rating(int aggregated_rating) {
         this.aggregated_rating = aggregated_rating;
-        saveEntry();
-    }
-
-    public void setImagePath(int index, File imagePath) {
-        if (imagesPaths.length > index) {
-            File relativeFile = FileUtils.relativizePath(imagePath,Main.FILES_MAP.get("working_dir"));
-            imagesPaths[index] = relativeFile;
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set aggregated_rating = ? where id = ?");
+                statement.setInt(1, aggregated_rating);
+                statement.setInt(2, id);
+                statement.execute();
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        saveEntry();
     }
 
-    public int getSteam_id() {
-        return steam_id;
-    }
+    public void updateImage(int index, File newImageFile) throws IOException {
+        if (imagesFiles.length > index) {
+            if (newImageFile != null && newImageFile.exists() && newImageFile.isFile()) {
+                String ext = getExtension(newImageFile);
+                String path = "";
+                if (index == 0) {
+                    path = getCoverPath();
+                } else {
+                    path = getScreenShotPath();
+                }
+                path += "." + ext;
 
-    private void setSteam_id(int steam_id, boolean updatePath) {
-        this.steam_id = steam_id;
-        if (updatePath) {
-            this.path = "steam://rungameid/" + steam_id;
+                File localFile = new File(path);
+
+                Files.copy(newImageFile.getAbsoluteFile().toPath()
+                        , localFile.getAbsoluteFile().toPath()
+                        , StandardCopyOption.REPLACE_EXISTING);
+
+                imagesFiles[index] = localFile;
+            }
         }
-        saveEntry();
     }
 
-    public void setSteam_id(int steam_id) {
-        setSteam_id(steam_id, steam_id!=-1);
+    public int getPlatformGameID() {
+        return platformGameId;
     }
 
     public boolean isSteamGame() {
-        return steam_id != -1;
-    }
-
-    public boolean isGoGGame() {
-        return gog_id != -1;
-    }
-
-    public boolean isOriginGame() {
-        return origin_id != -1;
-    }
-
-    public boolean isBattlenetGame() {
-        return battlenet_id != -1;
-    }
-
-    public boolean isUplayGame() {
-        return uplay_id != -1;
-    }
-
-
-    public int getBattlenet_id() {
-        return battlenet_id;
-    }
-
-    public void setBattlenet_id(int battlenet_id) {
-        this.battlenet_id = battlenet_id;
-        saveEntry();
-    }
-
-    public int getOrigin_id() {
-        return origin_id;
-    }
-
-    public void setOrigin_id(int origin_id) {
-        this.origin_id = origin_id;
-        saveEntry();
-    }
-
-    public int getUplay_id() {
-        return uplay_id;
-    }
-
-    public void setUplay_id(int uplay_id) {
-        this.uplay_id = uplay_id;
-        saveEntry();
-    }
-
-    public int getGog_id() {
-        return gog_id;
-    }
-
-    public void setGog_id(int gog_id) {
-        this.gog_id = gog_id;
-        saveEntry();
+        return platform.getId() == Platform.STEAM_ID;
     }
 
     public long getPlayTimeSeconds() {
@@ -499,7 +419,18 @@ public class GameEntry {
 
     public void setPlayTimeSeconds(long seconds) {
         this.playTime = seconds;
-        saveEntry();
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set initial_playtime = ? where id = ?");
+                statement.setLong(1, playTime);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static String getPlayTimeFormatted(long playTime, int format) {
@@ -562,11 +493,11 @@ public class GameEntry {
             case TIME_FORMAT_HMS_CASUAL:
                 if (hours > 0) {
                     result += hours + "h";
-                    if(minutes > 0){
-                        if(minutes <10){
+                    if (minutes > 0) {
+                        if (minutes < 10) {
                             result += '0';
                         }
-                        result+= minutes;
+                        result += minutes;
                     }
                 } else {
                     if (minutes > 0) {
@@ -584,55 +515,31 @@ public class GameEntry {
 
     }
 
-    public void setPlayTimeFormatted(String time, int format) {
-        switch (format) {
-            case TIME_FORMAT_FULL_DOUBLEDOTS:
-                Pattern timePattern = Pattern.compile("\\d*:\\d\\d:\\d\\d");
-                if (!timePattern.matcher(time).matches()) {
-                    throw new IllegalArgumentException("Invalid time: " + time);
-                }
-                String[] tokens = time.split(":");
-                assert tokens.length == 3;
-                try {
-                    int hours = Integer.parseInt(tokens[0]);
-                    int mins = Integer.parseInt(tokens[1]);
-                    int secs = Integer.parseInt(tokens[2]);
-                    if (hours < 0) {
-                        throw new IllegalArgumentException("Invalid time: " + time);
-                    }
-                    if (mins < 0 || mins > 59) {
-                        throw new IllegalArgumentException("Invalid time: " + time);
-                    }
-                    setPlayTimeSeconds(hours * 3600 + mins * 60 + secs);
-                } catch (NumberFormatException nfe) {
-                    // regex matching should assure we never reach this catch block
-                    assert false;
-                    throw new IllegalArgumentException("Invalid time: " + time);
-                }
-                break;
-            default:
-                break;
-        }
-
-    }
-
     public String getPlayTimeFormatted(int format) {
         return getPlayTimeFormatted(playTime, format);
     }
 
-    public void setSavedLocaly(boolean savedLocaly) {
-        this.savedLocaly = savedLocaly;
-        saveEntry();
+    /**
+     * Similar to auto-commit mode for this entry if set true
+     *
+     * @param savedLocally wether to auto-commit or not
+     */
+    public void setSavedLocally(boolean savedLocally) {
+        this.savedLocally = savedLocally;
     }
 
-    public void deletePermanently(){
-        deleteFiles();
+    public void delete() {
         deleted = true;
-    }
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement(
+                    "delete from GameEntry where id = ?;");
+            statement.setInt(1, id);
+            statement.execute();
 
-    public void deleteFiles() {
-        File file = new File((isToAdd() ? Main.FILES_MAP.get("to_add") : Main.FILES_MAP.get("games")) + File.separator + getUuid().toString());
-        FileUtils.deleteFolder(file);
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getProcessName() {
@@ -654,68 +561,172 @@ public class GameEntry {
 
     public void setIgdb_id(int igdb_id) {
         this.igdb_id = igdb_id;
-        saveEntry();
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set igdb_id = ? where id = ?");
+                statement.setInt(1, igdb_id);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    public GameGenre[] getGenres() {
+    public ArrayList<GameGenre> getGenres() {
         return genres;
     }
 
-    public void setGenres(GameGenre[] genres) {
+    public void setGenres(ArrayList<GameGenre> genres) {
         this.genres = genres;
-        saveEntry();
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveGenres(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    public GameTheme[] getThemes() {
+    public ArrayList<GameTheme> getThemes() {
         return themes;
     }
 
-    public void setThemes(GameTheme[] themes) {
+    public void setThemes(ArrayList<GameTheme> themes) {
         this.themes = themes;
-        saveEntry();
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveThemes(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    public String getSerie() {
+    public Serie getSerie() {
         return serie;
     }
 
-    public void setSerie(String serie) {
-        this.serie = serie!= null ? serie : "";
-        saveEntry();
+    public void setSerie(Serie serie) {
+        if (serie == null) {
+            this.serie = Serie.NONE;
+        }
+        this.serie = serie;
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveSerie(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    public void setCmd(int index, String cmd){
-        this.cmd[index]=cmd;
+    public Platform getPlatform() {
+        return platform;
     }
-    public String getCmd(int index){
+
+    public void setPlatform(int platformId) {
+        setPlatform(Platform.getFromId(platformId));
+    }
+
+    public void setPlatform(Platform platform) {
+        if (platform == null) {
+            this.platform = Platform.NONE;
+        }
+        this.platform = platform;
+
+        if (platform.getId() == Platform.STEAM_ID || platform.getId() == Platform.STEAM_ONLINE_ID) {
+            setPath("steam://rungameid/" + platformGameId);
+        }
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                savePlatform(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void setCmd(int index, String cmd) {
+        this.cmd[index] = cmd;
+    }
+
+    public String getCmd(int index) {
         return cmd[index];
     }
 
-    public Date getAddedDate() {
+    public LocalDateTime getAddedDate() {
         return addedDate;
     }
 
-    public void setAddedDate(Date addedDate) {
+    public void setAddedDate(LocalDateTime addedDate) {
         this.addedDate = addedDate;
-        saveEntry();
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set added_date = ? where id = ?");
+                statement.setTimestamp(1, Timestamp.valueOf(addedDate));
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    public boolean isNotInstalled() {
-        return notInstalled;
+    public boolean isInstalled() {
+        return installed;
     }
 
-    public void setNotInstalled(boolean notInstalled) {
-        this.notInstalled = notInstalled;
-        saveEntry();
+    public void setInstalled(boolean notInstalled) {
+        this.installed = notInstalled;
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set installed = ? where id = ?");
+                statement.setBoolean(1, installed);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    public Date getLastPlayedDate() {
+    public LocalDateTime getLastPlayedDate() {
         return lastPlayedDate;
     }
 
-    public void setLastPlayedDate(Date lastPlayedDate) {
+    public void setLastPlayedDate(LocalDateTime lastPlayedDate) {
         this.lastPlayedDate = lastPlayedDate;
-        saveEntry();
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set last_played_date = ? where id = ?");
+                statement.setTimestamp(1, Timestamp.valueOf(addedDate));
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getIgdb_imageHash(int index) {
@@ -738,7 +749,18 @@ public class GameEntry {
 
     public void setWaitingToBeScrapped(boolean waitingToBeScrapped) {
         this.waitingToBeScrapped = waitingToBeScrapped;
-        saveEntry();
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set waiting_scrap = ? where id = ?");
+                statement.setBoolean(1, waitingToBeScrapped);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void setIgdb_imageHash(int index, String hash) {
@@ -755,23 +777,16 @@ public class GameEntry {
     }
 
     public void startGame() {
-        try {
-            new GameStarter(this).start();
-        }catch (IOException ioe){
-            GameRoomAlert.error(ioe.getMessage());
-        }
+        new GameStarter(this).start();
     }
 
     @Override
     public String toString() {
         return "GameEntry:name=" + name +
                 ",release_date=" + (releaseDate != null ? DATE_DISPLAY_FORMAT.format(releaseDate) : null) +
-                ",steam_id=" + steam_id+
-                "playTime="+getPlayTimeFormatted(TIME_FORMAT_FULL_DOUBLEDOTS);
-    }
-
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
+                ",platform=" + platform.getName() +
+                ",platform_game_id=" + platformGameId +
+                "playTime=" + getPlayTimeFormatted(TIME_FORMAT_FULL_DOUBLEDOTS);
     }
 
     public boolean isToAdd() {
@@ -780,7 +795,18 @@ public class GameEntry {
 
     public void setToAdd(boolean toAdd) {
         this.toAdd = toAdd;
-        saveEntry();
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set toAdd = ? where id = ?");
+                statement.setBoolean(1, toAdd);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getYoutubeSoundtrackHash() {
@@ -789,7 +815,18 @@ public class GameEntry {
 
     public void setYoutubeSoundtrackHash(String youtubeSoundtrackHash) {
         this.youtubeSoundtrackHash = youtubeSoundtrackHash;
-        saveEntry();
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set yt_hash = ? where id = ?");
+                statement.setString(1, youtubeSoundtrackHash);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getArgs() {
@@ -798,15 +835,26 @@ public class GameEntry {
 
     public void setArgs(String args) {
         this.args = args;
-        saveEntry();
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set launch_args = ? where id = ?");
+                statement.setString(1, args);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    public boolean isBeingScrapped() {
+    public boolean isBeingScraped() {
         return beingScrapped;
     }
 
-    public void setBeingScrapped(boolean beingScrapped) {
-        this.beingScrapped = beingScrapped;
+    public void setBeingScraped(boolean beingScraped) {
+        this.beingScrapped = beingScraped;
     }
 
     public Runnable getOnGameLaunched() {
@@ -825,16 +873,454 @@ public class GameEntry {
         this.onGameStopped = onGameStopped;
     }
 
-    public void setMonitored(boolean monitored){
+    public void setMonitored(boolean monitored) {
         this.monitored.setValue(monitored);
     }
 
-    public boolean isMonitored(){
+    public boolean isMonitored() {
         return monitored.getValue();
     }
 
     public SimpleBooleanProperty monitoredProperty() {
         return monitored;
+    }
+
+    public boolean isIgnored() {
+        return ignored;
+    }
+
+    public void setIgnored(boolean ignored) {
+        this.ignored = ignored;
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set ignored = ? where id = ?");
+                statement.setBoolean(1, ignored);
+                statement.setInt(2, id);
+                statement.execute();
+                statement.close();
+                GameEntryUtils.loadIgnoredGames();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void reloadFromDB() {
+        try {
+            Statement s = DataBase.getUserConnection().createStatement();
+            ResultSet set = s.executeQuery("select * from GameEntry where id = " + id);
+            if (set.next()) {
+                reloadWithSet(set);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void reloadWithSet(ResultSet set) throws SQLException {
+        if (set == null) {
+            throw new SQLException("Given set is null");
+        }
+        setId(set.getInt("id"));
+        inDb = true;
+        setSavedLocally(false);
+        setName(set.getString("name"));
+        setDescription(set.getString("description"));
+        setPath(set.getString("path"));
+        setCmd(GameEntry.CMD_BEFORE_START, set.getString("cmd_before"));
+        setCmd(GameEntry.CMD_AFTER_END, set.getString("cmd_after"));
+        setYoutubeSoundtrackHash(set.getString("yt_hash"));
+
+        Timestamp addedTimestamp = set.getTimestamp("added_date");
+        if (addedTimestamp != null) {
+            setAddedDate(addedTimestamp.toLocalDateTime());
+        } else {
+            setAddedDate(LocalDateTime.now());
+        }
+
+        Timestamp releasedTimestamp = set.getTimestamp("release_date");
+        if (releasedTimestamp != null) {
+            setReleaseDate(releasedTimestamp.toLocalDateTime());
+        }
+
+        Timestamp lastPlayedTimestamp = set.getTimestamp("last_played_date");
+        if (lastPlayedTimestamp != null) {
+            setLastPlayedDate(lastPlayedTimestamp.toLocalDateTime());
+        }
+
+        setPlayTimeSeconds(set.getInt("initial_playtime"));
+        setInstalled(set.getBoolean("installed"));
+        setIgdb_imageHash(0, set.getString("cover_hash"));
+        setIgdb_imageHash(1, set.getString("wp_hash"));
+        setIgdb_id(set.getInt("igdb_id"));
+        setWaitingToBeScrapped(set.getBoolean("waiting_scrap"));
+        setToAdd(set.getBoolean("toAdd"));
+        setIgnored(set.getBoolean("ignored"));
+
+        //LOAD GENRES FROM DB
+        try {
+            PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("SELECT genre_id FROM has_genre WHERE game_id=?");
+            genreStatement.setInt(1, id);
+            ResultSet genreSet = genreStatement.executeQuery();
+            while (genreSet.next()) {
+                int genreId = genreSet.getInt("genre_id");
+                GameGenre genre = GameGenre.getGenreFromID(genreId);
+                addGenre(genre);
+            }
+            genreStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        //LOAD THEMES FROM DB
+        try {
+            PreparedStatement themeStatement = DataBase.getUserConnection().prepareStatement("SELECT theme_id FROM has_theme WHERE game_id=?");
+            themeStatement.setInt(1, id);
+            ResultSet themeSet = themeStatement.executeQuery();
+            while (themeSet.next()) {
+                int themeId = themeSet.getInt("theme_id");
+                GameTheme theme = GameTheme.getThemeFromId(themeId);
+                if (theme != null) {
+                    addTheme(theme);
+                }
+            }
+            themeStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        //LOAD DEV FROM DB
+        try {
+            PreparedStatement devStatement = DataBase.getUserConnection().prepareStatement("SELECT dev_id FROM develops WHERE game_id=?");
+            devStatement.setInt(1, id);
+            ResultSet devSet = devStatement.executeQuery();
+            while (devSet.next()) {
+                int devId = devSet.getInt("dev_id");
+                Company dev = Company.getFromId(devId);
+                if (dev != null) {
+                    addDeveloper(dev);
+                }
+            }
+            devStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        //LOAD PUBLISHERS FROM DB
+        try {
+            PreparedStatement pubStatement = DataBase.getUserConnection().prepareStatement("SELECT pub_id FROM publishes WHERE game_id=?");
+            pubStatement.setInt(1, id);
+            ResultSet pubSet = pubStatement.executeQuery();
+            while (pubSet.next()) {
+                int publisherId = pubSet.getInt("pub_id");
+                Company publisher = Company.getFromId(publisherId);
+                if (publisher != null) {
+                    addPublisher(publisher);
+                }
+            }
+            pubStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        //LOAD SERIE FROM DB
+        try {
+            PreparedStatement serieStatement = DataBase.getUserConnection().prepareStatement("SELECT serie_id FROM regroups WHERE game_id=?");
+            serieStatement.setInt(1, id);
+            ResultSet serieSet = serieStatement.executeQuery();
+            while (serieSet.next()) {
+                int serieId = serieSet.getInt("serie_id");
+                Serie serie = Serie.getFromId(serieId);
+                if (serie != null) {
+                    setSerie(serie);
+                }
+            }
+            serieStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        //LOAD PLATFORM FROM DB
+        try {
+            PreparedStatement platformStatement = DataBase.getUserConnection().prepareStatement("SELECT * FROM runs_on WHERE game_id=?");
+            platformStatement.setInt(1, id);
+            ResultSet platformSet = platformStatement.executeQuery();
+            if (platformSet.next()) {
+                int platformId = platformSet.getInt("platform_id");
+                platformGameId = platformSet.getInt("platformGameId");
+                Platform platform = Platform.getFromId(platformId);
+                if (platform != null) {
+                    setPlatform(platform);
+                }
+            }
+            platformStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static GameEntry loadFromDB(ResultSet set) throws SQLException {
+        GameEntry entry = new GameEntry("need_to_reload");
+        entry.reloadWithSet(set);
+        return entry;
+    }
+
+    private String getCoverPath() {
+        return GameEntryUtils.coverPath(this);
+    }
+
+    private String getScreenShotPath() {
+        return GameEntryUtils.screenshotPath(this);
+    }
+
+    public static String getSQLInitLine() {
+        StringBuilder temp = new StringBuilder("INSERT OR REPLACE INTO GameEntry (");
+
+        for (int i = 0; i < SQL_PARAMS.length; i++) {
+            temp.append(SQL_PARAMS[i]);
+            if (i != SQL_PARAMS.length - 1) {
+                temp.append(",");
+            }
+        }
+
+        temp.append(") VALUES (");
+        for (int i = 0; i < SQL_PARAMS.length; i++) {
+            temp.append("?");
+            if (i != SQL_PARAMS.length - 1) {
+                temp.append(",");
+            }
+        }
+        return temp + ");";
+    }
+
+    public static String getSQLUpdateLine() {
+        StringBuilder temp = new StringBuilder("UPDATE GameEntry set ");
+
+        for (int i = 0; i < SQL_PARAMS.length; i++) {
+            temp.append(SQL_PARAMS[i]).append("=?");
+            if (i != SQL_PARAMS.length - 1) {
+                temp.append(", ");
+            }
+        }
+
+        temp.append(" WHERE id = ?");
+        return temp.toString();
+    }
+
+    public void addGenre(GameGenre genre) {
+        if (genre == null) {
+            return;
+        }
+        genres.add(genre);
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveGenres(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void removeGenre(GameGenre genre) {
+        if (genre == null) {
+            return;
+        }
+        genres.remove(genre);
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveGenres(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void addTheme(GameTheme theme) {
+        if (theme == null) {
+            return;
+        }
+        themes.add(theme);
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveThemes(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void removeTheme(GameTheme theme) {
+        if (theme == null) {
+            return;
+        }
+        themes.remove(theme);
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveThemes(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void addDeveloper(Company dev) {
+        if (dev == null) {
+            return;
+        }
+        developers.add(dev);
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveDevs(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void removeDeveloper(Company dev) {
+        if (dev == null) {
+            return;
+        }
+        developers.remove(dev);
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveDevs(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * You should never edit this list directly
+     *
+     * @return a list containing all devs
+     */
+    public ArrayList<Company> getDevelopers() {
+        return developers;
+    }
+
+    public void setDevelopers(ArrayList<Company> developers) {
+        this.developers = developers;
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                saveDevs(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public ArrayList<Company> getPublishers() {
+        return publishers;
+    }
+
+    public void setPublishers(ArrayList<Company> publishers) {
+        this.publishers = publishers;
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                savePublishers(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void addPublisher(Company dev) {
+        if (dev == null) {
+            return;
+        }
+        publishers.add(dev);
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                savePublishers(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void removePublisher(Company dev) {
+        if (dev == null) {
+            return;
+        }
+        publishers.remove(dev);
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                savePublishers(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void setId(int id) {
+        this.id = id;
+        for (int i = 0; i < IMAGES_NUMBER; i++) {
+            String path = "";
+            if (i == 0) {
+                path = getCoverPath();
+            } else {
+                path = getScreenShotPath();
+            }
+            //TODO read here which saved pictures corresponds to this pattern
+            path += ".jpg";
+
+            File localFile = new File(path);
+            imagesFiles[i] = localFile;
+        }
+    }
+
+    public void setPlatformGameId(int platformGameId) {
+        this.platformGameId = platformGameId;
+        if (platform.getId() == Platform.STEAM_ID || platform.getId() == Platform.STEAM_ONLINE_ID) {
+            setPath("steam://rungameid/" + platformGameId);
+        }
+        if (savedLocally && !deleted) {
+            try {
+                Statement batchStatement = DataBase.getUserConnection().createStatement();
+                savePlatform(batchStatement);
+                batchStatement.executeBatch();
+                batchStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public boolean isDeleted() {
+        return deleted;
     }
 
     public boolean mustRunAsAdmin() {
@@ -843,6 +1329,22 @@ public class GameEntry {
 
     public void setRunAsAdmin(Boolean runAsAdmin) {
         this.runAsAdmin = runAsAdmin;
-        saveEntry();
+        this.path = path.trim();
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set runAsAdmin = ? where id = ?");
+                statement.setBoolean(1, runAsAdmin);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean isInDb() {
+        return inDb;
     }
 }

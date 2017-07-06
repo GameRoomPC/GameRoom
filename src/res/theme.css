@@ -27,8 +27,15 @@
     -fx-stroke: transparent;
 }
 
-.header > .title-label{
+.header > .title-label,
+.header > .title-box > .title-label{
     -fx-font-size: 2.5em;
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.header > .small-title-label,
+.header > .title-box > .small-title-label{
+    -fx-font-size: 1.5em;
     -fx-text-fill: -fx-text-base-color;
 }
 
@@ -87,7 +94,7 @@
     -fx-background-insets:  0.0;
     -fx-background-radius: 2.0;
     -fx-border-width: 0.0;
-    -fx-padding: 0.7em;
+    -fx-padding: 0.5em;
     -fx-text-fill: -fx-text-base-color;
     -fx-alignment: CENTER;
     -fx-content-display: LEFT;
@@ -128,7 +135,7 @@
     -fx-background-color: white;
     -fx-background-insets:  0.0;
     -fx-background-radius: 2.0;
-    -fx-padding: 0.7em;
+    -fx-padding: 0.5em;
     -fx-border-width: 0.0;
     -fx-prompt-text-fill: derive(-dark, 50.0%);
     -fx-highlight-fill: rgb(94.0, 203.0, 234.0);
@@ -144,7 +151,7 @@
 }
 
 .text-area .content {
-    -fx-padding: 0.7em;
+    -fx-padding: 0.5em;
     -fx-border-width: 0.0;
     -fx-background-color: transparent;
 }
@@ -262,12 +269,12 @@
 
 .combo-box-base > .label,
 .choice-box > .label {
-    -fx-padding:0.7em 1.7em 0.7em 0.7em;
+    -fx-padding:0.5em 1.0em 0.5em 0.5em;
 }
 
 .combo-box-base > .arrow-button,
 .choice-box > .open-button {
-    -fx-padding: 1.2em 0.7em 1.2em 0.5em;
+    -fx-padding: 1.05em 0.5em 1.05em 0.5em;
     -fx-background-radius: 0.0 2.0 2.0 0.0;
 }
 
@@ -725,6 +732,10 @@
 }
 
 /************** MAIN SCENE BUTTONS ******************************/
+#main-quit-button{
+	-fx-image: url("icons/main/quit.png");
+}
+
 #main-settings-button{
 	-fx-image: url("icons/main/settings.png");
 }
@@ -819,7 +830,35 @@
 	-fx-image: url("icons/launcher/uplay.png");
 }
 
+#wii-icon{
+	-fx-image: url("icons/launcher/wii.png");
+}
+
+#n64-icon{
+	-fx-image: url("icons/launcher/n64.png");
+}
+
+#gamecube-icon{
+	-fx-image: url("icons/launcher/gamecube.png");
+}
+
+#ps2-icon{
+	-fx-image: url("icons/launcher/ps2.png");
+}
+
+#ps3-icon{
+	-fx-image: url("icons/launcher/ps3.png");
+}
+
+#wiiu-icon{
+	-fx-image: url("icons/launcher/wiiu.png");
+}
+
 /**************OTHERS****************/
+
+#help-icon{
+    -fx-image: url("icons/dialog/confirmationIcon.png");
+}
 
 #folder-button{
 	-fx-image: url("icons/folder.png");
@@ -936,4 +975,31 @@ checkbox-drawer-item:hover{
 #search-bar{
     -fx-background-color: -dark;
     -fx-effect: dropshadow( gaussian , black , 10,0,0,0 );
+}
+
+/******** LIST VIEW ****************/
+.dark-list-view .list-cell:filled:selected:focused,
+ .dark-list-view .list-cell:filled:selected {
+    -fx-background-color: derive(-flatter-red, 0.0%);
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.dark-list-view .list-cell:even {
+    -fx-background-color: -dark;
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.dark-list-view .list-cell:odd {
+    -fx-background-color: derive(-dark, 20.0%);
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.dark-list-view .list-cell:filled:hover {
+    -fx-background-color: derive(-flatter-red, 10.0%);;
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.dark-list-view {
+  -fx-background-insets: 0;
+  -fx-padding: 0;
 }

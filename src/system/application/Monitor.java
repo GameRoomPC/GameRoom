@@ -1,5 +1,6 @@
 package system.application;
 
+import data.game.entry.Emulator;
 import data.game.entry.GameEntry;
 import data.game.scraper.SteamLocalScraper;
 import data.io.FileUtils;
@@ -16,15 +17,14 @@ import java.io.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
+import static ui.dialog.GameRoomAlert.error;
 
 /**
  * Created by LM on 24/07/2016.
@@ -50,13 +50,24 @@ public class Monitor {
     private ArrayList<StandbyInterval> standbyIntervals = new ArrayList<>();
 
     private Date creationDate = null;
+    private String processName;
 
     Monitor(GameStarter starter) throws IOException {
         this.gameStarter = starter;
+        if(getGameEntry().getPlatform().isPC()){
+            processName = getGameEntry().getProcessName();
+        }else{
+            Emulator e = Emulator.getChosenEmulator(getGameEntry().getPlatform());
+            if(e == null){
+                GameRoomAlert.error(Main.getString("error_no_emu_configured")+" "+getGameEntry().getPlatform());
+            }else{
+                processName = e.getProcessName();
+            }
+        }
         if (!isSteamGame()) {
             DATE_FORMAT.setTimeZone(Calendar.getInstance().getTimeZone());
 
-            vbsWatcher = FileUtils.newTempFile(getGameEntry().getProcessName() + "_watcher.vbs");
+            vbsWatcher = FileUtils.newTempFile(processName + "_watcher.vbs");
             vbsWatcher.deleteOnExit();
             FileWriter fw = new java.io.FileWriter(vbsWatcher);
 
@@ -64,7 +75,7 @@ public class Monitor {
                     + "Set locator = CreateObject(\"WbemScripting.SWbemLocator\")\n"
                     + "Set service = locator.ConnectServer()\n"
                     + "Set processes = service.ExecQuery _\n"
-                    + " (\"select * from Win32_Process where name='" + getGameEntry().getProcessName() + "'\")\n"
+                    + " (\"select * from Win32_Process where name='" + processName + "'\")\n"
                     + "For Each process in processes\n"
                     + "wscript.echo process.Name \n"
                     + "wscript.echo \"" + TIME_TAG + "\" & process.CreationDate \n"
@@ -79,7 +90,7 @@ public class Monitor {
     }
 
     public long start(Date initialDate) throws IOException {
-        if (isSteamGame() && !SteamLocalScraper.isSteamGameInstalled(getGameEntry().getSteam_id())) {
+        if (isSteamGame() && !SteamLocalScraper.isSteamGameInstalled(getGameEntry().getPlatformGameID())) {
             return 0;
         }
         timer = 0;
@@ -97,7 +108,7 @@ public class Monitor {
         if (!KEEP_THREADS_RUNNING) {
             return 0;
         }
-        Main.LOGGER.info("Monitoring " + getGameEntry().getProcessName());
+        Main.LOGGER.info("Monitoring " + processName);
         if (awaitingRestart) {
             awaitingRestart = false;
             if (MAIN_SCENE != null) {
@@ -110,9 +121,9 @@ public class Monitor {
 
             timer += MONITOR_REFRESH;
             long result = computeTrueRunningTime();
-            getGameEntry().setSavedLocaly(true);
+            getGameEntry().setSavedLocally(true);
             getGameEntry().setPlayTimeSeconds(originalPlayTime + Math.round(result / 1000.0));
-            getGameEntry().setSavedLocaly(false);
+            getGameEntry().setSavedLocally(false);
 
             try {
                 Thread.sleep(MONITOR_REFRESH - (System.currentTimeMillis() - startTimeRec));
@@ -123,7 +134,7 @@ public class Monitor {
         if (!KEEP_THREADS_RUNNING) {
             return 0;
         }
-        Main.LOGGER.info(getGameEntry().getProcessName() + " killed");
+        Main.LOGGER.info(processName + " killed");
 
         long result = computeTrueRunningTime();
         Main.LOGGER.debug("\tComputed playtime : " + GameEntry.getPlayTimeFormatted(Math.round(result / 1000), GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
@@ -141,7 +152,7 @@ public class Monitor {
                                     + getGameEntry().getName()
                                     + Main.getString("restarts"), MAIN_SCENE.getParentStage());
                         }
-                        Main.LOGGER.info(getGameEntry().getProcessName() + " : waiting until next launch to count playtime.");
+                        Main.LOGGER.info(processName + " : waiting until next launch to count playtime.");
                         return MONITOR_AGAIN;
                     }
                     gameStarter.onStop();
@@ -268,7 +279,7 @@ public class Monitor {
 
     private Date computeCreationDate() throws IOException {
         if (isSteamGame()) {
-            if (SteamLocalScraper.isSteamGameRunning(getGameEntry().getSteam_id())) {
+            if (SteamLocalScraper.isSteamGameRunning(getGameEntry().getPlatformGameID())) {
                 return new Date();
             }
             return null;
@@ -285,7 +296,7 @@ public class Monitor {
                 String dateString = line.substring(TIME_TAG.length(), line.indexOf('.'));
                 try {
                     resultDate = DATE_FORMAT.parse(dateString);
-                    if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DEBUG_MODE)) {
+                    if (settings().getBoolean(PredefinedSetting.DEBUG_MODE)) {
                         Main.LOGGER.debug("Found creation date of process : " + DEBUG_DATE_FORMAT.format(resultDate));
                     }
                 } catch (ParseException e) {
@@ -299,9 +310,9 @@ public class Monitor {
 
     private boolean isProcessRunning() throws IOException {
         if (isSteamGame()) {
-            return SteamLocalScraper.isSteamGameRunning(getGameEntry().getSteam_id());
+            return SteamLocalScraper.isSteamGameRunning(getGameEntry().getPlatformGameID());
         } else {
-            return isProcessRunning(getGameEntry().getProcessName());
+            return isProcessRunning(processName);
         }
     }
 

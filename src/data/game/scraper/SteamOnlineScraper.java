@@ -5,6 +5,7 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.GameWatcher;
 import data.game.entry.GameEntry;
+import data.game.entry.GameEntryUtils;
 import data.game.entry.Platform;
 import data.game.scanner.GameScanner;
 import data.game.scanner.OnGameFound;
@@ -21,12 +22,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 
-import static ui.Main.GENERAL_SETTINGS;
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
 
 /**
@@ -40,7 +43,7 @@ public class SteamOnlineScraper {
             Callable task = new Callable() {
                 @Override
                 public Object call() throws Exception {
-                    if (!SteamLocalScraper.isSteamGameIgnored(entry) && !SteamLocalScraper.isSteamGameInstalled(entry.getSteam_id())) {
+                    if (!GameEntryUtils.isGameIgnored(entry) && !SteamLocalScraper.isSteamGameInstalled(entry.getPlatformGameID())) {
                         scanner.checkAndAdd(entry);
                     }
                     return null;
@@ -52,13 +55,13 @@ public class SteamOnlineScraper {
 
     private static void scanNonInstalledSteamGames(OnGameFound handler) {
         try {
-            SteamProfile profile = GENERAL_SETTINGS.getSteamProfileToScan();
+            SteamProfile profile = settings().getSteamProfileToScan();
             if (profile != null) {
                 JSONArray ownedArray = askGamesOwned(profile.getAccountId());
                 for (int i = 0; i < ownedArray.length(); i++) {
                     SteamPreEntry preEntry = new SteamPreEntry(ownedArray.getJSONObject(i).getString("name"), ownedArray.getJSONObject(i).getInt("appID"));
                     GameEntry entry = preEntry.toGameEntry();
-                    GameEntry scrapedEntry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
+                    GameEntry scrapedEntry = SteamOnlineScraper.getEntryForSteamId(entry.getPlatformGameID());
                     if (scrapedEntry != null) {
                         entry = scrapedEntry;
                         try {
@@ -83,7 +86,7 @@ public class SteamOnlineScraper {
     }
 
     public static void checkIfCanScanSteam(boolean forceModify) {
-        SteamProfile selectedProfile = GENERAL_SETTINGS.getSteamProfileToScan();
+        SteamProfile selectedProfile = settings().getSteamProfileToScan();
         if (selectedProfile != null && !forceModify) {
             return;
         }
@@ -99,7 +102,7 @@ public class SteamOnlineScraper {
         }
 
         if (!forceModify && profiles.size() == 1) {
-            GENERAL_SETTINGS.setSettingValue(PredefinedSetting.STEAM_PROFILE, profiles.get(0));
+            settings().setSettingValue(PredefinedSetting.STEAM_PROFILE, profiles.get(0));
         } else {
             Main.runAndWait(() -> {
                 SteamProfileSelector selector = new SteamProfileSelector(profiles);
@@ -113,7 +116,7 @@ public class SteamOnlineScraper {
         scanNonInstalledSteamGames(entry -> {
             try {
                 long playTime = entry.getPlayTimeSeconds();
-                entry = SteamOnlineScraper.getEntryForSteamId(entry.getSteam_id());
+                entry = SteamOnlineScraper.getEntryForSteamId(entry.getPlatformGameID());
                 if (entry != null) {
                     entry.setPlayTimeSeconds(playTime);
                     LOGGER.debug("Play time of " + entry.getName() + " : " + entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
@@ -137,12 +140,15 @@ public class SteamOnlineScraper {
             GameEntry entry = new GameEntry(gameInfoJson.getString("name"));
             entry.setDescription(Jsoup.parse(gameInfoJson.getString("about_the_game")).text());
             try {
-                entry.setReleaseDate(STEAM_DATE_FORMAT.parse(gameInfoJson.getJSONObject("release_date").getString("date")));
+                Date input = STEAM_DATE_FORMAT.parse(gameInfoJson.getJSONObject("release_date").getString("date"));
+                entry.setReleaseDate(input.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
             } catch (ParseException | NumberFormatException e) {
                 Main.LOGGER.error("Invalid release date format");
             }
-            entry.setSteam_id(steamId);
-            entry.setNotInstalled(!SteamLocalScraper.isSteamGameInstalled(entry.getSteam_id()));
+            boolean installed = SteamLocalScraper.isSteamGameInstalled(steamId);
+            entry.setPlatformGameId(steamId);
+            entry.setPlatform(Platform.getFromId(installed ? Platform.STEAM_ID : Platform.STEAM_ONLINE_ID));
+            entry.setInstalled(installed);
 
             if (entry.getName() == null || entry.getName().isEmpty()) {
                 return null;

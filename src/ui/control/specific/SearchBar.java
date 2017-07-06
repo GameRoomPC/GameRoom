@@ -1,7 +1,7 @@
 package ui.control.specific;
 
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -10,32 +10,26 @@ import ui.control.button.ImageButton;
 import static ui.Main.SCREEN_WIDTH;
 
 /**
- * Created by LM on 10/02/2017.
+ * @author LM. Garret (admin@gameroom.me)
+ * @date 09/06/2017.
  */
 public class SearchBar extends HBox {
     private TextField searchField;
     private ImageButton searchButton;
-    private ImageButton closeButton;
+    private double imgSize;
 
     public SearchBar(ChangeListener<String> changeListener){
-        double imgSize = SCREEN_WIDTH / 30;
+        imgSize = SCREEN_WIDTH / 30;
         searchButton = new ImageButton("search-button", imgSize, imgSize);
         searchButton.setFocusTraversable(false);
-
-        closeButton = new ImageButton("toaddtile-ignore-button", imgSize/2,imgSize/2);
-        closeButton.setFocusTraversable(false);
-        closeButton.setOnAction(event -> {
-            hide();
-            clearSearchField();
-        });
 
         searchField = new TextField();
         searchField.setFocusTraversable(false);
         searchField.textProperty().addListener(changeListener);
+        searchField.setPadding(new Insets(0,15*SCREEN_WIDTH/1080,0,0));
 
-        getChildren().addAll(searchButton,searchField,closeButton);
+        getChildren().addAll(searchButton,searchField);
 
-        setId("search-bar");
         setAlignment(Pos.BASELINE_CENTER);
         setFocusTraversable(false);
         setPickOnBounds(false);
@@ -57,5 +51,9 @@ public class SearchBar extends HBox {
     public void hide(){
         setVisible(false);
         setMouseTransparent(true);
+    }
+
+    public double getImgSize() {
+        return imgSize;
     }
 }

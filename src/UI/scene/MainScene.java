@@ -1,8 +1,8 @@
 package ui.scene;
 
 import data.game.GameWatcher;
-import data.game.entry.AllGameEntries;
 import data.game.entry.GameEntry;
+import data.game.entry.GameEntryUtils;
 import data.game.scanner.FolderGameScanner;
 import data.game.scanner.OnScannerResultHandler;
 import data.http.images.ImageUtils;
@@ -38,7 +38,7 @@ import ui.control.button.gamebutton.GameButton;
 import ui.control.drawer.DrawerMenu;
 import ui.control.drawer.GroupType;
 import ui.control.drawer.SortType;
-import ui.control.specific.SearchBar;
+import ui.control.specific.FloatingSearchBar;
 import ui.control.textfield.PathTextField;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.GameRoomCustomAlert;
@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Optional;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
 import static ui.control.button.gamebutton.GameButton.COVER_HEIGHT_WIDTH_RATIO;
 
@@ -83,7 +84,7 @@ public class MainScene extends BaseScene {
 
     private ArrayList<GroupRowTilePane> groupRowList = new ArrayList<>();
 
-    private SearchBar searchBar;
+    private FloatingSearchBar searchBar;
     private boolean showTilesPaneAgainAfterCancelSearch = false;
 
     private Label statusLabel;
@@ -130,29 +131,29 @@ public class MainScene extends BaseScene {
 
     private void loadPreviousUIValues() {
         Main.runAndWait(() -> {
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)) {
+            if (settings().getBoolean(PredefinedSetting.FOLDED_ROW_LAST_PLAYED)) {
                 lastPlayedTilePane.fold();
             } else {
                 lastPlayedTilePane.unfold();
             }
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED)) {
+            if (settings().getBoolean(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED)) {
                 recentlyAddedTilePane.fold();
             } else {
                 recentlyAddedTilePane.unfold();
             }
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.FOLDED_TOADD_ROW)) {
+            if (settings().getBoolean(PredefinedSetting.FOLDED_TOADD_ROW)) {
                 toAddTilePane.fold();
             } else {
                 toAddTilePane.unfold();
             }
-            double scrollBarVValue = GENERAL_SETTINGS.getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
+            double scrollBarVValue = settings().getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
             scrollPane.setVvalue(scrollBarVValue);
 
-            if (Main.GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS)) {
+            if (settings().getBoolean(PredefinedSetting.HIDE_TILES_ROWS)) {
                 forceHideTilesRows(true);
             }
 
-            if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
+            if (settings().getBoolean(PredefinedSetting.HIDE_TOOLBAR)) {
                 //TODO maybe try to hide the drawer menu ?
                 //drawerMenu.setVisible(false);
             }
@@ -161,11 +162,11 @@ public class MainScene extends BaseScene {
 
     public void saveScrollBarVValue() {
         double scrollBarVValue = scrollPane.getVvalue();
-        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.SCROLLBAR_VVALUE, scrollBarVValue);
+        settings().setSettingValue(PredefinedSetting.SCROLLBAR_VVALUE, scrollBarVValue);
     }
 
     private void displayWelcomeMessage() {
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
+        if (settings().getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
             Platform.runLater(() -> {
                 GameRoomAlert.info(Main.getString("Welcome_message"));
                 GameRoomAlert.info(Main.getString("configure_scanner_messages"));
@@ -174,7 +175,7 @@ public class MainScene extends BaseScene {
                 Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
                 ignoredOptionnal.ifPresent(pairs -> {
                     if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
+                        settings().setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
                     }
                 });
                 GameRoomCustomAlert alert = new GameRoomCustomAlert();
@@ -184,7 +185,7 @@ public class MainScene extends BaseScene {
                         , 20 * Main.SCREEN_WIDTH / 1920
                         , 20 * Main.SCREEN_HEIGHT / 1080
                         , 20 * Main.SCREEN_WIDTH / 1920));
-                PathTextField field = new PathTextField(GENERAL_SETTINGS.getString(PredefinedSetting.GAMES_FOLDER), getWindow(), PathTextField.FILE_CHOOSER_FOLDER, "");
+                PathTextField field = new PathTextField("", getWindow(), PathTextField.FILE_CHOOSER_FOLDER, "");
 
                 alert.setBottom(field);
                 alert.setCenter(text);
@@ -198,12 +199,12 @@ public class MainScene extends BaseScene {
                         , new ButtonType(Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
                 Optional<ButtonType> result = alert.showAndWait();
                 if (result != null && result.isPresent() && result.get().getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                    GENERAL_SETTINGS.setSettingValue(PredefinedSetting.GAMES_FOLDER, field.getTextField().getText());
+                    settings().addGameFolder(new File(field.getTextField().getText()));
                 } else {
                     // ... user chose CANCEL or closed the dialog
                 }
-                GENERAL_SETTINGS.setSettingValue(PredefinedSetting.DISPLAY_WELCOME_MESSAGE, false);
-                startGameLookerService();
+                settings().setSettingValue(PredefinedSetting.DISPLAY_WELCOME_MESSAGE, false);
+                startGameWatcherService();
             });
         }
     }
@@ -259,19 +260,19 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.addOnFoldedChangeListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FOLDED_ROW_LAST_PLAYED, newValue);
+                settings().setSettingValue(PredefinedSetting.FOLDED_ROW_LAST_PLAYED, newValue);
             }
         });
         recentlyAddedTilePane.addOnFoldedChangeListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED, newValue);
+                settings().setSettingValue(PredefinedSetting.FOLDED_ROW_RECENTLY_ADDED, newValue);
             }
         });
         toAddTilePane.addOnFoldedChangeListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                Main.GENERAL_SETTINGS.setSettingValue(PredefinedSetting.FOLDED_TOADD_ROW, newValue);
+                settings().setSettingValue(PredefinedSetting.FOLDED_TOADD_ROW, newValue);
             }
         });
 
@@ -339,7 +340,7 @@ public class MainScene extends BaseScene {
                 long refreshWPTime = 800;
                 long lastWallpaperUpdate = 0;
 
-                for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
+                for (GameEntry entry : GameEntryUtils.ENTRIES_LIST) {
                     int finalI = i;
 
                     Main.runAndWait(new Runnable() {
@@ -359,13 +360,13 @@ public class MainScene extends BaseScene {
 
                         Platform.runLater(() -> {
                             Image screenshotImage = entry.getImage(1,
-                                    Main.GENERAL_SETTINGS.getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
-                                    Main.GENERAL_SETTINGS.getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
+                                    settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
+                                    settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
                                     , false, true);
                             setImageBackground(screenshotImage);
                         });
                     }
-                    updateProgress(finalI, AllGameEntries.ENTRIES_LIST.size() - 1);
+                    updateProgress(finalI, GameEntryUtils.ENTRIES_LIST.size() - 1);
                     i++;
                 }
                 return null;
@@ -387,14 +388,14 @@ public class MainScene extends BaseScene {
                 statusLabel.setText("");
                 fadeTransitionTo(MainScene.this, getParentStage(), false);
                 Platform.runLater(() -> {
-                    startGameLookerService();
+                    startGameWatcherService();
                 });
                 home();
 
-                double scrollBarVValue = GENERAL_SETTINGS.getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
+                double scrollBarVValue = settings().getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
                 scrollPane.setVvalue(scrollBarVValue);
 
-                if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && SUPPORTER_MODE) {
+                if (settings().getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && SUPPORTER_MODE) {
                     File workingDir = FILES_MAP.get("working_dir");
                     if (workingDir != null && workingDir.listFiles() != null) {
                         for (File file : workingDir.listFiles()) {
@@ -406,6 +407,33 @@ public class MainScene extends BaseScene {
                         }
                     }
                 }
+                /*ObjectBinding<Bounds> visibleBounds = Bindings.createObjectBinding(() -> {
+                    Bounds viewportBounds = scrollPane.getViewportBounds();
+                    Bounds viewportBoundsInScene = scrollPane.localToScene(viewportBounds);
+                    Bounds viewportBoundsInPane = tilesPaneWrapper.sceneToLocal(viewportBoundsInScene);
+                    return viewportBoundsInPane ;
+                }, scrollPane.hvalueProperty(), scrollPane.vvalueProperty(), scrollPane.viewportBoundsProperty());
+
+
+                FilteredList<GameButton> visibleNodes = new FilteredList<>(tilePane.getGameButtons());
+                visibleNodes.predicateProperty().bind(Bindings.createObjectBinding(() ->
+                                gameButton -> gameButton.getBoundsInParent().intersects(visibleBounds.get()),
+                        visibleBounds));
+
+
+                visibleNodes.addListener((ListChangeListener.Change<? extends GameButton> c) -> {
+                    if(c.next()){
+                        c.getAddedSubList().forEach(o -> {
+                            o.clearCover();
+                            Main.LOGGER.debug("clearedCover: "+o.getEntry().getName());
+                        });
+                        c.getRemoved().forEach(o -> {
+                            o.showCover();
+                            Main.LOGGER.debug("showedCover: "+o.getEntry().getName());
+                        });
+                        System.out.println();
+                    }
+                });*/
             }
         });
         loadGamesTask.progressProperty().addListener(new ChangeListener<Number>() {
@@ -439,7 +467,7 @@ public class MainScene extends BaseScene {
 
     private void initTop() {
 
-        searchBar = new SearchBar((observable, oldValue, newValue) -> {
+        searchBar = new FloatingSearchBar((observable, oldValue, newValue) -> {
             if (newValue != null && !newValue.equals("")) {
                 searchGame(newValue);
             } else if (newValue != null && newValue.equals("")) {
@@ -476,13 +504,13 @@ public class MainScene extends BaseScene {
     }
 
     public void toggleTilesRows() {
-        boolean wasHidden = GENERAL_SETTINGS.getBoolean(PredefinedSetting.HIDE_TILES_ROWS);
-        GENERAL_SETTINGS.setSettingValue(PredefinedSetting.HIDE_TILES_ROWS, !wasHidden);
+        boolean wasHidden = settings().getBoolean(PredefinedSetting.HIDE_TILES_ROWS);
+        settings().setSettingValue(PredefinedSetting.HIDE_TILES_ROWS, !wasHidden);
         forceHideTilesRows(!wasHidden);
     }
 
     public void toggleScrollBar(boolean fullScreen) {
-        boolean disableInFullscreen = GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_SCROLLBAR_IN_FULLSCREEN);
+        boolean disableInFullscreen = settings().getBoolean(PredefinedSetting.DISABLE_SCROLLBAR_IN_FULLSCREEN);
         if (scrollPane != null) {
             if (fullScreen && disableInFullscreen) {
                 scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -496,7 +524,7 @@ public class MainScene extends BaseScene {
         Main.START_TRAY_MENU.removeAll();
 
         ArrayList<java.awt.MenuItem> newItems = new ArrayList<>();
-        for (GameEntry entry : AllGameEntries.ENTRIES_LIST) {
+        for (GameEntry entry : GameEntryUtils.ENTRIES_LIST) {
             java.awt.MenuItem gameItem = new java.awt.MenuItem(entry.getName());
             gameItem.addActionListener(new ActionListener() {
                 @Override
@@ -506,7 +534,7 @@ public class MainScene extends BaseScene {
             });
             newItems.add(gameItem);
         }
-        
+
         newItems.sort(new Comparator<java.awt.MenuItem>() {
             @Override
             public int compare(java.awt.MenuItem o1, java.awt.MenuItem o2) {
@@ -581,7 +609,7 @@ public class MainScene extends BaseScene {
             tilePane.removeGame(entry);
         }
 
-        AllGameEntries.removeGame(entry);
+        GameEntryUtils.removeGame(entry);
         refreshTrayMenu();
     }
 
@@ -593,7 +621,7 @@ public class MainScene extends BaseScene {
         for (GroupRowTilePane tilePane : groupRowList) {
             tilePane.updateGame(entry);
         }
-        AllGameEntries.updateGame(entry);
+        GameEntryUtils.updateGame(entry);
         refreshTrayMenu();
     }
 
@@ -607,7 +635,7 @@ public class MainScene extends BaseScene {
         for (GroupRowTilePane tilePane : groupRowList) {
             tilePane.addGame(entry);
         }
-        AllGameEntries.addGame(entry);
+        GameEntryUtils.addGame(entry);
         refreshTrayMenu();
     }
 
@@ -674,8 +702,8 @@ public class MainScene extends BaseScene {
         }
     }
 
-    private void startGameLookerService() {
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
+    private void startGameWatcherService() {
+        if (settings().getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
             return;
         }
         //toAddTilePane.disableFoldButton(true);
@@ -782,10 +810,10 @@ public class MainScene extends BaseScene {
     }
 
     public void setImageBackground(Image img, boolean isStatic) {
-        if (GENERAL_SETTINGS.getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && !isStatic) {
+        if (settings().getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && !isStatic) {
             return;
         }
-        if (!GENERAL_SETTINGS.getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
+        if (!settings().getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
             if (!backgroundView.isVisible()) {
                 backgroundView.setVisible(true);
             }
@@ -939,13 +967,29 @@ public class MainScene extends BaseScene {
     }
 
     private void initKeyShortcuts() {
-        getParentStage().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, new EventHandler<javafx.scene.input.KeyEvent>() {
+        addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, new EventHandler<javafx.scene.input.KeyEvent>() {
             @Override
             public void handle(javafx.scene.input.KeyEvent event) {
                 if (event.getCode() == KeyCode.ESCAPE) {
-                    drawerMenu.closeSubMenu(MainScene.this);
+                    if(drawerMenu.isSubMenuOpened()) {
+                        drawerMenu.closeSubMenu(MainScene.this);
+                        event.consume();
+                    }else{
+                        drawerMenu.quitGameRoom();
+                        event.consume();
+                    }
+
                 }
             }
         });
+    }
+
+    public void reloadCovers() {
+        tilePane.getGameButtons().forEach(GameButton::showCover);
+        toAddTilePane.getGameButtons().forEach(GameButton::showCover);
+        recentlyAddedTilePane.getGameButtons().forEach(GameButton::showCover);
+        lastPlayedTilePane.getGameButtons().forEach(GameButton::showCover);
+        groupRowList.forEach(groupRowTilePane -> groupRowTilePane.getGameButtons().forEach(GameButton::showCover));
+
     }
 }
