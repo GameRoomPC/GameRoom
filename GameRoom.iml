@@ -29,6 +29,7 @@
     <orderEntry type="library" exported="" name="org.apache.logging.log4j:log4j-api:2.6.1" level="project" />
     <orderEntry type="library" exported="" name="org.apache.logging.log4j:log4j-core:2.1" level="project" />
     <orderEntry type="library" exported="" name="WinRun4J" level="project" />
+    <orderEntry type="library" exported="" name="xinput-device" level="project" />
     <orderEntry type="module-library">
       <library name="JUnit4">
         <CLASSES>
