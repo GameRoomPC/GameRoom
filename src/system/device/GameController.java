@@ -24,9 +24,9 @@ public class GameController {
     public final static String BUTTON_DPAD_DOWN = "pov0.75";
     public final static String BUTTON_DPAD_LEFt = "pov1.0";
 
-    private Controller controller;
-    private Component[] components;
-    private ControllerButtonListener controllerButtonListener;
+    private volatile Controller controller;
+    private volatile Component[] components;
+    private volatile ControllerButtonListener controllerButtonListener;
 
     private Runnable pollingTask;
     private Runnable controllerDiscoverTask;
@@ -38,7 +38,6 @@ public class GameController {
             @Override
             public void run() {
                 while (controller!=null && controller.poll() && runThreads && Main.KEEP_THREADS_RUNNING) {
-
                     EventQueue queue = controller.getEventQueue();
                     Event event = new Event();
                     while (queue.getNextEvent(event)) {
@@ -98,9 +97,9 @@ public class GameController {
                 setController(foundController);
                 setComponents(foundComponents);
 
-                Thread th = new Thread(pollingTask);
-                th.setDaemon(true);
-                th.start();
+                Thread pollingThread = new Thread(pollingTask);
+                pollingThread.setDaemon(true);
+                pollingThread.start();
             }
         };
     }
@@ -138,10 +137,20 @@ public class GameController {
         Main.LOGGER.debug("Stopping xbox controller threads");
     }
     public void startThreads(){
+        emptyQueue();
+
         Main.LOGGER.debug("Restarting xbox controller threads");
         Thread th = new Thread(controllerDiscoverTask);
         th.setDaemon(true);
         th.start();
+
+    }
+
+    private void emptyQueue(){
+        if(controller != null){
+            controller.setEventQueueSize(0);
+            controller.setEventQueueSize(5);
+        }
     }
 
 }

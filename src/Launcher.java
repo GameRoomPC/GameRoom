@@ -17,7 +17,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.boris.winrun4j.DDE;
 import system.application.Monitor;
 import system.application.settings.PredefinedSetting;
@@ -28,6 +27,7 @@ import ui.GeneralToast;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.dialog.ConsoleOutputDialog;
+import ui.dialog.WindowFocusManager;
 import ui.scene.BaseScene;
 import ui.scene.MainScene;
 import ui.scene.SettingsScene;
@@ -59,14 +59,14 @@ public class Launcher extends Application {
     public static void main(String[] args) throws URISyntaxException {
         Main.DEV_MODE = getArg(ARGS_FLAG_DEV, args, false) != null;
 
-        if(DEV_MODE){
+        if (DEV_MODE) {
             String appdataFolder = System.getenv("APPDATA");
             DATA_PATH = appdataFolder + File.separator + System.getProperty("working.dir");
-        }else{
+        } else {
             DATA_PATH = WinReg.readDataPath();
         }
 
-        System.setProperty("data.dir",DATA_PATH);
+        System.setProperty("data.dir", DATA_PATH);
         Main.LOGGER = LogManager.getLogger(Main.class);
 
         System.setErr(new PrintStream(System.err) {
@@ -230,17 +230,13 @@ public class Launcher extends Application {
         initIcons(primaryStage);
         primaryStage.setTitle("GameRoom");
         primaryStage.initStyle(StageStyle.DECORATED);
+
         focusListener = (observable, oldValue, newValue) -> {
             MAIN_SCENE.setChangeBackgroundNextTime(true);
             primaryStage.getScene().getRoot().setMouseTransparent(!newValue);
-            GeneralToast.enableToasts(newValue);
-
-            if (newValue && settings().getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
-                gameController.startThreads();
-            } else if (!newValue && settings().getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
-                gameController.stopThreads();
-            }
+            WindowFocusManager.stageFocusChanged(newValue);
         };
+
         primaryStage.focusedProperty().addListener(focusListener);
 
         primaryStage.setScene(initScene);
@@ -352,6 +348,7 @@ public class Launcher extends Application {
             });
         }
         GameButton.getExecutorService().shutdownNow();
+        WindowFocusManager.shutdown();
         FileUtils.clearFolder(Main.FILES_MAP.get("cache"));
         FileUtils.clearFolder(Main.FILES_MAP.get("temp"));
 

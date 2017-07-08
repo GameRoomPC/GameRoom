@@ -40,9 +40,41 @@ public abstract class GameRoomDialog<T> extends Dialog<T> {
         dialogPane.setStyle("-fx-font-size: "+Double.toString(settings().getUIScale().getFontSize())+"px;");
         initStyle(StageStyle.UNDECORATED);
         initModality(modality);
+
+        getDialogPane().getButtonTypes().forEach(buttonType -> {
+            getDialogPane().lookupButton(buttonType).focusedProperty().addListener((observable, oldValue, newValue) -> {
+                WindowFocusManager.dialogFocusChanged(isDialogFocused(this));
+            });
+        });
+    }
+
+
+    /** Checks if a given {@link Dialog} is focused, by checking if any of its composing {@link javafx.scene.Node} is focused.
+     *
+     * @param dialog dialog to check
+     * @return true if the dialog is considered focused, false otherwise
+     */
+    static boolean isDialogFocused(Dialog dialog){
+        if(dialog == null){
+            return false;
+        }
+        if(dialog.getDialogPane() != null && dialog.getDialogPane().isFocused()){
+            return true;
+        }
+        if(dialog.getGraphic()!=null && dialog.getGraphic().isFocused()){
+            return true;
+        }
+        boolean focused[] = {false};
+        if(dialog.getDialogPane() != null){
+            dialog.getDialogPane().getButtonTypes().forEach(buttonType -> {
+                focused[0] = focused[0] || dialog.getDialogPane().lookupButton(buttonType).isFocused();
+            });
+        }
+        return focused[0];
     }
 
     public BorderPane getMainPane() {
         return mainPane;
     }
+
 }

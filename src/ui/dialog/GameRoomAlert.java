@@ -3,6 +3,7 @@ package ui.dialog;
 import javafx.application.Platform;
 import javafx.beans.NamedArg;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -11,6 +12,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
+import system.application.settings.PredefinedSetting;
+import system.device.GameController;
 import ui.Main;
 import ui.theme.ThemeUtils;
 
@@ -19,13 +22,12 @@ import java.util.Optional;
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
 import static ui.Main.MAIN_SCENE;
+import static ui.Main.gameController;
 
 /**
  * Created by LM on 06/08/2016.
  */
 public class GameRoomAlert extends Alert {
-
-
     public GameRoomAlert(AlertType alertType) {
         this(alertType, "");
     }
@@ -40,6 +42,12 @@ public class GameRoomAlert extends Alert {
 
         initOwner(MAIN_SCENE.getParentStage());
         initModality(Modality.WINDOW_MODAL);
+
+        getButtonTypes().forEach(buttonType -> {
+            getDialogPane().lookupButton(buttonType).focusedProperty().addListener((observable, oldValue, newValue) -> {
+                WindowFocusManager.dialogFocusChanged(GameRoomDialog.isDialogFocused(this));
+            });
+        });
 
         EventHandler<KeyEvent> fireOnEnter = event -> {
             if (KeyCode.ENTER.equals(event.getCode())
@@ -84,10 +92,12 @@ public class GameRoomAlert extends Alert {
         Main.runAndWait(() -> {
             GameRoomAlert alert = new GameRoomAlert(type, s);
             Optional<ButtonType> result = alert.showAndWait();
+
             result.ifPresent(buttonType -> {
                 buttonChosen[0] = buttonType;
             });
         });
         return buttonChosen[0];
     }
+
 }
