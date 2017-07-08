@@ -967,19 +967,16 @@ public class MainScene extends BaseScene {
     }
 
     private void initKeyShortcuts() {
-        addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, new EventHandler<javafx.scene.input.KeyEvent>() {
-            @Override
-            public void handle(javafx.scene.input.KeyEvent event) {
-                if (event.getCode() == KeyCode.ESCAPE) {
-                    if(drawerMenu.isSubMenuOpened()) {
-                        drawerMenu.closeSubMenu(MainScene.this);
-                        event.consume();
-                    }else{
-                        drawerMenu.quitGameRoom();
-                        event.consume();
-                    }
-
+        addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ESCAPE) {
+                if(drawerMenu.isSubMenuOpened()) {
+                    event.consume();
+                    drawerMenu.closeSubMenu(MainScene.this);
+                }else{
+                    event.consume();
+                    drawerMenu.quitGameRoom();
                 }
+
             }
         });
     }
