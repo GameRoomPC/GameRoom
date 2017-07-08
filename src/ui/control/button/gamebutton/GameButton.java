@@ -175,16 +175,16 @@ public abstract class GameButton extends BorderPane {
         initNameText();
 
         setOnKeyPressed(ke -> {
-            switch (ke.getCode()){
+            switch (ke.getCode()) {
                 case ENTER:
+                    ke.consume();
                     if (!playButton.isDisabled())
                         playButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
-                    ke.consume();
                     break;
                 case SPACE:
+                    ke.consume();
                     if (!infoButton.isDisabled())
                         infoButton.fireEvent(new MouseEvent(MOUSE_CLICKED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, true, true, true, true, true, true, true, true, true, true, null));
-                    ke.consume();
                     break;
                 default:
                     break;
@@ -262,9 +262,9 @@ public abstract class GameButton extends BorderPane {
             @Override
             public void handle(MouseEvent event) {
                 if (event.isSecondaryButtonDown()) {
+                    event.consume();
                     contextMenu.show(coverPane, event.getScreenX(), event.getScreenY());
                 }
-                event.consume();
             }
         });
     }
@@ -363,7 +363,7 @@ public abstract class GameButton extends BorderPane {
                         if (MAIN_SCENE != null) {
                             GeneralToast.displayToast(Main.getString("looking_for_game_exe"), MAIN_SCENE.getParentStage());
                         }
-                        AppSelectorDialog selector = new AppSelectorDialog(gamePath,entry.getPlatform().getSupportedExtensions());
+                        AppSelectorDialog selector = new AppSelectorDialog(gamePath, entry.getPlatform().getSupportedExtensions());
                         selector.searchApps();
 
                         Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
@@ -716,7 +716,7 @@ public abstract class GameButton extends BorderPane {
                 boolean farRatio = Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2;
                 boolean keepRatio = settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO);
                 coverView.setPreserveRatio(farRatio && keepRatio);
-                Image coverImage = entry.getImage(0,  width, height, farRatio && keepRatio, true);
+                Image coverImage = entry.getImage(0, width, height, farRatio && keepRatio, true);
                 if (!ImageUtils.imagesEquals(coverImage, coverView.getImage())) {
                     ImageUtils.transitionToImage(coverImage, coverView);
                 }
