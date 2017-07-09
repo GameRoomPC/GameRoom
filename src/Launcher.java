@@ -23,7 +23,6 @@ import system.application.settings.PredefinedSetting;
 import system.device.ControllerButtonListener;
 import system.device.GameController;
 import system.os.WinReg;
-import ui.GeneralToast;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.dialog.ConsoleOutputDialog;
@@ -307,7 +306,7 @@ public class Launcher extends Application {
                         case GameController.BUTTON_DPAD_UP:
                             r.keyPress(java.awt.event.KeyEvent.VK_UP);
                             break;
-                        case GameController.BUTTON_DPAD_LEFt:
+                        case GameController.BUTTON_DPAD_LEFT:
                             r.keyPress(java.awt.event.KeyEvent.VK_LEFT);
                             break;
                         case GameController.BUTTON_DPAD_DOWN:

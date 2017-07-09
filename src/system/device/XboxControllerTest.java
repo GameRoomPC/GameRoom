@@ -26,7 +26,7 @@ class XboxControllerTest {
                     case GameController.BUTTON_DPAD_UP:
                         Main.LOGGER.debug("DPAD up pressed");
                         break;
-                    case GameController.BUTTON_DPAD_LEFt:
+                    case GameController.BUTTON_DPAD_LEFT:
                         Main.LOGGER.debug("DPAD left pressed");
                         break;
                     case GameController.BUTTON_DPAD_DOWN:

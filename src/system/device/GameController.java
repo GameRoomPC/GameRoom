@@ -7,12 +7,15 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.concurrent.*;
 
+import static ui.Main.LOGGER;
+
 /**
  * Created by LM on 26/07/2016.
  */
 public class GameController {
-    private final static int POLL_RATE = 60;
+    private final static int POLL_RATE = 40;
     private final static int DISCOVER_RATE = 1000;
+    private final static float AXIS_THRESHOLD = 0.80f;
 
     public final static String BUTTON_A = "0";
     public final static String BUTTON_B = "1";
@@ -26,7 +29,7 @@ public class GameController {
     public final static String BUTTON_DPAD_UP = "pov0.25";
     public final static String BUTTON_DPAD_RIGHT = "pov0.5";
     public final static String BUTTON_DPAD_DOWN = "pov0.75";
-    public final static String BUTTON_DPAD_LEFt = "pov1.0";
+    public final static String BUTTON_DPAD_LEFT = "pov1.0";
 
     private volatile Controller controller;
     private volatile Component[] components;
@@ -40,6 +43,9 @@ public class GameController {
 
     private volatile boolean runThreads = true;
 
+    private volatile float previousXValue = 0.0f;
+    private volatile float previousYValue = 0.0f;
+
     private ScheduledThreadPoolExecutor threadPool = new ScheduledThreadPoolExecutor(1);
 
     public GameController(ControllerButtonListener controllerButtonListener) {
@@ -52,6 +58,26 @@ public class GameController {
                 EventQueue queue = getController().getEventQueue();
                 Event event = new Event();
                 while (queue.getNextEvent(event)) {
+                    if(event.getComponent().getName().contains("Axe")){
+                        String name = event.getComponent().getName();
+                        float value = event.getValue();
+                        if(name.equals("Axe X")){
+                            if(value > AXIS_THRESHOLD && previousXValue <= AXIS_THRESHOLD){
+                                controllerButtonListener.onButtonPressed(BUTTON_DPAD_RIGHT);
+                            }else if(value < -AXIS_THRESHOLD && previousXValue >= -AXIS_THRESHOLD){
+                                controllerButtonListener.onButtonPressed(BUTTON_DPAD_LEFT);
+                            }
+                            previousXValue = value;
+                        }else{
+                            if(value > AXIS_THRESHOLD  && previousYValue <= AXIS_THRESHOLD){
+                                controllerButtonListener.onButtonPressed(BUTTON_DPAD_DOWN);
+                            }else if(value < -AXIS_THRESHOLD && previousYValue >= -AXIS_THRESHOLD){
+                                controllerButtonListener.onButtonPressed(BUTTON_DPAD_UP);
+                            }
+                            previousYValue = value;
+                        }
+
+                    }
                     if (!event.getComponent().getName().contains("Rotation") && !event.getComponent().getName().contains("Axe")) {
                         Component comp = event.getComponent();
                         float value = event.getValue();
@@ -70,7 +96,7 @@ public class GameController {
             }
             if (!connected) {
                 //means controller is disconnected and should look for an other
-                Main.LOGGER.debug("Controller disconnected: " + getController().getName());
+                LOGGER.debug("Controller disconnected: " + getController().getName());
                 setController(null);
                 discoverFuture = threadPool.scheduleAtFixedRate(controllerDiscoverTask, 0, DISCOVER_RATE, TimeUnit.MILLISECONDS);
                 if (pollingFuture != null) {
@@ -92,7 +118,7 @@ public class GameController {
                     if (!controller.getName().equals("Keyboard")
                             && controller.getType().equals(Controller.Type.GAMEPAD)
                             && controller.poll()) {
-                        Main.LOGGER.info("Using controller : " + controller.getName());
+                        LOGGER.info("Using controller : " + controller.getName());
                         setController(controller);
                         setComponents(controller.getComponents());
 
@@ -148,12 +174,12 @@ public class GameController {
             discoverFuture.cancel(true);
         }
         runThreads = false;
-        Main.LOGGER.debug("Stopping xbox controller threads");
+        LOGGER.debug("Stopping xbox controller threads");
     }
 
     public void startThreads() {
         emptyQueue();
-        Main.LOGGER.debug("Restarting xbox controller threads");
+        LOGGER.debug("Restarting xbox controller threads");
         runThreads = true;
         if (controller != null) {
             //we have already found a controller
