@@ -5,11 +5,15 @@ import ui.Main;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.concurrent.*;
 
 /**
  * Created by LM on 26/07/2016.
  */
 public class GameController {
+    private final static int POLL_RATE = 60;
+    private final static int DISCOVER_RATE = 1000;
+
     public final static String BUTTON_A = "0";
     public final static String BUTTON_B = "1";
     public final static String BUTTON_X = "2";
@@ -31,82 +35,85 @@ public class GameController {
     private Runnable pollingTask;
     private Runnable controllerDiscoverTask;
 
-    private volatile boolean runThreads = false;
+    private ScheduledFuture<?> pollingFuture;
+    private ScheduledFuture<?> discoverFuture;
+
+    private volatile boolean runThreads = true;
+
+    private ScheduledThreadPoolExecutor threadPool = new ScheduledThreadPoolExecutor(1);
 
     public GameController(ControllerButtonListener controllerButtonListener) {
-        pollingTask = new Runnable() {
-            @Override
-            public void run() {
-                while (controller!=null && controller.poll() && runThreads && Main.KEEP_THREADS_RUNNING) {
-                    EventQueue queue = controller.getEventQueue();
-                    Event event = new Event();
-                    while (queue.getNextEvent(event)) {
-                        if (!event.getComponent().getName().contains("Rotation") && !event.getComponent().getName().contains("Axe")) {
-                            Component comp = event.getComponent();
-                            float value = event.getValue();
-                            if(value > 0){
-                                String id = comp.getIdentifier().toString();
-                                if(id.equals("pov")){
-                                    id += value;
-                                }
-                                controllerButtonListener.onButtonPressed(id);
-                            }else{
-                                controllerButtonListener.onButtonReleased(comp.getIdentifier().toString());
-                            }
-                        }
+        threadPool.setRemoveOnCancelPolicy(true);
 
-                        try {
-                            Thread.sleep(20);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+        pollingTask = () -> {
+            //Main.LOGGER.debug("Starting polling task");
+            boolean connected = false;
+            if (getController() != null && (connected = getController().poll()) && runThreads && Main.KEEP_THREADS_RUNNING) {
+                EventQueue queue = getController().getEventQueue();
+                Event event = new Event();
+                while (queue.getNextEvent(event)) {
+                    if (!event.getComponent().getName().contains("Rotation") && !event.getComponent().getName().contains("Axe")) {
+                        Component comp = event.getComponent();
+                        float value = event.getValue();
+                        if (value > 0) {
+                            String id = comp.getIdentifier().toString();
+                            if (id.equals("pov")) {
+                                id += value;
+                            }
+                            controllerButtonListener.onButtonPressed(id);
+                        } else {
+                            controllerButtonListener.onButtonReleased(comp.getIdentifier().toString());
                         }
                     }
+                }
 
+            }
+            if (!connected) {
+                //means controller is disconnected and should look for an other
+                Main.LOGGER.debug("Controller disconnected: " + getController().getName());
+                setController(null);
+                discoverFuture = threadPool.scheduleAtFixedRate(controllerDiscoverTask, 0, DISCOVER_RATE, TimeUnit.MILLISECONDS);
+                if (pollingFuture != null) {
+                    pollingFuture.cancel(true);
                 }
             }
         };
 
-        controllerDiscoverTask = new Runnable() {
-            @Override
-            public void run() {
+        controllerDiscoverTask = () -> {
+            if (controller == null && runThreads && Main.KEEP_THREADS_RUNNING) {
+                ControllerEnvironment controllerEnvironment = new DirectAndRawInputEnvironmentPlugin();
+                Controller[] controllers = controllerEnvironment.getControllers();
 
-                Controller foundController = null;
-                Component[] foundComponents = null;
+                //Main.LOGGER.info("Searching controllers...");
 
-                runThreads = true;
+                for (Controller controller : controllers) {
+                    //Main.LOGGER.info("Found controller : " + controller.getName());
+                    //TODO let people choose, not have the first one working chosen
+                    if (!controller.getName().equals("Keyboard")
+                            && controller.getType().equals(Controller.Type.GAMEPAD)
+                            && controller.poll()) {
+                        Main.LOGGER.info("Using controller : " + controller.getName());
+                        setController(controller);
+                        setComponents(controller.getComponents());
 
-                while (foundController == null && runThreads&& Main.KEEP_THREADS_RUNNING) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    ControllerEnvironment controllerEnvironment = ControllerEnvironment.getDefaultEnvironment();
-                    Controller[] controllers = controllerEnvironment.getControllers();
-
-
-                    for (Controller controller : controllers) {
-                        if (controller.getType().equals(Controller.Type.GAMEPAD)/* && controller.getName().contains("XBOX 360")*/) {
-                            foundController = controller;
-                            foundComponents = controller.getComponents();
-                            Main.LOGGER.debug("Found gamepad [" + controller.getName() + "]");
-                            break;
+                        if (runThreads && Main.KEEP_THREADS_RUNNING) {
+                            pollingFuture = threadPool.scheduleAtFixedRate(pollingTask, 0, POLL_RATE, TimeUnit.MILLISECONDS);
                         }
+                        if (discoverFuture != null) {
+                            discoverFuture.cancel(true);
+                        }
+                        return;
                     }
                 }
-                setController(foundController);
-                setComponents(foundComponents);
-
-                Thread pollingThread = new Thread(pollingTask);
-                pollingThread.setDaemon(true);
-                pollingThread.start();
             }
         };
     }
-    private void setController(Controller controller){
+
+    private void setController(Controller controller) {
         this.controller = controller;
     }
-    private void setComponents(Component[] components){
+
+    private void setComponents(Component[] components) {
         this.components = components;
     }
 
@@ -132,25 +139,42 @@ public class GameController {
         });
 
     }
-    public void stopThreads(){
+
+    public void stopThreads() {
+        if (pollingFuture != null) {
+            pollingFuture.cancel(true);
+        }
+        if (discoverFuture != null) {
+            discoverFuture.cancel(true);
+        }
         runThreads = false;
         Main.LOGGER.debug("Stopping xbox controller threads");
     }
-    public void startThreads(){
+
+    public void startThreads() {
         emptyQueue();
-
         Main.LOGGER.debug("Restarting xbox controller threads");
-        Thread th = new Thread(controllerDiscoverTask);
-        th.setDaemon(true);
-        th.start();
-
+        runThreads = true;
+        if (controller != null) {
+            //we have already found a controller
+            pollingFuture = threadPool.scheduleAtFixedRate(pollingTask, 0, POLL_RATE, TimeUnit.MILLISECONDS);
+        } else {
+            discoverFuture = threadPool.scheduleAtFixedRate(controllerDiscoverTask, 0, DISCOVER_RATE, TimeUnit.MILLISECONDS);
+        }
     }
 
-    private void emptyQueue(){
-        if(controller != null){
+    public void shutdown() {
+        threadPool.shutdownNow();
+    }
+
+    private void emptyQueue() {
+        if (controller != null) {
             controller.setEventQueueSize(0);
             controller.setEventQueueSize(5);
         }
     }
 
+    public Controller getController() {
+        return controller;
+    }
 }
