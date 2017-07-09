@@ -709,7 +709,7 @@ public class MainScene extends BaseScene {
         //toAddTilePane.disableFoldButton(true);
         toAddTilePane.setAutomaticSort(false);
 
-        toAddTilePane.getIconButton().setOnAction(event -> GameWatcher.getInstance().start());
+        toAddTilePane.getIconButton().setOnAction(event -> GameWatcher.getInstance().start(true));
         GameWatcher.getInstance().setOnGameFoundHandler(new OnScannerResultHandler() {
             @Override
             public GameButton gameToAddFound(GameEntry entry) {
@@ -726,7 +726,7 @@ public class MainScene extends BaseScene {
                 });
             }
         });
-        GameWatcher.getInstance().start();
+        GameWatcher.getInstance().start(false);
     }
 
 

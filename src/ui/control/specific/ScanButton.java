@@ -20,7 +20,7 @@ public class ScanButton extends DrawerButton {
         setStyle("-fx-background-color: transparent;");
         setFocusTraversable(false);
         setOnAction(event -> {
-            GameWatcher.getInstance().start();
+            GameWatcher.getInstance().start(true);
         });
         GameWatcher.getInstance().addOnSearchStartedListener(() -> {
             setMouseTransparent(true);
