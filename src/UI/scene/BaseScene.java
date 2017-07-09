@@ -178,6 +178,7 @@ public abstract class BaseScene extends Scene {
         addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             switch (event.getCode()) {
                 case ESCAPE:
+                    event.consume();
                     backButton.fireEvent(new ActionEvent());
                     break;
                 default:
