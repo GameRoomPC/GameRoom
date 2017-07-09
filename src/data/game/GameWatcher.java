@@ -149,11 +149,12 @@ public class GameWatcher {
     }
 
     public void start(boolean manualStart) {
+        loadToAddEntries();
         if (manualStart) {
             scanningFuture = scheduledExecutor.submit(scanningTask);
         } else {
             if (scanPeriod != null && scanPeriod.toMillis() > 0) {
-                if(scanningFuture!=null) {
+                if (scanningFuture != null) {
                     scanningFuture.cancel(false);
                 }
                 scanningFuture = scheduledExecutor.scheduleAtFixedRate(scanningTask, scanPeriod.toMillis(), scanPeriod.toMillis(), TimeUnit.MILLISECONDS);
