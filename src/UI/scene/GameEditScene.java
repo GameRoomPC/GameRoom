@@ -4,7 +4,9 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.*;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
+import data.http.SimpleImageInfo;
 import data.http.YoutubeSoundtrackScrapper;
+import data.http.images.ImageDownloaderService;
 import data.http.images.ImageUtils;
 import data.io.FileUtils;
 import javafx.animation.Interpolator;
@@ -75,6 +77,7 @@ import java.util.regex.Pattern;
 import static data.io.FileUtils.getExtension;
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
+import static ui.control.button.gamebutton.GameButton.COVER_SCALE_EFFECT_FACTOR;
 
 /**
  * Created by LM on 03/07/2016.
@@ -882,12 +885,23 @@ public class GameEditScene extends BaseScene {
 
 
         if (coverImage != null) {
+            boolean farRatio = Math.abs(((double) coverImage.getHeight()/ coverImage.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2;
+            boolean keepRatio = settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO);
+            coverView.setPreserveRatio(farRatio && keepRatio);
+            if (!ImageUtils.imagesEquals(coverImage, coverView.getImage())) {
+                ImageUtils.transitionToImage(coverImage, coverView);
+            }
+
             ImageUtils.transitionToImage(coverImage, coverView);
         } else {
             Task<Image> loadImageTask = new Task<Image>() {
                 @Override
                 protected Image call() throws Exception {
-                    return entry.getImage(0, coverWidth, coverHeight, false, true);
+                    SimpleImageInfo imageInfo = new SimpleImageInfo(entry.getImagePath(0));
+                    boolean farRatio = Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2;
+                    boolean keepRatio = settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO);
+                    coverView.setPreserveRatio(farRatio && keepRatio);
+                    return entry.getImage(0, coverWidth, coverHeight, farRatio && keepRatio, true);
                 }
             };
             loadImageTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
@@ -912,26 +926,38 @@ public class GameEditScene extends BaseScene {
             @Override
             public void handle(ActionEvent event) {
                 chosenImageFiles[0] = imageChooser.showOpenDialog(getParentStage());
-                String localCoverPath = GameEntryUtils.coverPath(entry) + "." + getExtension(chosenImageFiles[0].getName());
+                boolean farRatio = false;
+                boolean keepRatio = false;
+                try {
+                    SimpleImageInfo imageInfo = new SimpleImageInfo(new File(chosenImageFiles[0].getAbsolutePath()));
+                    farRatio = Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2;
+                    keepRatio = settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO);
+                    coverView.setPreserveRatio(farRatio && keepRatio);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-                Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), settings().getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), settings().getWindowHeight() * 2 / 3, false, true);
+                Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), settings().getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), settings().getWindowHeight() * 2 / 3, farRatio && keepRatio, true);
                 ImageUtils.transitionToImage(img, coverView);
             }
         });
         //COVER EFFECTS
-        DropShadow dropShadow = new DropShadow();
-        dropShadow.setOffsetX(6.0 * SCREEN_WIDTH / 1920);
-        dropShadow.setOffsetY(4.0 * SCREEN_HEIGHT / 1080);
+        DropShadow dropShadowBG = new DropShadow();
+        dropShadowBG.setOffsetX(6.0 * SCREEN_WIDTH / 1920);
+        dropShadowBG.setOffsetY(4.0 * SCREEN_HEIGHT / 1080);
+        ColorAdjust colorAdjustBG = new ColorAdjust();
+        colorAdjustBG.setBrightness(0.0);
+        colorAdjustBG.setInput(dropShadowBG);
+        GaussianBlur blurBG = new GaussianBlur(0.0);
+        blurBG.setInput(colorAdjustBG);
 
-        ColorAdjust coverColorAdjust = new ColorAdjust();
-        coverColorAdjust.setBrightness(0.0);
+        ColorAdjust colorAdjustIMG = new ColorAdjust();
+        colorAdjustIMG.setBrightness(0.0);
+        GaussianBlur blurIMG = new GaussianBlur(0.0);
+        blurIMG.setInput(colorAdjustIMG);
 
-        coverColorAdjust.setInput(dropShadow);
-
-        GaussianBlur blur = new GaussianBlur(0.0);
-        blur.setInput(coverColorAdjust);
-        coverView.setEffect(blur);
-        defaultImageView.setEffect(blur);
+        coverView.setEffect(blurIMG);
+        defaultImageView.setEffect(blurBG);
 
 
         pane.setOnMouseEntered(e -> {
@@ -940,13 +966,21 @@ public class GameEditScene extends BaseScene {
             //coverPane.requestFocus();
             Timeline fadeInTimeline = new Timeline(
                     new KeyFrame(Duration.seconds(0),
-                            new KeyValue(blur.radiusProperty(), blur.radiusProperty().getValue(), Interpolator.LINEAR),
+                            new KeyValue(dropShadowBG.offsetXProperty(), dropShadowBG.offsetXProperty().getValue(), Interpolator.LINEAR),
+                            new KeyValue(dropShadowBG.offsetYProperty(), dropShadowBG.offsetYProperty().getValue(), Interpolator.LINEAR),
+                            new KeyValue(blurBG.radiusProperty(), blurBG.radiusProperty().getValue(), Interpolator.LINEAR),
+                            new KeyValue(blurIMG.radiusProperty(), blurIMG.radiusProperty().getValue(), Interpolator.LINEAR),
                             new KeyValue(changeImageButton.opacityProperty(), changeImageButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
-                            new KeyValue(coverColorAdjust.brightnessProperty(), coverColorAdjust.brightnessProperty().getValue(), Interpolator.LINEAR)),
+                            new KeyValue(colorAdjustIMG.brightnessProperty(), colorAdjustIMG.brightnessProperty().getValue(), Interpolator.LINEAR),
+                            new KeyValue(colorAdjustBG.brightnessProperty(), colorAdjustBG.brightnessProperty().getValue(), Interpolator.LINEAR)),
                     new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                            new KeyValue(blur.radiusProperty(), COVER_BLUR_EFFECT_RADIUS, Interpolator.LINEAR),
+                            new KeyValue(dropShadowBG.offsetXProperty(), dropShadowBG.offsetXProperty().getValue() / COVER_SCALE_EFFECT_FACTOR, Interpolator.LINEAR),
+                            new KeyValue(dropShadowBG.offsetYProperty(), dropShadowBG.offsetYProperty().getValue() / COVER_SCALE_EFFECT_FACTOR, Interpolator.LINEAR),
+                            new KeyValue(blurBG.radiusProperty(), COVER_BLUR_EFFECT_RADIUS, Interpolator.LINEAR),
+                            new KeyValue(blurIMG.radiusProperty(), COVER_BLUR_EFFECT_RADIUS, Interpolator.LINEAR),
                             new KeyValue(changeImageButton.opacityProperty(), 1, Interpolator.EASE_OUT),
-                            new KeyValue(coverColorAdjust.brightnessProperty(), -COVER_BRIGHTNESS_EFFECT_FACTOR, Interpolator.LINEAR)
+                            new KeyValue(colorAdjustIMG.brightnessProperty(), -COVER_BRIGHTNESS_EFFECT_FACTOR, Interpolator.LINEAR),
+                            new KeyValue(colorAdjustBG.brightnessProperty(), -COVER_BRIGHTNESS_EFFECT_FACTOR, Interpolator.LINEAR)
                     ));
             fadeInTimeline.setCycleCount(1);
             fadeInTimeline.setAutoReverse(false);
@@ -960,13 +994,21 @@ public class GameEditScene extends BaseScene {
             //infoButton.setVisible(false);
             Timeline fadeOutTimeline = new Timeline(
                     new KeyFrame(Duration.seconds(0),
-                            new KeyValue(blur.radiusProperty(), blur.radiusProperty().getValue(), Interpolator.LINEAR),
+                            new KeyValue(dropShadowBG.offsetXProperty(), dropShadowBG.offsetXProperty().getValue(), Interpolator.LINEAR),
+                            new KeyValue(dropShadowBG.offsetYProperty(), dropShadowBG.offsetYProperty().getValue(), Interpolator.LINEAR),
+                            new KeyValue(blurBG.radiusProperty(), blurBG.radiusProperty().getValue(), Interpolator.LINEAR),
+                            new KeyValue(blurIMG.radiusProperty(), blurIMG.radiusProperty().getValue(), Interpolator.LINEAR),
                             new KeyValue(changeImageButton.opacityProperty(), changeImageButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
-                            new KeyValue(coverColorAdjust.brightnessProperty(), coverColorAdjust.brightnessProperty().getValue(), Interpolator.LINEAR)),
+                            new KeyValue(colorAdjustIMG.brightnessProperty(), colorAdjustIMG.brightnessProperty().getValue(), Interpolator.LINEAR),
+                            new KeyValue(colorAdjustBG.brightnessProperty(), colorAdjustBG.brightnessProperty().getValue(), Interpolator.LINEAR)),
                     new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                            new KeyValue(blur.radiusProperty(), 0, Interpolator.LINEAR),
+                            new KeyValue(dropShadowBG.offsetXProperty(), 6.0 * SCREEN_WIDTH / 1920, Interpolator.LINEAR),
+                            new KeyValue(dropShadowBG.offsetYProperty(), 4.0 * SCREEN_WIDTH / 1080, Interpolator.LINEAR),
+                            new KeyValue(blurBG.radiusProperty(), 0, Interpolator.LINEAR),
+                            new KeyValue(blurIMG.radiusProperty(), 0, Interpolator.LINEAR),
                             new KeyValue(changeImageButton.opacityProperty(), 0, Interpolator.EASE_OUT),
-                            new KeyValue(coverColorAdjust.brightnessProperty(), 0, Interpolator.LINEAR)
+                            new KeyValue(colorAdjustBG.brightnessProperty(), 0, Interpolator.LINEAR),
+                            new KeyValue(colorAdjustIMG.brightnessProperty(), 0, Interpolator.LINEAR)
                     ));
             fadeOutTimeline.setCycleCount(1);
             fadeOutTimeline.setAutoReverse(false);
