@@ -1,12 +1,18 @@
 package system.application.settings;
 
 import com.google.gson.JsonSyntaxException;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.scanner.ScanPeriod;
 import data.game.scanner.ScannerProfile;
 import data.game.scraper.SteamProfile;
 import data.io.DataBase;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
+import org.json.JSONArray;
+import org.json.JSONException;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
@@ -258,6 +264,37 @@ public class GeneralSettings {
         SettingValue<Theme> settingValue = settingsMap.get(PredefinedSetting.THEME.getKey());
         if(settingValue == null){
             return (Theme) THEME.getDefaultValue().getSettingValue();
+        }
+        return settingValue.getSettingValue();
+    }
+
+    public String getSupporterKeyPrice() {
+        String price = null;
+        try {
+            HttpResponse<JsonNode> response  = Unirest.get("https://gameroom.me/edd-api/products/?product=297")
+                    .header("Accept", "application/json")
+                    .asJson();
+                try {
+                    JSONArray array = response.getBody().getArray();
+                    price= response.getBody().getObject().getJSONArray("products")
+                            .getJSONObject(0)
+                            .getJSONObject("pricing")
+                            .getString("amount");
+                } catch (JSONException jse) {
+                    if (jse.toString().contains("not found")) {
+                        //Main.LOGGER.error("Serie not found");
+                    }
+                }
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+        if(price != null){
+            setSettingValue(SUPPORTER_KEY_PRICE,price);
+        }
+
+        SettingValue<String> settingValue = settingsMap.get(PredefinedSetting.SUPPORTER_KEY_PRICE.getKey());
+        if(settingValue == null){
+            return (String) SUPPORTER_KEY_PRICE.getDefaultValue().getSettingValue();
         }
         return settingValue.getSettingValue();
     }

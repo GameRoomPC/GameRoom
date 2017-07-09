@@ -8,11 +8,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import ui.Main;
 
+import static system.application.settings.GeneralSettings.settings;
+
 /**
  * Created by LM on 05/08/2016.
  */
 public class ActivationKeyDialog extends GameRoomDialog{
-    public static String BUY_ONE = "buy one";
 
     private String supporterKey = "";
     private TextField keyField = new TextField();
@@ -39,7 +40,7 @@ public class ActivationKeyDialog extends GameRoomDialog{
     }
 
     private void initTopPane() {
-        Label infoLabel = new Label(Main.getString("input_here_supporter_key")+" "+Main.getString("supporter_key_infos"));
+        Label infoLabel = new Label(Main.getString("input_here_supporter_key")+" "+Main.getString("supporter_key_infos",settings().getSupporterKeyPrice()+"€"));
         infoLabel.setWrapText(true);
         BorderPane.setMargin(infoLabel, new Insets(20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 

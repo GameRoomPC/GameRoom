@@ -74,7 +74,8 @@ public enum PredefinedSetting {
     , DRAWER_MENU_WIDTH("drawerMenuWidth", new SettingValue(0,Double.class,CATEGORY_NONE))
     ,NO_MORE_ADD_APP_WARNING("noMoreAddAppWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,NO_MORE_ADD_FOLDER_WARNING("noMoreAddAppWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
-    ,KEEP_COVER_RATIO("keepCoverRatio", new SettingValue(false,Boolean.class,CATEGORY_NONE));
+    ,KEEP_COVER_RATIO("keepCoverRatio", new SettingValue(false,Boolean.class,CATEGORY_NONE))
+    ,SUPPORTER_KEY_PRICE("supporterKeyPrice", new SettingValue("8",String.class,CATEGORY_GENERAL))
     ;
 
 
