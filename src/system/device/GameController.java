@@ -1,6 +1,7 @@
 package system.device;
 
 import net.java.games.input.*;
+import ui.GeneralToast;
 import ui.Main;
 
 import java.security.AccessController;
@@ -8,6 +9,7 @@ import java.security.PrivilegedAction;
 import java.util.concurrent.*;
 
 import static ui.Main.LOGGER;
+import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 26/07/2016.
@@ -58,20 +60,20 @@ public class GameController {
                 EventQueue queue = getController().getEventQueue();
                 Event event = new Event();
                 while (queue.getNextEvent(event)) {
-                    if(event.getComponent().getName().contains("Axe")){
+                    if (event.getComponent().getName().contains("Axe")) {
                         String name = event.getComponent().getName();
                         float value = event.getValue();
-                        if(name.equals("Axe X")){
-                            if(value > AXIS_THRESHOLD && previousXValue <= AXIS_THRESHOLD){
+                        if (name.equals("Axe X")) {
+                            if (value > AXIS_THRESHOLD && previousXValue <= AXIS_THRESHOLD) {
                                 controllerButtonListener.onButtonPressed(BUTTON_DPAD_RIGHT);
-                            }else if(value < -AXIS_THRESHOLD && previousXValue >= -AXIS_THRESHOLD){
+                            } else if (value < -AXIS_THRESHOLD && previousXValue >= -AXIS_THRESHOLD) {
                                 controllerButtonListener.onButtonPressed(BUTTON_DPAD_LEFT);
                             }
                             previousXValue = value;
-                        }else{
-                            if(value > AXIS_THRESHOLD  && previousYValue <= AXIS_THRESHOLD){
+                        } else {
+                            if (value > AXIS_THRESHOLD && previousYValue <= AXIS_THRESHOLD) {
                                 controllerButtonListener.onButtonPressed(BUTTON_DPAD_DOWN);
-                            }else if(value < -AXIS_THRESHOLD && previousYValue >= -AXIS_THRESHOLD){
+                            } else if (value < -AXIS_THRESHOLD && previousYValue >= -AXIS_THRESHOLD) {
                                 controllerButtonListener.onButtonPressed(BUTTON_DPAD_UP);
                             }
                             previousYValue = value;
@@ -97,6 +99,10 @@ public class GameController {
             if (!connected) {
                 //means controller is disconnected and should look for an other
                 LOGGER.debug("Controller disconnected: " + getController().getName());
+                if (MAIN_SCENE != null) {
+                    //TODO localize
+                    GeneralToast.displayToast(controller.getName()+" disconnected", MAIN_SCENE.getParentStage());
+                }
                 setController(null);
                 discoverFuture = threadPool.scheduleAtFixedRate(controllerDiscoverTask, 0, DISCOVER_RATE, TimeUnit.MILLISECONDS);
                 if (pollingFuture != null) {
@@ -119,6 +125,10 @@ public class GameController {
                             && controller.getType().equals(Controller.Type.GAMEPAD)
                             && controller.poll()) {
                         LOGGER.info("Using controller : " + controller.getName());
+                        if (MAIN_SCENE != null) {
+                            //TODO localize
+                            GeneralToast.displayToast(controller.getName()+" connected", MAIN_SCENE.getParentStage());
+                        }
                         setController(controller);
                         setComponents(controller.getComponents());
 
@@ -166,7 +176,7 @@ public class GameController {
 
     }
 
-    public void stopThreads() {
+    public void pause() {
         if (pollingFuture != null) {
             pollingFuture.cancel(true);
         }
@@ -174,12 +184,12 @@ public class GameController {
             discoverFuture.cancel(true);
         }
         runThreads = false;
-        LOGGER.debug("Stopping xbox controller threads");
+        LOGGER.debug("Pausing controller service");
     }
 
-    public void startThreads() {
+    public void resume() {
         emptyQueue();
-        LOGGER.debug("Restarting xbox controller threads");
+        LOGGER.debug("Resuming controller service");
         runThreads = true;
         if (controller != null) {
             //we have already found a controller

@@ -23,6 +23,7 @@ import system.application.settings.PredefinedSetting;
 import system.device.ControllerButtonListener;
 import system.device.GameController;
 import system.os.WinReg;
+import ui.GeneralToast;
 import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.dialog.ConsoleOutputDialog;
@@ -233,6 +234,7 @@ public class Launcher extends Application {
         focusListener = (observable, oldValue, newValue) -> {
             MAIN_SCENE.setChangeBackgroundNextTime(true);
             primaryStage.getScene().getRoot().setMouseTransparent(!newValue);
+            GeneralToast.enableToasts(newValue);
             WindowFocusManager.stageFocusChanged(newValue);
         };
 
@@ -330,7 +332,7 @@ public class Launcher extends Application {
                 }
             });
             if (settings().getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
-                gameController.startThreads();
+                gameController.resume();
             }
 
         } catch (AWTException e) {

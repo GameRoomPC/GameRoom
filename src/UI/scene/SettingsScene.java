@@ -188,9 +188,9 @@ public class SettingsScene extends BaseScene {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 if (newValue) {
-                    Main.gameController.startThreads();
+                    Main.gameController.resume();
                 } else {
-                    Main.gameController.stopThreads();
+                    Main.gameController.pause();
                 }
             }
         });
