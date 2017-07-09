@@ -143,6 +143,7 @@ public class Main {
                 MAIN_SCENE.saveScrollBarVValue();
                 KEEP_THREADS_RUNNING = false;
                 ImageDownloaderService.getInstance().shutDownNow();
+                gameController.shutdown();
                 Platform.setImplicitExit(true);
                 stage.close();
                 Platform.exit();

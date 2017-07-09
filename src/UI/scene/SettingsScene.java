@@ -188,9 +188,9 @@ public class SettingsScene extends BaseScene {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 if (newValue) {
-                    Main.gameController.startThreads();
+                    Main.gameController.resume();
                 } else {
-                    Main.gameController.stopThreads();
+                    Main.gameController.pause();
                 }
             }
         });
@@ -223,7 +223,7 @@ public class SettingsScene extends BaseScene {
                 ignoredOptionnal.ifPresent(pairs -> {
                     if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
                         settings().setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
-                        GameWatcher.getInstance().start();
+                        GameWatcher.getInstance().start(false);
                     }
                 });
             }
@@ -232,7 +232,8 @@ public class SettingsScene extends BaseScene {
         flowPaneHashMap.get(PredefinedSetting.ENABLED_GAME_SCANNERS.getCategory()).getChildren().add(createLine(scannersLabel, manageScannersButton));
 
         addPropertyLine(PredefinedSetting.SCAN_PERIOD, false, (observable, oldValue, newValue) -> {
-            GameWatcher.setScanPeriod((ScanPeriod) newValue,true);
+            GameWatcher.getInstance().setScanPeriod((ScanPeriod) newValue);
+            GameWatcher.getInstance().start(false);
         });
 
         addPropertyLine(PredefinedSetting.SYNC_STEAM_PLAYTIMES);

@@ -13,16 +13,17 @@ import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
 import static ui.Main.gameController;
 
-/** This class is a helper to determine whether the GameRoom app is being focused or not. This solves the issue encountered
+/**
+ * This class is a helper to determine whether the GameRoom app is being focused or not. This solves the issue encountered
  * and described here https://stackoverflow.com/questions/44973129/javafx-alert-and-stage-focus
- *
+ * <p>
  * Basically we compare the {@link Stage#focusedProperty()} against the focus computed for {@link javafx.scene.control.Dialog}
  * and {@link javafx.scene.control.Alert} using the {@link GameRoomDialog#isDialogFocused(Dialog)}.
- *
+ * <p>
  * Thus the app/window is considered to be focused if there is a {@link Dialog} focused or if the {@link Stage} is focused.
- *
+ * <p>
  * If any of them is focused, then the overall application is focused !
- *
+ * <p>
  * It includes methods to execute whenever focus is lost/gained, see {@link #onFocusChanged()}.
  *
  * @author LM. Garret (admin@gameroom.me)
@@ -37,8 +38,9 @@ public class WindowFocusManager {
 
     private static ExecutorService service = Executors.newCachedThreadPool(); //to hold delayed tasks
 
-    /** To be called when the {@link Stage} changes of focus. Updates the {@link #stageFocused} property and then computes
-     *  a new version of the {@link #windowFocused}.
+    /**
+     * To be called when the {@link Stage} changes of focus. Updates the {@link #stageFocused} property and then computes
+     * a new version of the {@link #windowFocused}.
      *
      * @param newValue the focus status of the stage
      */
@@ -56,8 +58,9 @@ public class WindowFocusManager {
         });
     }
 
-    /** To be called when a {@link Dialog} changes of focus. Updates the {@link #aDialogFocused} property and then computes
-     *  a new version of the {@link #windowFocused}.
+    /**
+     * To be called when a {@link Dialog} changes of focus. Updates the {@link #aDialogFocused} property and then computes
+     * a new version of the {@link #windowFocused}.
      *
      * @param newValue the focus status of the dialog displayed
      */
@@ -76,7 +79,7 @@ public class WindowFocusManager {
     }
 
     /**
-     *  Computes the current status of the app's window focus
+     * Computes the current status of the app's window focus
      */
     private static void computeWindowFocus() {
         oldWindowFocused = windowFocused;
@@ -84,7 +87,8 @@ public class WindowFocusManager {
         onFocusChanged();
     }
 
-    /** Getter of{@link #windowFocused}
+    /**
+     * Getter of{@link #windowFocused}
      *
      * @return true if the app/window overall is focused, false otherwise
      */
@@ -93,14 +97,14 @@ public class WindowFocusManager {
     }
 
     /**
-     *  Shuts down the executor service used, should be done when window is closed.
+     * Shuts down the executor service used, should be done when window is closed.
      */
     public static void shutdown() {
         service.shutdownNow();
     }
 
     /**
-     *  Executes actions to be done whenever the app/window focus status changes
+     * Executes actions to be done whenever the app/window focus status changes
      */
     private static void onFocusChanged() {
         if (!oldWindowFocused && windowFocused) {
@@ -108,17 +112,15 @@ public class WindowFocusManager {
             LOGGER.debug("WindowFocus : gained");
 
             if (settings().getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
-                gameController.startThreads();
+                gameController.resume();
             }
-            GeneralToast.enableToasts(true);
         } else if (oldWindowFocused && !windowFocused) {
             /*************************** FOCUS LOST ***************************/
             LOGGER.debug("WindowFocus : lost");
 
             if (settings().getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
-                gameController.stopThreads();
+                gameController.pause();
             }
-            GeneralToast.enableToasts(false);
         }
     }
 }

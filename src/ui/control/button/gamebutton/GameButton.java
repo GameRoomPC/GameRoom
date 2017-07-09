@@ -70,7 +70,7 @@ public abstract class GameButton extends BorderPane {
 
     public final static double COVER_HEIGHT_WIDTH_RATIO = 127.0 / 90.0;
 
-    static double COVER_SCALE_EFFECT_FACTOR = 1.1;
+    public static double COVER_SCALE_EFFECT_FACTOR = 1.1;
     private final static double COVER_BLUR_EFFECT_RADIUS = 10;
     private final static double COVER_BRIGHTNESS_EFFECT_FACTOR = 0.1;
 

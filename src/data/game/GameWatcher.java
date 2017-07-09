@@ -8,7 +8,6 @@ import data.game.scanner.*;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.images.ImageUtils;
-import data.io.FileUtils;
 import javafx.application.Platform;
 import org.json.JSONArray;
 import system.application.settings.PredefinedSetting;
@@ -19,8 +18,6 @@ import ui.dialog.GameRoomAlert;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
@@ -32,7 +29,7 @@ import static ui.Main.*;
  * Created by LM on 17/08/2016.
  */
 public class GameWatcher {
-    private static ScanPeriod SCAN_PERIOD = ScanPeriod.HALF_HOUR;
+    private ScanPeriod scanPeriod = ScanPeriod.HALF_HOUR;
     private static GameWatcher WATCHER;
 
     private OnScannerResultHandler onGameFoundHandler;
@@ -49,8 +46,12 @@ public class GameWatcher {
     private Thread serviceThread;
     private volatile static boolean KEEP_LOOPING = true;
     private volatile static boolean WAIT_FULL_PERIOD = false;
+    private volatile static boolean MANUAL_START = false;
 
-    private static ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+    private ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+    private ScheduledThreadPoolExecutor scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+    private Runnable scanningTask;
+    private Future scanningFuture;
 
     private volatile boolean awaitingStart = false;
 
@@ -66,6 +67,9 @@ public class GameWatcher {
     }
 
     private GameWatcher() {
+        scheduledExecutor.setRemoveOnCancelPolicy(true);
+        initService();
+
         localGameScanners.add(new LauncherScanner(this, ScannerProfile.BATTLE_NET));
         localGameScanners.add(new LauncherScanner(this, ScannerProfile.GOG));
         localGameScanners.add(new LauncherScanner(this, ScannerProfile.ORIGIN));
@@ -74,55 +78,21 @@ public class GameWatcher {
         localGameScanners.add(new FolderGameScanner(this));
         onlineGameScanners.add(new LauncherScanner(this, ScannerProfile.STEAM_ONLINE));
 
-        SCAN_PERIOD = settings().getScanPeriod();
-        if(SCAN_PERIOD == null){
-            SCAN_PERIOD = (ScanPeriod) PredefinedSetting.SCAN_PERIOD.getDefaultValue().getSettingValue();
+        setScanPeriod(settings().getScanPeriod());
+        if (scanPeriod == null) {
+            setScanPeriod((ScanPeriod) PredefinedSetting.SCAN_PERIOD.getDefaultValue().getSettingValue());
         }
     }
 
     private void initService() {
-        serviceThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                    loadToAddEntries();
-                if(!SCAN_PERIOD.equals(ScanPeriod.NEVER)) {
-                    do {
-                        long start = System.currentTimeMillis();
+        scanningTask = () -> {
+            loadToAddEntries();
+            long start = System.currentTimeMillis();
+            routine();
+            long elapsedTime = System.currentTimeMillis() - start;
+        };
 
-                        if (WAIT_FULL_PERIOD) {
-                            WAIT_FULL_PERIOD = false;
-                            try {
-                                Thread.sleep(SCAN_PERIOD.toMillis());
-                                awaitingStart = false;
-                            } catch (InterruptedException e) {
-                                awaitingStart = false;
-                                LOGGER.info("Forced start of GameWatcher");
-                            }
-                        }
 
-                        routine();
-
-                        long elapsedTime = System.currentTimeMillis() - start;
-                        if (!awaitingStart) {
-                            if (elapsedTime < SCAN_PERIOD.toMillis()) {
-                                try {
-                                    Thread.sleep(SCAN_PERIOD.toMillis() - elapsedTime);
-                                    awaitingStart = false;
-                                } catch (InterruptedException e) {
-                                    awaitingStart = false;
-                                    LOGGER.info("Forced start of GameWatcher");
-                                }
-                            }
-                        } else {
-                            awaitingStart = false;
-                        }
-
-                    } while (Main.KEEP_THREADS_RUNNING && KEEP_LOOPING);
-                }
-            }
-        });
-        serviceThread.setPriority(Thread.MIN_PRIORITY);
-        serviceThread.setDaemon(true);
     }
 
     private void routine() {
@@ -178,23 +148,32 @@ public class GameWatcher {
         }
     }
 
-    public void start() {
-        if (serviceThread == null) {
-            initService();
+    public void start(boolean manualStart) {
+        loadToAddEntries();
+        if (manualStart) {
+            scanningFuture = scheduledExecutor.submit(scanningTask);
+        } else {
+            if (scanPeriod != null && scanPeriod.toMillis() > 0) {
+                if (scanningFuture != null) {
+                    scanningFuture.cancel(false);
+                }
+                scanningFuture = scheduledExecutor.scheduleAtFixedRate(scanningTask, scanPeriod.toMillis(), scanPeriod.toMillis(), TimeUnit.MILLISECONDS);
+            }
         }
-        if (serviceThread.getState().equals(Thread.State.TIMED_WAITING)) {
-            serviceThread.interrupt();
+    }
+
+    public void setScanPeriod(ScanPeriod period) {
+        if (period == null) {
+            return;
         }
-        if (serviceThread.getState().equals(Thread.State.NEW)) {
-            serviceThread.start();
-        }
+        scanPeriod = period;
     }
 
     public void loadToAddEntries() {
 
         ArrayList<GameEntry> savedEntries = new ArrayList<>();
         GameEntryUtils.loadIgnoredGames();
-        GameEntryUtils.loadToAddGames().forEach(entry ->{
+        GameEntryUtils.loadToAddGames().forEach(entry -> {
             if (!GameEntryUtils.isGameIgnored(entry)) {
                 entry.setSavedLocally(true);
                 savedEntries.add(entry);
@@ -347,8 +326,8 @@ public class GameWatcher {
                                                         toScrapEntry.updateImage(0, outputfile);
                                                         toScrapEntry.setSavedLocally(false);
                                                     } catch (Exception e) {
-                                                            Main.LOGGER.error("GameWatcher : could not move image for game "+toScrapEntry.getName());
-                                                            e.printStackTrace();
+                                                        Main.LOGGER.error("GameWatcher : could not move image for game " + toScrapEntry.getName());
+                                                        e.printStackTrace();
                                                     }
 
                                                     Main.runAndWait(() -> {
@@ -368,7 +347,7 @@ public class GameWatcher {
                                                                         toScrapEntry.updateImage(1, outputfile);
                                                                         toScrapEntry.setSavedLocally(false);
                                                                     } catch (Exception e) {
-                                                                        Main.LOGGER.error("GameWatcher : could not move image for game "+toScrapEntry.getName());
+                                                                        Main.LOGGER.error("GameWatcher : could not move image for game " + toScrapEntry.getName());
                                                                         e.printStackTrace();
                                                                     }
                                                                     toScrapEntry.setSavedLocally(true);
@@ -399,8 +378,8 @@ public class GameWatcher {
                     }
                 }
             }
-            for(GameEntry ge : toScrapEntries){
-                if(ge.isBeingScraped()){ //this means that there was no id on igdb for this game
+            for (GameEntry ge : toScrapEntries) {
+                if (ge.isBeingScraped()) { //this means that there was no id on igdb for this game
                     //here we set it to false as IGDB was not able to find our game
                     ge.setSavedLocally(true);
                     ge.setBeingScraped(false);
@@ -466,7 +445,7 @@ public class GameWatcher {
 
     public GameButton onGameFound(GameEntry foundEntry) {
         if (!FolderGameScanner.gameAlreadyIn(foundEntry, entriesToAdd) && !GameEntryUtils.isGameIgnored(foundEntry)) {
-            if(!foundEntry.isInDb()) {
+            if (!foundEntry.isInDb()) {
                 foundEntry.setAddedDate(LocalDateTime.now());
                 foundEntry.setToAdd(true);
                 foundEntry.setSavedLocally(true);
@@ -487,8 +466,8 @@ public class GameWatcher {
                 .replace("-", "")
                 .replace("_", "")
                 .replace(".", "")
-                .replace("!","")
-                .replace("?","")
+                .replace("!", "")
+                .replace("?", "")
                 .replace(" ", "");//remove spaces for a cleaner comparison;
     }
 
@@ -529,19 +508,6 @@ public class GameWatcher {
     public void addOnSearchDoneListener(Runnable onSearchDone) {
         if (onSearchDone != null) {
             onSearchDoneListeners.add(onSearchDone);
-        }
-    }
-
-    public static void setScanPeriod(ScanPeriod period, boolean waitFullPeriod) {
-        boolean oldValue = KEEP_LOOPING;
-        if (period.equals(ScanPeriod.START_ONLY) || period.equals(ScanPeriod.NEVER)) {
-            KEEP_LOOPING = false;
-        } else {
-            SCAN_PERIOD = period;
-            KEEP_LOOPING = true;
-            if (!oldValue) {
-                WAIT_FULL_PERIOD = waitFullPeriod;
-            }
         }
     }
 

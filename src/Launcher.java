@@ -234,6 +234,7 @@ public class Launcher extends Application {
         focusListener = (observable, oldValue, newValue) -> {
             MAIN_SCENE.setChangeBackgroundNextTime(true);
             primaryStage.getScene().getRoot().setMouseTransparent(!newValue);
+            GeneralToast.enableToasts(newValue);
             WindowFocusManager.stageFocusChanged(newValue);
         };
 
@@ -307,7 +308,7 @@ public class Launcher extends Application {
                         case GameController.BUTTON_DPAD_UP:
                             r.keyPress(java.awt.event.KeyEvent.VK_UP);
                             break;
-                        case GameController.BUTTON_DPAD_LEFt:
+                        case GameController.BUTTON_DPAD_LEFT:
                             r.keyPress(java.awt.event.KeyEvent.VK_LEFT);
                             break;
                         case GameController.BUTTON_DPAD_DOWN:
@@ -331,7 +332,7 @@ public class Launcher extends Application {
                 }
             });
             if (settings().getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
-                gameController.startThreads();
+                gameController.resume();
             }
 
         } catch (AWTException e) {

@@ -34,12 +34,12 @@ public class GeneralToast extends Tooltip {
 
         widthProperty().addListener((observable, oldValue, newValue) -> {
             if(window!=null){
-                setAnchorX(window.getWidth() / 2 - (newValue.doubleValue() / 2.0));
+                setAnchorX(window.getX() + window.getWidth() / 2 - (newValue.doubleValue() / 2.0));
             }
         });
         heightProperty().addListener((observable, oldValue, newValue) -> {
             if(window!=null) {
-                setAnchorY(window.getHeight() - 2 * newValue.doubleValue());
+                setAnchorY(window.getY() + window.getHeight() - 2 * newValue.doubleValue());
             }
         });
     }
