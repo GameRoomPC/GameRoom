@@ -209,6 +209,10 @@ public class Launcher extends Application {
         if (START_MINIMIZED && appStart) {
             primaryStage.setOpacity(0);
         }
+        if(!settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED)){
+            primaryStage.setX(settings().getDouble(PredefinedSetting.WINDOW_X));
+            primaryStage.setY(settings().getDouble(PredefinedSetting.WINDOW_Y));
+        }
         primaryStage.show();
         if (START_MINIMIZED && appStart) {
             try {
@@ -275,6 +279,19 @@ public class Launcher extends Application {
             }
         };
         primaryStage.maximizedProperty().addListener(maximizedListener);
+
+        primaryStage.xProperty().addListener((observable, oldValue, newValue) -> {
+            //TODO set a task to wait for 2 secs and check ifchanges then apply them
+            if (!settings().getBoolean(PredefinedSetting.FULL_SCREEN)) {
+                settings().setSettingValue(PredefinedSetting.WINDOW_X, newValue);
+            }
+        });
+
+        primaryStage.yProperty().addListener((observable, oldValue, newValue) -> {
+            if (!settings().getBoolean(PredefinedSetting.FULL_SCREEN)) {
+                settings().setSettingValue(PredefinedSetting.WINDOW_Y, newValue);
+            }
+        });
     }
 
     private void setFullScreen(Stage primaryStage, boolean fullScreen) {

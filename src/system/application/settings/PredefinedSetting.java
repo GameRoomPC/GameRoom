@@ -37,6 +37,8 @@ public enum PredefinedSetting {
     ,FULL_SCREEN("fullScreen", new SettingValue(new SimpleBooleanProperty(false),Boolean.class,CATEGORY_NONE))
     ,WINDOW_WIDTH("windowWidth", new SettingValue(1366,Integer.class,CATEGORY_NONE))
     ,WINDOW_HEIGHT("windowHeight", new SettingValue(768,Integer.class,CATEGORY_NONE))
+    ,WINDOW_X("windowX", new SettingValue(0.0, Double.class, CATEGORY_NONE))
+    ,WINDOW_Y("windowY", new SettingValue(0.0, Double.class, CATEGORY_NONE))
     ,GAMING_POWER_MODE("gamingPowerMode", new SettingValue(PowerMode.getActivePowerMode(),PowerMode.class,CATEGORY_ON_GAME_START))
     ,ENABLE_GAMING_POWER_MODE("enableGamingPowerMode", new SettingValue(false,Boolean.class,CATEGORY_ON_GAME_START))
     , NO_NOTIFICATIONS("noNotifications", new SettingValue(false,Boolean.class, CATEGORY_UI))
@@ -75,7 +77,7 @@ public enum PredefinedSetting {
     ,NO_MORE_ADD_APP_WARNING("noMoreAddAppWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,NO_MORE_ADD_FOLDER_WARNING("noMoreAddAppWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,KEEP_COVER_RATIO("keepCoverRatio", new SettingValue(false,Boolean.class,CATEGORY_NONE))
-    ,SUPPORTER_KEY_PRICE("supporterKeyPrice", new SettingValue("8",String.class,CATEGORY_GENERAL))
+    ,SUPPORTER_KEY_PRICE("supporterKeyPrice", new SettingValue("8",String.class,CATEGORY_NONE))
     ;
 
 
