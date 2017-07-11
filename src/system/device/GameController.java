@@ -99,7 +99,6 @@ public class GameController {
     private ScheduledFuture<?> pollingFuture;
     private ScheduledFuture<?> discoverFuture;
 
-    private volatile boolean runThreads = true;
 
     /**
      * Defines in the {@link #pollingTask} if we have already performed the action associated to a navigation key.
@@ -145,7 +144,6 @@ public class GameController {
         pollingTask = () -> {
             //Main.LOGGER.debug("Starting polling task");
             boolean connected = false;
-            if (getController() != null && (connected = getController().poll()) && runThreads && Main.KEEP_THREADS_RUNNING) {
                 navKeyConsumed = false;
                 EventQueue queue = getController().getEventQueue();
                 Event event = new Event();
@@ -200,7 +198,7 @@ public class GameController {
         };
 
         controllerDiscoverTask = () -> {
-            if (controller == null && runThreads && Main.KEEP_THREADS_RUNNING) {
+            if (controller == null && Main.KEEP_THREADS_RUNNING) {
                 ControllerEnvironment controllerEnvironment = new DirectAndRawInputEnvironmentPlugin();
                 Controller[] controllers = controllerEnvironment.getControllers();
 
@@ -218,7 +216,7 @@ public class GameController {
                         }
                         setController(controller);
 
-                        if (runThreads && Main.KEEP_THREADS_RUNNING) {
+                        if (Main.KEEP_THREADS_RUNNING) {
                             pollingFuture = threadPool.scheduleAtFixedRate(pollingTask, 0, POLL_RATE, TimeUnit.MILLISECONDS);
                         }
                         if (discoverFuture != null) {
@@ -270,7 +268,6 @@ public class GameController {
         if (discoverFuture != null) {
             discoverFuture.cancel(true);
         }
-        runThreads = false;
         LOGGER.debug("Pausing controller service");
     }
 
@@ -281,7 +278,6 @@ public class GameController {
     public void resume() {
         emptyQueue();
         LOGGER.debug("Resuming controller service");
-        runThreads = true;
         if (controller != null) {
             //we have already found a controller
             pollingFuture = threadPool.scheduleAtFixedRate(pollingTask, 0, POLL_RATE, TimeUnit.MILLISECONDS);
