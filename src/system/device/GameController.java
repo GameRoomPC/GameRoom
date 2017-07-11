@@ -6,6 +6,7 @@ import ui.Main;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Arrays;
 import java.util.concurrent.*;
 
 import static ui.Main.LOGGER;
@@ -17,7 +18,8 @@ import static ui.Main.MAIN_SCENE;
 public class GameController {
     private final static int POLL_RATE = 40;
     private final static int DISCOVER_RATE = 1000;
-    private final static float AXIS_THRESHOLD = 0.80f;
+    private final static float AXIS_THRESHOLD = 0.99f;
+    private final static long FIRST_NAV_DELAY = 400;
 
     public final static String BUTTON_A = "0";
     public final static String BUTTON_B = "1";
@@ -47,61 +49,43 @@ public class GameController {
 
     private volatile float previousXValue = 0.0f;
     private volatile float previousYValue = 0.0f;
+    private volatile boolean navKeyConsumed = false;
+    private volatile long firstNavKeyEvent = 0;
+    private volatile long lastNavKeyEvent = 0;
 
     private ScheduledThreadPoolExecutor threadPool = new ScheduledThreadPoolExecutor(1);
 
     public GameController(ControllerButtonListener controllerButtonListener) {
+        this.controllerButtonListener = controllerButtonListener;
         threadPool.setRemoveOnCancelPolicy(true);
 
         pollingTask = () -> {
             //Main.LOGGER.debug("Starting polling task");
             boolean connected = false;
             if (getController() != null && (connected = getController().poll()) && runThreads && Main.KEEP_THREADS_RUNNING) {
+                navKeyConsumed = false;
                 EventQueue queue = getController().getEventQueue();
                 Event event = new Event();
                 while (queue.getNextEvent(event)) {
-                    if (event.getComponent().getName().contains("Axe")) {
-                        String name = event.getComponent().getName();
-                        float value = event.getValue();
-                        if (name.equals("Axe X")) {
-                            if (value > AXIS_THRESHOLD && previousXValue <= AXIS_THRESHOLD) {
-                                controllerButtonListener.onButtonPressed(BUTTON_DPAD_RIGHT);
-                            } else if (value < -AXIS_THRESHOLD && previousXValue >= -AXIS_THRESHOLD) {
-                                controllerButtonListener.onButtonPressed(BUTTON_DPAD_LEFT);
-                            }
-                            previousXValue = value;
-                        } else {
-                            if (value > AXIS_THRESHOLD && previousYValue <= AXIS_THRESHOLD) {
-                                controllerButtonListener.onButtonPressed(BUTTON_DPAD_DOWN);
-                            } else if (value < -AXIS_THRESHOLD && previousYValue >= -AXIS_THRESHOLD) {
-                                controllerButtonListener.onButtonPressed(BUTTON_DPAD_UP);
-                            }
-                            previousYValue = value;
-                        }
-
-                    }
-                    if (!event.getComponent().getName().contains("Rotation") && !event.getComponent().getName().contains("Axe")) {
-                        Component comp = event.getComponent();
-                        float value = event.getValue();
-                        if (value > 0) {
-                            String id = comp.getIdentifier().toString();
-                            if (id.equals("pov")) {
-                                id += value;
-                            }
-                            controllerButtonListener.onButtonPressed(id);
-                        } else {
-                            controllerButtonListener.onButtonReleased(comp.getIdentifier().toString());
-                        }
-                    }
+                    onDataPolled(event.getComponent(), event.getValue());
                 }
+
+
+                Arrays.stream(getController().getComponents())
+                        .filter(component -> component.getName().contains("Axe") || component.getIdentifier().toString().contains("pov"))
+                        .forEach(component -> {
+                            float value = component.getPollData();
+                            if ((System.currentTimeMillis() - lastNavKeyEvent > FIRST_NAV_DELAY) && !navKeyConsumed) {
+                                onDataPolled(component, value);
+                            }
+                        });
 
             }
             if (!connected) {
                 //means controller is disconnected and should look for an other
                 LOGGER.debug("Controller disconnected: " + getController().getName());
                 if (MAIN_SCENE != null) {
-                    //TODO localize
-                    GeneralToast.displayToast(controller.getName()+" disconnected", MAIN_SCENE.getParentStage());
+                    GeneralToast.displayToast(controller.getName() + " " + Main.getString("disconnected"), MAIN_SCENE.getParentStage());
                 }
                 setController(null);
                 discoverFuture = threadPool.scheduleAtFixedRate(controllerDiscoverTask, 0, DISCOVER_RATE, TimeUnit.MILLISECONDS);
@@ -126,8 +110,7 @@ public class GameController {
                             && controller.poll()) {
                         LOGGER.info("Using controller : " + controller.getName());
                         if (MAIN_SCENE != null) {
-                            //TODO localize
-                            GeneralToast.displayToast(controller.getName()+" connected", MAIN_SCENE.getParentStage());
+                            GeneralToast.displayToast(controller.getName() + " " + Main.getString("connected"), MAIN_SCENE.getParentStage());
                         }
                         setController(controller);
                         setComponents(controller.getComponents());
@@ -212,5 +195,50 @@ public class GameController {
 
     public Controller getController() {
         return controller;
+    }
+
+    private void onDataPolled(Component component, float value) {
+        String name = component.getName();
+        String id = component.getIdentifier().toString();
+        if (name.equals("Axe X") && !navKeyConsumed) {
+            if (value > AXIS_THRESHOLD) {
+                navKeyConsumed = true;
+                lastNavKeyEvent = System.currentTimeMillis();
+                controllerButtonListener.onButtonPressed(BUTTON_DPAD_RIGHT);
+            } else if (value < -AXIS_THRESHOLD) {
+                navKeyConsumed = true;
+                lastNavKeyEvent = System.currentTimeMillis();
+                controllerButtonListener.onButtonPressed(BUTTON_DPAD_LEFT);
+            } else {
+                controllerButtonListener.onButtonReleased("pov");
+            }
+        } else if (name.equals("Axe Y") && !navKeyConsumed) {
+            if (value > AXIS_THRESHOLD) {
+                navKeyConsumed = true;
+                lastNavKeyEvent = System.currentTimeMillis();
+                controllerButtonListener.onButtonPressed(BUTTON_DPAD_DOWN);
+            } else if (value < -AXIS_THRESHOLD) {
+                navKeyConsumed = true;
+                lastNavKeyEvent = System.currentTimeMillis();
+                controllerButtonListener.onButtonPressed(BUTTON_DPAD_UP);
+            } else {
+                controllerButtonListener.onButtonReleased("pov");
+            }
+        } else if (id.startsWith("pov") && !navKeyConsumed) {
+            if (value > 0) {
+                id += value;
+                controllerButtonListener.onButtonPressed(id);
+                navKeyConsumed = true;
+                lastNavKeyEvent = System.currentTimeMillis();
+            } else {
+                controllerButtonListener.onButtonReleased(id);
+            }
+        } else if (!name.contains("Rotation")) {
+            if (value > 0) {
+                controllerButtonListener.onButtonPressed(id);
+            } else {
+                controllerButtonListener.onButtonReleased(id);
+            }
+        }
     }
 }
