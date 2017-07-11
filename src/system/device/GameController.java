@@ -13,14 +13,54 @@ import static ui.Main.LOGGER;
 import static ui.Main.MAIN_SCENE;
 
 /**
- * Created by LM on 26/07/2016.
+ * Is a manager of the Controllers that can be used to interact with GameRoom. Basically, a first task is scheduled, the
+ * {@link #controllerDiscoverTask}, which detects which compatible controllers can be used. It then selects the first one
+ * that is compatible //TODO be able to select a controller.
+ * After that is started a scheduled {@link #pollingTask} to read input from the controller and perform actions accordingly.
+ * The user can hold a navigation key (which are either the navigation pad or the joystick axis) and the action will
+ * be repeated.
+ * <p>
+ * As polling is used, it is advised to call {@link #pause()} whenever the app is not on the foreground, and then resume
+ * calling {@link #resume()}.
+ *
+ * @author LM. Garret (admin@gameroom.me)
+ * @date 26/07/2016.
  */
 public class GameController {
+    /**
+     * The poll rate of the device. Higher values induce higher CPU usage
+     */
     private final static int POLL_RATE = 40;
+
+    /**
+     * Poll rate to scan for connected controllers
+     */
     private final static int DISCOVER_RATE = 1000;
+
+    /**
+     * Treshold after which a joystick is considered being used
+     */
     private final static float AXIS_THRESHOLD = 0.99f;
+
+    /**
+     * Delay AND poll rate for the first navigation speed. Not really a poll rate, but defines after which amount of
+     * time we should repeat the action associated to a button if the user is holding it.
+     */
     private final static long FIRST_NAV_DELAY = 400;
 
+    /**
+     * Delay after which we use the second poll rate for the navigation.
+     */
+    private final static long SECOND_NAV_DELAY = 2400;
+
+    /**
+     * Second poll rate, thus second navigation speed.
+     */
+    private final static long SECOND_NAV_POLL_RATE = 100;
+
+    /**
+     * Identifiers of the buttons on the controller
+     */
     public final static String BUTTON_A = "0";
     public final static String BUTTON_B = "1";
     public final static String BUTTON_X = "2";
@@ -35,11 +75,25 @@ public class GameController {
     public final static String BUTTON_DPAD_DOWN = "pov0.75";
     public final static String BUTTON_DPAD_LEFT = "pov1.0";
 
+
+    /**
+     * Controller being used
+     */
     private volatile Controller controller;
-    private volatile Component[] components;
+
+    /**
+     * Listener which associates actions to the buttons of the controller
+     */
     private volatile ControllerButtonListener controllerButtonListener;
 
+    /**
+     * Task scheduled every {@link #POLL_RATE}ms to detect input changes on the controller
+     */
     private Runnable pollingTask;
+
+    /**
+     * Task scheduled every {@link #DISCOVER_RATE}ms to detect connected controllers
+     */
     private Runnable controllerDiscoverTask;
 
     private ScheduledFuture<?> pollingFuture;
@@ -47,11 +101,40 @@ public class GameController {
 
     private volatile boolean runThreads = true;
 
-    private volatile float previousXValue = 0.0f;
-    private volatile float previousYValue = 0.0f;
+    /**
+     * Defines in the {@link #pollingTask} if we have already performed the action associated to a navigation key.
+     */
     private volatile boolean navKeyConsumed = false;
+
+    /**
+     * Defines the very first time when {@link #continuousMode} has started
+     */
     private volatile long firstNavKeyEvent = 0;
+
+    /**
+     * Defines the last time an action associated to a navigation key was performed
+     */
     private volatile long lastNavKeyEvent = 0;
+
+    /**
+     * Defines if we are in continuous mode, which is basically when the user is holding a navigation key.
+     */
+    private volatile boolean continuousMode = false;
+
+    /**
+     * User holding joystick along the X axis
+     */
+    private volatile boolean continuousX = false;
+
+    /**
+     * User holding joystick along the Y axis
+     */
+    private volatile boolean continuousY = false;
+
+    /**
+     * User holding a nav pad key
+     */
+    private volatile boolean continuousPad = false;
 
     private ScheduledThreadPoolExecutor threadPool = new ScheduledThreadPoolExecutor(1);
 
@@ -66,17 +149,38 @@ public class GameController {
                 navKeyConsumed = false;
                 EventQueue queue = getController().getEventQueue();
                 Event event = new Event();
+
+                /*********EVENT MODE *********/
+                //First we treat the events
                 while (queue.getNextEvent(event)) {
-                    onDataPolled(event.getComponent(), event.getValue());
+                    onDataPolled(event.getComponent(), event.getValue(), false);
                 }
 
-
+                /*****CONTINOUS MODE *******/
+                //Here we treat the continuous usage of buttons, i.e. if there are being held
                 Arrays.stream(getController().getComponents())
+                        //we filter to get only joysticks and nav pad
                         .filter(component -> component.getName().contains("Axe") || component.getIdentifier().toString().contains("pov"))
                         .forEach(component -> {
                             float value = component.getPollData();
-                            if ((System.currentTimeMillis() - lastNavKeyEvent > FIRST_NAV_DELAY) && !navKeyConsumed) {
-                                onDataPolled(component, value);
+
+                            if (continuousMode && (System.currentTimeMillis() - firstNavKeyEvent > SECOND_NAV_DELAY)) {
+                                //second navigation speed here
+                                if ((System.currentTimeMillis() - lastNavKeyEvent > SECOND_NAV_POLL_RATE)) {
+                                    onDataPolled(component, value, true);
+                                    //is continous if a joystick or the nav pad is held
+                                    continuousMode = continuousX || continuousY || continuousPad;
+                                }
+                            } else if ((System.currentTimeMillis() - lastNavKeyEvent > FIRST_NAV_DELAY)) {
+                                //first speed navigation here
+                                boolean wasContinuous = continuousMode;
+                                onDataPolled(component, value, true);
+                                //is continous if a joystick or the nav pad is held
+                                continuousMode = continuousX || continuousY || continuousPad;
+                                if (!wasContinuous && continuousMode) {
+                                    //first time we are in continous mode, record the current time
+                                    firstNavKeyEvent = System.currentTimeMillis();
+                                }
                             }
                         });
 
@@ -113,7 +217,6 @@ public class GameController {
                             GeneralToast.displayToast(controller.getName() + " " + Main.getString("connected"), MAIN_SCENE.getParentStage());
                         }
                         setController(controller);
-                        setComponents(controller.getComponents());
 
                         if (runThreads && Main.KEEP_THREADS_RUNNING) {
                             pollingFuture = threadPool.scheduleAtFixedRate(pollingTask, 0, POLL_RATE, TimeUnit.MILLISECONDS);
@@ -132,9 +235,6 @@ public class GameController {
         this.controller = controller;
     }
 
-    private void setComponents(Component[] components) {
-        this.components = components;
-    }
 
     /**
      * Fix windows 8 warnings by defining a working plugin
@@ -159,6 +259,10 @@ public class GameController {
 
     }
 
+    /**
+     * Pauses polling tasks used to interact with GameRoom using a controller. Decreases hugely the CPU usage,
+     * should be called whenever the window loses focus, see {@link ui.dialog.WindowFocusManager#windowFocused}
+     */
     public void pause() {
         if (pollingFuture != null) {
             pollingFuture.cancel(true);
@@ -170,6 +274,10 @@ public class GameController {
         LOGGER.debug("Pausing controller service");
     }
 
+    /**
+     * Resumes polling tasks used to interact with GameRoom using a controller. Increases hugely the CPU usage,
+     * should be called whenever the window gains focus, see {@link ui.dialog.WindowFocusManager#windowFocused}
+     */
     public void resume() {
         emptyQueue();
         LOGGER.debug("Resuming controller service");
@@ -182,10 +290,16 @@ public class GameController {
         }
     }
 
+    /**
+     * Shuts down the threadPool used. Should be called when terminating the app.
+     */
     public void shutdown() {
         threadPool.shutdownNow();
     }
 
+    /**
+     * Removes events from the event queue, so that there are no pending events to be treated.
+     */
     private void emptyQueue() {
         if (controller != null) {
             controller.setEventQueueSize(0);
@@ -193,44 +307,64 @@ public class GameController {
         }
     }
 
-    public Controller getController() {
+    /**
+     * @return the controller being used
+     */
+    private Controller getController() {
         return controller;
     }
 
-    private void onDataPolled(Component component, float value) {
+    /**
+     * Called when polling occurs, this will use data from the {@link Component} of the {@link #controller} to perform
+     * actions defined by the {@link #controllerButtonListener}.
+     *
+     * @param component  the component from where the data comes from
+     * @param value      the value of the state of the component.
+     * @param continuous if we are event based this is false, whereas if the user is maintaining the button (usually nav pad or
+     *                   joysticks), this is true
+     */
+    private void onDataPolled(Component component, float value, boolean continuous) {
         String name = component.getName();
         String id = component.getIdentifier().toString();
-        if (name.equals("Axe X") && !navKeyConsumed) {
-            if (value > AXIS_THRESHOLD) {
+        if (name.equals("Axe X")) {
+            if (value > AXIS_THRESHOLD && !navKeyConsumed) {
                 navKeyConsumed = true;
+                continuousX = continuousX || continuous;
                 lastNavKeyEvent = System.currentTimeMillis();
                 controllerButtonListener.onButtonPressed(BUTTON_DPAD_RIGHT);
-            } else if (value < -AXIS_THRESHOLD) {
+            } else if (value < -AXIS_THRESHOLD && !navKeyConsumed) {
                 navKeyConsumed = true;
+                continuousX = continuousX || continuous;
                 lastNavKeyEvent = System.currentTimeMillis();
                 controllerButtonListener.onButtonPressed(BUTTON_DPAD_LEFT);
-            } else {
+            } else if (value >= -AXIS_THRESHOLD && value <= AXIS_THRESHOLD) {
+                continuousX = false;
                 controllerButtonListener.onButtonReleased("pov");
             }
-        } else if (name.equals("Axe Y") && !navKeyConsumed) {
-            if (value > AXIS_THRESHOLD) {
+        } else if (name.equals("Axe Y")) {
+            if (value > AXIS_THRESHOLD && !navKeyConsumed) {
                 navKeyConsumed = true;
+                continuousY = continuousY || continuous;
                 lastNavKeyEvent = System.currentTimeMillis();
                 controllerButtonListener.onButtonPressed(BUTTON_DPAD_DOWN);
-            } else if (value < -AXIS_THRESHOLD) {
+            } else if (value < -AXIS_THRESHOLD && !navKeyConsumed) {
                 navKeyConsumed = true;
+                continuousY = continuousY || continuous;
                 lastNavKeyEvent = System.currentTimeMillis();
                 controllerButtonListener.onButtonPressed(BUTTON_DPAD_UP);
-            } else {
+            } else if (value >= -AXIS_THRESHOLD && value <= AXIS_THRESHOLD) {
+                continuousY = false;
                 controllerButtonListener.onButtonReleased("pov");
             }
-        } else if (id.startsWith("pov") && !navKeyConsumed) {
-            if (value > 0) {
+        } else if (id.startsWith("pov")) {
+            if (value > 0 && !navKeyConsumed) {
                 id += value;
                 controllerButtonListener.onButtonPressed(id);
                 navKeyConsumed = true;
+                continuousPad = continuousPad || continuous;
                 lastNavKeyEvent = System.currentTimeMillis();
-            } else {
+            } else if (value <= 0) {
+                continuousPad = false;
                 controllerButtonListener.onButtonReleased(id);
             }
         } else if (!name.contains("Rotation")) {
