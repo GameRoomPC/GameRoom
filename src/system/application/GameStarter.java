@@ -39,6 +39,9 @@ public class GameStarter {
     private final static String ERR_NO_EMU = "no_emu_configured";
     private final static String ERR_NOT_SUPPORTER = "not_supporter";
     private final static String STEAM_PREFIX = "steam";
+
+    private final static long VALUE_ALREADY_MONITORED = -1;
+
     private GameEntry entry;
     private PowerMode originalPowerMode;
     private static String LOG_FOLDER;
@@ -83,9 +86,9 @@ public class GameStarter {
             return;
         }
 
-        Task<Long> monitor = new Task() {
+        Task<Long> monitor = new Task<Long>() {
             @Override
-            protected Object call() throws Exception {
+            protected Long call() throws Exception {
                 if (settings().getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.CLOSE)) {
                     Main.forceStop(MAIN_SCENE.getParentStage(), "launchAction = OnLaunchAction.CLOSE");
                 } else if (settings().getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.HIDE)) {
@@ -103,17 +106,14 @@ public class GameStarter {
                     Monitor timeMonitor = new Monitor(GameStarter.this);
                     return timeMonitor.start(null);
                 }
-                return new Long(-1);
+                return VALUE_ALREADY_MONITORED;
             }
         };
-        monitor.valueProperty().addListener(new ChangeListener<Long>() {
-            @Override
-            public void changed(ObservableValue<? extends Long> observable, Long oldValue, Long newValue) {
-                if (!newValue.equals(new Long(-1))) {
-                    onPostGameLaunch(newValue);
-                } else {
-                    //No need to add playtime as if we are here, it means that some thread is already monitoring play time
-                }
+        monitor.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.equals(VALUE_ALREADY_MONITORED)) {
+                onPostGameLaunch(newValue);
+            } else {
+                //No need to add playtime as if we are here, it means that some thread is already monitoring play time
             }
         });
         Thread th = new Thread(monitor);

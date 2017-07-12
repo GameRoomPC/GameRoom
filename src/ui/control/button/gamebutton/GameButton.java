@@ -219,6 +219,11 @@ public abstract class GameButton extends BorderPane {
             if (settings().getBoolean(PredefinedSetting.DEBUG_MODE)) {
                 if (!oldValue && newValue) {
                     titleLabel.setId("advanced-setting-label");
+                    titleLabel.setTooltip(new Tooltip(Main.getString("click_to_stop_monitor")));
+                    titleLabel.setOnMouseClicked(event -> {
+                        event.consume();
+                        entry.setMonitored(false);
+                    });
                 } else if (!newValue) {
                     titleLabel.setId("");
                 }

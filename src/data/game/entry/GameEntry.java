@@ -1,6 +1,7 @@
 package data.game.entry;
 
 import data.io.DataBase;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.image.Image;
 import system.application.GameStarter;
