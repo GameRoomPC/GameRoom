@@ -446,6 +446,8 @@ public class GameEditScene extends BaseScene {
                     } catch (DateTimeParseException e) {
                         //well date not valid yet
                     }
+                }else {
+                    entry.setReleaseDate(null);
                 }
             }
         });
@@ -460,6 +462,8 @@ public class GameEditScene extends BaseScene {
                         message.replace(0, message.length(), Main.getString("invalid_release_date"));
                         return false;
                     }
+                }else{
+                    entry.setReleaseDate(null);
                 }
                 return true;
             }
@@ -1217,8 +1221,6 @@ public class GameEditScene extends BaseScene {
                         if (buttonType.equals(ButtonType.OK)) {
                             switch (mode) {
                                 case MODE_ADD:
-                                    entry.reloadFromDB();
-                                    break;
                                 case MODE_EDIT:
                                     entry.reloadFromDB();
                                     break;
