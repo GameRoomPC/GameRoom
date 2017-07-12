@@ -445,7 +445,6 @@ public class DrawerMenu extends BorderPane {
     }
 
     public void quitGameRoom(){
-        //TODO display a dialog, and a option to never show dialog again ?
         ButtonType buttonType = GameRoomAlert.confirmation(Main.getString("sure_to_quit"));
         if (buttonType.equals(ButtonType.OK)) {
             javafx.application.Platform.setImplicitExit(true);

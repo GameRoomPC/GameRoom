@@ -103,8 +103,7 @@
 .toggle-button:focused,
 .button:focused,
 .button:default:focused {
-    /*-fx-border-color: derive(-flatter-red, 50.0%), derive(-flatter-red, -20.0%);
-    -fx-border-width: 2px;*/
+     -fx-background-color: derive(-flatter-red, 50.0%);
 }
 .toggle-button:hover,
 .button:hover,
