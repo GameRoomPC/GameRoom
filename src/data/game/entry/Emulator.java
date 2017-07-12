@@ -1,6 +1,7 @@
 package data.game.entry;
 
 import data.io.DataBase;
+import system.os.Terminal;
 import ui.Main;
 
 import java.io.*;
@@ -143,21 +144,22 @@ public class Emulator {
         save();
     }
 
-    public List<String> getCommandsToExecute(GameEntry entry) {
+    public List<String> getCommandArguments(GameEntry entry){
         ArrayList<String> cmds = new ArrayList<>();
-        cmds.add("\"" + path.getAbsolutePath() + "\"");
         String emuArgs = getArgSchema(entry.getPlatform());
         String entryArgs = entry.getArgs();
         if (emuArgs != null) {
             emuArgs = emuArgs.replace(ENTRY_ARGS_MARKER, entryArgs != null ? entryArgs : "");
             emuArgs = emuArgs.replace(PATH_MARKER, "\"" + entry.getPath() + "\"");
-
-            Matcher m = CMD_SPLIT_PATTERN.matcher(emuArgs);
-
-            while(m.find()){
-                cmds.add(m.group(1).replace("\"",""));
-            }
+            cmds = Terminal.splitCMDLine(emuArgs);
         }
+        return cmds;
+    }
+
+    public List<String> getCommandsToExecute(GameEntry entry) {
+        ArrayList<String> cmds = new ArrayList<>();
+        cmds.add(path.getAbsolutePath());
+        cmds.addAll(getCommandArguments(entry));
         return cmds;
     }
 
