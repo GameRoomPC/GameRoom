@@ -46,7 +46,7 @@ public class GameController {
      * Delay AND poll rate for the first navigation speed. Not really a poll rate, but defines after which amount of
      * time we should repeat the action associated to a button if the user is holding it.
      */
-    private final static long FIRST_NAV_DELAY = 400;
+    private final static long FIRST_NAV_DELAY = 150;
 
     /**
      * Delay after which we use the second poll rate for the navigation.
@@ -56,7 +56,7 @@ public class GameController {
     /**
      * Second poll rate, thus second navigation speed.
      */
-    private final static long SECOND_NAV_POLL_RATE = 100;
+    private final static long SECOND_NAV_POLL_RATE = 2*POLL_RATE;
 
     /**
      * Identifiers of the buttons on the controller
@@ -144,6 +144,7 @@ public class GameController {
         pollingTask = () -> {
             //Main.LOGGER.debug("Starting polling task");
             boolean connected = false;
+            if (getController() != null && (connected = getController().poll()) && Main.KEEP_THREADS_RUNNING) {
                 navKeyConsumed = false;
                 EventQueue queue = getController().getEventQueue();
                 Event event = new Event();
