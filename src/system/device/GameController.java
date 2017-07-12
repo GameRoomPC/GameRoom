@@ -96,10 +96,14 @@ public class GameController {
      */
     private Runnable controllerDiscoverTask;
 
-    private ScheduledFuture<?> pollingFuture;
-    private ScheduledFuture<?> discoverFuture;
+    private volatile ScheduledFuture<?> pollingFuture;
+    private volatile ScheduledFuture<?> discoverFuture;
 
 
+    /**
+     * Used to stop polling tasks. More of a security, but tasks should be cancelled correctly when paused.
+     */
+    private volatile boolean paused = true;
     /**
      * Defines in the {@link #pollingTask} if we have already performed the action associated to a navigation key.
      */
@@ -144,7 +148,7 @@ public class GameController {
         pollingTask = () -> {
             //Main.LOGGER.debug("Starting polling task");
             boolean connected = false;
-            if (getController() != null && (connected = getController().poll()) && Main.KEEP_THREADS_RUNNING) {
+            if (getController() != null && (connected = getController().poll()) && Main.KEEP_THREADS_RUNNING && !paused) {
                 navKeyConsumed = false;
                 EventQueue queue = getController().getEventQueue();
                 Event event = new Event();
@@ -199,7 +203,7 @@ public class GameController {
         };
 
         controllerDiscoverTask = () -> {
-            if (controller == null && Main.KEEP_THREADS_RUNNING) {
+            if (controller == null && Main.KEEP_THREADS_RUNNING && !paused) {
                 ControllerEnvironment controllerEnvironment = new DirectAndRawInputEnvironmentPlugin();
                 Controller[] controllers = controllerEnvironment.getControllers();
 
@@ -266,10 +270,14 @@ public class GameController {
         if (pollingFuture != null) {
             pollingFuture.cancel(true);
         }
+        threadPool.remove(pollingTask);
         if (discoverFuture != null) {
             discoverFuture.cancel(true);
         }
+        threadPool.remove(controllerDiscoverTask);
+
         LOGGER.debug("Pausing controller service");
+        paused = true;
     }
 
     /**
@@ -280,11 +288,20 @@ public class GameController {
         emptyQueue();
         LOGGER.debug("Resuming controller service");
         if (controller != null) {
+            //need to cancel because we will replace the future thus the previous task will still be scheduled
+            if(pollingFuture != null){
+                pollingFuture.cancel(true);
+            }
             //we have already found a controller
             pollingFuture = threadPool.scheduleAtFixedRate(pollingTask, 0, POLL_RATE, TimeUnit.MILLISECONDS);
         } else {
+            //need to cancel because we will replace the future thus the previous task will still be scheduled
+            if(discoverFuture != null){
+                discoverFuture.cancel(true);
+            }
             discoverFuture = threadPool.scheduleAtFixedRate(controllerDiscoverTask, 0, DISCOVER_RATE, TimeUnit.MILLISECONDS);
         }
+        paused = false;
     }
 
     /**
