@@ -1,8 +1,7 @@
 package ui.control.button.gamebutton;
 
-import data.http.SimpleImageInfo;
-import data.http.images.ImageUtils;
 import data.game.entry.GameEntry;
+import data.http.images.ImageUtils;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -23,7 +22,6 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
@@ -31,9 +29,9 @@ import javafx.scene.paint.Color;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import system.application.settings.PredefinedSetting;
+import ui.GeneralToast;
 import ui.Main;
 import ui.control.button.ImageButton;
-import ui.GeneralToast;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.selector.AppSelectorDialog;
 import ui.scene.BaseScene;
@@ -713,22 +711,7 @@ public abstract class GameButton extends BorderPane {
         double width = getCoverWidth();
         double height = getCoverHeight();
 
-        Task coverTask = new Task() {
-
-            @Override
-            protected Object call() throws Exception {
-                SimpleImageInfo imageInfo = new SimpleImageInfo(entry.getImagePath(0));
-                boolean farRatio = Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2;
-                boolean keepRatio = settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO);
-                coverView.setPreserveRatio(farRatio && keepRatio);
-                Image coverImage = entry.getImage(0, width, height, farRatio && keepRatio, true);
-                if (!ImageUtils.imagesEquals(coverImage, coverView.getImage())) {
-                    ImageUtils.transitionToImage(coverImage, coverView);
-                }
-                return null;
-            }
-        };
-        executorService.submit(coverTask);
+        executorService.submit(() -> ImageUtils.transitionToCover(entry.getImagePath(0), width, height, coverView));
     }
 
     public static ExecutorService getExecutorService() {
