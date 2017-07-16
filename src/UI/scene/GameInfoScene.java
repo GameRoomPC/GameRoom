@@ -237,6 +237,7 @@ public class GameInfoScene extends BaseScene {
     }
 
     void updateWithEditedEntry(GameEntry editedEntry) {
+        initTop();
         updateProperty("play_time", editedEntry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_HALF_FULL_HMS));
         updateProperty("game_path", editedEntry.getPath());
         updateProperty("release_date", editedEntry.getReleaseDate() != null ? GameEntry.DATE_DISPLAY_FORMAT.format(editedEntry.getReleaseDate()) : "");
