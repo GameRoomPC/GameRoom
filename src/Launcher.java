@@ -54,6 +54,9 @@ public class Launcher extends Application {
     private static ChangeListener<Boolean> maximizedListener;
     private static ChangeListener<Boolean> fullScreenListener;
 
+    private volatile boolean monitoringXPosition = false;
+    private volatile boolean monitoringYPosition = false;
+
     private static String DATA_PATH;
 
     public static void main(String[] args) throws URISyntaxException {
@@ -281,15 +284,30 @@ public class Launcher extends Application {
         primaryStage.maximizedProperty().addListener(maximizedListener);
 
         primaryStage.xProperty().addListener((observable, oldValue, newValue) -> {
-            //TODO set a task to wait for 2 secs and check ifchanges then apply them
-            if (!settings().getBoolean(PredefinedSetting.FULL_SCREEN)) {
-                settings().setSettingValue(PredefinedSetting.WINDOW_X, newValue);
+            if(!monitoringXPosition){
+                monitoringXPosition = true;
+                Main.getExecutorService().submit(() -> {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException ignored) {
+                    }
+                    settings().setSettingValue(PredefinedSetting.WINDOW_X,primaryStage.getX());
+                    monitoringXPosition = false;
+                });
             }
         });
 
         primaryStage.yProperty().addListener((observable, oldValue, newValue) -> {
-            if (!settings().getBoolean(PredefinedSetting.FULL_SCREEN)) {
-                settings().setSettingValue(PredefinedSetting.WINDOW_Y, newValue);
+            if(!monitoringYPosition){
+                monitoringYPosition = true;
+                Main.getExecutorService().submit(() -> {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException ignored) {
+                    }
+                    settings().setSettingValue(PredefinedSetting.WINDOW_Y,primaryStage.getY());
+                    monitoringYPosition = false;
+                });
             }
         });
     }
