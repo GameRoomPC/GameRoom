@@ -97,26 +97,19 @@ public class GameInfoScene extends BaseScene {
         HBox hBox = new HBox();
         hBox.setSpacing(30 * SCREEN_WIDTH / 1920);
         Button editButton = new Button(Main.getString("edit"));
-        editButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                fadeTransitionTo(new GameEditScene(GameInfoScene.this, entry, coverButton.getImage()), getParentStage());
-            }
-        });
-        Button deleteButton = new Button(Main.getString("delete"));
-        deleteButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION);
-                alert.setContentText(Main.getString("delete_entry?"));
+        editButton.setOnAction(event -> fadeTransitionTo(new GameEditScene(GameInfoScene.this, entry, coverButton.getImage()), getParentStage()));
 
-                Optional<ButtonType> result = alert.showAndWait();
-                if (result.get() == ButtonType.OK) {
-                    entry.delete();
-                    MAIN_SCENE.removeGame(entry);
-                    GeneralToast.displayToast(entry.getName() + Main.getString("removed_from_your_lib"), getParentStage());
-                    fadeTransitionTo(previousScene, getParentStage());
-                }
+        Button deleteButton = new Button(Main.getString("delete"));
+        deleteButton.setOnAction(event -> {
+            GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.CONFIRMATION);
+            alert.setContentText(Main.getString("delete_entry?"));
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == ButtonType.OK) {
+                entry.delete();
+                MAIN_SCENE.removeGame(entry);
+                GeneralToast.displayToast(entry.getName() + Main.getString("removed_from_your_lib"), getParentStage());
+                fadeTransitionTo(previousScene, getParentStage());
             }
         });
         hBox.getChildren().addAll(deleteButton, editButton);
@@ -150,13 +143,10 @@ public class GameInfoScene extends BaseScene {
                 entry.setOnGameStopped(() -> ytButton.automaticPlay());
                 topStackPane.getChildren().addAll(ytButton.getSoundMuteButton());
                 StackPane.setAlignment(ytButton.getSoundMuteButton(), Pos.CENTER_RIGHT);
-                setOnSceneFadedOutAction(new Runnable() {
-                    @Override
-                    public void run() {
-                        entry.setOnGameLaunched(null);
-                        entry.setOnGameStopped(null);
-                        ytButton.quitYoutube();
-                    }
+                setOnSceneFadedOutAction(() -> {
+                    entry.setOnGameLaunched(null);
+                    entry.setOnGameStopped(null);
+                    ytButton.quitYoutube();
                 });
             } catch (IOException e) {
                 e.printStackTrace();
