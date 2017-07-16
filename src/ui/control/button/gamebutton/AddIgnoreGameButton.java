@@ -13,7 +13,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
-import system.application.settings.PredefinedSetting;
 import ui.GeneralToast;
 import ui.Main;
 import ui.control.button.ImageButton;
@@ -23,7 +22,6 @@ import ui.scene.MainScene;
 
 import java.io.File;
 
-import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.MAIN_SCENE;
 import static ui.Main.SCREEN_WIDTH;
 
@@ -106,9 +104,7 @@ public class AddIgnoreGameButton extends GameButton {
                     fadeInTimeline.setAutoReverse(false);
                     fadeInTimeline.play();
 
-                    if (!settings().getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
-                        ImageUtils.getExecutorService().submit(() -> MAIN_SCENE.setImageBackground(entry.getImagePath(1)));
-                    }
+                    ImageUtils.getExecutorService().submit(() -> MAIN_SCENE.setImageBackground(entry.getImagePath(1)));
 
                 } else {
                     //addButton.setMouseTransparent(true);

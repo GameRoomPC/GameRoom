@@ -357,8 +357,7 @@ public class MainScene extends BaseScene {
                     if (currentTime - lastWallpaperUpdate > refreshWPTime) {
                         lastWallpaperUpdate = currentTime;
                         setChangeBackgroundNextTime(false);
-
-                        Platform.runLater(() -> setImageBackground(entry.getImagePath(1)));
+                        setImageBackground(entry.getImagePath(1));
                     }
                     updateProgress(finalI, GameEntryUtils.ENTRIES_LIST.size() - 1);
                     i++;
@@ -799,10 +798,18 @@ public class MainScene extends BaseScene {
         tilePane.getOnKeyPressed().handle(keyPressed);
     }
 
+
     public void setImageBackground(File imgFile) {
         setImageBackground(imgFile, false);
     }
 
+    /**
+     * Sets the background image of the this {@link MainScene}. Checks if it should update the background or not (option
+     * {@link PredefinedSetting#DISABLE_MAINSCENE_WALLPAPER} chosen or not), and if it should not change because the user
+     * has set a static background image.
+     * @param imgFile the imgFile to use to change the background
+     * @param isStatic whether this image should not be changed by {@link GameButton}
+     */
     public void setImageBackground(File imgFile, boolean isStatic) {
         if (settings().getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && !isStatic) {
             return;
