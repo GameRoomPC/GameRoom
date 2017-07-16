@@ -107,7 +107,7 @@ public class AddIgnoreGameButton extends GameButton {
                     fadeInTimeline.play();
 
                     if (!settings().getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
-                        ImageUtils.getExecutorService().submit(() -> Main.runAndWait(() -> MAIN_SCENE.setImageBackground(entry.getImagePath(1))));
+                        ImageUtils.getExecutorService().submit(() -> MAIN_SCENE.setImageBackground(entry.getImagePath(1)));
                     }
 
                 } else {

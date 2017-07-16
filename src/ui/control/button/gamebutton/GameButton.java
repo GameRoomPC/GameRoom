@@ -452,7 +452,7 @@ public abstract class GameButton extends BorderPane {
                         playButton.fireEvent(new MouseEvent(MOUSE_ENTERED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
                     }
                     if (!settings().getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
-                        ImageUtils.getExecutorService().submit(() -> Main.runAndWait(() -> MAIN_SCENE.setImageBackground(entry.getImagePath(1))));
+                        ImageUtils.getExecutorService().submit(() -> MAIN_SCENE.setImageBackground(entry.getImagePath(1)));
                     }
 
                 } else {
