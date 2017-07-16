@@ -90,8 +90,6 @@ public class MainScene extends BaseScene {
 
     private boolean changeBackgroundNextTime = false;
 
-    private Task<Void> loadGamesTask;
-
     public MainScene(Stage parentStage) {
         super(new StackPane(), parentStage);
         setCursor(Cursor.DEFAULT);
@@ -322,7 +320,7 @@ public class MainScene extends BaseScene {
     private void loadGames() {
         backgroundView.setVisible(false);
         maskView.setVisible(false);
-        loadGamesTask = new Task<Void>() {
+        Task<Void> loadGamesTask = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
                 tilePane.setAutomaticSort(false);
@@ -360,87 +358,75 @@ public class MainScene extends BaseScene {
                 return null;
             }
         };
-        loadGamesTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-            @Override
-            public void handle(WorkerStateEvent event) {
-                tilePane.setAutomaticSort(true);
-                recentlyAddedTilePane.setAutomaticSort(true);
-                lastPlayedTilePane.setAutomaticSort(true);
-                backgroundView.setOpacity(0);
-                backgroundView.setVisible(true);
-                maskView.setOpacity(0);
-                maskView.setVisible(true);
-                setChangeBackgroundNextTime(false);
+        loadGamesTask.setOnSucceeded(event -> {
+            tilePane.setAutomaticSort(true);
+            recentlyAddedTilePane.setAutomaticSort(true);
+            lastPlayedTilePane.setAutomaticSort(true);
+            backgroundView.setOpacity(0);
+            backgroundView.setVisible(true);
+            maskView.setOpacity(0);
+            maskView.setVisible(true);
+            setChangeBackgroundNextTime(false);
 
-                //dialog.getDialogStage().close();
-                statusLabel.setText("");
-                fadeTransitionTo(MainScene.this, getParentStage(), false);
-                Platform.runLater(() -> {
-                    startGameWatcherService();
-                });
-                home();
+            //dialog.getDialogStage().close();
+            statusLabel.setText("");
+            fadeTransitionTo(MainScene.this, getParentStage(), false);
+            Platform.runLater(() -> {
+                startGameWatcherService();
+            });
+            home();
 
-                double scrollBarVValue = settings().getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
-                scrollPane.setVvalue(scrollBarVValue);
+            double scrollBarVValue = settings().getDouble(PredefinedSetting.SCROLLBAR_VVALUE);
+            scrollPane.setVvalue(scrollBarVValue);
 
-                if (settings().getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && SUPPORTER_MODE) {
-                    File workingDir = FILES_MAP.get("working_dir");
-                    if (workingDir != null && workingDir.listFiles() != null) {
-                        for (File file : workingDir.listFiles()) {
-                            if (file.isFile() && file.getName().startsWith("wallpaper")) {
-                                setChangeBackgroundNextTime(false);
-                                setImageBackground(file, true);
-                                break;
-                            }
+            if (settings().getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && SUPPORTER_MODE) {
+                File workingDir = FILES_MAP.get("working_dir");
+                if (workingDir != null && workingDir.listFiles() != null) {
+                    for (File file : workingDir.listFiles()) {
+                        if (file.isFile() && file.getName().startsWith("wallpaper")) {
+                            setChangeBackgroundNextTime(false);
+                            setImageBackground(file, true);
+                            break;
                         }
                     }
                 }
-                /*ObjectBinding<Bounds> visibleBounds = Bindings.createObjectBinding(() -> {
-                    Bounds viewportBounds = scrollPane.getViewportBounds();
-                    Bounds viewportBoundsInScene = scrollPane.localToScene(viewportBounds);
-                    Bounds viewportBoundsInPane = tilesPaneWrapper.sceneToLocal(viewportBoundsInScene);
-                    return viewportBoundsInPane ;
-                }, scrollPane.hvalueProperty(), scrollPane.vvalueProperty(), scrollPane.viewportBoundsProperty());
-
-
-                FilteredList<GameButton> visibleNodes = new FilteredList<>(tilePane.getGameButtons());
-                visibleNodes.predicateProperty().bind(Bindings.createObjectBinding(() ->
-                                gameButton -> gameButton.getBoundsInParent().intersects(visibleBounds.get()),
-                        visibleBounds));
-
-
-                visibleNodes.addListener((ListChangeListener.Change<? extends GameButton> c) -> {
-                    if(c.next()){
-                        c.getAddedSubList().forEach(o -> {
-                            o.clearCover();
-                            Main.LOGGER.debug("clearedCover: "+o.getEntry().getName());
-                        });
-                        c.getRemoved().forEach(o -> {
-                            o.showCover();
-                            Main.LOGGER.debug("showedCover: "+o.getEntry().getName());
-                        });
-                        System.out.println();
-                    }
-                });*/
             }
-        });
-        loadGamesTask.progressProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                Platform.runLater(() -> {
-                    if (newValue.doubleValue() == 1.0) {
-                        statusLabel.setText("");
-                    } else {
-                        statusLabel.setText(Main.getString("loading") + " " + Math.round(newValue.doubleValue() * 100) + "%...");
-                    }
-                });
-            }
-        });
-        //dialog.activateProgressBar(task);
+            /*ObjectBinding<Bounds> visibleBounds = Bindings.createObjectBinding(() -> {
+                Bounds viewportBounds = scrollPane.getViewportBounds();
+                Bounds viewportBoundsInScene = scrollPane.localToScene(viewportBounds);
+                Bounds viewportBoundsInPane = tilesPaneWrapper.sceneToLocal(viewportBoundsInScene);
+                return viewportBoundsInPane ;
+            }, scrollPane.hvalueProperty(), scrollPane.vvalueProperty(), scrollPane.viewportBoundsProperty());
 
-        Thread th = new Thread(loadGamesTask);
-        th.setDaemon(true);
-        th.start();
+
+            FilteredList<GameButton> visibleNodes = new FilteredList<>(tilePane.getGameButtons());
+            visibleNodes.predicateProperty().bind(Bindings.createObjectBinding(() ->
+                            gameButton -> gameButton.getBoundsInParent().intersects(visibleBounds.get()),
+                    visibleBounds));
+
+
+            visibleNodes.addListener((ListChangeListener.Change<? extends GameButton> c) -> {
+                if(c.next()){
+                    c.getAddedSubList().forEach(o -> {
+                        o.clearCover();
+                        Main.LOGGER.debug("clearedCover: "+o.getEntry().getName());
+                    });
+                    c.getRemoved().forEach(o -> {
+                        o.showCover();
+                        Main.LOGGER.debug("showedCover: "+o.getEntry().getName());
+                    });
+                    System.out.println();
+                }
+            });*/
+        });
+        loadGamesTask.progressProperty().addListener((observable, oldValue, newValue) -> Platform.runLater(() -> {
+            if (newValue.doubleValue() == 1.0) {
+                statusLabel.setText("");
+            } else {
+                statusLabel.setText(Main.getString("loading") + " " + Math.round(newValue.doubleValue() * 100) + "%...");
+            }
+        }));
+        Main.getExecutorService().submit(loadGamesTask);
     }
 
     public void centerGameButtonInScrollPane(Node n, GamesTilePane pane) {
