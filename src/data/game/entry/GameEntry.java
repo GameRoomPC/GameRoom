@@ -299,6 +299,7 @@ public class GameEntry {
         return id;
     }
 
+    //TODO get rid of those method
     public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth) {
         return getImage(index, width, height, preserveRatio, smooth, false);
     }

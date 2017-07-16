@@ -365,7 +365,7 @@ public class Launcher extends Application {
                 MAIN_SCENE.saveScrollBarVValue();
             });
         }
-        ImageUtils.getExecutorService().shutdownNow();
+        Main.getExecutorService().shutdownNow();
         WindowFocusManager.shutdown();
         gameController.shutdown();
 

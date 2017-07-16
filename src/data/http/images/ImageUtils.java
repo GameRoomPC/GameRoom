@@ -67,12 +67,6 @@ public class ImageUtils {
     public final static String STEAM_SIZE_SMALL = "_sm_120";
     public final static String STEAM_SIZE_MEDIUM = "_616x353";
 
-    /*******************
-     * EXECUTOR_SERVICE
-     ***************************/
-    private final static ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
-
-
     public static Task downloadSteamImageToCache(int steam_id, String type, String size, OnDLDoneHandler dlDoneHandler) {
         String imageURL = STEAM_IMAGE_URL_PREFIX + steam_id + "/" + type + (type.equals(STEAM_TYPE_HEADER) ? "" : size) + ".jpg";
         String imageFileName = steam_id + "_" + type + (type.equals(STEAM_TYPE_HEADER) ? "" : size) + ".jpg";
@@ -264,12 +258,12 @@ public class ImageUtils {
      * @return true if it should keep it ratio, false otherwise.
      */
     public static boolean shouldKeepImageRatio(Image img) {
-        return Math.abs(((double) img.getHeight() / img.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2
+        return Math.abs((img.getHeight() / img.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2
                 && settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO);
     }
 
     public static ExecutorService getExecutorService() {
-        return EXECUTOR_SERVICE;
+        return Main.getExecutorService();
     }
 
 

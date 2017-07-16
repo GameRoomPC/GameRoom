@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,6 +67,11 @@ public class Main {
     public static volatile boolean KEEP_THREADS_RUNNING = true;
 
     private static String[] calling_args;
+
+    /*******************
+     * EXECUTOR_SERVICE
+     ***************************/
+    private final static ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
 
 
     public static void main(String[] args) {
@@ -263,5 +270,9 @@ public class Main {
         if (bundle != null) {
             SETTINGS_BUNDLE = bundle;
         }
+    }
+
+    public static ExecutorService getExecutorService() {
+        return EXECUTOR_SERVICE;
     }
 }

@@ -1,6 +1,7 @@
 package system.os;
 
 import data.http.images.ImageUtils;
+import ui.Main;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -50,7 +51,7 @@ public class Terminal {
             processBuilder.command().addAll(Arrays.asList("cmd.exe", "/c", "\"" + s + "\"", "&"));
         });
         Process process = processBuilder.start();
-        ImageUtils.getExecutorService().submit(() -> {
+        Main.getExecutorService().submit(() -> {
             try {
                 process.waitFor();
             } catch (InterruptedException e) {
