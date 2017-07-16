@@ -358,13 +358,7 @@ public class MainScene extends BaseScene {
                         lastWallpaperUpdate = currentTime;
                         setChangeBackgroundNextTime(false);
 
-                        Platform.runLater(() -> {
-                            Image screenshotImage = entry.getImage(1,
-                                    settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
-                                    settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
-                                    , false, true);
-                            setImageBackground(screenshotImage);
-                        });
+                        Platform.runLater(() -> setImageBackground(entry.getImagePath(1)));
                     }
                     updateProgress(finalI, GameEntryUtils.ENTRIES_LIST.size() - 1);
                     i++;
@@ -401,7 +395,7 @@ public class MainScene extends BaseScene {
                         for (File file : workingDir.listFiles()) {
                             if (file.isFile() && file.getName().startsWith("wallpaper")) {
                                 setChangeBackgroundNextTime(false);
-                                setImageBackground(new Image("file:///" + file.getAbsolutePath()), true);
+                                setImageBackground(file, true);
                                 break;
                             }
                         }
@@ -805,11 +799,11 @@ public class MainScene extends BaseScene {
         tilePane.getOnKeyPressed().handle(keyPressed);
     }
 
-    public void setImageBackground(Image img) {
-        setImageBackground(img, false);
+    public void setImageBackground(File imgFile) {
+        setImageBackground(imgFile, false);
     }
 
-    public void setImageBackground(Image img, boolean isStatic) {
+    public void setImageBackground(File imgFile, boolean isStatic) {
         if (settings().getBoolean(PredefinedSetting.ENABLE_STATIC_WALLPAPER) && !isStatic) {
             return;
         }
@@ -821,9 +815,8 @@ public class MainScene extends BaseScene {
                 maskView.setVisible(true);
             }
             if (!changeBackgroundNextTime) {
-                if (img != null) {
-                    if (backgroundView.getImage() == null || !backgroundView.getImage().equals(img)) {
-                        ImageUtils.transitionToWindowBackground(img, backgroundView);
+                if (imgFile != null) {
+                        ImageUtils.transitionToWindowBackground(imgFile, backgroundView);
                         if (maskView.getOpacity() != 1) {
                             Timeline fadeInTimeline = new Timeline(
                                     new KeyFrame(Duration.seconds(0),
@@ -835,7 +828,6 @@ public class MainScene extends BaseScene {
                             fadeInTimeline.setAutoReverse(false);
                             fadeInTimeline.play();
                         }
-                    }
                 } else {
                     Timeline fadeOutTimeline = new Timeline(
                             new KeyFrame(Duration.seconds(0),

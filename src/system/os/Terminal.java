@@ -1,5 +1,7 @@
 package system.os;
 
+import data.http.images.ImageUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -10,7 +12,6 @@ import java.util.Collections;
 import java.util.regex.Pattern;
 
 import static ui.Main.LOGGER;
-import static ui.control.button.gamebutton.GameButton.executorService;
 
 /**
  * Created by LM on 14/07/2016.
@@ -49,7 +50,7 @@ public class Terminal {
             processBuilder.command().addAll(Arrays.asList("cmd.exe", "/c", "\"" + s + "\"", "&"));
         });
         Process process = processBuilder.start();
-        executorService.submit(() -> {
+        ImageUtils.getExecutorService().submit(() -> {
             try {
                 process.waitFor();
             } catch (InterruptedException e) {

@@ -301,10 +301,7 @@ public final class SubMenuFactory {
                             , StandardCopyOption.REPLACE_EXISTING);
 
                     mainScene.setChangeBackgroundNextTime(false);
-                    mainScene.setImageBackground(new Image("file:///" + copiedPath,
-                            settings().getWindowWidth(),
-                            settings().getWindowHeight()
-                            , false, true), true);
+                    mainScene.setImageBackground(copiedFile,true);
                 }
             } catch (NullPointerException | IOException ne) {
                 ne.printStackTrace();

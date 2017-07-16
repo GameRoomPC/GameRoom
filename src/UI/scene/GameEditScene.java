@@ -611,19 +611,10 @@ public class GameEditScene extends BaseScene {
         row_count++;
 
         /**************************SCREENSHOT*********************************************/
-        OnDLDoneHandler screenshotDlDoneHandler = new OnDLDoneHandler() {
-            @Override
-            public void run(File outputfile) {
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
-                        ImageUtils.transitionToWindowBackground(img, backgroundView);
-                        chosenImageFiles[1] = outputfile;
-                    }
-                });
-            }
-        };
+        OnDLDoneHandler screenshotDlDoneHandler = outputFile -> Platform.runLater(() -> {
+            ImageUtils.transitionToWindowBackground(outputFile, backgroundView);
+            chosenImageFiles[1] = outputFile;
+        });
         contentPane.add(createTitleLabel("wallpaper", false), 0, row_count);
 
         HBox screenShotButtonsBox = new HBox();
@@ -888,7 +879,7 @@ public class GameEditScene extends BaseScene {
         if (coverImage != null) {
             ImageUtils.transitionToCover(coverImage, coverView);
         } else {
-            GameButton.getExecutorService().submit(() -> {
+            ImageUtils.getExecutorService().submit(() -> {
                 Platform.runLater(() -> {
                     ImageUtils.transitionToCover(entry.getImagePath(0), coverWidth, coverHeight, coverView);
                 });
@@ -1092,13 +1083,7 @@ public class GameEditScene extends BaseScene {
                         , (java.lang.String) item.getValue()
                         , ImageUtils.IGDB_TYPE_SCREENSHOT
                         , ImageUtils.IGDB_SIZE_MED
-                        , new OnDLDoneHandler() {
-                            @Override
-                            public void run(File outputfile) {
-                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
-                                ImageUtils.transitionToWindowBackground(img, backgroundView);
-                            }
-                        });
+                        , outputFile -> ImageUtils.transitionToWindowBackground(outputFile, backgroundView));
             }
         });
         Optional<ButtonType> screenShotSelectedHash = screenshotSelector.showAndWait();
@@ -1110,14 +1095,9 @@ public class GameEditScene extends BaseScene {
                         , screenshotSelector.getSelectedImageHash()
                         , ImageUtils.IGDB_TYPE_SCREENSHOT
                         , ImageUtils.IGDB_SIZE_BIG_2X
-                        , new OnDLDoneHandler() {
-                            @Override
-                            public void run(File outputfile) {
-                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
-                                ImageUtils.transitionToWindowBackground(img, backgroundView);
-
-                                chosenImageFiles[1] = outputfile;
-                            }
+                        , outputfile -> {
+                            ImageUtils.transitionToWindowBackground(outputfile, backgroundView);
+                            chosenImageFiles[1] = outputfile;
                         });
                 validEntriesConditions.add(new ValidEntryCondition() {
                     @Override
@@ -1139,14 +1119,7 @@ public class GameEditScene extends BaseScene {
                     entry.setIgdb_id(gameEntry.getIgdb_id());
                 }
             } else {
-                if (chosenImageFiles[1] != null) {
-                    Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
-                    ImageUtils.transitionToWindowBackground(img, backgroundView);
-                    LOGGER.debug(chosenImageFiles[1].getAbsolutePath());
-                } else {
-                    ImageUtils.transitionToImage(null, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
-                }
-
+                ImageUtils.transitionToWindowBackground(chosenImageFiles[1], backgroundView);
             }
         });
     }

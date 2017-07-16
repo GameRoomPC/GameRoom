@@ -1,5 +1,6 @@
 import data.game.entry.GameEntryUtils;
 import data.game.scraper.IGDBScraper;
+import data.http.images.ImageUtils;
 import data.io.DataBase;
 import data.io.FileUtils;
 import data.migration.OldSettings;
@@ -25,7 +26,6 @@ import system.device.GameController;
 import system.os.WinReg;
 import ui.GeneralToast;
 import ui.Main;
-import ui.control.button.gamebutton.GameButton;
 import ui.dialog.ConsoleOutputDialog;
 import ui.dialog.WindowFocusManager;
 import ui.scene.BaseScene;
@@ -209,7 +209,7 @@ public class Launcher extends Application {
         if (START_MINIMIZED && appStart) {
             primaryStage.setOpacity(0);
         }
-        if(!settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED)){
+        if (!settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED)) {
             primaryStage.setX(settings().getDouble(PredefinedSetting.WINDOW_X));
             primaryStage.setY(settings().getDouble(PredefinedSetting.WINDOW_Y));
         }
@@ -365,8 +365,10 @@ public class Launcher extends Application {
                 MAIN_SCENE.saveScrollBarVValue();
             });
         }
-        GameButton.getExecutorService().shutdownNow();
+        ImageUtils.getExecutorService().shutdownNow();
         WindowFocusManager.shutdown();
+        gameController.shutdown();
+
         FileUtils.clearFolder(Main.FILES_MAP.get("cache"));
         FileUtils.clearFolder(Main.FILES_MAP.get("temp"));
 

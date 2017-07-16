@@ -8,7 +8,6 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -42,13 +41,10 @@ import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static javafx.scene.input.MouseEvent.*;
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
-import static ui.scene.BaseScene.BACKGROUND_IMAGE_LOAD_RATIO;
 
 /**
  * Created by LM on 12/07/2016.
@@ -57,7 +53,6 @@ public abstract class GameButton extends BorderPane {
     private static HashMap<String, Image> DEFAULT_IMAGES = new HashMap<>();
     private static Image DEFAULT_PLAY_IMAGE;
     private static Image DEFAULT_INFO_IMAGE;
-    public final static ExecutorService executorService = Executors.newCachedThreadPool();
 
 
     private final static double RATIO_NOTINSTALLEDIMAGE_COVER = 1 / 3.0;
@@ -457,21 +452,7 @@ public abstract class GameButton extends BorderPane {
                         playButton.fireEvent(new MouseEvent(MOUSE_ENTERED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
                     }
                     if (!settings().getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
-                        Task backGroundImageTask = new Task() {
-                            @Override
-                            protected Object call() throws Exception {
-                                Image screenshotImage = entry.getImage(1,
-                                        settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
-                                        settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
-                                        , false, true);
-
-                                Main.runAndWait(() -> {
-                                    MAIN_SCENE.setImageBackground(screenshotImage);
-                                });
-                                return null;
-                            }
-                        };
-                        executorService.submit(backGroundImageTask);
+                        ImageUtils.getExecutorService().submit(() -> Main.runAndWait(() -> MAIN_SCENE.setImageBackground(entry.getImagePath(1))));
                     }
 
                 } else {
@@ -711,10 +692,7 @@ public abstract class GameButton extends BorderPane {
         double width = getCoverWidth();
         double height = getCoverHeight();
 
-        executorService.submit(() -> ImageUtils.transitionToCover(entry.getImagePath(0), width, height, coverView));
+        ImageUtils.getExecutorService().submit(() -> ImageUtils.transitionToCover(entry.getImagePath(0), width, height, coverView));
     }
 
-    public static ExecutorService getExecutorService() {
-        return executorService;
-    }
 }

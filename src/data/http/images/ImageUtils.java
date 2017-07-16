@@ -19,9 +19,11 @@ import ui.scene.BaseScene;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
+import static ui.scene.BaseScene.BACKGROUND_IMAGE_LOAD_RATIO;
 import static ui.scene.BaseScene.FADE_IN_OUT_TIME;
 
 /**
@@ -65,6 +67,12 @@ public class ImageUtils {
     public final static String STEAM_SIZE_SMALL = "_sm_120";
     public final static String STEAM_SIZE_MEDIUM = "_616x353";
 
+    /*******************
+     * EXECUTOR_SERVICE
+     ***************************/
+    private final static ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+
+
     public static Task downloadSteamImageToCache(int steam_id, String type, String size, OnDLDoneHandler dlDoneHandler) {
         String imageURL = STEAM_IMAGE_URL_PREFIX + steam_id + "/" + type + (type.equals(STEAM_TYPE_HEADER) ? "" : size) + ".jpg";
         String imageFileName = steam_id + "_" + type + (type.equals(STEAM_TYPE_HEADER) ? "" : size) + ".jpg";
@@ -103,10 +111,35 @@ public class ImageUtils {
         return downloadImgToCache(url, getOutputImageCacheFile(filenameOutput), dlDoneHandler, null);
     }
 
+    /** Basically does the same as {@link #transitionToImage(Image, ImageView, double)}, but with the predefined opacity
+     * of {@link BaseScene#BACKGROUND_IMAGE_MAX_OPACITY}.
+     *
+     * @param img the background image to load
+     * @param imageView and where to place it
+     */
     public static void transitionToWindowBackground(Image img, ImageView imageView) {
         ImageUtils.transitionToImage(img, imageView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
-
     }
+
+    /** Basically does the same as {@link #transitionToWindowBackground(Image, ImageView)}, but creates the new Image
+     * with the Window's size and stretched ratio.
+     *
+     * @param imgFile the file to load the background image from
+     * @param imageView and where to place it
+     */
+    public static void transitionToWindowBackground(File imgFile, ImageView imageView) {
+        if(imgFile == null){
+            ImageUtils.transitionToWindowBackground((Image) null,imageView);
+        }else {
+            ImageUtils.transitionToWindowBackground(new Image("file:" + File.separator + File.separator + File.separator + imgFile.getAbsolutePath(),
+                            settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
+                            settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO,
+                            false,
+                            true),
+                    imageView);
+        }
+    }
+
 
     /**
      * Makes a smooth transition between the given image and the current image of the imageView. It does a simple
@@ -240,5 +273,10 @@ public class ImageUtils {
         return Math.abs(((double) img.getHeight() / img.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2
                 && settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO);
     }
+
+    public static ExecutorService getExecutorService() {
+        return EXECUTOR_SERVICE;
+    }
+
 
 }
