@@ -16,6 +16,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import system.application.settings.PredefinedSetting;
@@ -34,6 +35,8 @@ import java.util.Optional;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
+import static ui.scene.MainScene.INPUT_MODE_KEYBOARD;
+import static ui.scene.MainScene.INPUT_MODE_MOUSE;
 
 /**
  * Created by LM on 03/07/2016.
@@ -49,6 +52,24 @@ public class GameInfoScene extends BaseScene {
 
     public GameInfoScene(StackPane stackPane, Stage parentStage, BaseScene previousScene, GameEntry entry) {
         super(stackPane, parentStage);
+        switch (MAIN_SCENE.getInputMode()) {
+            case INPUT_MODE_KEYBOARD:
+                setCursor(javafx.scene.Cursor.NONE);
+                wrappingPane.setMouseTransparent(true);
+                break;
+
+            default:
+            case INPUT_MODE_MOUSE:
+                setCursor(javafx.scene.Cursor.DEFAULT);
+                wrappingPane.setMouseTransparent(false);
+                break;
+        }
+        addEventHandler(MouseEvent.MOUSE_MOVED, event -> {
+            setCursor(javafx.scene.Cursor.DEFAULT);
+            wrappingPane.setMouseTransparent(false);
+            MAIN_SCENE.setInputMode(INPUT_MODE_MOUSE);
+        });
+
         this.entry = entry;
         this.previousScene = previousScene;
         initTop();
@@ -67,7 +88,7 @@ public class GameInfoScene extends BaseScene {
                     break;
             }
         });
-        if (previousScene instanceof MainScene && ((MainScene) previousScene).getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
+        if (previousScene instanceof MainScene && ((MainScene) previousScene).getInputMode() == INPUT_MODE_KEYBOARD) {
             coverButton.requestFocus();
         }
     }
@@ -121,7 +142,7 @@ public class GameInfoScene extends BaseScene {
     }
 
     private void initTop() {
-        StackPane topStackPane = createTop(entry.getName(),entry.getPlatform().getIconCSSId());
+        StackPane topStackPane = createTop(entry.getName(), entry.getPlatform().getIconCSSId());
         if (!settings().getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
             try {
                 ytButton = new YoutubePlayerAndButton(entry, this);
@@ -196,8 +217,8 @@ public class GameInfoScene extends BaseScene {
         addProperty("developer", Company.getDisplayString(entry.getDevelopers()));
         addProperty("publisher", Company.getDisplayString(entry.getPublishers()));
         addProperty("serie", entry.getSerie().getName());
-        addProperty("genre",GameGenre.getDisplayString(entry.getGenres()));
-        addProperty("theme",GameTheme.getDisplayString(entry.getThemes()));
+        addProperty("genre", GameGenre.getDisplayString(entry.getGenres()));
+        addProperty("theme", GameTheme.getDisplayString(entry.getThemes()));
         addProperty("description", entry.getDescription());
 
         GridPane coverAndPropertiesPane = new GridPane();
@@ -244,8 +265,8 @@ public class GameInfoScene extends BaseScene {
         updateProperty("developer", Company.getDisplayString(entry.getDevelopers()));
         updateProperty("publisher", Company.getDisplayString(entry.getPublishers()));
         updateProperty("serie", editedEntry.getSerie().getName());
-        updateProperty("genre",GameGenre.getDisplayString(entry.getGenres()));
-        updateProperty("theme",GameTheme.getDisplayString(entry.getThemes()));
+        updateProperty("genre", GameGenre.getDisplayString(entry.getGenres()));
+        updateProperty("theme", GameTheme.getDisplayString(entry.getThemes()));
         updateProperty("description", editedEntry.getDescription());
         Image backgroundImage = editedEntry.getImage(1,
                 settings().getWindowWidth(),

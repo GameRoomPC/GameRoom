@@ -24,7 +24,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.GaussianBlur;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -96,13 +95,9 @@ public class MainScene extends BaseScene {
     public MainScene(Stage parentStage) {
         super(new StackPane(), parentStage);
         setCursor(Cursor.DEFAULT);
-        addEventHandler(MouseEvent.MOUSE_MOVED, new EventHandler<MouseEvent>() {
-
-            @Override
-            public void handle(MouseEvent event) {
-                if (getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
-                    setInputMode(MainScene.INPUT_MODE_MOUSE);
-                }
+        addEventHandler(MouseEvent.MOUSE_MOVED, event -> {
+            if (getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
+                setInputMode(MainScene.INPUT_MODE_MOUSE);
             }
         });
         initAll();
@@ -807,7 +802,8 @@ public class MainScene extends BaseScene {
      * Sets the background image of the this {@link MainScene}. Checks if it should update the background or not (option
      * {@link PredefinedSetting#DISABLE_MAINSCENE_WALLPAPER} chosen or not), and if it should not change because the user
      * has set a static background image.
-     * @param imgFile the imgFile to use to change the background
+     *
+     * @param imgFile  the imgFile to use to change the background
      * @param isStatic whether this image should not be changed by {@link GameButton}
      */
     public void setImageBackground(File imgFile, boolean isStatic) {
@@ -823,18 +819,18 @@ public class MainScene extends BaseScene {
             }
             if (!changeBackgroundNextTime) {
                 if (imgFile != null) {
-                        ImageUtils.transitionToWindowBackground(imgFile, backgroundView);
-                        if (maskView.getOpacity() != 1) {
-                            Timeline fadeInTimeline = new Timeline(
-                                    new KeyFrame(Duration.seconds(0),
-                                            new KeyValue(maskView.opacityProperty(), maskView.opacityProperty().getValue(), Interpolator.EASE_IN)),
-                                    new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                            new KeyValue(maskView.opacityProperty(), 1, Interpolator.EASE_OUT)
-                                    ));
-                            fadeInTimeline.setCycleCount(1);
-                            fadeInTimeline.setAutoReverse(false);
-                            fadeInTimeline.play();
-                        }
+                    ImageUtils.transitionToWindowBackground(imgFile, backgroundView);
+                    if (maskView.getOpacity() != 1) {
+                        Timeline fadeInTimeline = new Timeline(
+                                new KeyFrame(Duration.seconds(0),
+                                        new KeyValue(maskView.opacityProperty(), maskView.opacityProperty().getValue(), Interpolator.EASE_IN)),
+                                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                        new KeyValue(maskView.opacityProperty(), 1, Interpolator.EASE_OUT)
+                                ));
+                        fadeInTimeline.setCycleCount(1);
+                        fadeInTimeline.setAutoReverse(false);
+                        fadeInTimeline.play();
+                    }
                 } else {
                     Timeline fadeOutTimeline = new Timeline(
                             new KeyFrame(Duration.seconds(0),
@@ -968,10 +964,10 @@ public class MainScene extends BaseScene {
     private void initKeyShortcuts() {
         addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.ESCAPE) {
-                if(drawerMenu.isSubMenuOpened()) {
+                if (drawerMenu.isSubMenuOpened()) {
                     event.consume();
                     drawerMenu.closeSubMenu(MainScene.this);
-                }else{
+                } else {
                     event.consume();
                     drawerMenu.quitGameRoom();
                 }
