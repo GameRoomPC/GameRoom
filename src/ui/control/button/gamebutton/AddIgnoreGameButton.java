@@ -40,9 +40,9 @@ public class AddIgnoreGameButton extends GameButton {
 
     public AddIgnoreGameButton(GameEntry entry, MainScene mainScene, TilePane parent, ToAddRowTilePane parentPane) {
         super(entry, mainScene, parent);
-        disableNode(infoButton, true);
-        disableNode(playTimeLabel, true);
-        disableNode(playButton, true);
+        disableNode(infoButton);
+        disableNode(playTimeLabel);
+        disableNode(playButton);
 
         addButton = new ImageButton("toaddtile-add-button", Main.SCREEN_WIDTH / 10, Main.SCREEN_WIDTH / 10);
         addButton.setOnAction(new EventHandler<ActionEvent>() {
