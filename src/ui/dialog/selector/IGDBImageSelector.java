@@ -120,8 +120,8 @@ public class IGDBImageSelector extends GameRoomDialog<ButtonType> {
                     , ImageUtils.IGDB_SIZE_MED
                     , new OnDLDoneHandler() {
                         @Override
-                        public void run(File outputfile) {
-                            Image img = new Image("file:"+ File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), prefTileWidth, prefTileHeight, false, true);
+                        public void run(File outputFile) {
+                            Image img = new Image("file:"+ File.separator + File.separator + File.separator + outputFile.getAbsolutePath(), prefTileWidth, prefTileHeight, false, true);
                             ImageUtils.transitionToImage(img, imageView);
                         }
                     });

@@ -87,50 +87,44 @@ public class ImageUtils {
         return new File(Main.FILES_MAP.get("cache") + File.separator + fileName);
     }
 
-    public static Task downloadIGDBImageToCache(ExecutorService executor, int igdb_id, String imageHash, String type, String size, OnDLDoneHandler dlDoneHandler) {
-        String imageURL = IGDB_IMAGE_URL_PREFIX + type + size + "/" + imageHash + ".jpg";
-        return downloadImgToCache(imageURL, getIGDBImageCacheFileOutput(igdb_id, imageHash, type, size), dlDoneHandler, executor);
-    }
-
     public static Task downloadIGDBImageToCache(int igdb_id, String imageHash, String type, String size, OnDLDoneHandler dlDoneHandler) {
-        return downloadIGDBImageToCache(null, igdb_id, imageHash, type, size, dlDoneHandler);
+        String imageURL = IGDB_IMAGE_URL_PREFIX + type + size + "/" + imageHash + ".jpg";
+        return downloadImgToCache(imageURL, getIGDBImageCacheFileOutput(igdb_id, imageHash, type, size), dlDoneHandler);
     }
 
-    private static Task downloadImgToCache(String url, File fileOutput, OnDLDoneHandler dlDoneHandler, ExecutorService executor) {
+    private static Task downloadImgToCache(String url, File fileOutput, OnDLDoneHandler dlDoneHandler) {
         fileOutput.deleteOnExit();
         ImageDownloadTask task = new ImageDownloadTask(url, fileOutput, dlDoneHandler);
-        if (executor != null && executor.isShutdown()) {
-            executor.submit(task);
-        } else {
-            ImageDownloaderService.getInstance().addTask(task);
-        }
+        getExecutorService().submit(task);
         return task;
     }
 
     private static Task downloadImgToCache(String url, String filenameOutput, OnDLDoneHandler dlDoneHandler) {
-        return downloadImgToCache(url, getOutputImageCacheFile(filenameOutput), dlDoneHandler, null);
+        return downloadImgToCache(url, getOutputImageCacheFile(filenameOutput), dlDoneHandler);
     }
 
-    /** Basically does the same as {@link #transitionToImage(Image, ImageView, double)}, but with the predefined opacity
+    /**
+     * Basically does the same as {@link #transitionToImage(Image, ImageView, double)}, but with the predefined opacity
      * of {@link BaseScene#BACKGROUND_IMAGE_MAX_OPACITY}.
      *
-     * @param img the background image to load
+     * @param img       the background image to load
      * @param imageView and where to place it
      */
     public static void transitionToWindowBackground(Image img, ImageView imageView) {
         ImageUtils.transitionToImage(img, imageView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
     }
 
-    /** Basically does the same as {@link #transitionToWindowBackground(Image, ImageView)}, but creates the new Image
+    /**
+     * Basically does the same as {@link #transitionToWindowBackground(Image, ImageView)}, but creates the new Image
      * with the Window's size and stretched ratio.
      *
-     * @param imgFile the file to load the background image from
+     * @param imgFile   the file to load the background image from
      * @param imageView and where to place it
      */
     public static void transitionToWindowBackground(File imgFile, ImageView imageView) {
-        if(imgFile == null){
-            ImageUtils.transitionToWindowBackground((Image) null,imageView);
-        }else {
+        if (imgFile == null) {
+            ImageUtils.transitionToWindowBackground((Image) null, imageView);
+        } else {
             ImageUtils.transitionToWindowBackground(new Image("file:" + File.separator + File.separator + File.separator + imgFile.getAbsolutePath(),
                             settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
                             settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO,

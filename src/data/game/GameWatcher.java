@@ -2,11 +2,10 @@ package data.game;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.LevenshteinDistance;
-import data.game.entry.GameEntryUtils;
 import data.game.entry.GameEntry;
+import data.game.entry.GameEntryUtils;
 import data.game.scanner.*;
 import data.game.scraper.IGDBScraper;
-import data.game.scraper.OnDLDoneHandler;
 import data.http.images.ImageUtils;
 import javafx.application.Platform;
 import org.json.JSONArray;
@@ -16,14 +15,17 @@ import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.dialog.GameRoomAlert;
 
-import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.concurrent.*;
 
 import static system.application.settings.GeneralSettings.settings;
-import static ui.Main.*;
+import static ui.Main.LOGGER;
+import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 17/08/2016.
@@ -313,53 +315,45 @@ public class GameWatcher {
                                     toScrapEntry.setIgdb_id(scrappedEntry.getIgdb_id());
                                     toScrapEntry.setSavedLocally(false);
 
-                                    ImageUtils.downloadIGDBImageToCache(EXECUTOR_SERVICE
-                                            , scrappedEntry.getIgdb_id()
+                                    ImageUtils.downloadIGDBImageToCache(scrappedEntry.getIgdb_id()
                                             , scrappedEntry.getIgdb_imageHash(0)
                                             , ImageUtils.IGDB_TYPE_COVER
                                             , ImageUtils.IGDB_SIZE_BIG_2X
-                                            , new OnDLDoneHandler() {
-                                                @Override
-                                                public void run(File outputfile) {
-                                                    try {
-                                                        toScrapEntry.setSavedLocally(true);
-                                                        toScrapEntry.updateImage(0, outputfile);
-                                                        toScrapEntry.setSavedLocally(false);
-                                                    } catch (Exception e) {
-                                                        Main.LOGGER.error("GameWatcher : could not move image for game " + toScrapEntry.getName());
-                                                        e.printStackTrace();
-                                                    }
-
-                                                    Main.runAndWait(() -> {
-                                                        Main.MAIN_SCENE.updateGame(scrappedEntry);
-                                                    });
-
-                                                    ImageUtils.downloadIGDBImageToCache(EXECUTOR_SERVICE
-                                                            , scrappedEntry.getIgdb_id()
-                                                            , scrappedEntry.getIgdb_imageHash(1)
-                                                            , ImageUtils.IGDB_TYPE_SCREENSHOT
-                                                            , ImageUtils.IGDB_SIZE_BIG_2X
-                                                            , new OnDLDoneHandler() {
-                                                                @Override
-                                                                public void run(File outputfile) {
-                                                                    try {
-                                                                        toScrapEntry.setSavedLocally(true);
-                                                                        toScrapEntry.updateImage(1, outputfile);
-                                                                        toScrapEntry.setSavedLocally(false);
-                                                                    } catch (Exception e) {
-                                                                        Main.LOGGER.error("GameWatcher : could not move image for game " + toScrapEntry.getName());
-                                                                        e.printStackTrace();
-                                                                    }
-                                                                    toScrapEntry.setSavedLocally(true);
-                                                                    toScrapEntry.setWaitingToBeScrapped(false);
-                                                                    toScrapEntry.setBeingScraped(false);
-                                                                    toScrapEntry.setSavedLocally(false);
-                                                                    Main.runAndWait(() -> {
-                                                                        Main.MAIN_SCENE.updateGame(toScrapEntry);
-                                                                    });
-                                                                }
-                                                            });
+                                            , outputFile -> {
+                                                try {
+                                                    toScrapEntry.setSavedLocally(true);
+                                                    toScrapEntry.updateImage(0, outputFile);
+                                                    toScrapEntry.setSavedLocally(false);
+                                                } catch (Exception e) {
+                                                    Main.LOGGER.error("GameWatcher : could not move image for game " + toScrapEntry.getName());
+                                                    e.printStackTrace();
                                                 }
+
+                                                Main.runAndWait(() -> {
+                                                    Main.MAIN_SCENE.updateGame(scrappedEntry);
+                                                });
+
+                                                ImageUtils.downloadIGDBImageToCache(scrappedEntry.getIgdb_id()
+                                                        , scrappedEntry.getIgdb_imageHash(1)
+                                                        , ImageUtils.IGDB_TYPE_SCREENSHOT
+                                                        , ImageUtils.IGDB_SIZE_BIG_2X
+                                                        , outputfile1 -> {
+                                                            try {
+                                                                toScrapEntry.setSavedLocally(true);
+                                                                toScrapEntry.updateImage(1, outputfile1);
+                                                                toScrapEntry.setSavedLocally(false);
+                                                            } catch (Exception e) {
+                                                                Main.LOGGER.error("GameWatcher : could not move image for game " + toScrapEntry.getName());
+                                                                e.printStackTrace();
+                                                            }
+                                                            toScrapEntry.setSavedLocally(true);
+                                                            toScrapEntry.setWaitingToBeScrapped(false);
+                                                            toScrapEntry.setBeingScraped(false);
+                                                            toScrapEntry.setSavedLocally(false);
+                                                            Main.runAndWait(() -> {
+                                                                Main.MAIN_SCENE.updateGame(toScrapEntry);
+                                                            });
+                                                        });
                                             });
                                 }
 

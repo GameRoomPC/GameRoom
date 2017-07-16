@@ -363,17 +363,17 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             if (coverHash != null) {
                 ImageUtils.downloadIGDBImageToCache(id, coverHash, ImageUtils.IGDB_TYPE_COVER, ImageUtils.IGDB_SIZE_SMALL, new OnDLDoneHandler() {
                     @Override
-                    public void run(File outputfile) {
+                    public void run(File outputFile) {
                         boolean keepRatio = true;
                         try {
-                            SimpleImageInfo imageInfo = new SimpleImageInfo(outputfile);
+                            SimpleImageInfo imageInfo = new SimpleImageInfo(outputFile);
                             keepRatio = Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2;
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                         boolean finalKeepRatio = keepRatio;
                         Platform.runLater(() -> {
-                            ImageUtils.transitionToImage(new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, finalKeepRatio, true), coverView);
+                            ImageUtils.transitionToImage(new Image("file:" + File.separator + File.separator + File.separator + outputFile.getAbsolutePath(), COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, finalKeepRatio, true), coverView);
                         });
                     }
                 });
