@@ -97,6 +97,7 @@ public class OldGameEntry {
     public static void transferOldGameEntries() {
         File toAddFolder = FILES_MAP.get("to_add");
         File gamesFolder = FILES_MAP.get("games");
+        File configFile = FILES_MAP.get("config.properties");
         File[] ignoredFiles = OldSettings.getIgnoredFiles();
         SteamPreEntry[] ignoredSteam = OldSettings.getIgnoredSteamApps();
 
@@ -146,6 +147,7 @@ public class OldGameEntry {
 
             toAddFolder.renameTo(new File(toAddFolder.getAbsolutePath() + ".bak"));
             gamesFolder.renameTo(new File(gamesFolder.getAbsolutePath() + ".bak"));
+            configFile.renameTo(new File(configFile.getAbsolutePath() + ".bak"));
 
         } catch (SQLException e) {
             e.printStackTrace();

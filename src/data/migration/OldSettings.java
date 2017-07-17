@@ -65,7 +65,6 @@ public class OldSettings {
                     e.printStackTrace();
                 }
             }
-            configFile.renameTo(new File(configFile.getAbsolutePath() + ".bak"));
         }
     }
 
