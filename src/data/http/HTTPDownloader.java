@@ -3,10 +3,8 @@ package data.http;
 /**
  * Created by LM on 13/07/2016.
  */
+
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,8 +14,8 @@ import java.net.URL;
 
 /**
  * A utility that downloads a file from a URL.
- * @author www.codejava.net
  *
+ * @author www.codejava.net
  */
 public class HTTPDownloader {
     private static final int BUFFER_SIZE = 4096;
@@ -25,11 +23,12 @@ public class HTTPDownloader {
 
     /**
      * Downloads a file from a URL
+     *
      * @param fileURL HTTP URL of the file to be downloaded
      * @param saveDir path of the directory to save the file
      * @throws IOException
      */
-    public static void downloadFile(String fileURL, String saveDir, String fileName)
+    public static boolean downloadFile(String fileURL, String saveDir, String fileName)
             throws IOException {
 
         URL url = new URL(fileURL);
@@ -66,19 +65,22 @@ public class HTTPDownloader {
 
             outputStream.close();
             inputStream.close();
-
+            httpConn.disconnect();
             //System.out.println("File downloaded");
+            return true;
         } else {
+            httpConn.disconnect();
             System.out.println("No file to download. Server replied HTTP code: " + responseCode);
+            return false;
         }
-        httpConn.disconnect();
     }
-    public static void main(String[] args){
+
+    public static void main(String[] args) {
         String imageURL = "https://images.igdb.com/igdb/image/upload/t_cover_big_2x/vdzfsbissgp55fvfxccp.jpg";
         File output = new File("cache/");
         try {
             output.mkdir();
-            downloadFile(imageURL,output.getAbsolutePath(),"1020_cover_big_2x.jpg");
+            downloadFile(imageURL, output.getAbsolutePath(), "1020_cover_big_2x.jpg");
         } catch (IOException e) {
             e.printStackTrace();
         }

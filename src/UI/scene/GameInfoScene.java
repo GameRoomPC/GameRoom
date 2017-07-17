@@ -247,7 +247,7 @@ public class GameInfoScene extends BaseScene {
         updateProperty("theme", GameTheme.getDisplayString(entry.getThemes()));
         updateProperty("description", editedEntry.getDescription());
 
-        ImageUtils.transitionToWindowBackground(editedEntry.getImagePath(1),backgroundView);
+        ImageUtils.setWindowBackground(editedEntry.getImagePath(1),backgroundView);
         coverButton.reloadWith(editedEntry);
     }
 

@@ -76,22 +76,73 @@ public class ImageUtils {
         return downloadImgToCache(imageURL, imageFileName, dlDoneHandler);
     }
 
+    /**
+     * Returns the file associated to the cache image we want to create
+     *
+     * @param igdb_id   the id of the game the image corresponds to
+     * @param imageHash the hash of the IGDB image
+     * @param type      type of the image, either {@link #IGDB_TYPE_COVER} or {@link #IGDB_TYPE_SCREENSHOT}
+     * @param size      max size of the image we want, range from {@link #IGDB_SIZE_SMALL} to {@link #IGDB_SIZE_BIG_2X}
+     * @return the file pointing to the omage we want to create into the cache
+     */
     private static File getIGDBImageCacheFileOutput(int igdb_id, String imageHash, String type, String size) {
         return getOutputImageCacheFile(igdb_id + "_" + type + size + "_" + imageHash + ".jpg");
     }
 
+    /**
+     * Simply returns a cached filename
+     *
+     * @param fileName the filename to use
+     * @return a file pointing to our cached file if we want to create it
+     */
     private static File getOutputImageCacheFile(String fileName) {
         return new File(Main.FILES_MAP.get("cache") + File.separator + fileName);
     }
 
+    /**
+     * Downloads an image from IGDB servers to the local cache server. If the image does exist for the given size, it will
+     * attempt to download a lower size version.
+     *
+     * @param igdb_id       the id of the game, to compute the output file name
+     * @param imageHash     the hash of the IGDB image
+     * @param type          type of the image, either {@link #IGDB_TYPE_COVER} or {@link #IGDB_TYPE_SCREENSHOT}
+     * @param size          max size of the image we want, range from {@link #IGDB_SIZE_SMALL} to {@link #IGDB_SIZE_BIG_2X}
+     * @param dlDoneHandler handler of our download, i.e. what to do when download done
+     * @return the task used to download the image
+     */
     public static Task downloadIGDBImageToCache(int igdb_id, String imageHash, String type, String size, OnDLDoneHandler dlDoneHandler) {
         String imageURL = IGDB_IMAGE_URL_PREFIX + type + size + "/" + imageHash + ".jpg";
-        return downloadImgToCache(imageURL, getIGDBImageCacheFileOutput(igdb_id, imageHash, type, size), dlDoneHandler);
+        String[] alternativeURLs;
+        switch (size) {
+            case IGDB_SIZE_BIG_2X:
+                alternativeURLs = new String[]{
+                        IGDB_IMAGE_URL_PREFIX + type + IGDB_SIZE_BIG + "/" + imageHash + ".jpg",
+                        IGDB_IMAGE_URL_PREFIX + type + IGDB_SIZE_MED + "/" + imageHash + ".jpg",
+                        IGDB_IMAGE_URL_PREFIX + type + IGDB_SIZE_SMALL + "/" + imageHash + ".jpg"
+                };
+                break;
+            case IGDB_SIZE_BIG:
+                alternativeURLs = new String[]{
+                        IGDB_IMAGE_URL_PREFIX + type + IGDB_SIZE_MED + "/" + imageHash + ".jpg",
+                        IGDB_IMAGE_URL_PREFIX + type + IGDB_SIZE_SMALL + "/" + imageHash + ".jpg"
+                };
+                break;
+            case IGDB_SIZE_MED:
+                alternativeURLs = new String[]{
+                        IGDB_IMAGE_URL_PREFIX + type + IGDB_SIZE_SMALL + "/" + imageHash + ".jpg"
+                };
+                break;
+            default:
+                alternativeURLs = new String[0];
+                break;
+        }
+        return downloadImgToCache(imageURL, getIGDBImageCacheFileOutput(igdb_id, imageHash, type, size), dlDoneHandler, alternativeURLs);
     }
 
-    private static Task downloadImgToCache(String url, File fileOutput, OnDLDoneHandler dlDoneHandler) {
+    private static Task downloadImgToCache(String url, File fileOutput, OnDLDoneHandler dlDoneHandler, String... alternativeURLs) {
         fileOutput.deleteOnExit();
         ImageDownloadTask task = new ImageDownloadTask(url, fileOutput, dlDoneHandler);
+        task.setAlternativeURLs(alternativeURLs);
         getExecutorService().submit(task);
         return task;
     }
@@ -174,7 +225,8 @@ public class ImageUtils {
     /**
      * Does basically the same as {@link #transitionToWindowBackground(File, ImageView)}, but without having a transition
      * but rather a direct load. This is useful when changing between scenes where we want to keep the same background
-     * @param imgFile the file pointing to the image to use
+     *
+     * @param imgFile   the file pointing to the image to use
      * @param imageView where to load the image
      */
     public static void setWindowBackground(File imgFile, ImageView imageView) {
@@ -192,7 +244,8 @@ public class ImageUtils {
 
     /**
      * See {@link #setWindowBackground(File, ImageView)}
-     * @param img the image to use
+     *
+     * @param img       the image to use
      * @param imageView where to load the image
      */
     public static void setWindowBackground(Image img, ImageView imageView) {
