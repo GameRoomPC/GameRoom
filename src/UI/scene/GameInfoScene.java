@@ -4,6 +4,7 @@ import data.game.entry.Company;
 import data.game.entry.GameEntry;
 import data.game.entry.GameGenre;
 import data.game.entry.GameTheme;
+import data.http.images.ImageUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -258,32 +259,9 @@ public class GameInfoScene extends BaseScene {
         updateProperty("genre", GameGenre.getDisplayString(entry.getGenres()));
         updateProperty("theme", GameTheme.getDisplayString(entry.getThemes()));
         updateProperty("description", editedEntry.getDescription());
-        Image backgroundImage = editedEntry.getImage(1,
-                settings().getWindowWidth(),
-                settings().getWindowHeight()
-                , false, true);
-        //no need to fade transition here as it is the "right" image and no actual change
-        double widthScale = 1;
-        double heightScale = 1;
 
-        if (backgroundImage != null && backgroundImage.getWidth() != settings().getWindowWidth()) {
-            widthScale = (double) settings().getWindowWidth() / backgroundImage.getWidth();
-        }
-        if (backgroundImage != null && backgroundImage.getHeight() != settings().getWindowHeight()) {
-            heightScale = (double) settings().getWindowHeight() / backgroundImage.getHeight();
-        }
-        backgroundView.setScaleX(widthScale);
-        backgroundView.setScaleY(heightScale);
-        backgroundView.setImage(backgroundImage);
-        GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
-
-        backgroundView.setEffect(blur);
-        backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
-        coverButton.setImage(editedEntry.getImage(0
-                , coverButton.getWidth()
-                , coverButton.getHeight()
-                , false
-                , true));
+        ImageUtils.transitionToWindowBackground(editedEntry.getImagePath(1),backgroundView);
+        coverButton.reloadWith(editedEntry);
     }
 
     private void updateProperty(String title, String value) {
