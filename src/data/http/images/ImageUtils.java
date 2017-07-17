@@ -277,7 +277,7 @@ public class ImageUtils {
     public static void transitionToCover(File imgFile, double requestedWidth, double requestedHeight, ImageView imageView) {
         boolean preserveRatio = shouldKeepImageRatio(imgFile);
         imageView.setPreserveRatio(preserveRatio);
-        transitionToImage(new Image("file:" + File.separator + File.separator + File.separator + imgFile.getAbsolutePath(),
+        transitionToImage(imgFile == null ? null : new Image("file:" + File.separator + File.separator + File.separator + imgFile.getAbsolutePath(),
                         requestedWidth,
                         requestedHeight,
                         preserveRatio,
@@ -329,6 +329,9 @@ public class ImageUtils {
      * @return true if it should keep its cover ratio, false otherwise
      */
     public static boolean shouldKeepImageRatio(File imgFile) {
+        if(imgFile == null || !imgFile.exists()){
+            return false;
+        }
         try {
             SimpleImageInfo imageInfo = new SimpleImageInfo(new File(imgFile.getAbsolutePath()));
             return Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2
