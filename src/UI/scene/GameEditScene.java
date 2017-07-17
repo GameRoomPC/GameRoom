@@ -259,18 +259,7 @@ public class GameEditScene extends BaseScene {
     }
 
     private void initCenter(Image coverImage) {
-        GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
-
-        backgroundView.setEffect(blur);
-        backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
-        if (entry.getImagePath(1) != null) {
-            //Main.LOGGER.debug("Screenshot available : "+entry.getImagePath(1));
-            Image screenshotImage = entry.getImage(1,
-                    settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
-                    settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
-                    , false, true);
-            backgroundView.setImage(screenshotImage);
-        }
+        ImageUtils.setWindowBackground(entry.getImagePath(1),backgroundView);
 
         contentPane = new GridPane();
         //contentPane.setGridLinesVisible(true);

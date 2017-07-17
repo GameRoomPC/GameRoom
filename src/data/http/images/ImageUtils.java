@@ -8,6 +8,7 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
@@ -19,11 +20,9 @@ import ui.scene.BaseScene;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
-import static ui.scene.BaseScene.BACKGROUND_IMAGE_LOAD_RATIO;
 import static ui.scene.BaseScene.FADE_IN_OUT_TIME;
 
 /**
@@ -67,6 +66,10 @@ public class ImageUtils {
     public final static String STEAM_SIZE_SMALL = "_sm_120";
     public final static String STEAM_SIZE_MEDIUM = "_616x353";
 
+
+    private final static double BACKGROUND_IMAGE_BLUR = 7;
+    private final static double BACKGROUND_IMAGE_LOAD_RATIO = 2 / 3.0;
+
     public static Task downloadSteamImageToCache(int steam_id, String type, String size, OnDLDoneHandler dlDoneHandler) {
         String imageURL = STEAM_IMAGE_URL_PREFIX + steam_id + "/" + type + (type.equals(STEAM_TYPE_HEADER) ? "" : size) + ".jpg";
         String imageFileName = steam_id + "_" + type + (type.equals(STEAM_TYPE_HEADER) ? "" : size) + ".jpg";
@@ -105,6 +108,8 @@ public class ImageUtils {
      * @param imageView and where to place it
      */
     public static void transitionToWindowBackground(Image img, ImageView imageView) {
+        GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
+        imageView.setEffect(blur);
         ImageUtils.transitionToImage(img, imageView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
     }
 
@@ -164,6 +169,37 @@ public class ImageUtils {
                 fadeOutTimeline.play();
             });
         }
+    }
+
+    /**
+     * Does basically the same as {@link #transitionToWindowBackground(File, ImageView)}, but without having a transition
+     * but rather a direct load. This is useful when changing between scenes where we want to keep the same background
+     * @param imgFile the file pointing to the image to use
+     * @param imageView where to load the image
+     */
+    public static void setWindowBackground(File imgFile, ImageView imageView) {
+        if (imgFile == null) {
+            ImageUtils.setWindowBackground((Image) null, imageView);
+        } else {
+            ImageUtils.setWindowBackground(new Image("file:" + File.separator + File.separator + File.separator + imgFile.getAbsolutePath(),
+                            settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
+                            settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO,
+                            false,
+                            true),
+                    imageView);
+        }
+    }
+
+    /**
+     * See {@link #setWindowBackground(File, ImageView)}
+     * @param img the image to use
+     * @param imageView where to load the image
+     */
+    public static void setWindowBackground(Image img, ImageView imageView) {
+        GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
+        imageView.setEffect(blur);
+        imageView.setOpacity(BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+        imageView.setImage(img);
     }
 
     /**

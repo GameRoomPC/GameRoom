@@ -209,10 +209,6 @@ public class MainScene extends BaseScene {
 
     @Override
     void initAndAddWrappingPaneToRoot() {
-        GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
-        backgroundView.setEffect(blur);
-        backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
-
         maskView.setOpacity(0);
         setChangeBackgroundNextTime(true);
 

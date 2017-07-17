@@ -34,8 +34,6 @@ import static ui.Main.SCREEN_WIDTH;
 public abstract class BaseScene extends Scene {
     public final static double FADE_IN_OUT_TIME = 0.1;
     public final static double BACKGROUND_IMAGE_MAX_OPACITY = 0.65;
-    final static double BACKGROUND_IMAGE_BLUR = 7;
-    public final static double BACKGROUND_IMAGE_LOAD_RATIO = 2 / 3.0;
 
 
     private Runnable onSceneFadedOutAction;

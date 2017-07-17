@@ -118,20 +118,7 @@ public class GameInfoScene extends BaseScene {
         wrappingPane.setBottom(hBox);
         BorderPane.setMargin(hBox, new Insets(10 * SCREEN_WIDTH / 1920, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_WIDTH / 1920));
 
-        if (entry.getImagePath(1) != null) {
-            //Main.LOGGER.debug("Screenshot available : "+entry.getImagePath(1));
-            Image screenshotImage = entry.getImage(1,
-                    settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
-                    settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
-                    , false, true);
-
-            backgroundView.setImage(screenshotImage);
-
-            GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
-
-            backgroundView.setEffect(blur);
-            backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
-        }
+        ImageUtils.setWindowBackground(entry.getImagePath(1),backgroundView);
 
     }
 
