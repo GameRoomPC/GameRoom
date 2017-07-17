@@ -28,7 +28,7 @@ public class Platform {
     public final static int DEFAULT_ID = -1;
     public final static int NONE_ID = -2;
 
-    public final static Platform NONE = new Platform(NONE_ID, NONE_ID, "default", true, "exe,jar,lnk");
+    public final static Platform NONE = new Platform(NONE_ID, NONE_ID, "default", true, "exe,lnk");
 
 
     private int igdb_id = DEFAULT_ID;

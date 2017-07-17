@@ -30,7 +30,6 @@ import static system.application.settings.GeneralSettings.settings;
  * @date 09/06/2017.
  */
 public class PlatformSettingsDialog extends GameRoomDialog<ButtonType> {
-    private ComboBox<SteamProfile> comboBox;
     private PlatformSettingsPane currentCenterPane;
 
     public PlatformSettingsDialog() {

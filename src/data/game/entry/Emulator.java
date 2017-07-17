@@ -1,24 +1,31 @@
 package data.game.entry;
 
 import data.io.DataBase;
-import ui.Main;
+import system.application.GameStarter;
+import system.os.Terminal;
 
-import java.io.*;
+import java.io.File;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 
 /**
- * Created by LM on 11/02/2017.
+ * This modelizes an Emulator, which simply is a program to start a game. As not all Emulators work the same way, we have a
+ * {@link #defaultArgSchema} defined for each of them, which some kind of pattern used to determine which arguments to use
+ * and where to place the ROM's path.
+ * Starting the emulator with the game pre-loaded os mostly done in {@link GameStarter#getStartGameCMD()}.
+ *
+ * @author LM. Garret (admin@gameroom.me)
+ * @date 11/02/2017.
  */
 public class Emulator {
 
     private final static String PATH_MARKER = "%p";
     private final static String ENTRY_ARGS_MARKER = "%a";
-    private final static Pattern CMD_SPLIT_PATTERN = Pattern.compile("([^\"]\\S*|\".+?\")\\s*");
 
     private int sqlId;
     private String name;
@@ -28,6 +35,9 @@ public class Emulator {
 
     private final static HashMap<Integer, Emulator> EMULATOR_MAPPING = new HashMap<>();
 
+    /**
+     * Loads all {@link Emulator} and puts them into the {@link #EMULATOR_MAPPING} to be retrieved easily afterwards
+     */
     public static void loadEmulators() {
         try {
             PreparedStatement statement = DataBase.getUserConnection().prepareStatement("SELECT * FROM Emulator");
@@ -67,6 +77,12 @@ public class Emulator {
         return emulators;
     }
 
+    /**
+     * Given a {@link Platform}, returns the {@link Emulator} that can has be chosen to emulate this game, or null
+     *
+     * @param platform the platform to emulate
+     * @return the {@link Emulator} that can emulate this platform, or null if there is none configured
+     */
     public static Emulator getChosenEmulator(Platform platform) {
         try {
             PreparedStatement statement = DataBase.getUserConnection().prepareStatement("SELECT * FROM emulates WHERE platform_id=? AND user_choice=1");
@@ -143,21 +159,36 @@ public class Emulator {
         save();
     }
 
-    public List<String> getCommandsToExecute(GameEntry entry) {
+    /**
+     * Gets the command line arguments associated to this emulator in order to emulate the given {@param entry}. It does
+     * replace the {@link #ENTRY_ARGS_MARKER} with the {@link GameEntry#getArgs() associated, and then replaces the
+     * {@link #PATH_MARKER} with the {@link GameEntry#getPath()}
+     *
+     * @param entry the entry to emulate
+     * @return a {@link List<String>} containing the different arguments used to emulate this game.
+     */
+    public List<String> getCommandArguments(GameEntry entry) {
         ArrayList<String> cmds = new ArrayList<>();
-        cmds.add("\"" + path.getAbsolutePath() + "\"");
         String emuArgs = getArgSchema(entry.getPlatform());
         String entryArgs = entry.getArgs();
         if (emuArgs != null) {
             emuArgs = emuArgs.replace(ENTRY_ARGS_MARKER, entryArgs != null ? entryArgs : "");
             emuArgs = emuArgs.replace(PATH_MARKER, "\"" + entry.getPath() + "\"");
-
-            Matcher m = CMD_SPLIT_PATTERN.matcher(emuArgs);
-
-            while(m.find()){
-                cmds.add(m.group(1).replace("\"",""));
-            }
+            cmds = Terminal.splitCMDLine(emuArgs);
         }
+        return cmds;
+    }
+
+    /**
+     * Returns the same as {@link #getCommandArguments(GameEntry)} but with the path of the Emulator added at position 0
+     *
+     * @param entry the entry to emulate
+     * @return a {@link List<String>} containing the different arguments used to emulate this game, preceded by the emulator's path
+     */
+    public List<String> getCommandsToExecute(GameEntry entry) {
+        ArrayList<String> cmds = new ArrayList<>();
+        cmds.add(path.getAbsolutePath());
+        cmds.addAll(getCommandArguments(entry));
         return cmds;
     }
 

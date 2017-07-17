@@ -1,5 +1,6 @@
 import data.game.entry.GameEntryUtils;
 import data.game.scraper.IGDBScraper;
+import data.http.images.ImageUtils;
 import data.io.DataBase;
 import data.io.FileUtils;
 import data.migration.OldSettings;
@@ -25,7 +26,6 @@ import system.device.GameController;
 import system.os.WinReg;
 import ui.GeneralToast;
 import ui.Main;
-import ui.control.button.gamebutton.GameButton;
 import ui.dialog.ConsoleOutputDialog;
 import ui.dialog.WindowFocusManager;
 import ui.scene.BaseScene;
@@ -53,6 +53,9 @@ public class Launcher extends Application {
     private static ChangeListener<Boolean> focusListener;
     private static ChangeListener<Boolean> maximizedListener;
     private static ChangeListener<Boolean> fullScreenListener;
+
+    private volatile boolean monitoringXPosition = false;
+    private volatile boolean monitoringYPosition = false;
 
     private static String DATA_PATH;
 
@@ -209,7 +212,7 @@ public class Launcher extends Application {
         if (START_MINIMIZED && appStart) {
             primaryStage.setOpacity(0);
         }
-        if(!settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED)){
+        if (!settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED)) {
             primaryStage.setX(settings().getDouble(PredefinedSetting.WINDOW_X));
             primaryStage.setY(settings().getDouble(PredefinedSetting.WINDOW_Y));
         }
@@ -281,15 +284,30 @@ public class Launcher extends Application {
         primaryStage.maximizedProperty().addListener(maximizedListener);
 
         primaryStage.xProperty().addListener((observable, oldValue, newValue) -> {
-            //TODO set a task to wait for 2 secs and check ifchanges then apply them
-            if (!settings().getBoolean(PredefinedSetting.FULL_SCREEN)) {
-                settings().setSettingValue(PredefinedSetting.WINDOW_X, newValue);
+            if(!monitoringXPosition){
+                monitoringXPosition = true;
+                Main.getExecutorService().submit(() -> {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException ignored) {
+                    }
+                    settings().setSettingValue(PredefinedSetting.WINDOW_X,primaryStage.getX());
+                    monitoringXPosition = false;
+                });
             }
         });
 
         primaryStage.yProperty().addListener((observable, oldValue, newValue) -> {
-            if (!settings().getBoolean(PredefinedSetting.FULL_SCREEN)) {
-                settings().setSettingValue(PredefinedSetting.WINDOW_Y, newValue);
+            if(!monitoringYPosition){
+                monitoringYPosition = true;
+                Main.getExecutorService().submit(() -> {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException ignored) {
+                    }
+                    settings().setSettingValue(PredefinedSetting.WINDOW_Y,primaryStage.getY());
+                    monitoringYPosition = false;
+                });
             }
         });
     }
@@ -365,8 +383,10 @@ public class Launcher extends Application {
                 MAIN_SCENE.saveScrollBarVValue();
             });
         }
-        GameButton.getExecutorService().shutdownNow();
+        Main.getExecutorService().shutdownNow();
         WindowFocusManager.shutdown();
+        gameController.shutdown();
+
         FileUtils.clearFolder(Main.FILES_MAP.get("cache"));
         FileUtils.clearFolder(Main.FILES_MAP.get("temp"));
 

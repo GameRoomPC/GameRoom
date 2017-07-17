@@ -46,6 +46,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 import static system.application.settings.GeneralSettings.settings;
 import static system.application.settings.SettingValue.CATEGORY_ON_GAME_START;
@@ -184,9 +185,12 @@ public class SettingsScene extends BaseScene {
         });*/
         addPropertyLine(PredefinedSetting.DISABLE_SCROLLBAR_IN_FULLSCREEN, true);
 
-            addPropertyLine(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT,false, new ChangeListener<Boolean>() {
+        /***********************CONTROLLER****************************/
+        ComboBox<String> controllerComboBox = new ComboBox<>();
+        addPropertyLine(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT, false, new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                controllerComboBox.setDisable(!newValue);
                 if (newValue) {
                     Main.gameController.resume();
                 } else {
@@ -194,6 +198,38 @@ public class SettingsScene extends BaseScene {
                 }
             }
         });
+
+        Label controllerLabel = new Label(Main.getSettingsString("controller_label") + " : ");
+        controllerLabel.setTooltip(new Tooltip(Main.getSettingsString("controller_tooltip")));
+
+        try {
+            controllerComboBox.getItems().addAll(Main.gameController.getControllers());
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        controllerComboBox.setConverter(new StringConverter<String>() {
+            @Override
+            public String toString(String object) {
+                return object;
+            }
+
+            @Override
+            public String fromString(String string) {
+                return null;
+            }
+        });
+        if(controllerComboBox.getItems().contains(settings().getString(PredefinedSetting.CHOSEN_CONTROLLER))){
+            controllerComboBox.setValue(settings().getString(PredefinedSetting.CHOSEN_CONTROLLER));
+        }
+        controllerComboBox.setDisable(!settings().getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT));
+        controllerComboBox.setOnAction(event -> {
+            settings().setSettingValue(PredefinedSetting.CHOSEN_CONTROLLER, controllerComboBox.getValue());
+            gameController.setController(controllerComboBox.getValue());
+        });
+
+        flowPaneHashMap.get(PredefinedSetting.CHOSEN_CONTROLLER.getCategory()).getChildren().add(createLine(controllerLabel, controllerComboBox));
+
+
         addPropertyLine(PredefinedSetting.UI_SCALE, false);
         addPropertyLine(PredefinedSetting.THEME, false);
 
@@ -762,7 +798,7 @@ public class SettingsScene extends BaseScene {
             if (node2 != null) {
                 node2.setId(setting.getKey());
             }
-            flowPaneHashMap.get(setting.getCategory()).getChildren().add(createLine(setting,advancedSetting, node2));
+            flowPaneHashMap.get(setting.getCategory()).getChildren().add(createLine(setting, advancedSetting, node2));
         }
     }
 
@@ -786,7 +822,7 @@ public class SettingsScene extends BaseScene {
         }
     }
 
-    private HBox createLine(PredefinedSetting setting, boolean advancedSetting, Node nodeRight){
+    private HBox createLine(PredefinedSetting setting, boolean advancedSetting, Node nodeRight) {
         Node left = null;
         Label label = new Label(setting.getLabel() + " :");
         if ((advancedSetting && settings().getBoolean(PredefinedSetting.ADVANCED_MODE))) {
@@ -795,18 +831,18 @@ public class SettingsScene extends BaseScene {
         }
 
         String tooltip = setting.getTooltip();
-        if(!tooltip.equals(setting.getLabel())){
+        if (!tooltip.equals(setting.getLabel())) {
             HBox hBox = new HBox();
             hBox.setAlignment(Pos.CENTER_LEFT);
             hBox.setSpacing(5 * SCREEN_WIDTH / 1920);
-            hBox.getChildren().addAll(label,new HelpButton(tooltip));
+            hBox.getChildren().addAll(label, new HelpButton(tooltip));
             left = hBox;
-        }else{
+        } else {
             label.setTooltip(new Tooltip(tooltip));
             left = label;
         }
 
-        return createLine(left,nodeRight);
+        return createLine(left, nodeRight);
     }
 
     private HBox createLine(Node nodeLeft, Node nodeRight) {
@@ -889,7 +925,7 @@ public class SettingsScene extends BaseScene {
                 currentDir = currentDir.substring(1);
             }
             currentDir = currentDir.replace("/", "\\");
-            currentDir = currentDir.replace(".jar",".exe");
+            currentDir = currentDir.replace(".jar", ".exe");
 
             String showString = show ? "1" : "0";
             ShellLink sl = ShellLink.createLink(currentDir)

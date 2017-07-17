@@ -24,11 +24,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
-import java.util.*;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 import static system.application.settings.GeneralSettings.settings;
@@ -42,6 +39,9 @@ public class GameStarter {
     private final static String ERR_NO_EMU = "no_emu_configured";
     private final static String ERR_NOT_SUPPORTER = "not_supporter";
     private final static String STEAM_PREFIX = "steam";
+
+    private final static long VALUE_ALREADY_MONITORED = -1;
+
     private GameEntry entry;
     private PowerMode originalPowerMode;
     private static String LOG_FOLDER;
@@ -68,7 +68,7 @@ public class GameStarter {
                     GameRoomAlert.error("There is no emulator configured for platform " + entry.getPlatform());
                     ButtonType okButton = new ButtonType(Main.getString("start_game"), ButtonBar.ButtonData.OK_DONE);
 
-                    PlatformSettingsDialog dialog = new PlatformSettingsDialog(entry.getPlatform(),okButton);
+                    PlatformSettingsDialog dialog = new PlatformSettingsDialog(entry.getPlatform(), okButton);
                     dialog.showAndWait().ifPresent(buttonType -> {
                         if (buttonType.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
                             start();
@@ -86,9 +86,9 @@ public class GameStarter {
             return;
         }
 
-        Task<Long> monitor = new Task() {
+        Task<Long> monitor = new Task<Long>() {
             @Override
-            protected Object call() throws Exception {
+            protected Long call() throws Exception {
                 if (settings().getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.CLOSE)) {
                     Main.forceStop(MAIN_SCENE.getParentStage(), "launchAction = OnLaunchAction.CLOSE");
                 } else if (settings().getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.HIDE)) {
@@ -106,17 +106,14 @@ public class GameStarter {
                     Monitor timeMonitor = new Monitor(GameStarter.this);
                     return timeMonitor.start(null);
                 }
-                return new Long(-1);
+                return VALUE_ALREADY_MONITORED;
             }
         };
-        monitor.valueProperty().addListener(new ChangeListener<Long>() {
-            @Override
-            public void changed(ObservableValue<? extends Long> observable, Long oldValue, Long newValue) {
-                if (!newValue.equals(new Long(-1))) {
-                    onPostGameLaunch(newValue);
-                } else {
-                    //No need to add playtime as if we are here, it means that some thread is already monitoring play time
-                }
+        monitor.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.equals(VALUE_ALREADY_MONITORED)) {
+                onPostGameLaunch(newValue);
+            } else {
+                //No need to add playtime as if we are here, it means that some thread is already monitoring play time
             }
         });
         Thread th = new Thread(monitor);
@@ -146,10 +143,7 @@ public class GameStarter {
 
             File gameLog = new File(LOG_FOLDER + entry.getProcessName() + ".log");
             List<String> commands = getStartGameCMD();
-            if (commands.isEmpty()) {
-
-            }
-            ProcessBuilder gameProcessBuilder = new ProcessBuilder(getStartGameCMD()).inheritIO();
+            ProcessBuilder gameProcessBuilder = new ProcessBuilder(commands).inheritIO();
 
             gameProcessBuilder.redirectOutput(gameLog);
             gameProcessBuilder.redirectError(gameLog);
@@ -168,32 +162,48 @@ public class GameStarter {
     }
 
     private java.util.List<String> getStartGameCMD() throws IllegalStateException {
-        String[] args = entry.getArgs().split(" ");
         ArrayList<String> commands = new ArrayList<>();
-        if (entry.mustRunAsAdmin()) {
-            commands.add("powershell.exe");
-            commands.add("Start-Process");
-        }
+        commands.add("powershell.exe");
+        commands.add("-Command");
         if (entry.getPlatform().isPC()) {
-            commands.add('"' + entry.getPath() + '"');
+            commands.add(getPowerShellAdminCMD(entry.getPath(), Terminal.splitCMDLine(entry.getArgs()), entry.mustRunAsAdmin()));
         } else {
             if (SUPPORTER_MODE) {
                 Emulator e = Emulator.getChosenEmulator(entry.getPlatform());
                 if (e == null) {
                     throw new IllegalStateException(ERR_NO_EMU);
                 } else {
-                    commands.addAll(e.getCommandsToExecute(entry));
+                    commands.add(getPowerShellAdminCMD(e.getPath().getAbsolutePath(), e.getCommandArguments(entry), entry.mustRunAsAdmin()));
                 }
             } else {
                 throw new IllegalStateException(ERR_NOT_SUPPORTER);
             }
         }
-        Collections.addAll(commands, args);
-        if (entry.mustRunAsAdmin()) {
-            commands.add("-verb");
-            commands.add("RunAs");
-        }
         return commands;
+    }
+
+    private static String getPowerShellAdminCMD(String path, List<String> args, boolean asAdmin) {
+        StringBuilder powerShellCmd = new StringBuilder("Start-Process -FilePath ");
+        powerShellCmd.append("\'\\\""); //PS syntax + blank escaping
+        powerShellCmd.append(path);
+        powerShellCmd.append("\\\"\'"); //PS syntax + blank escaping
+        if (args != null && !args.isEmpty()) {
+            powerShellCmd.append(" -ArgumentList ");
+
+            for (String s : args) {
+                if(!s.trim().isEmpty()) {
+                    powerShellCmd.append("\'\\\""); //PS syntax + blank escaping
+                    powerShellCmd.append(s);
+                    powerShellCmd.append("\\\"\'"); //PS syntax + blank escaping
+                    powerShellCmd.append(',');
+                }
+            }
+            powerShellCmd.delete(powerShellCmd.length() - 1, powerShellCmd.length()); //removes the last ','
+        }
+        if (asAdmin) {
+            powerShellCmd.append(" -Verb runAs");
+        }
+        return powerShellCmd.toString();
     }
 
     private void onPreGameLaunch() {

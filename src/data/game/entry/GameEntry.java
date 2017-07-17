@@ -1,6 +1,7 @@
 package data.game.entry;
 
 import data.io.DataBase;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.image.Image;
 import system.application.GameStarter;
@@ -143,6 +144,8 @@ public class GameEntry {
         statement.setString(1, name);
         if (releaseDate != null) {
             statement.setTimestamp(2, Timestamp.valueOf(releaseDate));
+        } else {
+            statement.setNull(2, Types.TIMESTAMP);
         }
         statement.setString(3, description);
         statement.setInt(4, aggregated_rating);
@@ -156,8 +159,11 @@ public class GameEntry {
         } else {
             statement.setTimestamp(10, Timestamp.valueOf(LocalDateTime.now()));
         }
+
         if (lastPlayedDate != null) {
             statement.setTimestamp(11, Timestamp.valueOf(lastPlayedDate));
+        } else {
+            statement.setNull(11, Types.TIMESTAMP);
         }
         statement.setLong(12, playTime);
         statement.setBoolean(13, installed);
@@ -274,7 +280,11 @@ public class GameEntry {
         try {
             if (savedLocally && !deleted) {
                 PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set release_date = ? where id = ?");
-                statement.setTimestamp(1, Timestamp.valueOf(releaseDate));
+                if (releaseDate != null) {
+                    statement.setTimestamp(1, Timestamp.valueOf(releaseDate));
+                } else {
+                    statement.setNull(1, Types.TIMESTAMP);
+                }
                 statement.setInt(2, id);
                 statement.execute();
 
@@ -289,6 +299,7 @@ public class GameEntry {
         return id;
     }
 
+    //TODO get rid of those method
     public Image getImage(int index, double width, double height, boolean preserveRatio, boolean smooth) {
         return getImage(index, width, height, preserveRatio, smooth, false);
     }
@@ -678,7 +689,11 @@ public class GameEntry {
         try {
             if (savedLocally && !deleted) {
                 PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set added_date = ? where id = ?");
-                statement.setTimestamp(1, Timestamp.valueOf(addedDate));
+                if (addedDate != null) {
+                    statement.setTimestamp(1, Timestamp.valueOf(addedDate));
+                } else {
+                    statement.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()));
+                }
                 statement.setInt(2, id);
                 statement.execute();
 
@@ -718,7 +733,11 @@ public class GameEntry {
         try {
             if (savedLocally && !deleted) {
                 PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set last_played_date = ? where id = ?");
-                statement.setTimestamp(1, Timestamp.valueOf(addedDate));
+                if(lastPlayedDate != null){
+                    statement.setTimestamp(1, Timestamp.valueOf(lastPlayedDate));
+                }else{
+                    statement.setNull(1,Types.TIMESTAMP);
+                }
                 statement.setInt(2, id);
                 statement.execute();
 
@@ -933,21 +952,13 @@ public class GameEntry {
         setYoutubeSoundtrackHash(set.getString("yt_hash"));
 
         Timestamp addedTimestamp = set.getTimestamp("added_date");
-        if (addedTimestamp != null) {
-            setAddedDate(addedTimestamp.toLocalDateTime());
-        } else {
-            setAddedDate(LocalDateTime.now());
-        }
+        setAddedDate(addedTimestamp == null ? null : addedTimestamp.toLocalDateTime());
 
         Timestamp releasedTimestamp = set.getTimestamp("release_date");
-        if (releasedTimestamp != null) {
-            setReleaseDate(releasedTimestamp.toLocalDateTime());
-        }
+        setReleaseDate(releasedTimestamp == null ? null : releasedTimestamp.toLocalDateTime());
 
         Timestamp lastPlayedTimestamp = set.getTimestamp("last_played_date");
-        if (lastPlayedTimestamp != null) {
-            setLastPlayedDate(lastPlayedTimestamp.toLocalDateTime());
-        }
+        setLastPlayedDate(lastPlayedTimestamp == null ? null : lastPlayedTimestamp.toLocalDateTime());
 
         setPlayTimeSeconds(set.getInt("initial_playtime"));
         setInstalled(set.getBoolean("installed"));
@@ -957,6 +968,7 @@ public class GameEntry {
         setWaitingToBeScrapped(set.getBoolean("waiting_scrap"));
         setToAdd(set.getBoolean("toAdd"));
         setIgnored(set.getBoolean("ignored"));
+        setRunAsAdmin(set.getBoolean("runAsAdmin"));
 
         //LOAD GENRES FROM DB
         try {
@@ -1329,7 +1341,6 @@ public class GameEntry {
 
     public void setRunAsAdmin(Boolean runAsAdmin) {
         this.runAsAdmin = runAsAdmin;
-        this.path = path.trim();
         try {
             if (savedLocally && !deleted) {
                 PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set runAsAdmin = ? where id = ?");

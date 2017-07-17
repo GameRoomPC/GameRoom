@@ -1,14 +1,22 @@
 package system.device;
 
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 import net.java.games.input.*;
+import system.application.settings.PredefinedSetting;
 import ui.GeneralToast;
 import ui.Main;
 
+import javax.naming.ldap.Control;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.*;
+import java.util.stream.Stream;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
 import static ui.Main.MAIN_SCENE;
 
@@ -56,7 +64,7 @@ public class GameController {
     /**
      * Second poll rate, thus second navigation speed.
      */
-    private final static long SECOND_NAV_POLL_RATE = 2*POLL_RATE;
+    private final static long SECOND_NAV_POLL_RATE = 2 * POLL_RATE;
 
     /**
      * Identifiers of the buttons on the controller
@@ -82,6 +90,11 @@ public class GameController {
     private volatile Controller controller;
 
     /**
+     * Controllers found when scanning
+     */
+    private volatile Controller[] controllers;
+
+    /**
      * Listener which associates actions to the buttons of the controller
      */
     private volatile ControllerButtonListener controllerButtonListener;
@@ -94,7 +107,7 @@ public class GameController {
     /**
      * Task scheduled every {@link #DISCOVER_RATE}ms to detect connected controllers
      */
-    private Runnable controllerDiscoverTask;
+    private Task<Controller[]> controllerDiscoverTask;
 
     private volatile ScheduledFuture<?> pollingFuture;
     private volatile ScheduledFuture<?> discoverFuture;
@@ -194,48 +207,104 @@ public class GameController {
                 if (MAIN_SCENE != null) {
                     GeneralToast.displayToast(controller.getName() + " " + Main.getString("disconnected"), MAIN_SCENE.getParentStage());
                 }
-                setController(null);
-                discoverFuture = threadPool.scheduleAtFixedRate(controllerDiscoverTask, 0, DISCOVER_RATE, TimeUnit.MILLISECONDS);
-                if (pollingFuture != null) {
-                    pollingFuture.cancel(true);
-                }
+                setController((Controller) null);
             }
         };
 
-        controllerDiscoverTask = () -> {
-            if (controller == null && Main.KEEP_THREADS_RUNNING && !paused) {
-                ControllerEnvironment controllerEnvironment = new DirectAndRawInputEnvironmentPlugin();
-                Controller[] controllers = controllerEnvironment.getControllers();
-
-                //Main.LOGGER.info("Searching controllers...");
-
-                for (Controller controller : controllers) {
-                    //Main.LOGGER.info("Found controller : " + controller.getName());
-                    //TODO let people choose, not have the first one working chosen
-                    if (!controller.getName().equals("Keyboard")
-                            && controller.getType().equals(Controller.Type.GAMEPAD)
-                            && controller.poll()) {
-                        LOGGER.info("Using controller : " + controller.getName());
-                        if (MAIN_SCENE != null) {
-                            GeneralToast.displayToast(controller.getName() + " " + Main.getString("connected"), MAIN_SCENE.getParentStage());
-                        }
-                        setController(controller);
-
-                        if (Main.KEEP_THREADS_RUNNING) {
-                            pollingFuture = threadPool.scheduleAtFixedRate(pollingTask, 0, POLL_RATE, TimeUnit.MILLISECONDS);
-                        }
-                        if (discoverFuture != null) {
-                            discoverFuture.cancel(true);
-                        }
-                        return;
-                    }
+        controllerDiscoverTask = new Task<Controller[]>() {
+            @Override
+            protected Controller[] call() throws Exception {
+                if (Main.KEEP_THREADS_RUNNING && !paused) {
+                    LOGGER.info("Scanning controllers");
+                    ControllerEnvironment controllerEnvironment = new DirectAndRawInputEnvironmentPlugin();
+                    ArrayList<Controller> controllers = new ArrayList<>();
+                    Arrays.stream(controllerEnvironment.getControllers())
+                            .filter(controller1 -> !controller1.getName().equals("Keyboard")
+                                    && controller1.getType().equals(Controller.Type.GAMEPAD)
+                                    && controller1.poll()).forEach(controllers::add);
+                    return controllers.toArray(new Controller[0]);
                 }
+                return new Controller[0];
             }
         };
+        controllerDiscoverTask.setOnSucceeded(event -> onControllersFound((Controller[]) event.getSource().getValue()));
+    }
+
+    public String[] getControllers() throws ExecutionException, InterruptedException {
+        if (controllers == null) {
+            return new String[0];
+        }
+        String[] ids = new String[controllers.length];
+        for (int i = 0; i < controllers.length; i++) {
+            ids[i] = toPseudoUid(controllers[i], i);
+        }
+        return ids;
+    }
+
+    private static String toPseudoUid(Controller controller, int index) {
+        if (controller == null) {
+            return "";
+        }
+        return controller.getName() + " (" + index + ")";
+    }
+
+    private static Controller findFromPseudoId(String pseudoId, Controller[] controllers) {
+        if (controllers == null || controllers.length == 0 || pseudoId == null || pseudoId.isEmpty()) {
+            return null;
+        }
+        for (int i = 0; i < controllers.length; i++) {
+            if (toPseudoUid(controllers[i], i).equals(pseudoId)) {
+                return controllers[i];
+            }
+        }
+        return null;
+    }
+
+    private void onControllersFound(Controller[] controllers) {
+        this.controllers = controllers;
+
+        if (getController() != null && getController().poll()) {
+            //no need to change of controller
+            return;
+        }
+        String chosenController = settings().getString(PredefinedSetting.CHOSEN_CONTROLLER);
+
+        int i = 0;
+        int usedIndex = 0;
+        for (Controller controller : controllers) {
+            if (toPseudoUid(controller, i).equals(chosenController)) {
+                usedIndex = i;
+            }
+            i++;
+        }
+        if (controllers.length > 0) {
+            setController(controllers[usedIndex]);
+            LOGGER.info("Using controller : " + controller.getName());
+            if (MAIN_SCENE != null) {
+                GeneralToast.displayToast(controller.getName() + " " + Main.getString("connected"), MAIN_SCENE.getParentStage());
+            }
+        }
+    }
+
+    public void setController(String pseudoId) {
+        setController(findFromPseudoId(pseudoId, controllers));
     }
 
     private void setController(Controller controller) {
         this.controller = controller;
+
+        if (controller != null) {
+            if (pollingFuture != null) {
+                pollingFuture.cancel(true);
+            }
+            if (Main.KEEP_THREADS_RUNNING) {
+                pollingFuture = threadPool.scheduleAtFixedRate(pollingTask, 0, POLL_RATE, TimeUnit.MILLISECONDS);
+            }
+        } else {
+            if (pollingFuture != null) {
+                pollingFuture.cancel(true);
+            }
+        }
     }
 
 
@@ -289,18 +358,17 @@ public class GameController {
         LOGGER.debug("Resuming controller service");
         if (controller != null) {
             //need to cancel because we will replace the future thus the previous task will still be scheduled
-            if(pollingFuture != null){
+            if (pollingFuture != null) {
                 pollingFuture.cancel(true);
             }
             //we have already found a controller
             pollingFuture = threadPool.scheduleAtFixedRate(pollingTask, 0, POLL_RATE, TimeUnit.MILLISECONDS);
-        } else {
-            //need to cancel because we will replace the future thus the previous task will still be scheduled
-            if(discoverFuture != null){
-                discoverFuture.cancel(true);
-            }
-            discoverFuture = threadPool.scheduleAtFixedRate(controllerDiscoverTask, 0, DISCOVER_RATE, TimeUnit.MILLISECONDS);
         }
+        if (discoverFuture != null) {
+            discoverFuture.cancel(true);
+        }
+        discoverFuture = threadPool.scheduleAtFixedRate(controllerDiscoverTask, 0, DISCOVER_RATE, TimeUnit.MILLISECONDS);
+
         paused = false;
     }
 

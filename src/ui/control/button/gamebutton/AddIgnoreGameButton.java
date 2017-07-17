@@ -1,11 +1,10 @@
 package ui.control.button.gamebutton;
 
 import data.game.entry.GameEntry;
-import data.game.scraper.SteamPreEntry;
+import data.http.images.ImageUtils;
 import javafx.animation.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -14,19 +13,17 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
-import system.application.settings.PredefinedSetting;
+import ui.GeneralToast;
 import ui.Main;
 import ui.control.button.ImageButton;
-import ui.GeneralToast;
 import ui.pane.gamestilepane.ToAddRowTilePane;
 import ui.scene.GameEditScene;
 import ui.scene.MainScene;
 
 import java.io.File;
 
-import static system.application.settings.GeneralSettings.settings;
-import static ui.Main.*;
-import static ui.scene.BaseScene.BACKGROUND_IMAGE_LOAD_RATIO;
+import static ui.Main.MAIN_SCENE;
+import static ui.Main.SCREEN_WIDTH;
 
 /**
  * Created by LM on 17/08/2016.
@@ -43,9 +40,9 @@ public class AddIgnoreGameButton extends GameButton {
 
     public AddIgnoreGameButton(GameEntry entry, MainScene mainScene, TilePane parent, ToAddRowTilePane parentPane) {
         super(entry, mainScene, parent);
-        disableNode(infoButton, true);
-        disableNode(playTimeLabel, true);
-        disableNode(playButton, true);
+        disableNode(infoButton);
+        disableNode(playTimeLabel);
+        disableNode(playButton);
 
         addButton = new ImageButton("toaddtile-add-button", Main.SCREEN_WIDTH / 10, Main.SCREEN_WIDTH / 10);
         addButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -67,7 +64,7 @@ public class AddIgnoreGameButton extends GameButton {
                 mainScene.removeGame(entry);
                 parentPane.removeGame(entry);
 
-                GeneralToast.displayToast(entry.getName()+Main.getString("ignored"),mainScene.getParentStage());
+                GeneralToast.displayToast(entry.getName() + Main.getString("ignored"), mainScene.getParentStage());
             }
         });
         scrapingButton = new ImageButton("tile-loading-button", SCREEN_WIDTH / 10, SCREEN_WIDTH / 10);
@@ -107,25 +104,7 @@ public class AddIgnoreGameButton extends GameButton {
                     fadeInTimeline.setAutoReverse(false);
                     fadeInTimeline.play();
 
-                    if (!settings().getBoolean(PredefinedSetting.DISABLE_MAINSCENE_WALLPAPER)) {
-                        Task backGroundImageTask = new Task() {
-                            @Override
-                            protected Object call() throws Exception {
-                                Image screenshotImage = entry.getImage(1,
-                                        settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
-                                        settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
-                                        , false, true);
-
-                                Main.runAndWait(() -> {
-                                    MAIN_SCENE.setImageBackground(screenshotImage);
-                                });
-                                return null;
-                            }
-                        };
-                        Thread setBackgroundThread = new Thread(backGroundImageTask);
-                        setBackgroundThread.setDaemon(true);
-                        setBackgroundThread.start();
-                    }
+                    ImageUtils.getExecutorService().submit(() -> MAIN_SCENE.setImageBackground(entry.getImagePath(1)));
 
                 } else {
                     //addButton.setMouseTransparent(true);
@@ -157,7 +136,7 @@ public class AddIgnoreGameButton extends GameButton {
         initScrapingGraphics(entry);
     }
 
-    private void initScrapingGraphics(GameEntry entry){
+    private void initScrapingGraphics(GameEntry entry) {
         boolean scraping = entry.isWaitingToBeScrapped() || entry.isBeingScraped();
 
         addButton.setVisible(!scraping);
@@ -207,7 +186,7 @@ public class AddIgnoreGameButton extends GameButton {
         return coverView.getImage();
     }
 
-    private void rotateScrapingButton(){
+    private void rotateScrapingButton() {
         Timeline fadeInTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(scrapingButton.rotateProperty(), scrapingButton.rotateProperty().getValue(), Interpolator.LINEAR)),

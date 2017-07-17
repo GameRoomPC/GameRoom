@@ -1,16 +1,11 @@
 package ui;
 
 import data.game.entry.Emulator;
-import data.http.images.ImageDownloaderService;
 import data.http.key.KeyChecker;
-import data.io.DataBase;
-import data.migration.OldGameEntry;
 import javafx.application.Platform;
 import javafx.stage.Stage;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import system.application.GameRoomUpdater;
-import system.application.settings.GeneralSettings;
 import system.application.settings.PredefinedSetting;
 import system.application.settings.SettingValue;
 import system.device.GameController;
@@ -20,14 +15,12 @@ import ui.scene.MainScene;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashMap;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,9 +49,9 @@ public class Main {
     public static ResourceBundle GAME_THEMES_BUNDLE;
 
 
-    private final static String MANUAL_TAG= "\\$string\\$";
+    private final static String MANUAL_TAG = "\\$string\\$";
     private final static char AUTO_TAG_CHAR = '%';
-    private final static Pattern AUTO_TAG_PATTERN = Pattern.compile("\\"+ AUTO_TAG_CHAR +"(.*)\\"+ AUTO_TAG_CHAR);
+    private final static Pattern AUTO_TAG_PATTERN = Pattern.compile("\\" + AUTO_TAG_CHAR + "(.*)\\" + AUTO_TAG_CHAR);
     public final static String NO_STRING = "\'no_string\'";
 
     public static Logger LOGGER;
@@ -75,6 +68,11 @@ public class Main {
 
     private static String[] calling_args;
 
+    /*******************
+     * EXECUTOR_SERVICE
+     ***************************/
+    private final static ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+
 
     public static void main(String[] args) {
         calling_args = args;
@@ -82,12 +80,12 @@ public class Main {
 
         Main.TRUE_SCREEN_WIDTH = (int) screenSize.getWidth();
         Main.TRUE_SCREEN_HEIGHT = (int) screenSize.getHeight();
-        Main.SCREEN_WIDTH = TRUE_SCREEN_WIDTH <= 1920? TRUE_SCREEN_WIDTH : 1920;
-        Main.SCREEN_HEIGHT = TRUE_SCREEN_HEIGHT<= 1080? TRUE_SCREEN_HEIGHT : 1080;
+        Main.SCREEN_WIDTH = TRUE_SCREEN_WIDTH <= 1920 ? TRUE_SCREEN_WIDTH : 1920;
+        Main.SCREEN_HEIGHT = TRUE_SCREEN_HEIGHT <= 1080 ? TRUE_SCREEN_HEIGHT : 1080;
 
 
-        PredefinedSetting.WINDOW_WIDTH.setDefaultValue(new SettingValue((int)TRUE_SCREEN_WIDTH,Integer.class,PredefinedSetting.WINDOW_WIDTH.getDefaultValue().getCategory()));
-        PredefinedSetting.WINDOW_HEIGHT.setDefaultValue(new SettingValue((int)TRUE_SCREEN_HEIGHT,Integer.class,PredefinedSetting.WINDOW_HEIGHT.getDefaultValue().getCategory()));
+        PredefinedSetting.WINDOW_WIDTH.setDefaultValue(new SettingValue((int) TRUE_SCREEN_WIDTH, Integer.class, PredefinedSetting.WINDOW_WIDTH.getDefaultValue().getCategory()));
+        PredefinedSetting.WINDOW_HEIGHT.setDefaultValue(new SettingValue((int) TRUE_SCREEN_HEIGHT, Integer.class, PredefinedSetting.WINDOW_HEIGHT.getDefaultValue().getCategory()));
 
         LOGGER.info("Started app with screen true resolution : " + (int) TRUE_SCREEN_WIDTH + "x" + (int) TRUE_SCREEN_HEIGHT);
 
@@ -98,7 +96,7 @@ public class Main {
                 && !settings().getString(SUPPORTER_KEY).isEmpty()
                 && !settings().getString(SUPPORTER_KEY).equals("")
                 && KeyChecker.isKeyValid(settings().getString(SUPPORTER_KEY));
-        LOGGER.info("Supporter mode : "+ SUPPORTER_MODE);
+        LOGGER.info("Supporter mode : " + SUPPORTER_MODE);
         RESSOURCE_BUNDLE = ResourceBundle.getBundle("strings", settings().getLocale(PredefinedSetting.LOCALE));
         SETTINGS_BUNDLE = ResourceBundle.getBundle("settings", settings().getLocale(PredefinedSetting.LOCALE));
         GAME_GENRES_BUNDLE = ResourceBundle.getBundle("gamegenres", settings().getLocale(PredefinedSetting.LOCALE));
@@ -109,10 +107,10 @@ public class Main {
         //}
     }
 
-    public static String getArg(String flag,String[] args, boolean hasOption){
+    public static String getArg(String flag, String[] args, boolean hasOption) {
         boolean argsHere = false;
         int index = 0;
-        if(args!=null) {
+        if (args != null) {
             for (String arg : args) {
                 argsHere = argsHere || arg.compareToIgnoreCase(flag) == 0;
                 if (!argsHere) {
@@ -136,24 +134,19 @@ public class Main {
     }
 
     public static void forceStop(Stage stage, String reason) {
-        LOGGER.info("Stopping GameRoom because : "+reason);
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                MAIN_SCENE.saveScrollBarVValue();
-                KEEP_THREADS_RUNNING = false;
-                ImageDownloaderService.getInstance().shutDownNow();
-                gameController.shutdown();
-                Platform.setImplicitExit(true);
-                stage.close();
-                Platform.exit();
-                //
-            }
+        LOGGER.info("Stopping GameRoom because : " + reason);
+        Platform.runLater(() -> {
+            MAIN_SCENE.saveScrollBarVValue();
+            KEEP_THREADS_RUNNING = false;
+            Platform.setImplicitExit(true);
+            stage.close();
+            Platform.exit();
+            //
         });
     }
 
-    public static void restart(Stage stage, String reason){
-        LOGGER.info("Restarting GameRoom because : "+reason);
+    public static void restart(Stage stage, String reason) {
+        LOGGER.info("Restarting GameRoom because : " + reason);
         try {
             Process process = new ProcessBuilder()
                     .command("GameRoom.exe")
@@ -162,7 +155,7 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        forceStop(stage,reason);
+        forceStop(stage, reason);
     }
 
     public static void open(Stage stage) {
@@ -184,7 +177,7 @@ public class Main {
 
     public static String getVersion() {
         String version = "unknown";
-        if(RESSOURCE_BUNDLE != null){
+        if (RESSOURCE_BUNDLE != null) {
             version = RESSOURCE_BUNDLE.getString(version);
         }
         if (Main.class.getPackage().getImplementationVersion() != null) {
@@ -229,53 +222,57 @@ public class Main {
         }
     }
 
-    public static String getString(String key, String... manuals){
+    public static String getString(String key, String... manuals) {
         String result = NO_STRING;
-        if(RESSOURCE_BUNDLE == null){
+        if (RESSOURCE_BUNDLE == null) {
             return result;
         }
-        try{
+        try {
             result = RESSOURCE_BUNDLE.getString(key);
             Matcher tagMatcher = AUTO_TAG_PATTERN.matcher(result);
 
-            while(tagMatcher.find()){
+            while (tagMatcher.find()) {
                 String otherKey = tagMatcher.group(1);
                 String otherString = Main.getString(otherKey);
-                if(!otherString.equals(NO_STRING)){
+                if (!otherString.equals(NO_STRING)) {
                     result = result.replace(AUTO_TAG_CHAR + otherKey + AUTO_TAG_CHAR, otherString);
                 }
             }
-            for(String s : manuals){
-                result = result.replaceFirst(MANUAL_TAG,s);
+            for (String s : manuals) {
+                result = result.replaceFirst(MANUAL_TAG, s);
             }
             return result;
 
-        }catch (MissingResourceException e){
+        } catch (MissingResourceException e) {
             return result;
         }
     }
 
-    public static void setRessourceBundle(ResourceBundle bundle){
-        if(bundle!=null){
+    public static void setRessourceBundle(ResourceBundle bundle) {
+        if (bundle != null) {
             RESSOURCE_BUNDLE = bundle;
         }
     }
 
-    public static String getSettingsString(String key){
-        if(SETTINGS_BUNDLE == null){
+    public static String getSettingsString(String key) {
+        if (SETTINGS_BUNDLE == null) {
             return "no_string";
         }
-        try{
+        try {
             return SETTINGS_BUNDLE.getString(key);
 
-        }catch (MissingResourceException e){
+        } catch (MissingResourceException e) {
             return "no_string";
         }
     }
 
-    public static void setSettingsBundle(ResourceBundle bundle){
-        if(bundle!=null){
+    public static void setSettingsBundle(ResourceBundle bundle) {
+        if (bundle != null) {
             SETTINGS_BUNDLE = bundle;
         }
+    }
+
+    public static ExecutorService getExecutorService() {
+        return EXECUTOR_SERVICE;
     }
 }

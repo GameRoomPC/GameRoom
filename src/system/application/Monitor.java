@@ -45,6 +45,8 @@ public class Monitor {
     private String timeWatcherCmd;
     private boolean awaitingRestart = false;
 
+    private volatile boolean stopMonitor = false;
+
     private static long timer = 0;
 
     private ArrayList<StandbyInterval> standbyIntervals = new ArrayList<>();
@@ -54,6 +56,11 @@ public class Monitor {
 
     Monitor(GameStarter starter) throws IOException {
         this.gameStarter = starter;
+        getGameEntry().monitoredProperty().addListener((observable, oldValue, newValue) -> {
+            if(!newValue){
+                stopMonitor = true;
+            }
+        });
         if(getGameEntry().getPlatform().isPC()){
             processName = getGameEntry().getProcessName();
         }else{
@@ -97,7 +104,7 @@ public class Monitor {
 
         long originalPlayTime = getGameEntry().getPlayTimeSeconds();
 
-        while ((creationDate == null || creationDate.equals(initialDate)) && KEEP_THREADS_RUNNING) {
+        while ((creationDate == null || creationDate.equals(initialDate)) && KEEP_THREADS_RUNNING && !stopMonitor) {
             creationDate = computeCreationDate();
             try {
                 Thread.sleep(MONITOR_REFRESH);
@@ -116,7 +123,7 @@ public class Monitor {
                         + Main.getString("restarted"), MAIN_SCENE.getParentStage());
             }
         }
-        while (isProcessRunning() && KEEP_THREADS_RUNNING) {
+        while (isProcessRunning() && KEEP_THREADS_RUNNING && !stopMonitor) {
             long startTimeRec = System.currentTimeMillis();
 
             timer += MONITOR_REFRESH;
@@ -142,23 +149,20 @@ public class Monitor {
         if (result < MIN_MONITOR_TIME) {
             String time = GameEntry.getPlayTimeFormatted(Math.round(result / 1000.0), GameEntry.TIME_FORMAT_ROUNDED_HMS);
             String text = Main.getString("monitor_wait_dialog", getGameEntry().getName(), time);
-            final FutureTask<Long> query = new FutureTask(new Callable() {
-                @Override
-                public Long call() throws Exception {
-                    ButtonType buttonResult = GameRoomAlert.confirmation(text);
-                    if (buttonResult.getButtonData().isDefaultButton()) {
-                        if (MAIN_SCENE != null) {
-                            GeneralToast.displayToast(Main.getString("waiting_until")
-                                    + getGameEntry().getName()
-                                    + Main.getString("restarts"), MAIN_SCENE.getParentStage());
-                        }
-                        Main.LOGGER.info(processName + " : waiting until next launch to count playtime.");
-                        return MONITOR_AGAIN;
+            final FutureTask<Long> query = new FutureTask<Long>(() -> {
+                ButtonType buttonResult = GameRoomAlert.confirmation(text);
+                if (buttonResult.getButtonData().isDefaultButton()) {
+                    if (MAIN_SCENE != null) {
+                        GeneralToast.displayToast(Main.getString("waiting_until")
+                                + getGameEntry().getName()
+                                + Main.getString("restarts"), MAIN_SCENE.getParentStage());
                     }
-                    gameStarter.onStop();
-
-                    return result;
+                    Main.LOGGER.info(processName + " : waiting until next launch to count playtime.");
+                    return MONITOR_AGAIN;
                 }
+                gameStarter.onStop();
+
+                return result;
             });
             Platform.runLater(query);
 
@@ -166,9 +170,9 @@ public class Monitor {
                 long queryResult = query.get();
                 if (queryResult == MONITOR_AGAIN) {
                     //we wait for next game launch
-                    FutureTask<Long> monitor = new Task() {
+                    FutureTask<Long> monitor = new Task<Long>() {
                         @Override
-                        protected Object call() throws Exception {
+                        protected Long call() throws Exception {
                             return start(creationDate);
                         }
                     };
@@ -193,7 +197,7 @@ public class Monitor {
     private long computeTrueRunningTime() throws IOException {
         long currentTime = System.currentTimeMillis();
 
-        while (creationDate == null && KEEP_THREADS_RUNNING) {
+        while (creationDate == null && KEEP_THREADS_RUNNING && !stopMonitor) {
             creationDate = computeCreationDate();
             try {
                 Thread.sleep(MONITOR_REFRESH);

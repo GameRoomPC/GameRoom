@@ -853,6 +853,35 @@
 	-fx-image: url("icons/launcher/wiiu.png");
 }
 
+#gb-icon{
+	-fx-image: url("icons/launcher/gb.png");
+}
+
+#gba-icon{
+	-fx-image: url("icons/launcher/gba.png");
+}
+
+#gbc-icon{
+	-fx-image: url("icons/launcher/gbc.png");
+}
+
+#nes-icon{
+	-fx-image: url("icons/launcher/nes.png");
+}
+
+#snes-icon{
+	-fx-image: url("icons/launcher/snes.png");
+}
+
+#psx-icon{
+	-fx-image: url("icons/launcher/psx.png");
+}
+
+#psp-icon{
+	-fx-image: url("icons/launcher/psp.png");
+}
+
+
 /**************OTHERS****************/
 
 #help-icon{

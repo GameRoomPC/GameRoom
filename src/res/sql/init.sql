@@ -198,19 +198,26 @@ INSERT OR REPLACE INTO GameGenre(igdb_id,name_key) VALUES
 	(33,"arcade");
 	
 INSERT OR REPLACE INTO Platform(id,name_key,is_pc,default_supported_extensions) VALUES
-	(-2,"default",1,"exe,jar,lnk"),
+	(-2,"default",1,"exe,lnk"),
 	(1,"steam",1,"exe,jar,lnk"),
-	(2,"steam_online",1,"exe,jar,lnk"),
-	(3,"origin",1,"exe,jar,lnk"),
-	(4,"uplay",1,"exe,jar,lnk"),
-	(5,"battlenet",1,"exe,jar,lnk"),
-	(6,"gog",1,"exe,jar,lnk"),
+	(2,"steam_online",1,"exe,lnk"),
+	(3,"origin",1,"exe,lnk"),
+	(4,"uplay",1,"exe,lnk"),
+	(5,"battlenet",1,"exe,lnk"),
+	(6,"gog",1,"exe,lnk"),
 	(7,"wii",0,"ciso,iso,wbfs"),
 	(8,"gamecube",0,"iso"),
 	(9,"n64",0,"n64"),
 	(10,"ps2",0,"elf,gz,iso"),
 	(11,"ps3",0,"iso,pkg,bin,elf"),
-	(12,"wiiu",0,"iso,rpx,wud,wux");
+	(12,"wiiu",0,"iso,rpx,wud,wux"),
+	(13,"gb",0,"gb"),
+	(14,"gbc",0,"gc"),
+	(15,"gba",0,"gba"),
+	(16,"nes",0,"nes"),
+	(17,"snes",0,"sfc,smc"),
+	(18,"psx",0,"bin,iso,img,cue,ccd,mds,pbp,ecm"),
+	(19,"psp",0,"iso,cso,pbp,elf,prx");
 	
 INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
 	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %a %p"),
@@ -218,7 +225,9 @@ INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
 	(3,"cemu", "C:\Program Files (x86)\cemu\Cemu.exe","-f -g %a %p"),
 	(4,"Project64","C:\Program Files (x86)\Project64 2.3\Project64.exe","%p"),
 	(5,"RetroArch","C:\Program Files (x86)\retroarch.exe","-f -L ""path/to/core"" %a %p"),
-	(6,"RPCS3","C:\Program Files (x86)\rpcs3.exe","%a %p");
+	(6,"RPCS3","C:\Program Files (x86)\rpcs3.exe","%a %p"),
+	(7,"PPSSPP","C:\Program Files (x86)\PPSSPP\PPSSPPWindows64.exe","%a %p"),
+	(8,"ePSXe","C:\Program Files (x86)\ePSXe205\ePSXe.exe","-nogui -loadbin %a %p");
 
 INSERT OR IGNORE INTO emulates(emu_id,platform_id) VALUES
 	(1,7),
@@ -229,6 +238,15 @@ INSERT OR IGNORE INTO emulates(emu_id,platform_id) VALUES
 	(5,7),
 	(5,8),
 	(5,9),
-	(6,11);
+	(5,13),
+	(5,14),
+	(5,15),
+	(5,16),
+	(5,17),
+	(5,18),
+	(5,19),
+	(6,11),
+	(7,19),
+	(8,18);
 	
 	

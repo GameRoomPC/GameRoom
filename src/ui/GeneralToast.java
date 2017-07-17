@@ -57,8 +57,7 @@ public class GeneralToast extends Tooltip {
         toast.interruptible = interruptible;
         try {
             TOAST_QUEUE.put(toast);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (InterruptedException ignored) {
         }
 
         if (DISPLAY_THREAD == null) {

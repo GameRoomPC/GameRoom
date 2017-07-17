@@ -4,9 +4,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.*;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
-import data.http.SimpleImageInfo;
 import data.http.YoutubeSoundtrackScrapper;
-import data.http.images.ImageDownloaderService;
 import data.http.images.ImageUtils;
 import data.io.FileUtils;
 import javafx.animation.Interpolator;
@@ -20,7 +18,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -262,18 +259,7 @@ public class GameEditScene extends BaseScene {
     }
 
     private void initCenter(Image coverImage) {
-        GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
-
-        backgroundView.setEffect(blur);
-        backgroundView.setOpacity(BACKGROUND_IMAGE_MAX_OPACITY);
-        if (entry.getImagePath(1) != null) {
-            //Main.LOGGER.debug("Screenshot available : "+entry.getImagePath(1));
-            Image screenshotImage = entry.getImage(1,
-                    settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
-                    settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO
-                    , false, true);
-            backgroundView.setImage(screenshotImage);
-        }
+        ImageUtils.setWindowBackground(entry.getImagePath(1),backgroundView);
 
         contentPane = new GridPane();
         //contentPane.setGridLinesVisible(true);
@@ -338,15 +324,15 @@ public class GameEditScene extends BaseScene {
 
         serieComboBox.getSelectionModel().select(entry.getSerie());
 
-        contentPane.add(createTitleLabel("serie",false), 0, row_count);
+        contentPane.add(createTitleLabel("serie", false), 0, row_count);
         contentPane.add(serieComboBox, 1, row_count);
         row_count++;
 
         /**************************PATH*********************************************/
-        contentPane.add(createTitleLabel("game_path",false), 0, row_count);
+        contentPane.add(createTitleLabel("game_path", false), 0, row_count);
         Node pathNode = new Label();
         if (!entry.isSteamGame()) {
-            AppPathField gamePathField = new AppPathField(entry.getPath(), getWindow(), PathTextField.FILE_CHOOSER_APPS, Main.getString("select_a_file"),entry.getPlatform().getSupportedExtensions());
+            AppPathField gamePathField = new AppPathField(entry.getPath(), getWindow(), PathTextField.FILE_CHOOSER_APPS, Main.getString("select_a_file"), entry.getPlatform().getSupportedExtensions());
             gamePathField.getTextField().setPrefColumnCount(50);
             gamePathField.setId("game_path");
             gamePathField.getTextField().textProperty().addListener(new ChangeListener<String>() {
@@ -376,7 +362,7 @@ public class GameEditScene extends BaseScene {
                     return false;
                 } else if (!isSteamGame && file.isDirectory()) {
                     try {
-                        AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()),entry.getPlatform().getSupportedExtensions());
+                        AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()), entry.getPlatform().getSupportedExtensions());
                         selector.searchApps();
                         Optional<ButtonType> appOptionnal = selector.showAndWait();
 
@@ -410,7 +396,7 @@ public class GameEditScene extends BaseScene {
         row_count++;
 
         /**************************RUN AS ADMIN ****************************************/
-        contentPane.add(createTitleLabel("run_as_admin",false), 0, row_count);
+        contentPane.add(createTitleLabel("run_as_admin", false), 0, row_count);
         CheckBox adminCheckBox = new CheckBox();
         adminCheckBox.setSelected(entry.mustRunAsAdmin());
         adminCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -421,7 +407,7 @@ public class GameEditScene extends BaseScene {
         contentPane.add(adminCheckBox, 1, row_count);
         row_count++;
         /**************************PLAYTIME*********************************************/
-        contentPane.add(createTitleLabel("play_time",false), 0, row_count);
+        contentPane.add(createTitleLabel("play_time", false), 0, row_count);
         PlayTimeField playTimeField = new PlayTimeField(entry);
 
         playTimeField.setId("play_time");
@@ -446,6 +432,8 @@ public class GameEditScene extends BaseScene {
                     } catch (DateTimeParseException e) {
                         //well date not valid yet
                     }
+                } else {
+                    entry.setReleaseDate(null);
                 }
             }
         });
@@ -460,6 +448,8 @@ public class GameEditScene extends BaseScene {
                         message.replace(0, message.length(), Main.getString("invalid_release_date"));
                         return false;
                     }
+                } else {
+                    entry.setReleaseDate(null);
                 }
                 return true;
             }
@@ -479,7 +469,7 @@ public class GameEditScene extends BaseScene {
             }
 
             final ObservableList<data.game.entry.Platform> platforms = FXCollections.observableArrayList(data.game.entry.Platform.getEmulablePlatforms());
-            platforms.add(0,data.game.entry.Platform.NONE);
+            platforms.add(0, data.game.entry.Platform.NONE);
 
             // Create the CheckComboBox with the data
             final ComboBox<data.game.entry.Platform> platformComboBox = new ComboBox<data.game.entry.Platform>(platforms);
@@ -490,11 +480,11 @@ public class GameEditScene extends BaseScene {
             Node finalPathNode = pathNode;
             platformComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 entry.setPlatform(newValue);
-                if(finalPathNode instanceof PathTextField){
+                if (finalPathNode instanceof PathTextField) {
                     ((PathTextField) finalPathNode).setExtensions(newValue.getSupportedExtensions());
                 }
             });
-            contentPane.add(createTitleLabel("platform",false), 0, row_count);
+            contentPane.add(createTitleLabel("platform", false), 0, row_count);
             contentPane.add(platformComboBox, 1, row_count);
             row_count++;
         }
@@ -522,7 +512,7 @@ public class GameEditScene extends BaseScene {
                 entry.setDevelopers(newDevs);
             }
         });
-        contentPane.add(createTitleLabel("developer",false), 0, row_count);
+        contentPane.add(createTitleLabel("developer", false), 0, row_count);
         contentPane.add(devComboBox, 1, row_count);
         row_count++;
 
@@ -543,7 +533,7 @@ public class GameEditScene extends BaseScene {
                 entry.setPublishers(newPublishers);
             }
         });
-        contentPane.add(createTitleLabel("publisher",false), 0, row_count);
+        contentPane.add(createTitleLabel("publisher", false), 0, row_count);
         contentPane.add(pubComboBox, 1, row_count);
         row_count++;
 
@@ -574,7 +564,7 @@ public class GameEditScene extends BaseScene {
                 entry.setGenres(newGenres);
             }
         });
-        contentPane.add(createTitleLabel("genre",false), 0, row_count);
+        contentPane.add(createTitleLabel("genre", false), 0, row_count);
         contentPane.add(genreComboBox, 1, row_count);
         row_count++;
 
@@ -605,25 +595,16 @@ public class GameEditScene extends BaseScene {
                 entry.setThemes(newThemes);
             }
         });
-        contentPane.add(createTitleLabel("theme",false), 0, row_count);
+        contentPane.add(createTitleLabel("theme", false), 0, row_count);
         contentPane.add(themeComboBox, 1, row_count);
         row_count++;
 
         /**************************SCREENSHOT*********************************************/
-        OnDLDoneHandler screenshotDlDoneHandler = new OnDLDoneHandler() {
-            @Override
-            public void run(File outputfile) {
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
-                        ImageUtils.transitionToWindowBackground(img, backgroundView);
-                        chosenImageFiles[1] = outputfile;
-                    }
-                });
-            }
-        };
-        contentPane.add(createTitleLabel("wallpaper",false), 0, row_count);
+        OnDLDoneHandler screenshotDlDoneHandler = outputFile -> Platform.runLater(() -> {
+            ImageUtils.transitionToWindowBackground(outputFile, backgroundView);
+            chosenImageFiles[1] = outputFile;
+        });
+        contentPane.add(createTitleLabel("wallpaper", false), 0, row_count);
 
         HBox screenShotButtonsBox = new HBox();
         screenShotButtonsBox.setSpacing(20 * Main.SCREEN_WIDTH / 1920);
@@ -685,7 +666,7 @@ public class GameEditScene extends BaseScene {
         row_count++;
 
         /**************************DESCRIPTION*********************************************/
-        contentPane.add(createTitleLabel("game_description",false), 0, row_count);
+        contentPane.add(createTitleLabel("game_description", false), 0, row_count);
         TextArea gameDescriptionField = new TextArea(entry.getDescription());
         gameDescriptionField.setWrapText(true);
         gameDescriptionField.setId("game_description");
@@ -701,7 +682,7 @@ public class GameEditScene extends BaseScene {
 
         /**************************YOUTUBE*********************************************/
         if (!settings().getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
-            contentPane.add(createTitleLabel("youtube_soundtrack",true), 0, row_count);
+            contentPane.add(createTitleLabel("youtube_soundtrack", true), 0, row_count);
             TextField youtubeSoundtrackField = new TextField(entry.getYoutubeSoundtrackHash().equals("") ? "" : YoutubeSoundtrackScrapper.toYoutubeUrl(entry.getYoutubeSoundtrackHash()));
             youtubeSoundtrackField.setId("youtube_soundtrack");
             youtubeSoundtrackField.textProperty().addListener(new ChangeListener<String>() {
@@ -723,7 +704,7 @@ public class GameEditScene extends BaseScene {
 
         /**************************CMD & ARGS*********************************************/
         if (settings().getBoolean(PredefinedSetting.ADVANCED_MODE)) {
-            contentPane.add(createTitleLabel("args",true), 0, row_count);
+            contentPane.add(createTitleLabel("args", true), 0, row_count);
             TextField argsField = new TextField(entry.getArgs());
             argsField.setId("args");
             argsField.textProperty().addListener(new ChangeListener<String>() {
@@ -735,7 +716,7 @@ public class GameEditScene extends BaseScene {
             contentPane.add(argsField, 1, row_count);
             row_count++;
 
-            contentPane.add(createTitleLabel("cmd_before",true), 0, row_count);
+            contentPane.add(createTitleLabel("cmd_before", true), 0, row_count);
             CMDTextField cmdBeforeField = new CMDTextField(entry.getCmd(GameEntry.CMD_BEFORE_START));
             cmdBeforeField.setWrapText(true);
             cmdBeforeField.setId("cmd_before");
@@ -748,7 +729,7 @@ public class GameEditScene extends BaseScene {
             contentPane.add(cmdBeforeField, 1, row_count);
             row_count++;
 
-            contentPane.add(createTitleLabel("cmd_after",true), 0, row_count);
+            contentPane.add(createTitleLabel("cmd_after", true), 0, row_count);
             CMDTextField cmdAfterField = new CMDTextField(entry.getCmd(GameEntry.CMD_AFTER_END));
             cmdAfterField.setWrapText(true);
             cmdAfterField.setId("cmd_after");
@@ -785,7 +766,7 @@ public class GameEditScene extends BaseScene {
     }
 
     private TextField createLineForProperty(String property, String initialValue, ChangeListener<String> changeListener) {
-        Node titleNode = createTitleLabel(property,false);
+        Node titleNode = createTitleLabel(property, false);
         contentPane.add(titleNode, 0, row_count);
         TextField textField = new TextField(initialValue);
         textField.setPrefColumnCount(50);
@@ -885,36 +866,13 @@ public class GameEditScene extends BaseScene {
 
 
         if (coverImage != null) {
-            boolean farRatio = Math.abs(((double) coverImage.getHeight()/ coverImage.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2;
-            boolean keepRatio = settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO);
-            coverView.setPreserveRatio(farRatio && keepRatio);
-            if (!ImageUtils.imagesEquals(coverImage, coverView.getImage())) {
-                ImageUtils.transitionToImage(coverImage, coverView);
-            }
-
-            ImageUtils.transitionToImage(coverImage, coverView);
+            ImageUtils.transitionToCover(coverImage, coverView);
         } else {
-            Task<Image> loadImageTask = new Task<Image>() {
-                @Override
-                protected Image call() throws Exception {
-                    SimpleImageInfo imageInfo = new SimpleImageInfo(entry.getImagePath(0));
-                    boolean farRatio = Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2;
-                    boolean keepRatio = settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO);
-                    coverView.setPreserveRatio(farRatio && keepRatio);
-                    return entry.getImage(0, coverWidth, coverHeight, farRatio && keepRatio, true);
-                }
-            };
-            loadImageTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-                @Override
-                public void handle(WorkerStateEvent event) {
-                    Platform.runLater(() -> {
-                        ImageUtils.transitionToImage(loadImageTask.getValue(), coverView);
-                    });
-                }
+            ImageUtils.getExecutorService().submit(() -> {
+                Platform.runLater(() -> {
+                    ImageUtils.transitionToCover(entry.getImagePath(0), coverWidth, coverHeight, coverView);
+                });
             });
-            Thread imageThread = new Thread(loadImageTask);
-            imageThread.setDaemon(true);
-            imageThread.start();
         }
 
         double imgSize = settings().getWindowWidth() / 15;
@@ -926,19 +884,11 @@ public class GameEditScene extends BaseScene {
             @Override
             public void handle(ActionEvent event) {
                 chosenImageFiles[0] = imageChooser.showOpenDialog(getParentStage());
-                boolean farRatio = false;
-                boolean keepRatio = false;
-                try {
-                    SimpleImageInfo imageInfo = new SimpleImageInfo(new File(chosenImageFiles[0].getAbsolutePath()));
-                    farRatio = Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2;
-                    keepRatio = settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO);
-                    coverView.setPreserveRatio(farRatio && keepRatio);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
 
-                Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[0].getAbsolutePath(), settings().getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), settings().getWindowHeight() * 2 / 3, farRatio && keepRatio, true);
-                ImageUtils.transitionToImage(img, coverView);
+                ImageUtils.transitionToCover(chosenImageFiles[0],
+                        settings().getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO),
+                        settings().getWindowHeight() * 2 / 3,
+                        coverView);
             }
         });
         //COVER EFFECTS
@@ -1102,14 +1052,13 @@ public class GameEditScene extends BaseScene {
                     , gameEntry.getIgdb_imageHash(0)
                     , ImageUtils.IGDB_TYPE_COVER
                     , ImageUtils.IGDB_SIZE_BIG_2X
-                    , new OnDLDoneHandler() {
-                        @Override
-                        public void run(File outputfile) {
-                            Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO), settings().getWindowHeight() * 2 / 3, false, true);
-                            ImageUtils.transitionToImage(img, coverView);
+                    , outputfile -> {
+                        ImageUtils.transitionToCover(outputfile,
+                                settings().getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO),
+                                settings().getWindowHeight() * 2 / 3,
+                                coverView);
 
-                            chosenImageFiles[0] = outputfile;
-                        }
+                        chosenImageFiles[0] = outputfile;
                     });
         }
         openImageSelector(gameEntry);
@@ -1123,13 +1072,7 @@ public class GameEditScene extends BaseScene {
                         , (java.lang.String) item.getValue()
                         , ImageUtils.IGDB_TYPE_SCREENSHOT
                         , ImageUtils.IGDB_SIZE_MED
-                        , new OnDLDoneHandler() {
-                            @Override
-                            public void run(File outputfile) {
-                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
-                                ImageUtils.transitionToWindowBackground(img, backgroundView);
-                            }
-                        });
+                        , outputFile -> ImageUtils.transitionToWindowBackground(outputFile, backgroundView));
             }
         });
         Optional<ButtonType> screenShotSelectedHash = screenshotSelector.showAndWait();
@@ -1141,14 +1084,9 @@ public class GameEditScene extends BaseScene {
                         , screenshotSelector.getSelectedImageHash()
                         , ImageUtils.IGDB_TYPE_SCREENSHOT
                         , ImageUtils.IGDB_SIZE_BIG_2X
-                        , new OnDLDoneHandler() {
-                            @Override
-                            public void run(File outputfile) {
-                                Image img = new Image("file:" + File.separator + File.separator + File.separator + outputfile.getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
-                                ImageUtils.transitionToWindowBackground(img, backgroundView);
-
-                                chosenImageFiles[1] = outputfile;
-                            }
+                        , outputfile -> {
+                            ImageUtils.transitionToWindowBackground(outputfile, backgroundView);
+                            chosenImageFiles[1] = outputfile;
                         });
                 validEntriesConditions.add(new ValidEntryCondition() {
                     @Override
@@ -1170,14 +1108,7 @@ public class GameEditScene extends BaseScene {
                     entry.setIgdb_id(gameEntry.getIgdb_id());
                 }
             } else {
-                if (chosenImageFiles[1] != null) {
-                    Image img = new Image("file:" + File.separator + File.separator + File.separator + chosenImageFiles[1].getAbsolutePath(), settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO, settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO, false, true);
-                    ImageUtils.transitionToWindowBackground(img, backgroundView);
-                    LOGGER.debug(chosenImageFiles[1].getAbsolutePath());
-                } else {
-                    ImageUtils.transitionToImage(null, backgroundView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
-                }
-
+                ImageUtils.transitionToWindowBackground(chosenImageFiles[1], backgroundView);
             }
         });
     }
@@ -1217,8 +1148,6 @@ public class GameEditScene extends BaseScene {
                         if (buttonType.equals(ButtonType.OK)) {
                             switch (mode) {
                                 case MODE_ADD:
-                                    entry.reloadFromDB();
-                                    break;
                                 case MODE_EDIT:
                                     entry.reloadFromDB();
                                     break;
@@ -1255,7 +1184,7 @@ public class GameEditScene extends BaseScene {
         }
     }
 
-    private Node createTitleLabel(String key, boolean advanced){
+    private Node createTitleLabel(String key, boolean advanced) {
         Node node = null;
         String title = Main.getString(key);
         Label label = new Label(title + " :");
@@ -1264,14 +1193,14 @@ public class GameEditScene extends BaseScene {
             label.setId("advanced-setting-label");
         }
 
-        String tooltip = Main.getString(key+"_tooltip");
-        if(!tooltip.equals(title) && !tooltip.equals(Main.NO_STRING)){
+        String tooltip = Main.getString(key + "_tooltip");
+        if (!tooltip.equals(title) && !tooltip.equals(Main.NO_STRING)) {
             HBox hBox = new HBox();
             hBox.setAlignment(Pos.CENTER_LEFT);
             hBox.setSpacing(5 * SCREEN_WIDTH / 1920);
-            hBox.getChildren().addAll(label,new HelpButton(tooltip));
+            hBox.getChildren().addAll(label, new HelpButton(tooltip));
             node = hBox;
-        }else{
+        } else {
             label.setTooltip(new Tooltip(title));
             node = label;
         }

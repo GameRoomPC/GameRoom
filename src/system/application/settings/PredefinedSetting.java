@@ -78,6 +78,7 @@ public enum PredefinedSetting {
     ,NO_MORE_ADD_FOLDER_WARNING("noMoreAddAppWarning", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,KEEP_COVER_RATIO("keepCoverRatio", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,SUPPORTER_KEY_PRICE("supporterKeyPrice", new SettingValue("8",String.class,CATEGORY_NONE))
+    ,CHOSEN_CONTROLLER("chosenController", new SettingValue(null,String.class,CATEGORY_UI))
     ;
 
 
