@@ -227,7 +227,7 @@ INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
 	(5,"RetroArch","C:\Program Files (x86)\retroarch.exe","-f -L ""path/to/core"" %a %p"),
 	(6,"RPCS3","C:\Program Files (x86)\rpcs3.exe","%a %p"),
 	(7,"PPSSPP","C:\Program Files (x86)\PPSSPP\PPSSPPWindows64.exe","%a %p"),
-	(8,"ePSXe","C:\Program Files (x86)\ePSXe205\ePSXe.exe","%a %p");
+	(8,"ePSXe","C:\Program Files (x86)\ePSXe205\ePSXe.exe","-nogui -loadbin %a %p");
 
 INSERT OR IGNORE INTO emulates(emu_id,platform_id) VALUES
 	(1,7),
