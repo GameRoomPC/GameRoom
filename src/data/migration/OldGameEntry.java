@@ -14,13 +14,11 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 import static ui.Main.FILES_MAP;
 import static ui.Main.LOGGER;
@@ -54,7 +52,7 @@ public class OldGameEntry {
     private Date addedDate;
     private Date lastPlayedDate;
     private boolean notInstalled = false;
-    private boolean ignored= false;
+    private boolean ignored = false;
 
     private File[] imagesPaths = new File[IMAGES_NUMBER];
 
@@ -113,52 +111,67 @@ public class OldGameEntry {
         ArrayList<UUID> uuids = readUUIDS(gamesFolder);
         for (UUID uuid : uuids) {
             OldGameEntry entry = new OldGameEntry(uuid);
-            entry.checkIgnored(ignoredFiles,ignoredSteam);
+            entry.checkIgnored(ignoredFiles, ignoredSteam);
             oldEntries.add(entry);
         }
 
-        for (OldGameEntry entry : oldEntries) {
-            entry.transferToDB();
-        }
-
-        toAddFolder.renameTo(new File(toAddFolder.getAbsolutePath()+".bak"));
-        gamesFolder.renameTo(new File(gamesFolder.getAbsolutePath()+".bak"));
-
-    }
-
-    private void transferToDB() {
         try {
-            exportDirectFields();
-            exportGenres();
-            exportThemes();
-            exportPlatform();
-            exportDevs();
-            exportPublishers();
-            exportSerie();
-            movePictures();
+            Statement statement = DataBase.getUserConnection().createStatement();
+            StringJoiner genreSQLJoiner = new StringJoiner(",","INSERT OR IGNORE INTO has_genre(game_id,genre_id) VALUES ",";");
+            StringJoiner themeSQLJoiner = new StringJoiner(",","INSERT OR IGNORE INTO has_theme(game_id,theme_id) VALUES ",";");
+            StringJoiner platformSQLJoiner = new StringJoiner(",","INSERT OR IGNORE INTO runs_on(platformGameId,platform_id,game_id) VALUES ",";");
+            StringJoiner devSQLJoiner = new StringJoiner(",","INSERT OR IGNORE INTO develops(game_id,dev_id) VALUES ",";");
+            StringJoiner pubSQLJoiner = new StringJoiner(",","INSERT OR IGNORE INTO publishes(game_id,pub_id) VALUES ",";");
+            StringJoiner serieSQLJoiner = new StringJoiner(",","INSERT OR IGNORE INTO regroups(game_id,serie_id) VALUES ",";");
+
+            for (OldGameEntry entry : oldEntries) {
+                entry.insertInDB(); //needed first to have an assigned id
+
+                entry.exportGenres(genreSQLJoiner);
+                entry.exportThemes(themeSQLJoiner);
+                entry.exportPlatform(platformSQLJoiner);
+                entry.exportDevs(devSQLJoiner);
+                entry.exportPublishers(pubSQLJoiner);
+                entry.exportSerie(serieSQLJoiner);
+                entry.movePictures(statement);
+            }
+            statement.addBatch(genreSQLJoiner.toString());
+            statement.addBatch(themeSQLJoiner.toString());
+            statement.addBatch(platformSQLJoiner.toString());
+            statement.addBatch(devSQLJoiner.toString());
+            statement.addBatch(pubSQLJoiner.toString());
+            statement.addBatch(serieSQLJoiner.toString());
+
+            statement.executeBatch();
+
+            toAddFolder.renameTo(new File(toAddFolder.getAbsolutePath() + ".bak"));
+            gamesFolder.renameTo(new File(gamesFolder.getAbsolutePath() + ".bak"));
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
     }
 
-    private void checkIgnored(File[] ignoredFiles, SteamPreEntry[] ignoredSteamEntries){
-        for(File ignoredFile : ignoredFiles){
+
+    private void checkIgnored(File[] ignoredFiles, SteamPreEntry[] ignoredSteamEntries) {
+        for (File ignoredFile : ignoredFiles) {
             ignored = path.toLowerCase().trim().equals(ignoredFile.getAbsolutePath().toLowerCase().trim());
-            if(ignored){
+            if (ignored) {
                 return;
             }
         }
-        if(steam_id != -1){
-            for(SteamPreEntry steamPreEntry : ignoredSteamEntries){
+        if (steam_id != -1) {
+            for (SteamPreEntry steamPreEntry : ignoredSteamEntries) {
                 ignored = steamPreEntry.getId() == steam_id;
-                if(ignored){
+                if (ignored) {
                     return;
                 }
             }
         }
     }
 
-    private void exportDirectFields() throws SQLException {
+    private void insertInDB() throws SQLException {
         Connection connection = DataBase.getUserConnection();
 
         PreparedStatement statement = connection.prepareStatement(GameEntry.getSQLInitLine());
@@ -190,39 +203,30 @@ public class OldGameEntry {
         LOGGER.debug("Exported game \"" + name + "\" with id " + sqlId);
     }
 
-    private void exportGenres() throws SQLException {
+    private void exportGenres(StringJoiner genreSQLJoiner) throws SQLException {
         if (genres != null) {
             for (OldGenre genre : genres) {
                 int genreId = GameGenre.getIGDBId(genre.getKey());
                 if (genreId != -1) {
-                    PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO has_genre(game_id,genre_id) VALUES (?,?)");
-                    genreStatement.setInt(1, sqlId);
-                    genreStatement.setInt(2, genreId);
-                    genreStatement.execute();
-                    genreStatement.close();
-                    //DataBase.commit();
+                    genreSQLJoiner.add("("+sqlId+","+genreId+")");
                 }
             }
         }
     }
 
-    private void exportThemes() throws SQLException {
+    private void exportThemes(StringJoiner themeSQLJoiner) throws SQLException {
+        StringJoiner joiner = new StringJoiner(",");
         if (themes != null) {
             for (OldTheme theme : themes) {
                 int themeID = GameTheme.getIGDBId(theme.getKey());
                 if (themeID != -1) {
-                    PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO has_theme(game_id,theme_id) VALUES (?,?)");
-                    genreStatement.setInt(1, sqlId);
-                    genreStatement.setInt(2, themeID);
-                    genreStatement.execute();
-                    genreStatement.close();
-                    //DataBase.commit();
+                    themeSQLJoiner.add("(" + sqlId + "," + themeID + ")");
                 }
             }
         }
     }
 
-    private void exportPlatform() throws SQLException {
+    private void exportPlatform(StringJoiner platformSQLJoiner) throws SQLException {
         int specificId = 0;
         int platformId = -1;
 
@@ -247,18 +251,12 @@ public class OldGameEntry {
             platformId = 6;
         }
         if (platformId != -1) {
-            PreparedStatement genreStatement = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO runs_on(platformGameId,platform_id,game_id) VALUES (?,?,?)");
-            genreStatement.setInt(1, specificId);
-            genreStatement.setInt(2, platformId);
-            genreStatement.setInt(3, sqlId);
-            genreStatement.execute();
-            genreStatement.close();
-            //DataBase.commit();
+            platformSQLJoiner.add("("+specificId+","+platformId+","+sqlId+")");
         }
 
     }
 
-    private void exportDevs() throws SQLException {
+    private void exportDevs(StringJoiner devSQLJoiner) throws SQLException {
         if (developer != null && !developer.isEmpty()) {
             String[] devs = developer.split(",\\s");
             for (String s : devs) {
@@ -266,18 +264,13 @@ public class OldGameEntry {
                 int devId = dev.insertInDB();
 
                 if (devId != -1) {
-                    PreparedStatement devStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO develops(game_id,dev_id) VALUES (?,?)");
-                    devStatement2.setInt(1, sqlId);
-                    devStatement2.setInt(2, devId);
-                    devStatement2.execute();
-                    devStatement2.close();
-                    //DataBase.commit();
+                    devSQLJoiner.add("(" + sqlId + "," + devId + ")");
                 }
             }
         }
     }
 
-    private void exportPublishers() throws SQLException {
+    private void exportPublishers(StringJoiner pubSQLJoiner) throws SQLException {
         if (publisher != null && !publisher.isEmpty()) {
             String[] pubs = publisher.split(",\\s");
             for (String s : pubs) {
@@ -285,33 +278,23 @@ public class OldGameEntry {
                 int pubId = pub.insertInDB();
 
                 if (pubId != -1) {
-                    PreparedStatement pubStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO publishes(game_id,pub_id) VALUES (?,?)");
-                    pubStatement2.setInt(1, sqlId);
-                    pubStatement2.setInt(2, pubId);
-                    pubStatement2.execute();
-                    pubStatement2.close();
-                    //DataBase.commit();
+                    pubSQLJoiner.add("(" + sqlId + "," + pubId + ")");
                 }
             }
         }
     }
 
-    private void exportSerie() throws SQLException {
+    private void exportSerie(StringJoiner serieSQLJoiner) throws SQLException {
         if (serie != null && !serie.isEmpty()) {
             Serie gameSerie = new Serie(serie);
 
             if (gameSerie.getId() != Serie.DEFAULT_ID) {
-                PreparedStatement serieStatement2 = DataBase.getUserConnection().prepareStatement("INSERT OR IGNORE INTO regroups(game_id,serie_id) VALUES (?,?)");
-                serieStatement2.setInt(1, sqlId);
-                serieStatement2.setInt(2, gameSerie.getId());
-                serieStatement2.execute();
-                serieStatement2.close();
-                //DataBase.commit();
+                serieSQLJoiner.add("(" + sqlId + "," + gameSerie.getId() + ")");
             }
         }
     }
 
-    private void movePictures() {
+    private void movePictures(Statement statement) {
         File coverFolder = FILES_MAP.get("cover");
         File screenshotFolder = FILES_MAP.get("screenshot");
         File workingdir = Main.FILES_MAP.get("working_dir");
@@ -492,10 +475,10 @@ public class OldGameEntry {
         return sqlDate;
     }
 
-    public static ArrayList<UUID> readUUIDS(File entriesFolder){
+    public static ArrayList<UUID> readUUIDS(File entriesFolder) {
         ArrayList<UUID> uuids = new ArrayList<>();
 
-        if(entriesFolder.exists() && entriesFolder.isDirectory()) {
+        if (entriesFolder.exists() && entriesFolder.isDirectory()) {
             for (File gameFolder : entriesFolder.listFiles()) {
                 String name = gameFolder.getName();
                 try {

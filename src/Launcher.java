@@ -3,6 +3,7 @@ import data.game.scraper.IGDBScraper;
 import data.http.images.ImageUtils;
 import data.io.DataBase;
 import data.io.FileUtils;
+import data.migration.OldGameEntry;
 import data.migration.OldSettings;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -115,6 +116,7 @@ public class Launcher extends Application {
         initFiles();
         DataBase.initDB();
         OldSettings.transferOldSettings();
+        OldGameEntry.transferOldGameEntries();
         GameEntryUtils.loadGames();
 
         String gameToStartID = getArg(ARGS_START_GAME, args, true);

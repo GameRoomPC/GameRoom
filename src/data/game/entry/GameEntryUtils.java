@@ -101,10 +101,6 @@ public class GameEntryUtils {
         }
     }
     public static void loadGames(){
-        //TODO detect in following method if exists old games
-        loadGames(FILES_MAP.get("games"));
-        OldGameEntry.transferOldGameEntries();
-
         try {
             Connection connection = DataBase.getUserConnection();
             Statement statement = connection.createStatement();
