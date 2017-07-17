@@ -116,6 +116,7 @@ public class Launcher extends Application {
         initFiles();
         DataBase.initDB();
         OldSettings.transferOldSettings();
+        Main.main(args);
         OldGameEntry.transferOldGameEntries();
         GameEntryUtils.loadGames();
 
@@ -147,7 +148,6 @@ public class Launcher extends Application {
                     break;
             }
         }
-        Main.main(args);
         launch(args);
     }
 

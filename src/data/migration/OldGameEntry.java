@@ -1,6 +1,5 @@
 package data.migration;
 
-import com.google.gson.Gson;
 import data.game.entry.*;
 import data.game.scraper.SteamPreEntry;
 import data.io.DataBase;
@@ -97,6 +96,9 @@ public class OldGameEntry {
     public static void transferOldGameEntries() {
         File toAddFolder = FILES_MAP.get("to_add");
         File gamesFolder = FILES_MAP.get("games");
+        if(!toAddFolder.exists() && !gamesFolder.exists()){
+            return;
+        }
         File configFile = FILES_MAP.get("config.properties");
         File[] ignoredFiles = OldSettings.getIgnoredFiles();
         SteamPreEntry[] ignoredSteam = OldSettings.getIgnoredSteamApps();
@@ -116,6 +118,10 @@ public class OldGameEntry {
             oldEntries.add(entry);
         }
 
+        int finalOpCount = 3;
+        LoadingWindow.getInstance().setMaximumProgress(oldEntries.size()+finalOpCount);
+        LoadingWindow.getInstance().show();
+
         try {
             Statement statement = DataBase.getUserConnection().createStatement();
             StringJoiner genreSQLJoiner = new StringJoiner(",","INSERT OR IGNORE INTO has_genre(game_id,genre_id) VALUES ",";");
@@ -125,8 +131,10 @@ public class OldGameEntry {
             StringJoiner pubSQLJoiner = new StringJoiner(",","INSERT OR IGNORE INTO publishes(game_id,pub_id) VALUES ",";");
             StringJoiner serieSQLJoiner = new StringJoiner(",","INSERT OR IGNORE INTO regroups(game_id,serie_id) VALUES ",";");
 
+            int i = 0;
             for (OldGameEntry entry : oldEntries) {
                 entry.insertInDB(); //needed first to have an assigned id
+                LoadingWindow.getInstance().setProgress(i++,Main.getString("updating")+" "+entry.name+"...");
 
                 entry.exportGenres(genreSQLJoiner);
                 entry.exportThemes(themeSQLJoiner);
@@ -136,6 +144,7 @@ public class OldGameEntry {
                 entry.exportSerie(serieSQLJoiner);
                 entry.movePictures(statement);
             }
+            LoadingWindow.getInstance().setProgress(i++,Main.getString("applying_changes")+"...");
             statement.addBatch(genreSQLJoiner.toString());
             statement.addBatch(themeSQLJoiner.toString());
             statement.addBatch(platformSQLJoiner.toString());
@@ -145,9 +154,14 @@ public class OldGameEntry {
 
             statement.executeBatch();
 
+            LoadingWindow.getInstance().setProgress(i++,Main.getString("moving_files")+"...");
             toAddFolder.renameTo(new File(toAddFolder.getAbsolutePath() + ".bak"));
             gamesFolder.renameTo(new File(gamesFolder.getAbsolutePath() + ".bak"));
             configFile.renameTo(new File(configFile.getAbsolutePath() + ".bak"));
+
+            LoadingWindow.getInstance().setProgress(i++,Main.getString("done")+"!");
+            LoadingWindow.getInstance().dispose();
+
 
         } catch (SQLException e) {
             e.printStackTrace();
