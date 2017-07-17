@@ -154,24 +154,29 @@ public class Launcher extends Application {
         System.out.println("datapath : " + DATA_PATH);
         File gameRoomFolder = FileUtils.initOrCreateFolder(DATA_PATH);
 
-        File configProperties = new File("config.properties");
-        File logFolder = new File("log");
-        //File libsFolder = new File("libs");
-        File gamesFolder = new File("Games");
-        File toAddFolder = new File("ToAdd");
-        File cacheFolder = new File("cache");
+        if(!DEV_MODE) {
+            String appdataFolder = System.getenv("APPDATA");
+            String oldDataPath = appdataFolder + File.separator + "GameRoom" + File.separator;
 
-        /*****************MOVE FILES/FOLDERS IF NEEDED***********************/
-        FileUtils.moveToFolder(gamesFolder, gameRoomFolder);
-        FileUtils.moveToFolder(configProperties, gameRoomFolder);
-        FileUtils.moveToFolder(logFolder, gameRoomFolder);
-        if (logFolder.exists()) {
-            FileUtils.clearFolder(logFolder);
-            logFolder.delete();
+            File configProperties = new File(oldDataPath + "config.properties");
+            File logFolder = new File(oldDataPath + "log");
+            //File libsFolder = new File("libs");
+            File gamesFolder = new File(oldDataPath + "Games");
+            File toAddFolder = new File(oldDataPath + "ToAdd");
+            File cacheFolder = new File(oldDataPath + "cache");
+
+            /*****************MOVE FILES/FOLDERS IF NEEDED***********************/
+            FileUtils.moveToFolder(gamesFolder, gameRoomFolder);
+            FileUtils.moveToFolder(configProperties, gameRoomFolder);
+            FileUtils.moveToFolder(logFolder, gameRoomFolder);
+            if (logFolder.exists()) {
+                FileUtils.clearFolder(logFolder);
+                logFolder.delete();
+            }
+            //FileUtils.moveToFolder(libsFolder,gameRoomFolder);
+            FileUtils.moveToFolder(toAddFolder, gameRoomFolder);
+            FileUtils.moveToFolder(cacheFolder, gameRoomFolder);
         }
-        //FileUtils.moveToFolder(libsFolder,gameRoomFolder);
-        FileUtils.moveToFolder(toAddFolder, gameRoomFolder);
-        FileUtils.moveToFolder(cacheFolder, gameRoomFolder);
 
         /*****************INIT FILES AND FOLDER***********************/
         Main.FILES_MAP.put("working_dir", gameRoomFolder);
