@@ -122,7 +122,6 @@ public class Monitor {
             }
         };
 
-        monitorTask.setOnRunning(() -> debug("monitorTask running"));
         monitorTask.setOnFailed(() -> {
             if(monitorTask.getException().getMessage().equals(EXCEPTION_NOT_RUNNING)) {
                 monitorGapTime += MONITOR_REFRESH;
