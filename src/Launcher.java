@@ -373,7 +373,7 @@ public class Launcher extends Application {
 
                 }
             });
-            if (settings().getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT)) {
+            if (settings().getBoolean(PredefinedSetting.ENABLE_GAME_CONTROLLER_SUPPORT) && WindowFocusManager.isWindowFocused()) {
                 gameController.resume();
             }
 
