@@ -4,8 +4,6 @@ import data.game.entry.Emulator;
 import data.io.FileUtils;
 import data.game.entry.GameEntry;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -25,7 +23,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static system.application.settings.GeneralSettings.settings;
@@ -57,12 +54,12 @@ public class GameStarter {
     public void start() {
         Main.LOGGER.info("Starting game : " + entry.getName());
 
-        onPreGameLaunch();
         try {
+            onPreGameLaunch();
             startGame();
+            onPostGameLaunched();
         } catch (IllegalStateException | IOException e) {
-            onPostGameLaunch(0);
-            onStop();
+            onStop(0);
             switch (e.getMessage()) {
                 case ERR_NO_EMU:
                     GameRoomAlert.error("There is no emulator configured for platform " + entry.getPlatform());
@@ -86,40 +83,14 @@ public class GameStarter {
             return;
         }
 
-        Task<Long> monitor = new Task<Long>() {
-            @Override
-            protected Long call() throws Exception {
-                if (settings().getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.CLOSE)) {
-                    Main.forceStop(MAIN_SCENE.getParentStage(), "launchAction = OnLaunchAction.CLOSE");
-                } else if (settings().getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.HIDE)) {
-                    Main.LOGGER.debug("Hiding");
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            MAIN_SCENE.getParentStage().hide();
-                        }
-                    });
-                }
-                //This condition means that some thread is already monitoring and waiting for the game to be restarted, no need to monitor
-                if (!entry.isMonitored()) {
-                    entry.setMonitored(true);
-                    Monitor timeMonitor = new Monitor(GameStarter.this);
-                    return timeMonitor.start(null);
-                }
-                return VALUE_ALREADY_MONITORED;
-            }
-        };
-        monitor.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.equals(VALUE_ALREADY_MONITORED)) {
-                onPostGameLaunch(newValue);
-            } else {
-                //No need to add playtime as if we are here, it means that some thread is already monitoring play time
-            }
-        });
-        Thread th = new Thread(monitor);
-        th.setDaemon(true);
+        try {
+            Monitor timeMonitor = new Monitor(this);
+            timeMonitor.start();
+        } catch (IOException e) {
+            //TODO catch case cannot monitor playtime
+            e.printStackTrace();
+        }
 
-        th.start();
     }
 
     private void startGame() throws IOException, IllegalStateException {
@@ -216,7 +187,21 @@ public class GameStarter {
         entry.setSavedLocally(false);
     }
 
-    private void onPostGameLaunch(long playtime) {
+    private void onPostGameLaunched(){
+        if (settings().getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.CLOSE)) {
+            Main.forceStop(MAIN_SCENE.getParentStage(), "launchAction = OnLaunchAction.CLOSE");
+        } else if (settings().getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.HIDE)) {
+            Main.LOGGER.debug("Hiding");
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    MAIN_SCENE.getParentStage().hide();
+                }
+            });
+        }
+    }
+
+    private void onPostGameStopped(long playtime) {
         Main.LOGGER.debug("Adding " + Math.round(playtime / 1000.0) + "s to game " + entry.getName());
 
         if (entry.getOnGameStopped() != null) {
@@ -264,7 +249,9 @@ public class GameStarter {
     }
 
 
-    void onStop() {
+    void onStop(long playtime) {
+        onPostGameStopped(playtime);
+
         if (settings().getBoolean(PredefinedSetting.ENABLE_GAMING_POWER_MODE)) {
             originalPowerMode.activate();
         }
