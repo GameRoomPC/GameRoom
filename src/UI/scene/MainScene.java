@@ -324,12 +324,9 @@ public class MainScene extends BaseScene {
                 for (GameEntry entry : GameEntryUtils.ENTRIES_LIST) {
                     int finalI = i;
 
-                    Main.runAndWait(new Runnable() {
-                        @Override
-                        public void run() {
-                            setChangeBackgroundNextTime(true);
-                            addGame(entry);
-                        }
+                    Main.runAndWait(() -> {
+                        setChangeBackgroundNextTime(true);
+                        addGame(entry);
                     });
                     long currentTime = System.currentTimeMillis();
                     if (lastWallpaperUpdate == 0) {
