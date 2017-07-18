@@ -242,7 +242,7 @@ public class GameStarter {
                     + Main.getString("tray_icon_time_recorded") + " "
                     + entry.getName();
             if (!settings().getBoolean(PredefinedSetting.NO_NOTIFICATIONS) && playtime != 0) {
-                Main.TRAY_ICON.displayMessage("GameRoom", notificationText, TrayIcon.MessageType.INFO);
+                Main.TRAY_ICON.displayMessage("GameRoom", notificationText, TrayIcon.MessageType.NONE);
             }
             GeneralToast.displayToast(notificationText, MAIN_SCENE.getParentStage());
         }
