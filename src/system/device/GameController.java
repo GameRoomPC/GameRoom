@@ -1,5 +1,6 @@
 package system.device;
 
+import javafx.beans.property.*;
 import javafx.concurrent.Task;
 import net.java.games.input.*;
 import system.SchedulableTask;
@@ -92,7 +93,7 @@ public class GameController {
     /**
      * Controllers found when scanning
      */
-    private volatile Controller[] controllers;
+    private SimpleObjectProperty<Controller[]> controllersProperty = new SimpleObjectProperty<>();
 
     /**
      * Listener which associates actions to the buttons of the controller
@@ -155,7 +156,7 @@ public class GameController {
         this.controllerButtonListener = controllerButtonListener;
         threadPool.setRemoveOnCancelPolicy(true);
 
-        pollingTask = new SchedulableTask<Void>(0,POLL_RATE) {
+        pollingTask = new SchedulableTask<Void>(0, POLL_RATE) {
             @Override
             protected Void execute() throws Exception {
                 boolean connected = false;
@@ -211,7 +212,7 @@ public class GameController {
             }
         };
 
-        controllerDiscoverTask = new SchedulableTask<Controller[]>(0,DISCOVER_RATE) {
+        controllerDiscoverTask = new SchedulableTask<Controller[]>(0, DISCOVER_RATE) {
             @Override
             protected Controller[] execute() throws Exception {
                 if (Main.KEEP_THREADS_RUNNING && !paused) {
@@ -228,7 +229,9 @@ public class GameController {
             }
         };
         controllerDiscoverTask.setOnSucceeded(() -> {
-            this.controllers = controllerDiscoverTask.getValue();
+            if(controllersProperty.get() != controllerDiscoverTask.getValue()) {
+                controllersProperty.setValue(controllerDiscoverTask.getValue());
+            }
 
             if (getController() != null && getController().poll()) {
                 //no need to change of controller
@@ -238,14 +241,14 @@ public class GameController {
 
             int i = 0;
             int usedIndex = 0;
-            for (Controller controller : controllers) {
+            for (Controller controller : controllersProperty.get()) {
                 if (toPseudoUid(controller, i).equals(chosenController)) {
                     usedIndex = i;
                 }
                 i++;
             }
-            if (controllers.length > 0) {
-                setController(controllers[usedIndex]);
+            if (controllersProperty.get().length > 0) {
+                setController(controllersProperty.get()[usedIndex]);
                 LOGGER.info("Using controller : " + controller.getName());
                 if (MAIN_SCENE != null) {
                     GeneralToast.displayToast(controller.getName() + " " + Main.getString("connected"), MAIN_SCENE.getParentStage());
@@ -254,15 +257,24 @@ public class GameController {
         });
     }
 
-    public String[] getControllers() throws ExecutionException, InterruptedException {
-        if (controllers == null) {
+    /**
+     * Computes some String tags for every Controller detected, and returns them
+     *
+     * @return an array containing pseudo ids of {@link Controller}
+     */
+    public String[] getControllers() {
+        if (controllersProperty.get() == null) {
             return new String[0];
         }
-        String[] ids = new String[controllers.length];
-        for (int i = 0; i < controllers.length; i++) {
-            ids[i] = toPseudoUid(controllers[i], i);
+        String[] ids = new String[controllersProperty.get().length];
+        for (int i = 0; i < controllersProperty.get().length; i++) {
+            ids[i] = toPseudoUid(controllersProperty.get()[i], i);
         }
         return ids;
+    }
+
+    public ReadOnlyObjectProperty<Controller[]> getControllersProperty() {
+        return controllersProperty;
     }
 
     private static String toPseudoUid(Controller controller, int index) {
@@ -285,7 +297,7 @@ public class GameController {
     }
 
     public void setController(String pseudoId) {
-        setController(findFromPseudoId(pseudoId, controllers));
+        setController(findFromPseudoId(pseudoId, controllersProperty.get()));
     }
 
     private void setController(Controller controller) {

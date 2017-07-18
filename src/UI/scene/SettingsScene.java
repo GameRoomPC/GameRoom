@@ -202,11 +202,11 @@ public class SettingsScene extends BaseScene {
         Label controllerLabel = new Label(Main.getSettingsString("controller_label") + " : ");
         controllerLabel.setTooltip(new Tooltip(Main.getSettingsString("controller_tooltip")));
 
-        try {
-            controllerComboBox.getItems().addAll(Main.gameController.getControllers());
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        Main.gameController.getControllersProperty().addListener((observable, oldValue, newValue) -> {
+            controllerComboBox.getItems().setAll(Main.gameController.getControllers());
+        });
+        controllerComboBox.getItems().setAll(Main.gameController.getControllers());
+
         controllerComboBox.setConverter(new StringConverter<String>() {
             @Override
             public String toString(String object) {
