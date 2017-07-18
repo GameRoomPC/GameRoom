@@ -105,6 +105,7 @@ public abstract class SchedulableTask<T> implements Runnable {
      * @param executor the executor we want to execute our task on
      */
     public void scheduleOn(ScheduledThreadPoolExecutor executor) {
+        setState(STATE_PENDING);
         future = executor.scheduleAtFixedRate(this, delay, rate, TimeUnit.MILLISECONDS);
     }
 
