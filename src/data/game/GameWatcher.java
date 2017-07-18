@@ -45,17 +45,9 @@ public class GameWatcher {
     private ArrayList<Runnable> onSearchStartedListeners = new ArrayList<>();
     private ArrayList<Runnable> onSearchDoneListeners = new ArrayList<>();
 
-    private Thread serviceThread;
-    private volatile static boolean KEEP_LOOPING = true;
-    private volatile static boolean WAIT_FULL_PERIOD = false;
-    private volatile static boolean MANUAL_START = false;
-
-    private ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
-    private ScheduledThreadPoolExecutor scheduledExecutor = new ScheduledThreadPoolExecutor(1);
     private Runnable scanningTask;
     private Future scanningFuture;
 
-    private volatile boolean awaitingStart = false;
 
     public static GameWatcher getInstance() {
         if (WATCHER == null) {
@@ -69,7 +61,6 @@ public class GameWatcher {
     }
 
     private GameWatcher() {
-        scheduledExecutor.setRemoveOnCancelPolicy(true);
         initService();
 
         localGameScanners.add(new LauncherScanner(this, ScannerProfile.BATTLE_NET));
@@ -104,10 +95,6 @@ public class GameWatcher {
             }
         }
 
-        if (EXECUTOR_SERVICE.isShutdown()) {
-            EXECUTOR_SERVICE = Executors.newCachedThreadPool();
-        }
-
         LOGGER.info("GameWatcher started");
         if (MAIN_SCENE != null) {
             GeneralToast.displayToast(Main.getString("search_started"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
@@ -115,15 +102,6 @@ public class GameWatcher {
         //validateKey();
         scanNewGamesRoutine();
         scanNewOnlineGamesRoutine();
-
-        EXECUTOR_SERVICE.shutdown();
-        try {
-            EXECUTOR_SERVICE.awaitTermination(1, TimeUnit.HOURS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            EXECUTOR_SERVICE.shutdownNow();
-        }
-        EXECUTOR_SERVICE = Executors.newCachedThreadPool();
 
         if (MAIN_SCENE != null) {
             GeneralToast.displayToast(Main.getString("search_done"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
@@ -153,13 +131,13 @@ public class GameWatcher {
     public void start(boolean manualStart) {
         loadToAddEntries();
         if (manualStart) {
-            scanningFuture = scheduledExecutor.submit(scanningTask);
+            scanningFuture = Main.getScheduledExecutor().submit(scanningTask);
         } else {
             if (scanPeriod != null && scanPeriod.toMillis() > 0) {
                 if (scanningFuture != null) {
                     scanningFuture.cancel(false);
                 }
-                scanningFuture = scheduledExecutor.scheduleAtFixedRate(scanningTask, scanPeriod.toMillis(), scanPeriod.toMillis(), TimeUnit.MILLISECONDS);
+                scanningFuture = Main.getScheduledExecutor().scheduleAtFixedRate(scanningTask, scanPeriod.toMillis(), scanPeriod.toMillis(), TimeUnit.MILLISECONDS);
             }
         }
     }
@@ -266,9 +244,10 @@ public class GameWatcher {
         }
 
         try {
-            EXECUTOR_SERVICE.invokeAll(tasks);
+            Main.getExecutorService().invokeAll(tasks);
         } catch (InterruptedException e) {
-            EXECUTOR_SERVICE.shutdownNow();
+            LOGGER.error("GameWatcher : error starting tasks");
+            e.printStackTrace();
         }
 
         CopyOnWriteArrayList<CopyOnWriteArrayList<Integer>> searchIDsCollection = new CopyOnWriteArrayList<>();
@@ -430,7 +409,7 @@ public class GameWatcher {
     }
 
     public void submitTask(Callable task) {
-        EXECUTOR_SERVICE.submit(task);
+        Main.getExecutorService().submit(task);
     }
 
     public CopyOnWriteArrayList<GameEntry> getEntriesToAdd() {

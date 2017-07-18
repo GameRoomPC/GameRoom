@@ -60,7 +60,6 @@ public class Terminal {
             process.destroy();
             LOGGER.debug("Terminal : killed created process");
         });
-        //TODO destroy
     }
 
     public String[] execute(String command, String... args) throws IOException {

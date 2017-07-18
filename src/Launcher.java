@@ -391,6 +391,7 @@ public class Launcher extends Application {
             });
         }
         Main.getExecutorService().shutdownNow();
+        Main.getScheduledExecutor().shutdownNow();
         WindowFocusManager.shutdown();
         gameController.shutdown();
 
