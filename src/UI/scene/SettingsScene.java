@@ -248,7 +248,7 @@ public class SettingsScene extends BaseScene {
         gameFoldersLabel.setTooltip(new Tooltip(Main.getString("games_folders_tooltip")));
         Button manageFoldersButton = new Button(Main.getString("manage"));
 
-        manageFoldersButton.setOnAction(event -> new GameFoldersDialog().showAndWait());
+        manageFoldersButton.setOnAction(event -> new GamesFoldersDialog().showAndWait());
 
         flowPaneHashMap.get(CATEGORY_SCAN).getChildren().add(createLine(gameFoldersLabel, manageFoldersButton));
 

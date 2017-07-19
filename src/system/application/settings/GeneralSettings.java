@@ -331,10 +331,12 @@ public class GeneralSettings {
 
     /**
      * Adds a game folder to be scanned
+     * Deprecated as it should only be used to transfer the selected games folder from the {@link data.migration.OldSettings}
      *
      * @param folder the folder to add. Should not have been added before
      * @return true if it could be added; false if there was an issue, the folder was null or already added.
      */
+    @Deprecated
     public boolean addGameFolder(File folder) {
         if (folder == null) {
             return false;

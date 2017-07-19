@@ -21,12 +21,12 @@ import static system.application.settings.GeneralSettings.settings;
  * @author LM. Garret (admin@gameroom.me)
  * @date 19/07/2017.
  */
-public class GameFoldersDialog extends GameRoomDialog {
+public class GamesFoldersDialog extends GameRoomDialog {
     private ListView<File> listView;
     private Button addButton;
     private Button deleteButton;
 
-    public GameFoldersDialog() {
+    public GamesFoldersDialog() {
         initTop();
         initCenter();
         initRight();

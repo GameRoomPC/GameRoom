@@ -14,16 +14,13 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -38,9 +35,8 @@ import ui.control.drawer.DrawerMenu;
 import ui.control.drawer.GroupType;
 import ui.control.drawer.SortType;
 import ui.control.specific.FloatingSearchBar;
-import ui.control.textfield.PathTextField;
+import ui.dialog.GamesFoldersDialog;
 import ui.dialog.GameRoomAlert;
-import ui.dialog.GameRoomCustomAlert;
 import ui.dialog.selector.GameScannerSelector;
 import ui.pane.gamestilepane.*;
 import ui.scene.exitaction.ClassicExitAction;
@@ -48,8 +44,6 @@ import ui.scene.exitaction.ExitAction;
 import ui.scene.exitaction.MultiAddExitAction;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -171,31 +165,7 @@ public class MainScene extends BaseScene {
                         settings().setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
                     }
                 });
-                GameRoomCustomAlert alert = new GameRoomCustomAlert();
-                Label text = new Label(Main.getString("welcome_input_folder"));
-                text.setWrapText(true);
-                text.setPadding(new Insets(20 * Main.SCREEN_HEIGHT / 1080
-                        , 20 * Main.SCREEN_WIDTH / 1920
-                        , 20 * Main.SCREEN_HEIGHT / 1080
-                        , 20 * Main.SCREEN_WIDTH / 1920));
-                PathTextField field = new PathTextField("", getWindow(), PathTextField.FILE_CHOOSER_FOLDER, "");
-
-                alert.setBottom(field);
-                alert.setCenter(text);
-                alert.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
-                field.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
-                        , 20 * Main.SCREEN_WIDTH / 1920
-                        , 20 * Main.SCREEN_HEIGHT / 1080
-                        , 20 * Main.SCREEN_WIDTH / 1920));
-
-                alert.getDialogPane().getButtonTypes().addAll(new ButtonType(Main.getString("ok"), ButtonBar.ButtonData.OK_DONE)
-                        , new ButtonType(Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
-                Optional<ButtonType> result = alert.showAndWait();
-                if (result != null && result.isPresent() && result.get().getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                    settings().addGameFolder(new File(field.getTextField().getText()));
-                } else {
-                    // ... user chose CANCEL or closed the dialog
-                }
+                new GamesFoldersDialog().showAndWait();
                 settings().setSettingValue(PredefinedSetting.DISPLAY_WELCOME_MESSAGE, false);
                 startGameWatcherService();
             });
