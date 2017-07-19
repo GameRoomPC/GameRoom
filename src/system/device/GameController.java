@@ -1,7 +1,6 @@
 package system.device;
 
 import javafx.beans.property.*;
-import javafx.concurrent.Task;
 import net.java.games.input.*;
 import system.SchedulableTask;
 import system.application.settings.PredefinedSetting;
@@ -12,10 +11,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
@@ -306,7 +302,7 @@ public class GameController {
         if (controller != null) {
             pollingTask.stop();
             if (Main.KEEP_THREADS_RUNNING) {
-                pollingTask.scheduleOn(threadPool);
+                pollingTask.scheduleAtFixedRateOn(threadPool);
             }
         } else {
             pollingTask.stop();
@@ -357,10 +353,10 @@ public class GameController {
         //LOGGER.debug("Resuming controller service");
         if (controller != null) {
             //we have already found a controller
-            pollingTask.scheduleOn(threadPool);
+            pollingTask.scheduleAtFixedRateOn(threadPool);
         }
         controllerDiscoverTask.stop();
-        controllerDiscoverTask.scheduleOn(threadPool);
+        controllerDiscoverTask.scheduleAtFixedRateOn(threadPool);
         paused = false;
     }
 

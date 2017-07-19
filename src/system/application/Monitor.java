@@ -4,14 +4,9 @@ import data.game.entry.Emulator;
 import data.game.entry.GameEntry;
 import data.game.scraper.SteamLocalScraper;
 import data.io.FileUtils;
-import javafx.application.Platform;
-import javafx.concurrent.Task;
-import javafx.scene.control.ButtonType;
-import net.java.games.input.Controller;
 import system.SchedulableTask;
 import system.application.settings.PredefinedSetting;
 import system.os.Terminal;
-import ui.GeneralToast;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
 
@@ -24,7 +19,6 @@ import java.util.concurrent.*;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
-import static ui.dialog.GameRoomAlert.error;
 
 /**
  * Created by LM on 24/07/2016.
@@ -213,7 +207,7 @@ public class Monitor {
             debug("Found creation date of process : " + DEBUG_DATE_FORMAT.format(creationDate));
             info("Monitoring " + processName);
 
-            monitorTask.scheduleOn(Main.getScheduledExecutor());
+            monitorTask.scheduleAtFixedRateOn(Main.getScheduledExecutor());
         });
 
         waitCreationTask.setOnCancelled(() -> {
@@ -248,7 +242,7 @@ public class Monitor {
         }else{
             getGameEntry().setMonitored(true);
         }
-        waitCreationTask.scheduleOn(Main.getScheduledExecutor());
+        waitCreationTask.scheduleAtFixedRateOn(Main.getScheduledExecutor());
     }
 
     private long computeTrueRunningTime() throws IOException {

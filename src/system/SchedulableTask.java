@@ -60,7 +60,7 @@ public abstract class SchedulableTask<T> implements Runnable {
     /**
      * Delay after which the task is being executed
      */
-    private long delay;
+    private long initialDelay;
 
     /**
      * Future of the scheduled task
@@ -77,8 +77,8 @@ public abstract class SchedulableTask<T> implements Runnable {
      */
     private T value;
 
-    public SchedulableTask(long delay, long rate) {
-        this.delay = delay;
+    public SchedulableTask(long initialDelay, long rate) {
+        this.initialDelay = initialDelay;
         this.rate = rate;
     }
 
@@ -99,14 +99,25 @@ public abstract class SchedulableTask<T> implements Runnable {
     }
 
     /**
-     * Schedules the current task on the given {@link ScheduledThreadPoolExecutor} with the given {@link #delay}
+     * Schedules the current task on the given {@link ScheduledThreadPoolExecutor} with the given {@link #initialDelay}
      * and {@link #rate}.
      *
      * @param executor the executor we want to execute our task on
      */
-    public void scheduleOn(ScheduledThreadPoolExecutor executor) {
+    public void scheduleAtFixedRateOn(ScheduledThreadPoolExecutor executor) {
         setState(STATE_PENDING);
-        future = executor.scheduleAtFixedRate(this, delay, rate, TimeUnit.MILLISECONDS);
+        future = executor.scheduleAtFixedRate(this, initialDelay, rate, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Schedules the current task on the given {@link ScheduledThreadPoolExecutor} with the given {@link #initialDelay}
+     * and {@link #rate} as fixed delay.
+     *
+     * @param executor the executor we want to execute our task on
+     */
+    public void scheduleAtFixedDelayOn(ScheduledThreadPoolExecutor executor) {
+        setState(STATE_PENDING);
+        future = executor.scheduleWithFixedDelay(this, initialDelay, rate, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -226,11 +237,11 @@ public abstract class SchedulableTask<T> implements Runnable {
         this.rate = rate;
     }
 
-    public long getDelay() {
-        return delay;
+    public long getInitialDelay() {
+        return initialDelay;
     }
 
-    public void setDelay(long delay) {
-        this.delay = delay;
+    public void setInitialDelay(long initialDelay) {
+        this.initialDelay = initialDelay;
     }
 }
