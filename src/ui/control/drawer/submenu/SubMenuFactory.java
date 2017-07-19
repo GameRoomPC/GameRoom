@@ -15,6 +15,7 @@ import ui.control.drawer.DrawerMenu;
 import ui.control.drawer.GroupType;
 import ui.control.drawer.SortType;
 import ui.dialog.GameRoomAlert;
+import ui.dialog.GamesFoldersDialog;
 import ui.scene.GameEditScene;
 import ui.scene.MainScene;
 import ui.scene.SettingsScene;
@@ -70,32 +71,9 @@ public final class SubMenuFactory {
         });
         addMenu.addItem(singleAppItem);
 
-        //TODO change to "load from links", and add option to directly add a GameFolder
         TextItem folderItem = new TextItem("add_folder_app");
-        folderItem.setTooltip(new Tooltip(Main.getString("add_folder_app_long")));
         folderItem.setOnAction(event -> {
-            if (!settings().getBoolean(PredefinedSetting.NO_MORE_ADD_FOLDER_WARNING)) {
-                GameRoomAlert.info(Main.getString("add_folder_app_long"));
-                settings().setSettingValue(PredefinedSetting.NO_MORE_ADD_APP_WARNING, true);
-            }
-
-            mainScene.getRootStackPane().setMouseTransparent(true);
-
-            DirectoryChooser directoryChooser = new DirectoryChooser();
-            directoryChooser.setTitle(Main.getString("Select_folder_ink"));
-            directoryChooser.setInitialDirectory(
-                    new File(System.getProperty("user.home"))
-            );
-            File selectedFolder = directoryChooser.showDialog(mainScene.getParentStage());
-            if (selectedFolder != null) {
-                ArrayList<File> files = new ArrayList<File>();
-                files.addAll(Arrays.asList(selectedFolder.listFiles()));
-                if (files.size() != 0) {
-                    mainScene.batchAddFolderEntries(files, 0).run();
-                    //startMultiAddScenes(files);
-                }
-            }
-            mainScene.getRootStackPane().setMouseTransparent(false);
+            new GamesFoldersDialog().showAndWait();
         });
 
         addMenu.addItem(folderItem);
