@@ -1,27 +1,16 @@
 package ui.dialog;
 
-import data.game.entry.Emulator;
 import data.game.entry.Platform;
-import data.game.scraper.SteamProfile;
-import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.effect.Blend;
-import javafx.scene.effect.BlendMode;
-import javafx.scene.effect.ColorAdjust;
-import javafx.scene.effect.ColorInput;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import ui.Main;
-import ui.control.specific.FloatingSearchBar;
 import ui.control.specific.SearchBar;
 import ui.pane.platform.PlatformSettingsPane;
-
-import java.util.Comparator;
 
 import static system.application.settings.GeneralSettings.settings;
 
@@ -29,18 +18,18 @@ import static system.application.settings.GeneralSettings.settings;
  * @author LM. Garret (admin@gameroom.me)
  * @date 09/06/2017.
  */
-public class PlatformSettingsDialog extends GameRoomDialog<ButtonType> {
+public class EmulationDialog extends GameRoomDialog<ButtonType> {
     private PlatformSettingsPane currentCenterPane;
 
-    public PlatformSettingsDialog() {
+    public EmulationDialog() {
         this(null);
     }
 
-    public PlatformSettingsDialog(Platform focusedPlatform){
+    public EmulationDialog(Platform focusedPlatform){
         this(focusedPlatform,null);
     }
 
-    public PlatformSettingsDialog(Platform focusedPlatform, ButtonType buttonType) {
+    public EmulationDialog(Platform focusedPlatform, ButtonType buttonType) {
         super();
         mainPane.getStyleClass().add("container");
         ButtonType okButton = new ButtonType(Main.getString("close"), ButtonBar.ButtonData.CANCEL_CLOSE);

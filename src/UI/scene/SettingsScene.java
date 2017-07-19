@@ -46,7 +46,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 import static system.application.settings.GeneralSettings.settings;
 import static system.application.settings.SettingValue.CATEGORY_ON_GAME_START;
@@ -243,7 +242,16 @@ public class SettingsScene extends BaseScene {
             }
         });
         addPropertyLine(PredefinedSetting.GAMING_POWER_MODE);
-        //TODO create a dialog to manage game folders
+
+        /***********************GAME FOLDERS****************************/
+        Label gameFoldersLabel = new Label(Main.getString("games_folders") + " : ");
+        gameFoldersLabel.setTooltip(new Tooltip(Main.getString("games_folders_tooltip")));
+        Button manageFoldersButton = new Button(Main.getString("manage"));
+
+        manageFoldersButton.setOnAction(event -> new GameFoldersDialog().showAndWait());
+
+        flowPaneHashMap.get(CATEGORY_SCAN).getChildren().add(createLine(gameFoldersLabel, manageFoldersButton));
+
         //addPropertyLine(PredefinedSetting.GAMES_FOLDER);
 
         /***********************GAME SCANNERS GAMES IGNORED****************************/
@@ -251,18 +259,15 @@ public class SettingsScene extends BaseScene {
         scannersLabel.setTooltip(new Tooltip(Main.getSettingsString("enabledGameScanners_tooltip")));
         Button manageScannersButton = new Button(Main.getString("manage"));
 
-        manageScannersButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                GameScannerSelector selector = new GameScannerSelector();
-                Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
-                ignoredOptionnal.ifPresent(pairs -> {
-                    if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                        settings().setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
-                        GameWatcher.getInstance().start(false);
-                    }
-                });
-            }
+        manageScannersButton.setOnAction(event -> {
+            GameScannerSelector selector = new GameScannerSelector();
+            Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+            ignoredOptionnal.ifPresent(pairs -> {
+                if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                    settings().setSettingValue(PredefinedSetting.ENABLED_GAME_SCANNERS, selector.getDisabledScanners());
+                    GameWatcher.getInstance().start(false);
+                }
+            });
         });
 
         flowPaneHashMap.get(PredefinedSetting.ENABLED_GAME_SCANNERS.getCategory()).getChildren().add(createLine(scannersLabel, manageScannersButton));
@@ -342,7 +347,7 @@ public class SettingsScene extends BaseScene {
         manageEmulatorsButton.setOnAction(event -> {
             boolean registered = SettingsScene.checkAndDisplayRegisterDialog();
             if (registered) {
-                PlatformSettingsDialog dialog = new PlatformSettingsDialog();
+                EmulationDialog dialog = new EmulationDialog();
                 dialog.showAndWait();
             }
         });
