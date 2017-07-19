@@ -1,6 +1,5 @@
 import data.game.entry.GameEntryUtils;
 import data.game.scraper.IGDBScraper;
-import data.http.images.ImageUtils;
 import data.io.DataBase;
 import data.io.FileUtils;
 import data.migration.OldGameEntry;
@@ -501,7 +500,7 @@ public class Launcher extends Application {
                 }
             }
         });
-        MenuItem gamesFolderItem = new MenuItem(Main.getString("games_folder"));
+        MenuItem gamesFolderItem = new MenuItem(Main.getString("games_folders"));
         gamesFolderItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

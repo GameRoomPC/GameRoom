@@ -4,8 +4,6 @@ import data.game.GameWatcher;
 import data.game.entry.GameEntryUtils;
 import data.game.entry.GameEntry;
 import data.game.entry.Platform;
-import data.game.scraper.SteamLocalScraper;
-import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.GeneralToast;
 
@@ -174,7 +172,7 @@ public class FolderGameScanner extends GameScanner {
             if (profile != null) {
                 GeneralToast.displayToast(Main.getString("scanning") + " " + profile.toString(), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
             } else {
-                GeneralToast.displayToast(Main.getString("scanning") + " " + Main.getString("games_folder"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
+                GeneralToast.displayToast(Main.getString("scanning") + " " + Main.getString("games_folders"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
             }
         }
     }
