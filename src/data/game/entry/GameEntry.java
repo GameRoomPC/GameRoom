@@ -733,10 +733,10 @@ public class GameEntry {
         try {
             if (savedLocally && !deleted) {
                 PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set last_played_date = ? where id = ?");
-                if(lastPlayedDate != null){
+                if (lastPlayedDate != null) {
                     statement.setTimestamp(1, Timestamp.valueOf(lastPlayedDate));
-                }else{
-                    statement.setNull(1,Types.TIMESTAMP);
+                } else {
+                    statement.setNull(1, Types.TIMESTAMP);
                 }
                 statement.setInt(2, id);
                 statement.execute();
@@ -937,7 +937,7 @@ public class GameEntry {
         }
     }
 
-    private void reloadWithSet(ResultSet set) throws SQLException {
+    private GameEntry reloadWithSet(ResultSet set) throws SQLException {
         if (set == null) {
             throw new SQLException("Given set is null");
         }
@@ -1070,12 +1070,11 @@ public class GameEntry {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return this;
     }
 
     static GameEntry loadFromDB(ResultSet set) throws SQLException {
-        GameEntry entry = new GameEntry("need_to_reload");
-        entry.reloadWithSet(set);
-        return entry;
+        return new GameEntry("need_to_reload").reloadWithSet(set);
     }
 
     private String getCoverPath() {

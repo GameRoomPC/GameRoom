@@ -7,6 +7,8 @@ import data.io.FileUtils;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.ButtonType;
+import net.java.games.input.Controller;
+import system.SchedulableTask;
 import system.application.settings.PredefinedSetting;
 import system.os.Terminal;
 import ui.GeneralToast;
@@ -18,9 +20,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.*;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
@@ -30,12 +30,15 @@ import static ui.dialog.GameRoomAlert.error;
  * Created by LM on 24/07/2016.
  */
 public class Monitor {
-    private static String TIME_TAG = "$$time$$";
+    private final static String TIME_TAG = "$$time$$";
 
+    private final static String EXCEPTION_NOT_RUNNING = "Process not running";
     private final static long MONITOR_AGAIN = -1;
 
-    private static int MONITOR_REFRESH = 1000;
-    private static final int MIN_MONITOR_TIME = 20000;
+    private final static long MONITOR_REFRESH = TimeUnit.SECONDS.toMillis(1);
+    private final static long MAX_AWAIT_CREATION_TIME = TimeUnit.MINUTES.toMillis(2);
+    private final static long MAX_MONITOR_GAP_TIME = TimeUnit.SECONDS.toMillis(10);
+    private final static long MIN_MONITOR_TIME = TimeUnit.SECONDS.toMillis(20);
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss", Locale.ENGLISH);
     private static final DateFormat DEBUG_DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
@@ -53,21 +56,29 @@ public class Monitor {
 
     private Date creationDate = null;
     private String processName;
+    long originalPlayTime;
+
+
+    private SchedulableTask<Long> monitorTask;
+    private SchedulableTask<Date> waitCreationTask;
+    private long creationAwaitedTime;
+    private long monitorGapTime;
 
     Monitor(GameStarter starter) throws IOException {
         this.gameStarter = starter;
+        originalPlayTime = getGameEntry().getPlayTimeSeconds();
         getGameEntry().monitoredProperty().addListener((observable, oldValue, newValue) -> {
-            if(!newValue){
+            if (!newValue) {
                 stopMonitor = true;
             }
         });
-        if(getGameEntry().getPlatform().isPC()){
+        if (getGameEntry().getPlatform().isPC()) {
             processName = getGameEntry().getProcessName();
-        }else{
+        } else {
             Emulator e = Emulator.getChosenEmulator(getGameEntry().getPlatform());
-            if(e == null){
-                GameRoomAlert.error(Main.getString("error_no_emu_configured")+" "+getGameEntry().getPlatform());
-            }else{
+            if (e == null) {
+                GameRoomAlert.error(Main.getString("error_no_emu_configured") + " " + getGameEntry().getPlatform());
+            } else {
                 processName = e.getProcessName();
             }
         }
@@ -94,104 +105,150 @@ public class Monitor {
 
             timeWatcherCmd = "cscript //NoLogo " + vbsWatcher.getPath();
         }
+
+        monitorTask = new SchedulableTask<Long>(MONITOR_REFRESH,MONITOR_REFRESH) {
+            @Override
+            protected Long execute() throws Exception {
+                if (!KEEP_THREADS_RUNNING || stopMonitor) {
+                    cancel();
+                    return 0L;
+                }
+                if (isProcessRunning()) {
+                    timer += MONITOR_REFRESH;
+                    return computeTrueRunningTime();
+                } else {
+                    throw new IllegalStateException(EXCEPTION_NOT_RUNNING);
+                }
+            }
+        };
+
+        monitorTask.setOnFailed(() -> {
+            if(monitorTask.getException().getMessage().equals(EXCEPTION_NOT_RUNNING)) {
+                monitorGapTime += MONITOR_REFRESH;
+                if (monitorGapTime > MAX_MONITOR_GAP_TIME) {
+                    info(processName + " killed");
+                    long result = 0;
+                    try {
+                        result = computeTrueRunningTime() - monitorGapTime;
+                        debug("Computed playtime : " + GameEntry.getPlayTimeFormatted(Math.round(result / 1000), GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    monitorTask.stop();
+                    gameStarter.onStop(result);
+                }
+            } else{
+                debug("monitorTask error, impossible to monitor games");
+                monitorTask.getException().printStackTrace();
+                monitorTask.stop();
+                gameStarter.onStop(0);
+                //TODO display a toast here, cannot monitor
+            }
+        });
+
+        monitorTask.setOnSucceeded(() -> {
+            getGameEntry().setSavedLocally(true);
+            getGameEntry().setPlayTimeSeconds(originalPlayTime + Math.round(monitorTask.getValue() / 1000.0));
+            getGameEntry().setSavedLocally(false);
+        });
+
+        monitorTask.setOnCancelled(() -> {
+            waitCreationTask.stop();
+
+            long result = 0;
+            try {
+                result = computeTrueRunningTime() - monitorGapTime;
+                debug("Computed playtime : " + GameEntry.getPlayTimeFormatted(Math.round(result / 1000), GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            gameStarter.onStop(result);
+        });
+
+        waitCreationTask = new SchedulableTask<Date>(0,MONITOR_REFRESH) {
+            @Override
+            protected Date execute() throws Exception {
+                debug("waitCreationTask running");
+                if (!KEEP_THREADS_RUNNING || stopMonitor) {
+                    cancel();
+                    return null;
+                }
+                if (isSteamGame()) {
+                    if (SteamLocalScraper.isSteamGameRunning(getGameEntry().getPlatformGameID())) {
+                        return new Date();
+                    }
+                    throw new IllegalStateException(EXCEPTION_NOT_RUNNING);
+                }
+                Date resultDate = null;
+
+                Process p = Runtime.getRuntime().exec(timeWatcherCmd);
+                BufferedReader input =
+                        new BufferedReader
+                                (new InputStreamReader(p.getInputStream()));
+                String line;
+                while ((line = input.readLine()) != null) {
+                    if (line.contains(TIME_TAG)) {
+                        String dateString = line.substring(TIME_TAG.length(), line.indexOf('.'));
+                        try {
+                            resultDate = DATE_FORMAT.parse(dateString);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                input.close();
+
+                if (resultDate == null) {
+                    throw new IllegalStateException(EXCEPTION_NOT_RUNNING);
+                }
+                return resultDate;
+
+            }
+        };
+
+        waitCreationTask.setOnSucceeded(() -> {
+            creationDate = waitCreationTask.getValue();
+            waitCreationTask.stop();
+
+            debug("Found creation date of process : " + DEBUG_DATE_FORMAT.format(creationDate));
+            info("Monitoring " + processName);
+
+            monitorTask.scheduleOn(Main.getScheduledExecutor());
+        });
+
+        waitCreationTask.setOnCancelled(() -> {
+            monitorTask.stop();
+            debug("waitCreationTask cancelled.");
+            gameStarter.onStop(0);
+        });
+
+        waitCreationTask.setOnFailed(() -> {
+            if(waitCreationTask.getException().getMessage().equals(EXCEPTION_NOT_RUNNING)){
+                creationAwaitedTime += MONITOR_REFRESH;
+                if (creationAwaitedTime > MAX_AWAIT_CREATION_TIME ) {
+                    debug("waitCreationTask error finding creation date of process " + processName);
+                    gameStarter.onStop(0);
+                    //TODO display a toast here, the app was not started
+                }
+            }else{
+                debug("waitCreationTask error, impossible to monitor games");
+                waitCreationTask.getException().printStackTrace();
+                waitCreationTask.stop();
+                gameStarter.onStop(0);
+                //TODO display a toast here, cannot monitor
+            }
+        });
     }
 
-    public long start(Date initialDate) throws IOException {
-        if (isSteamGame() && !SteamLocalScraper.isSteamGameInstalled(getGameEntry().getPlatformGameID())) {
-            return 0;
+    public void start(){
+        if(getGameEntry().isMonitored()){
+            debug("entry already monitored");
+            //game is already being monitored !
+            return;
+        }else{
+            getGameEntry().setMonitored(true);
         }
-        timer = 0;
-
-        long originalPlayTime = getGameEntry().getPlayTimeSeconds();
-
-        while ((creationDate == null || creationDate.equals(initialDate)) && KEEP_THREADS_RUNNING && !stopMonitor) {
-            creationDate = computeCreationDate();
-            try {
-                Thread.sleep(MONITOR_REFRESH);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        if (!KEEP_THREADS_RUNNING) {
-            return 0;
-        }
-        Main.LOGGER.info("Monitoring " + processName);
-        if (awaitingRestart) {
-            awaitingRestart = false;
-            if (MAIN_SCENE != null) {
-                GeneralToast.displayToast(getGameEntry().getName()
-                        + Main.getString("restarted"), MAIN_SCENE.getParentStage());
-            }
-        }
-        while (isProcessRunning() && KEEP_THREADS_RUNNING && !stopMonitor) {
-            long startTimeRec = System.currentTimeMillis();
-
-            timer += MONITOR_REFRESH;
-            long result = computeTrueRunningTime();
-            getGameEntry().setSavedLocally(true);
-            getGameEntry().setPlayTimeSeconds(originalPlayTime + Math.round(result / 1000.0));
-            getGameEntry().setSavedLocally(false);
-
-            try {
-                Thread.sleep(MONITOR_REFRESH - (System.currentTimeMillis() - startTimeRec));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        if (!KEEP_THREADS_RUNNING) {
-            return 0;
-        }
-        Main.LOGGER.info(processName + " killed");
-
-        long result = computeTrueRunningTime();
-        Main.LOGGER.debug("\tComputed playtime : " + GameEntry.getPlayTimeFormatted(Math.round(result / 1000), GameEntry.TIME_FORMAT_FULL_DOUBLEDOTS));
-
-        if (result < MIN_MONITOR_TIME) {
-            String time = GameEntry.getPlayTimeFormatted(Math.round(result / 1000.0), GameEntry.TIME_FORMAT_ROUNDED_HMS);
-            String text = Main.getString("monitor_wait_dialog", getGameEntry().getName(), time);
-            final FutureTask<Long> query = new FutureTask<Long>(() -> {
-                ButtonType buttonResult = GameRoomAlert.confirmation(text);
-                if (buttonResult.getButtonData().isDefaultButton()) {
-                    if (MAIN_SCENE != null) {
-                        GeneralToast.displayToast(Main.getString("waiting_until")
-                                + getGameEntry().getName()
-                                + Main.getString("restarts"), MAIN_SCENE.getParentStage());
-                    }
-                    Main.LOGGER.info(processName + " : waiting until next launch to count playtime.");
-                    return MONITOR_AGAIN;
-                }
-                gameStarter.onStop();
-
-                return result;
-            });
-            Platform.runLater(query);
-
-            try {
-                long queryResult = query.get();
-                if (queryResult == MONITOR_AGAIN) {
-                    //we wait for next game launch
-                    FutureTask<Long> monitor = new Task<Long>() {
-                        @Override
-                        protected Long call() throws Exception {
-                            return start(creationDate);
-                        }
-                    };
-                    Thread th = new Thread(monitor);
-                    th.setPriority(Thread.MIN_PRIORITY);
-                    th.setDaemon(true);
-                    th.start();
-                    return monitor.get();
-                } else {
-                    return queryResult;
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                return result;
-            }
-        } else {
-            gameStarter.onStop();
-            return result;
-        }
+        waitCreationTask.scheduleOn(Main.getScheduledExecutor());
     }
 
     private long computeTrueRunningTime() throws IOException {
@@ -332,7 +389,7 @@ public class Monitor {
         }
         if (output != null) {
             for (String outputLine : output) {
-                if(outputLine.toLowerCase().contains(processName.toLowerCase())){
+                if (outputLine.toLowerCase().contains(processName.toLowerCase())) {
                     return true;
                 }
             }
@@ -360,5 +417,19 @@ public class Monitor {
 
     private GameEntry getGameEntry() {
         return gameStarter.getGameEntry();
+    }
+
+    private void debug(String msg){
+        if (settings().getBoolean(PredefinedSetting.DEBUG_MODE)) {
+            Main.LOGGER.debug(getLogTag()+ msg);
+        }
+    }
+
+    private void info(String msg){
+        Main.LOGGER.info(getLogTag()+msg);
+    }
+
+    private String getLogTag(){
+        return "Monitor("+getGameEntry().getName()+"): ";
     }
 }

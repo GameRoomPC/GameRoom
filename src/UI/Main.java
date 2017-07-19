@@ -21,6 +21,7 @@ import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,9 +73,13 @@ public class Main {
      * EXECUTOR_SERVICE
      ***************************/
     private final static ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+    private final static ScheduledThreadPoolExecutor SCHEDULED_EXECUTOR = new ScheduledThreadPoolExecutor(2);
+
 
 
     public static void main(String[] args) {
+        SCHEDULED_EXECUTOR.setRemoveOnCancelPolicy(true);
+
         calling_args = args;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -274,5 +279,9 @@ public class Main {
 
     public static ExecutorService getExecutorService() {
         return EXECUTOR_SERVICE;
+    }
+
+    public static ScheduledThreadPoolExecutor getScheduledExecutor() {
+        return SCHEDULED_EXECUTOR;
     }
 }

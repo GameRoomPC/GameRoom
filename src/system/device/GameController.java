@@ -1,20 +1,21 @@
 package system.device;
 
+import javafx.beans.property.*;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 import net.java.games.input.*;
+import system.SchedulableTask;
 import system.application.settings.PredefinedSetting;
 import ui.GeneralToast;
 import ui.Main;
 
-import javax.naming.ldap.Control;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.*;
-import java.util.stream.Stream;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
@@ -92,7 +93,7 @@ public class GameController {
     /**
      * Controllers found when scanning
      */
-    private volatile Controller[] controllers;
+    private SimpleObjectProperty<Controller[]> controllersProperty = new SimpleObjectProperty<>();
 
     /**
      * Listener which associates actions to the buttons of the controller
@@ -102,15 +103,12 @@ public class GameController {
     /**
      * Task scheduled every {@link #POLL_RATE}ms to detect input changes on the controller
      */
-    private Runnable pollingTask;
+    private SchedulableTask<Void> pollingTask;
 
     /**
      * Task scheduled every {@link #DISCOVER_RATE}ms to detect connected controllers
      */
-    private Task<Controller[]> controllerDiscoverTask;
-
-    private volatile ScheduledFuture<?> pollingFuture;
-    private volatile ScheduledFuture<?> discoverFuture;
+    private SchedulableTask<Controller[]> controllerDiscoverTask;
 
 
     /**
@@ -158,64 +156,67 @@ public class GameController {
         this.controllerButtonListener = controllerButtonListener;
         threadPool.setRemoveOnCancelPolicy(true);
 
-        pollingTask = () -> {
-            //Main.LOGGER.debug("Starting polling task");
-            boolean connected = false;
-            if (getController() != null && (connected = getController().poll()) && Main.KEEP_THREADS_RUNNING && !paused) {
-                navKeyConsumed = false;
-                EventQueue queue = getController().getEventQueue();
-                Event event = new Event();
+        pollingTask = new SchedulableTask<Void>(0, POLL_RATE) {
+            @Override
+            protected Void execute() throws Exception {
+                boolean connected = false;
+                if (getController() != null && (connected = getController().poll()) && Main.KEEP_THREADS_RUNNING && !paused) {
+                    navKeyConsumed = false;
+                    EventQueue queue = getController().getEventQueue();
+                    Event event = new Event();
 
-                /*********EVENT MODE *********/
-                //First we treat the events
-                while (queue.getNextEvent(event)) {
-                    onDataPolled(event.getComponent(), event.getValue(), false);
-                }
+                    /*********EVENT MODE *********/
+                    //First we treat the events
+                    while (queue.getNextEvent(event)) {
+                        onDataPolled(event.getComponent(), event.getValue(), false);
+                    }
 
-                /*****CONTINOUS MODE *******/
-                //Here we treat the continuous usage of buttons, i.e. if there are being held
-                Arrays.stream(getController().getComponents())
-                        //we filter to get only joysticks and nav pad
-                        .filter(component -> component.getName().contains("Axe") || component.getIdentifier().toString().contains("pov"))
-                        .forEach(component -> {
-                            float value = component.getPollData();
+                    /*****CONTINOUS MODE *******/
+                    //Here we treat the continuous usage of buttons, i.e. if there are being held
+                    Arrays.stream(getController().getComponents())
+                            //we filter to get only joysticks and nav pad
+                            .filter(component -> component.getName().contains("Axe") || component.getIdentifier().toString().contains("pov"))
+                            .forEach(component -> {
+                                float value = component.getPollData();
 
-                            if (continuousMode && (System.currentTimeMillis() - firstNavKeyEvent > SECOND_NAV_DELAY)) {
-                                //second navigation speed here
-                                if ((System.currentTimeMillis() - lastNavKeyEvent > SECOND_NAV_POLL_RATE)) {
+                                if (continuousMode && (System.currentTimeMillis() - firstNavKeyEvent > SECOND_NAV_DELAY)) {
+                                    //second navigation speed here
+                                    if ((System.currentTimeMillis() - lastNavKeyEvent > SECOND_NAV_POLL_RATE)) {
+                                        onDataPolled(component, value, true);
+                                        //is continous if a joystick or the nav pad is held
+                                        continuousMode = continuousX || continuousY || continuousPad;
+                                    }
+                                } else if ((System.currentTimeMillis() - lastNavKeyEvent > FIRST_NAV_DELAY)) {
+                                    //first speed navigation here
+                                    boolean wasContinuous = continuousMode;
                                     onDataPolled(component, value, true);
                                     //is continous if a joystick or the nav pad is held
                                     continuousMode = continuousX || continuousY || continuousPad;
+                                    if (!wasContinuous && continuousMode) {
+                                        //first time we are in continous mode, record the current time
+                                        firstNavKeyEvent = System.currentTimeMillis();
+                                    }
                                 }
-                            } else if ((System.currentTimeMillis() - lastNavKeyEvent > FIRST_NAV_DELAY)) {
-                                //first speed navigation here
-                                boolean wasContinuous = continuousMode;
-                                onDataPolled(component, value, true);
-                                //is continous if a joystick or the nav pad is held
-                                continuousMode = continuousX || continuousY || continuousPad;
-                                if (!wasContinuous && continuousMode) {
-                                    //first time we are in continous mode, record the current time
-                                    firstNavKeyEvent = System.currentTimeMillis();
-                                }
-                            }
-                        });
+                            });
 
-            }
-            if (!connected) {
-                //means controller is disconnected and should look for an other
-                LOGGER.debug("Controller disconnected: " + getController().getName());
-                if (MAIN_SCENE != null) {
-                    GeneralToast.displayToast(controller.getName() + " " + Main.getString("disconnected"), MAIN_SCENE.getParentStage());
                 }
-                setController((Controller) null);
+                if (!connected) {
+                    //means controller is disconnected and should look for an other
+                    LOGGER.debug("Controller disconnected: " + getController().getName());
+                    if (MAIN_SCENE != null) {
+                        GeneralToast.displayToast(controller.getName() + " " + Main.getString("disconnected"), MAIN_SCENE.getParentStage());
+                    }
+                    setController((Controller) null);
+                }
+                return null;
             }
         };
 
-        controllerDiscoverTask = new Task<Controller[]>() {
+        controllerDiscoverTask = new SchedulableTask<Controller[]>(0, DISCOVER_RATE) {
             @Override
-            protected Controller[] call() throws Exception {
+            protected Controller[] execute() throws Exception {
                 if (Main.KEEP_THREADS_RUNNING && !paused) {
-                    LOGGER.info("Scanning controllers");
+                    //LOGGER.info("Scanning controllers");
                     ControllerEnvironment controllerEnvironment = new DirectAndRawInputEnvironmentPlugin();
                     ArrayList<Controller> controllers = new ArrayList<>();
                     Arrays.stream(controllerEnvironment.getControllers())
@@ -227,18 +228,53 @@ public class GameController {
                 return new Controller[0];
             }
         };
-        controllerDiscoverTask.setOnSucceeded(event -> onControllersFound((Controller[]) event.getSource().getValue()));
+        controllerDiscoverTask.setOnSucceeded(() -> {
+            if(controllersProperty.get() != controllerDiscoverTask.getValue()) {
+                controllersProperty.setValue(controllerDiscoverTask.getValue());
+            }
+
+            if (getController() != null && getController().poll()) {
+                //no need to change of controller
+                return;
+            }
+            String chosenController = settings().getString(PredefinedSetting.CHOSEN_CONTROLLER);
+
+            int i = 0;
+            int usedIndex = 0;
+            for (Controller controller : controllersProperty.get()) {
+                if (toPseudoUid(controller, i).equals(chosenController)) {
+                    usedIndex = i;
+                }
+                i++;
+            }
+            if (controllersProperty.get().length > 0) {
+                setController(controllersProperty.get()[usedIndex]);
+                LOGGER.info("Using controller : " + controller.getName());
+                if (MAIN_SCENE != null) {
+                    GeneralToast.displayToast(controller.getName() + " " + Main.getString("connected"), MAIN_SCENE.getParentStage());
+                }
+            }
+        });
     }
 
-    public String[] getControllers() throws ExecutionException, InterruptedException {
-        if (controllers == null) {
+    /**
+     * Computes some String tags for every Controller detected, and returns them
+     *
+     * @return an array containing pseudo ids of {@link Controller}
+     */
+    public String[] getControllers() {
+        if (controllersProperty.get() == null) {
             return new String[0];
         }
-        String[] ids = new String[controllers.length];
-        for (int i = 0; i < controllers.length; i++) {
-            ids[i] = toPseudoUid(controllers[i], i);
+        String[] ids = new String[controllersProperty.get().length];
+        for (int i = 0; i < controllersProperty.get().length; i++) {
+            ids[i] = toPseudoUid(controllersProperty.get()[i], i);
         }
         return ids;
+    }
+
+    public ReadOnlyObjectProperty<Controller[]> getControllersProperty() {
+        return controllersProperty;
     }
 
     private static String toPseudoUid(Controller controller, int index) {
@@ -260,50 +296,20 @@ public class GameController {
         return null;
     }
 
-    private void onControllersFound(Controller[] controllers) {
-        this.controllers = controllers;
-
-        if (getController() != null && getController().poll()) {
-            //no need to change of controller
-            return;
-        }
-        String chosenController = settings().getString(PredefinedSetting.CHOSEN_CONTROLLER);
-
-        int i = 0;
-        int usedIndex = 0;
-        for (Controller controller : controllers) {
-            if (toPseudoUid(controller, i).equals(chosenController)) {
-                usedIndex = i;
-            }
-            i++;
-        }
-        if (controllers.length > 0) {
-            setController(controllers[usedIndex]);
-            LOGGER.info("Using controller : " + controller.getName());
-            if (MAIN_SCENE != null) {
-                GeneralToast.displayToast(controller.getName() + " " + Main.getString("connected"), MAIN_SCENE.getParentStage());
-            }
-        }
-    }
-
     public void setController(String pseudoId) {
-        setController(findFromPseudoId(pseudoId, controllers));
+        setController(findFromPseudoId(pseudoId, controllersProperty.get()));
     }
 
     private void setController(Controller controller) {
         this.controller = controller;
 
         if (controller != null) {
-            if (pollingFuture != null) {
-                pollingFuture.cancel(true);
-            }
+            pollingTask.stop();
             if (Main.KEEP_THREADS_RUNNING) {
-                pollingFuture = threadPool.scheduleAtFixedRate(pollingTask, 0, POLL_RATE, TimeUnit.MILLISECONDS);
+                pollingTask.scheduleOn(threadPool);
             }
         } else {
-            if (pollingFuture != null) {
-                pollingFuture.cancel(true);
-            }
+            pollingTask.stop();
         }
     }
 
@@ -336,16 +342,9 @@ public class GameController {
      * should be called whenever the window loses focus, see {@link ui.dialog.WindowFocusManager#windowFocused}
      */
     public void pause() {
-        if (pollingFuture != null) {
-            pollingFuture.cancel(true);
-        }
-        threadPool.remove(pollingTask);
-        if (discoverFuture != null) {
-            discoverFuture.cancel(true);
-        }
-        threadPool.remove(controllerDiscoverTask);
-
-        LOGGER.debug("Pausing controller service");
+        pollingTask.stop();
+        controllerDiscoverTask.stop();
+        //LOGGER.debug("Pausing controller service");
         paused = true;
     }
 
@@ -355,20 +354,13 @@ public class GameController {
      */
     public void resume() {
         emptyQueue();
-        LOGGER.debug("Resuming controller service");
+        //LOGGER.debug("Resuming controller service");
         if (controller != null) {
-            //need to cancel because we will replace the future thus the previous task will still be scheduled
-            if (pollingFuture != null) {
-                pollingFuture.cancel(true);
-            }
             //we have already found a controller
-            pollingFuture = threadPool.scheduleAtFixedRate(pollingTask, 0, POLL_RATE, TimeUnit.MILLISECONDS);
+            pollingTask.scheduleOn(threadPool);
         }
-        if (discoverFuture != null) {
-            discoverFuture.cancel(true);
-        }
-        discoverFuture = threadPool.scheduleAtFixedRate(controllerDiscoverTask, 0, DISCOVER_RATE, TimeUnit.MILLISECONDS);
-
+        controllerDiscoverTask.stop();
+        controllerDiscoverTask.scheduleOn(threadPool);
         paused = false;
     }
 
