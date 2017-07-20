@@ -5,6 +5,7 @@ import data.game.entry.GameEntry;
 import data.game.entry.Platform;
 import data.game.scanner.FolderGameScanner;
 import data.game.scanner.GameScanner;
+import data.io.FileUtils;
 import system.os.Terminal;
 
 import java.io.File;
@@ -267,9 +268,10 @@ public class LauncherGameScraper {
                                         name = getValue(namePrefix, s);
                                     }
                                 }
-                                if (path != null && FolderGameScanner.isPotentiallyAGame(new File(path))) {
+                                String resolvedPath = FileUtils.tryResolveLnk(path);
+                                if (resolvedPath != null && FolderGameScanner.isPotentiallyAGame(new File(resolvedPath))) {
                                     GameEntry entry = new GameEntry(name);
-                                    entry.setPath(path);
+                                    entry.setPath(resolvedPath);
 
                                     entry.setPlatform(scanner.getPlatform());
 

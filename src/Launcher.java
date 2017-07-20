@@ -1,6 +1,6 @@
+import data.game.GameFolderManager;
 import data.game.entry.GameEntryUtils;
 import data.game.scraper.IGDBScraper;
-import data.http.images.ImageUtils;
 import data.io.DataBase;
 import data.io.FileUtils;
 import data.migration.OldGameEntry;
@@ -156,7 +156,7 @@ public class Launcher extends Application {
         System.out.println("datapath : " + DATA_PATH);
         File gameRoomFolder = FileUtils.initOrCreateFolder(DATA_PATH);
 
-        if(!DEV_MODE) {
+        if (!DEV_MODE) {
             String appdataFolder = System.getenv("APPDATA");
             String oldDataPath = appdataFolder + File.separator + "GameRoom" + File.separator;
 
@@ -291,28 +291,28 @@ public class Launcher extends Application {
         primaryStage.maximizedProperty().addListener(maximizedListener);
 
         primaryStage.xProperty().addListener((observable, oldValue, newValue) -> {
-            if(!monitoringXPosition){
+            if (!monitoringXPosition) {
                 monitoringXPosition = true;
                 Main.getExecutorService().submit(() -> {
                     try {
                         Thread.sleep(2000);
                     } catch (InterruptedException ignored) {
                     }
-                    settings().setSettingValue(PredefinedSetting.WINDOW_X,primaryStage.getX());
+                    settings().setSettingValue(PredefinedSetting.WINDOW_X, primaryStage.getX());
                     monitoringXPosition = false;
                 });
             }
         });
 
         primaryStage.yProperty().addListener((observable, oldValue, newValue) -> {
-            if(!monitoringYPosition){
+            if (!monitoringYPosition) {
                 monitoringYPosition = true;
                 Main.getExecutorService().submit(() -> {
                     try {
                         Thread.sleep(2000);
                     } catch (InterruptedException ignored) {
                     }
-                    settings().setSettingValue(PredefinedSetting.WINDOW_Y,primaryStage.getY());
+                    settings().setSettingValue(PredefinedSetting.WINDOW_Y, primaryStage.getY());
                     monitoringYPosition = false;
                 });
             }
@@ -501,21 +501,22 @@ public class Launcher extends Application {
                 }
             }
         });
-        MenuItem gamesFolderItem = new MenuItem(Main.getString("games_folder"));
-        gamesFolderItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //TODO offer to browse the multiple game folders
-               /* try {
-                    String dir = settings().getString(PredefinedSetting.GAMES_FOLDER);
-                    File gamesFolder = new File(dir);
-                    if (gamesFolder.exists() && gamesFolder.isDirectory())
-                        Desktop.getDesktop().open(gamesFolder);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }*/
+
+        Menu gamesFoldersMenu = new Menu(Main.getString("games_folders"));
+        for (File f : GameFolderManager.getFoldersForPlatform(data.game.entry.Platform.NONE)) {
+            if (f != null && f.exists() && f.isDirectory()) {
+                MenuItem gamesFolderItem = new MenuItem(f.getName());
+                gamesFolderItem.addActionListener(e -> {
+                    try {
+                        Desktop.getDesktop().open(f);
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                });
+                gamesFoldersMenu.add(gamesFolderItem);
             }
-        });
+        }
+
         MenuItem settingsItem = new MenuItem(Main.getString("Settings"));
         settingsItem.addActionListener(new ActionListener() {
             @Override
@@ -542,11 +543,9 @@ public class Launcher extends Application {
         popup.addSeparator();
         popup.add(gameRoomFolderItem);
 
-        //TODO offer to browse the different game folders
-        /*File gameFolder = new File(settings().getString(PredefinedSetting.GAMES_FOLDER));
-        if (gameFolder.exists() && gameFolder.isDirectory()) {
-            popup.add(gamesFolderItem);
-        }*/
+        if(gamesFoldersMenu.getItemCount() > 0){
+            popup.add(gamesFoldersMenu);
+        }
         popup.add(settingsItem);
         popup.addSeparator();
         popup.add(exitItem);

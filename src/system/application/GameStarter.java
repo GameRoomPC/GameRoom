@@ -4,7 +4,6 @@ import data.game.entry.Emulator;
 import data.io.FileUtils;
 import data.game.entry.GameEntry;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import system.application.settings.PredefinedSetting;
@@ -13,7 +12,7 @@ import system.os.Terminal;
 import ui.Main;
 import ui.GeneralToast;
 import ui.dialog.GameRoomAlert;
-import ui.dialog.PlatformSettingsDialog;
+import ui.dialog.EmulationDialog;
 import ui.scene.SettingsScene;
 
 import java.awt.*;
@@ -65,7 +64,7 @@ public class GameStarter {
                     GameRoomAlert.error("There is no emulator configured for platform " + entry.getPlatform());
                     ButtonType okButton = new ButtonType(Main.getString("start_game"), ButtonBar.ButtonData.OK_DONE);
 
-                    PlatformSettingsDialog dialog = new PlatformSettingsDialog(entry.getPlatform(), okButton);
+                    EmulationDialog dialog = new EmulationDialog(entry.getPlatform(), okButton);
                     dialog.showAndWait().ifPresent(buttonType -> {
                         if (buttonType.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
                             start();
@@ -87,7 +86,7 @@ public class GameStarter {
             Monitor timeMonitor = new Monitor(this);
             timeMonitor.start();
         } catch (IOException e) {
-            //TODO catch case cannot monitor playtime
+            GeneralToast.displayToast(Main.getString("error_cannot_monitor") + getGameEntry().getName(),MAIN_SCENE.getParentStage());
             e.printStackTrace();
         }
 

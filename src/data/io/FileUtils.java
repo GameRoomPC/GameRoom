@@ -1,11 +1,13 @@
 package data.io;
 
+import system.os.WindowsShortcut;
 import ui.Main;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.text.ParseException;
 import java.util.regex.Pattern;
 
 /**
@@ -199,6 +201,27 @@ public class FileUtils {
         } else {
             return filename.substring(index + 1);
         }
+    }
+
+    public static File tryResolveLnk(File file){
+        if (file == null || !file.exists() || file.isDirectory()){
+            return file;
+        }
+        try {
+            if (FileUtils.getExtension(file).equals("lnk")) {
+                WindowsShortcut shortcut = new WindowsShortcut(file);
+                return new File(shortcut.getRealFilename());
+            }
+        } catch (IOException | ParseException ignored) {
+        }
+        return file;
+    }
+
+    public static String tryResolveLnk(String path){
+        if(path == null){
+            return null;
+        }
+        return tryResolveLnk(new File(path)).getAbsolutePath();
     }
 
 }

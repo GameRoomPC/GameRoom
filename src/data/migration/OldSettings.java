@@ -1,6 +1,8 @@
 package data.migration;
 
+import data.game.entry.Platform;
 import data.game.scraper.SteamPreEntry;
+import data.io.DataBase;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
 
@@ -8,6 +10,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,11 +46,17 @@ public class OldSettings {
             }
             for (OldPredefinedSetting predefinedSetting : OldPredefinedSetting.values()) {
                 if (predefinedSetting.equals(OldPredefinedSetting.GAMES_FOLDER)) {
-                    String path = settingsMap.get(predefinedSetting.getKey()).toString().replace("\"","");
-                    if(!path.isEmpty()){
-                        boolean added = settings().addGameFolder(new File(path));
-                        if (!added) {
-                            Main.LOGGER.error("OldSettings : error importing previous gameFolder, was \"" + path + "\"");
+                    OldSettingValue value = settingsMap.get(predefinedSetting.getKey());
+                    if(value != null && value.toString() != null && !value.toString().isEmpty()){
+                        try {
+                            Connection connection = DataBase.getUserConnection();
+                            PreparedStatement statement = connection.prepareStatement("INSERT OR REPLACE INTO GameFolder (path,platform_id) VALUES (?,?)");
+                            statement.setString(1, value.toString().replace("\"",""));
+                            statement.setInt(2, Platform.NONE_ID);
+                            statement.execute();
+                            statement.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
                         }
                     }
                 } else {

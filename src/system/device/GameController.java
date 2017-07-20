@@ -1,7 +1,6 @@
 package system.device;
 
 import javafx.beans.property.*;
-import javafx.concurrent.Task;
 import net.java.games.input.*;
 import system.SchedulableTask;
 import system.application.settings.PredefinedSetting;
@@ -12,10 +11,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
@@ -24,7 +20,7 @@ import static ui.Main.MAIN_SCENE;
 /**
  * Is a manager of the Controllers that can be used to interact with GameRoom. Basically, a first task is scheduled, the
  * {@link #controllerDiscoverTask}, which detects which compatible controllers can be used. It then selects the first one
- * that is compatible //TODO be able to select a controller.
+ * that is compatible, or the selected one defined by {@link PredefinedSetting#CHOSEN_CONTROLLER} if set.
  * After that is started a scheduled {@link #pollingTask} to read input from the controller and perform actions accordingly.
  * The user can hold a navigation key (which are either the navigation pad or the joystick axis) and the action will
  * be repeated.
@@ -306,7 +302,7 @@ public class GameController {
         if (controller != null) {
             pollingTask.stop();
             if (Main.KEEP_THREADS_RUNNING) {
-                pollingTask.scheduleOn(threadPool);
+                pollingTask.scheduleAtFixedRateOn(threadPool);
             }
         } else {
             pollingTask.stop();
@@ -357,10 +353,10 @@ public class GameController {
         //LOGGER.debug("Resuming controller service");
         if (controller != null) {
             //we have already found a controller
-            pollingTask.scheduleOn(threadPool);
+            pollingTask.scheduleAtFixedRateOn(threadPool);
         }
         controllerDiscoverTask.stop();
-        controllerDiscoverTask.scheduleOn(threadPool);
+        controllerDiscoverTask.scheduleAtFixedRateOn(threadPool);
         paused = false;
     }
 

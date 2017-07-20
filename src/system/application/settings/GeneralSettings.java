@@ -312,68 +312,6 @@ public class GeneralSettings {
         return enabled;
     }
 
-    public ArrayList<File> getGameFolders() {
-        ArrayList<File> folders = new ArrayList<>();
-        try {
-            Connection connection = DataBase.getUserConnection();
-            PreparedStatement statement = connection.prepareStatement("select * from GameFolder");
-            ResultSet set = statement.executeQuery();
-            while (set.next()) {
-                String path = set.getString("path");
-                folders.add(new File(path));
-            }
-            statement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return folders;
-    }
-
-    /**
-     * Adds a game folder to be scanned
-     *
-     * @param folder the folder to add. Should not have been added before
-     * @return true if it could be added; false if there was an issue, the folder was null or already added.
-     */
-    public boolean addGameFolder(File folder) {
-        if (folder == null) {
-            return false;
-        }
-        try {
-            Connection connection = DataBase.getUserConnection();
-            PreparedStatement statement = connection.prepareStatement("INSERT OR REPLACE INTO GameFolder (path) VALUES (?)");
-            statement.setString(1, folder.getAbsolutePath());
-            statement.execute();
-            statement.close();
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    /**
-     * Removes a game folder to be scanned
-     *
-     * @param folder the folder to remove. Should have been added before
-     * @return true if it could be removed; false if there was an issue, the folder was null or not already added.
-     */
-    public boolean removeGameFolder(File folder) {
-        if (folder == null) {
-            return false;
-        }
-        try {
-            Connection connection = DataBase.getUserConnection();
-            PreparedStatement statement = connection.prepareStatement("DELETE GameFolder WHERE path=?");
-            statement.setString(1, folder.getAbsolutePath());
-            statement.executeQuery();
-            statement.close();
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
 
     public void setSettingValue(PredefinedSetting key, Object value) {
         SettingValue settingValue;
@@ -413,8 +351,7 @@ public class GeneralSettings {
         settings().setSettingValue(PredefinedSetting.THEME, Theme.DEFAULT_THEME);
         settings().setSettingValue(PredefinedSetting.ENABLE_STATIC_WALLPAPER, false);
         Platform.runLater(() -> {
-            SettingsScene.displayRestartDialog();
-            Main.restart(Main.MAIN_SCENE.getParentStage(), "Not in supporter mode anymore");
+            SettingsScene.displayRestartDialog("Not in supporter mode anymore");
         });
     }
 }

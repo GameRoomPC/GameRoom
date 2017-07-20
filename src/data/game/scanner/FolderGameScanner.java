@@ -1,20 +1,22 @@
 package data.game.scanner;
 
+import data.game.GameFolderManager;
 import data.game.GameWatcher;
-import data.game.entry.GameEntryUtils;
 import data.game.entry.GameEntry;
+import data.game.entry.GameEntryUtils;
 import data.game.entry.Platform;
-import data.game.scraper.SteamLocalScraper;
-import system.application.settings.PredefinedSetting;
-import ui.Main;
+import data.io.FileUtils;
+import system.os.WindowsShortcut;
 import ui.GeneralToast;
+import ui.Main;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.Callable;
 
 import static data.game.GameWatcher.formatNameForComparison;
-import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.MAIN_SCENE;
 
 /**
@@ -28,35 +30,31 @@ public class FolderGameScanner extends GameScanner {
             , "DirectX12", "UPlayBrowser.exe", "UbisoftGameLauncherInstaller.exe", "FirewallInstall.exe"
             , "GDFInstall.exe", "pbsvc.exe"};
     private final static String[] PREFERRED_FOLDER = new String[]{"Bin", "Binary", "Binaries", "win32", "win64", "x64"};
-    public final static String[] VALID_EXECUTABLE_EXTENSION = new String[]{".exe", ".lnk", ".jar"};
 
-    public final static Comparator<File> APP_FINDER_COMPARATOR = new Comparator<File>() {
-        @Override
-        public int compare(File o1, File o2) {
-            if (o1.isDirectory() && !o2.isDirectory()) {
-                return 1;
-            } else if (!o1.isDirectory() && o2.isDirectory()) {
-                return -1;
-            } else if (o1.isDirectory() && o2.isDirectory()) {
-                boolean o1p = false;
-                boolean o2p = false;
-                for (String pref : PREFERRED_FOLDER) {
-                    o1p = o1p || o1.getName().toLowerCase().equals(pref.toLowerCase());
-                    o2p = o2p || o2.getName().toLowerCase().equals(pref.toLowerCase());
-                    if (o1p && o2p) {
-                        break;
-                    }
+    public final static Comparator<File> APP_FINDER_COMPARATOR = (o1, o2) -> {
+        if (o1.isDirectory() && !o2.isDirectory()) {
+            return 1;
+        } else if (!o1.isDirectory() && o2.isDirectory()) {
+            return -1;
+        } else if (o1.isDirectory() && o2.isDirectory()) {
+            boolean o1p = false;
+            boolean o2p = false;
+            for (String pref : PREFERRED_FOLDER) {
+                o1p = o1p || o1.getName().toLowerCase().equals(pref.toLowerCase());
+                o2p = o2p || o2.getName().toLowerCase().equals(pref.toLowerCase());
+                if (o1p && o2p) {
+                    break;
                 }
-                if (o1p && !o2p) {
-                    return -1;
-                } else if (!o1p && o2p) {
-                    return 1;
-                }
-
-                return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
-            } else {
-                return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
             }
+            if (o1p && !o2p) {
+                return -1;
+            } else if (!o1p && o2p) {
+                return 1;
+            }
+
+            return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
+        } else {
+            return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
         }
     };
 
@@ -65,7 +63,7 @@ public class FolderGameScanner extends GameScanner {
     }
 
     public void scanAndAddGames() {
-        settings().getGameFolders().forEach(gamesFolder -> {
+        GameFolderManager.getFoldersForPlatform(Platform.NONE).forEach(gamesFolder -> {
             if (!gamesFolder.exists() || !gamesFolder.isDirectory()) {
                 return;
             }
@@ -73,20 +71,18 @@ public class FolderGameScanner extends GameScanner {
             if (children == null) {
                 return;
             }
-            for (File file : children) {
-                Callable<Object> task = new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        GameEntry potentialEntry = new GameEntry(file.getName());
-                        potentialEntry.setPath(file.getAbsolutePath());
-                        if (checkValidToAdd(potentialEntry)) {
-                            if (isPotentiallyAGame(file)) {
-                                potentialEntry.setInstalled(true);
-                                addGameEntryFound(potentialEntry);
-                            }
+            for (File f : children) {
+                Callable<Object> task = () -> {
+                    File file = FileUtils.tryResolveLnk(f);
+                    GameEntry potentialEntry = new GameEntry(f.getName()); //f because we prefer to use the .lnk name if its the case !
+                    potentialEntry.setPath(file.getAbsolutePath());
+                    if (checkValidToAdd(potentialEntry)) {
+                        if (isPotentiallyAGame(file)) {
+                            potentialEntry.setInstalled(true);
+                            addGameEntryFound(potentialEntry);
                         }
-                        return null;
                     }
+                    return null;
                 };
                 GameWatcher.getInstance().submitTask(task);
             }
@@ -124,11 +120,11 @@ public class FolderGameScanner extends GameScanner {
     /**
      * Checks if the given file is a valid application or if the folder contains a valid application
      *
-     * @param file the file/folder to check
+     * @param file           the file/folder to check
      * @param fileExtensions extensions of files considered valid for this kind of games
      * @return true if is/contains a valid application supported by GameRoom, false otherwise
      */
-    public static boolean isPotentiallyAGame(File file,String[] fileExtensions) {
+    public static boolean isPotentiallyAGame(File file, String[] fileExtensions) {
         try {
             Thread.sleep(50);
         } catch (InterruptedException ignored) {
@@ -154,27 +150,28 @@ public class FolderGameScanner extends GameScanner {
 
             boolean potentialGame = false;
             for (File subFile : sortedFiles) {
-                potentialGame = potentialGame || isPotentiallyAGame(subFile,fileExtensions);
+                potentialGame = potentialGame || isPotentiallyAGame(subFile, fileExtensions);
                 if (potentialGame) {
                     return potentialGame;
                 }
             }
             return potentialGame;
         } else {
-            return fileHasValidExtension(file,fileExtensions);
+            return fileHasValidExtension(file, fileExtensions);
         }
     }
+
     public static boolean isPotentiallyAGame(File file) {
-        return isPotentiallyAGame(file,Platform.NONE.getSupportedExtensions());
+        return isPotentiallyAGame(file, Platform.NONE.getSupportedExtensions());
     }
 
-        @Override
+    @Override
     protected void displayStartToast() {
         if (MAIN_SCENE != null) {
             if (profile != null) {
                 GeneralToast.displayToast(Main.getString("scanning") + " " + profile.toString(), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
             } else {
-                GeneralToast.displayToast(Main.getString("scanning") + " " + Main.getString("games_folder"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
+                GeneralToast.displayToast(Main.getString("scanning") + " " + Main.getString("games_folders"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
             }
         }
     }
@@ -198,13 +195,13 @@ public class FolderGameScanner extends GameScanner {
                 entry.setSavedLocally(true);
                 boolean needRefresh = false;
 
-                for(Platform platform : Platform.values()){
-                    if(foundEntry.getPlatform().equals(platform) && !entry.getPlatform().equals(platform)){
+                for (Platform platform : Platform.values()) {
+                    if (foundEntry.getPlatform().equals(platform) && !entry.getPlatform().equals(platform)) {
                         entry.setPlatform(platform);
                         needRefresh = true;
                     }
                 }
-                if(entry.isInstalled() != foundEntry.isInstalled()){
+                if (entry.isInstalled() != foundEntry.isInstalled()) {
                     entry.setInstalled(foundEntry.isInstalled());
                     needRefresh = true;
                 }
@@ -282,17 +279,17 @@ public class FolderGameScanner extends GameScanner {
     /**
      * Checks if a file can be a supported application by GameRoom
      *
-     * @param file the file to check
+     * @param file       the file to check
      * @param extensions extensions of files that are considered valid
      * @return true if the file has a valid extension supported by GameRoom, false otherwise
      */
-    public static boolean fileHasValidExtension(File file,String[] extensions) {
+    public static boolean fileHasValidExtension(File file, String[] extensions) {
         boolean hasAValidExtension = false;
-        if(extensions == null){
+        if (extensions == null) {
             return false;
         }
         for (String validExtension : extensions) {
-            String ext = validExtension.replace("*","").trim().toLowerCase();
+            String ext = validExtension.replace("*", "").trim().toLowerCase();
             hasAValidExtension = hasAValidExtension || file.getAbsolutePath().toLowerCase().endsWith(ext);
             if (hasAValidExtension) {
                 return hasAValidExtension;
@@ -302,6 +299,6 @@ public class FolderGameScanner extends GameScanner {
     }
 
     public static boolean fileHasValidExtension(File file) {
-        return fileHasValidExtension(file,Platform.NONE.getSupportedExtensions());
+        return fileHasValidExtension(file, Platform.NONE.getSupportedExtensions());
     }
 }

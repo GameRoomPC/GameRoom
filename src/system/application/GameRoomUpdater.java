@@ -10,6 +10,7 @@ import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import system.SchedulableTask;
 import system.application.settings.PredefinedSetting;
 import system.internet.FileDownloader;
 import ui.Main;
@@ -22,6 +23,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.*;
@@ -47,6 +49,8 @@ public class GameRoomUpdater {
     private ChangeListener<? super EventHandler<WorkerStateEvent>> onUpdatePressedListener;
 
     private boolean started = false;
+    private volatile boolean isReminding = false;
+    private SchedulableTask<Void> remindTask;
     private FileDownloader fdl;
     private final static GameRoomUpdater updaterInstance = new GameRoomUpdater();
 
@@ -153,50 +157,48 @@ public class GameRoomUpdater {
         fdl.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent event) {
-                onDownloadfinished();
+                onDownloadFinished();
             }
         });
         fdl.startDownload();
     }
 
-    private void onDownloadfinished() {
-        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION
-                , Main.getString("gameroom_will_close_updater"));
-        alert.getButtonTypes().add(new ButtonType(Main.getString("remind_me_in_1mn")));
-        Optional<ButtonType> result = alert.showAndWait();
-        result.ifPresent(letter -> {
-            if (letter.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                try {
-                    Process process = new ProcessBuilder()
-                            .command(workingDir.getAbsolutePath() + File.separator + fdl.getOutputFile().getName())
-                            .redirectErrorStream(true)
-                            .start();
-                    started = false;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Main.forceStop(MAIN_SCENE.getParentStage(), "Applying update");
-            } else if (letter.getText().equals(Main.getString("remind_me_in_1mn"))) {
-                Thread reminderThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Thread.sleep(60000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                onDownloadfinished();
+    private void onDownloadFinished() {
+        remindTask = new SchedulableTask<Void>(0, TimeUnit.MINUTES.toMillis(1)) {
+            @Override
+            protected Void execute() throws Exception {
+                Main.runAndWait(() -> {
+                    if (!isReminding) {
+                        isReminding = true;
+                        GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION
+                                , Main.getString("gameroom_will_close_updater"));
+                        alert.getButtonTypes().add(new ButtonType(Main.getString("remind_me_in_1mn")));
+                        Optional<ButtonType> result = alert.showAndWait();
+                        result.ifPresent(letter -> {
+                            if (letter.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                                isReminding = false;
+                                remindTask.cancel();
+                                try {
+                                    Process process = new ProcessBuilder()
+                                            .command(fdl.getOutputFile().getAbsolutePath())
+                                            .redirectErrorStream(true)
+                                            .start();
+                                    started = false;
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                Main.forceStop(MAIN_SCENE.getParentStage(), "Applying update");
+                            } else if (letter.getText().equals(Main.getString("remind_me_in_1mn"))) {
+                                isReminding = false;
                             }
                         });
                     }
                 });
-                reminderThread.setDaemon(true);
-                reminderThread.start();
+                return null;
             }
-        });
+        };
+        remindTask.scheduleAtFixedDelayOn(Main.getScheduledExecutor());
+
     }
 
     private static String getDomain() {
