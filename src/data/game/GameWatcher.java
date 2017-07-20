@@ -7,6 +7,7 @@ import data.game.entry.GameEntryUtils;
 import data.game.scanner.*;
 import data.game.scraper.IGDBScraper;
 import data.http.images.ImageUtils;
+import data.io.FileUtils;
 import javafx.application.Platform;
 import org.json.JSONArray;
 import system.application.settings.PredefinedSetting;
@@ -21,7 +22,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
@@ -69,6 +73,7 @@ public class GameWatcher {
         localGameScanners.add(new LauncherScanner(this, ScannerProfile.UPLAY));
         localGameScanners.add(new LauncherScanner(this, ScannerProfile.STEAM));
         localGameScanners.add(new FolderGameScanner(this));
+        localGameScanners.add(new ROMScanner(this));
         onlineGameScanners.add(new LauncherScanner(this, ScannerProfile.STEAM_ONLINE));
 
         setScanPeriod(settings().getScanPeriod());
@@ -423,7 +428,10 @@ public class GameWatcher {
                 foundEntry.setToAdd(true);
                 foundEntry.setSavedLocally(true);
                 foundEntry.saveEntry();
-                foundEntry.setName(cleanName(foundEntry.getName()));
+                foundEntry.setName(cleanNameForDisplay(
+                        foundEntry.getName(),
+                        data.game.entry.Platform.NONE.getSupportedExtensions())
+                );
 
                 Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
             }
@@ -455,7 +463,12 @@ public class GameWatcher {
                 .replace("64 bit", "")
                 .replace("x86", "")
                 .replace("x64", "")
-                .replace("()", "");
+                .replace("()", "")
+                .replaceAll("\\(.*\\)","");
+    }
+
+    public static String cleanNameForDisplay(String name, String[] possibleExtensions) {
+        return cleanName(FileUtils.getNameNoExtension(name, possibleExtensions));
     }
 
     public void removeGame(GameEntry entry) {

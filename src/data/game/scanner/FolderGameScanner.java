@@ -6,16 +6,14 @@ import data.game.entry.GameEntry;
 import data.game.entry.GameEntryUtils;
 import data.game.entry.Platform;
 import data.io.FileUtils;
-import system.os.WindowsShortcut;
 import ui.GeneralToast;
 import ui.Main;
 
 import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.Callable;
 
+import static data.game.GameWatcher.cleanNameForDisplay;
 import static data.game.GameWatcher.formatNameForComparison;
 import static ui.Main.MAIN_SCENE;
 
@@ -63,7 +61,7 @@ public class FolderGameScanner extends GameScanner {
     }
 
     public void scanAndAddGames() {
-        GameFolderManager.getFoldersForPlatform(Platform.NONE).forEach(gamesFolder -> {
+        GameFolderManager.getDefaultFolders().forEach(gamesFolder -> {
             if (!gamesFolder.exists() || !gamesFolder.isDirectory()) {
                 return;
             }
@@ -74,7 +72,10 @@ public class FolderGameScanner extends GameScanner {
             for (File f : children) {
                 Callable<Object> task = () -> {
                     File file = FileUtils.tryResolveLnk(f);
-                    GameEntry potentialEntry = new GameEntry(f.getName()); //f because we prefer to use the .lnk name if its the case !
+                    GameEntry potentialEntry = new GameEntry(cleanNameForDisplay(
+                            f.getName(),
+                            Platform.NONE.getSupportedExtensions()
+                    )); //f because we prefer to use the .lnk name if its the case !
                     potentialEntry.setPath(file.getAbsolutePath());
                     if (checkValidToAdd(potentialEntry)) {
                         if (isPotentiallyAGame(file)) {
@@ -277,7 +278,7 @@ public class FolderGameScanner extends GameScanner {
     }
 
     /**
-     * Checks if a file can be a supported application by GameRoom
+     * Checks if a file can be a supported application by GameRoom. Extensions can be like '.exa','*.exa' or 'exa'
      *
      * @param file       the file to check
      * @param extensions extensions of files that are considered valid
