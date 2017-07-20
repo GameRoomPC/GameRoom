@@ -71,9 +71,10 @@ public class FolderGameScanner extends GameScanner {
             if (children == null) {
                 return;
             }
-            for (File file : children) {
+            for (File f : children) {
                 Callable<Object> task = () -> {
-                    GameEntry potentialEntry = new GameEntry(file.getName());
+                    File file = FileUtils.tryResolveLnk(f);
+                    GameEntry potentialEntry = new GameEntry(f.getName()); //f because we prefer to use the .lnk name if its the case !
                     potentialEntry.setPath(file.getAbsolutePath());
                     if (checkValidToAdd(potentialEntry)) {
                         if (isPotentiallyAGame(file)) {
@@ -156,13 +157,6 @@ public class FolderGameScanner extends GameScanner {
             }
             return potentialGame;
         } else {
-            try {
-                if (FileUtils.getExtension(file).equals("lnk")) {
-                    WindowsShortcut shortcut = new WindowsShortcut(file);
-                    return isPotentiallyAGame(new File(shortcut.getRealFilename()));
-                }
-            } catch (IOException | ParseException ignored) {
-            }
             return fileHasValidExtension(file, fileExtensions);
         }
     }

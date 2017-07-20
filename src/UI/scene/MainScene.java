@@ -570,26 +570,6 @@ public class MainScene extends BaseScene {
         }
     }
 
-    public ExitAction batchAddFolderEntries(ArrayList<File> files, int fileCount) {
-        if (fileCount < files.size()) {
-            File currentFile = files.get(fileCount);
-            if (FolderGameScanner.isPotentiallyAGame(currentFile)) {
-                GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentFile);
-                gameEditScene.disableBackButton();
-                return new MultiAddExitAction(() -> {
-                    ExitAction action = batchAddFolderEntries(files, fileCount + 1);
-                    gameEditScene.setOnExitAction(action); //create interface runnable to access property GameEditScene
-                    gameEditScene.addCancelButton(action);
-                    gameEditScene.addCancelAllButton();
-                    fadeTransitionTo(gameEditScene, getParentStage());
-                }, gameEditScene);
-            }
-            return batchAddFolderEntries(files, fileCount + 1);
-        } else {
-            return new ClassicExitAction(this, getParentStage(), MAIN_SCENE);
-        }
-    }
-
     private void startGameWatcherService() {
         if (settings().getBoolean(PredefinedSetting.DISPLAY_WELCOME_MESSAGE)) {
             return;
