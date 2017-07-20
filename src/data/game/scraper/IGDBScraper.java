@@ -435,7 +435,7 @@ public class IGDBScraper {
         try {
             if (c == null && companiesData != null) {
                 String name = companiesData.getJSONObject(indexOf(id, companiesData)).getString("name");
-                c = new Company(id, name);
+                c = new Company(id, name,true);
             }
         } catch (JSONException je) {
             je.printStackTrace();

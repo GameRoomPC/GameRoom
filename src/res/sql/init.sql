@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS GameEntry (
 
 CREATE TABLE IF NOT EXISTS Company (
     id integer PRIMARY KEY AUTOINCREMENT,
-    igdb_id integer unique,
+    igdb_id integer,
 	name_key text unique,
 	id_needs_update integer default 0
 );
