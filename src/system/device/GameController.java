@@ -20,7 +20,7 @@ import static ui.Main.MAIN_SCENE;
 /**
  * Is a manager of the Controllers that can be used to interact with GameRoom. Basically, a first task is scheduled, the
  * {@link #controllerDiscoverTask}, which detects which compatible controllers can be used. It then selects the first one
- * that is compatible //TODO be able to select a controller.
+ * that is compatible, or the selected one defined by {@link PredefinedSetting#CHOSEN_CONTROLLER} if set.
  * After that is started a scheduled {@link #pollingTask} to read input from the controller and perform actions accordingly.
  * The user can hold a navigation key (which are either the navigation pad or the joystick axis) and the action will
  * be repeated.

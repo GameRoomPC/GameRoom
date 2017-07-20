@@ -7,6 +7,7 @@ import data.io.FileUtils;
 import system.SchedulableTask;
 import system.application.settings.PredefinedSetting;
 import system.os.Terminal;
+import ui.GeneralToast;
 import ui.Main;
 import ui.dialog.GameRoomAlert;
 
@@ -136,7 +137,7 @@ public class Monitor {
                 monitorTask.getException().printStackTrace();
                 monitorTask.stop();
                 gameStarter.onStop(0);
-                //TODO display a toast here, cannot monitor
+                GeneralToast.displayToast(Main.getString("error_cannot_monitor") + getGameEntry().getName(),MAIN_SCENE.getParentStage());
             }
         });
 
@@ -222,14 +223,14 @@ public class Monitor {
                 if (creationAwaitedTime > MAX_AWAIT_CREATION_TIME ) {
                     debug("waitCreationTask error finding creation date of process " + processName);
                     gameStarter.onStop(0);
-                    //TODO display a toast here, the app was not started
+                    GeneralToast.displayToast(Main.getString("error_app_did_not_start",processName),MAIN_SCENE.getParentStage());
                 }
             }else{
                 debug("waitCreationTask error, impossible to monitor games");
                 waitCreationTask.getException().printStackTrace();
                 waitCreationTask.stop();
                 gameStarter.onStop(0);
-                //TODO display a toast here, cannot monitor
+                GeneralToast.displayToast(Main.getString("error_cannot_monitor") + getGameEntry().getName(),MAIN_SCENE.getParentStage());
             }
         });
     }

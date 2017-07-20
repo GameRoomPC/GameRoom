@@ -650,8 +650,7 @@ public class SettingsScene extends BaseScene {
 
                         settings().setSettingValue(PredefinedSetting.LOCALE, localeComboBox.getValue());
 
-                        displayRestartDialog();
-                        Main.restart(getParentStage(), "Applying language");
+                        displayRestartDialog("Applying language");
                     }
                 });
                 node2 = localeComboBox;
@@ -663,50 +662,7 @@ public class SettingsScene extends BaseScene {
                 });
                 node2 = manageButton;
             } else if (setting.isClass(String.class)) {
-                /**************** PATH **************/
-                String p = settings().getString(setting);
-                PathTextField gamesFolderField = new PathTextField(p, getWindow(), PathTextField.FILE_CHOOSER_FOLDER, Main.getString("select_a_folder"));
-                gamesFolderField.setId(setting.getKey());
-                gamesFolderField.getTextField().textProperty().addListener(new ChangeListener<String>() {
-                    @Override
-                    public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                        settings().setSettingValue(setting, newValue);
 
-                        if (changeListener != null) {
-                            changeListener.changed(observable, oldValue, newValue);
-                        }
-                    }
-                });
-                validEntriesConditions.add(new ValidEntryCondition() {
-
-                    @Override
-                    public boolean isValid() {
-                        //TODO create a dialog to manage game folders
-                        /*if (setting.equals(PredefinedSetting.GAMES_FOLDER)) {
-                            String dir = settings().getString(PredefinedSetting.GAMES_FOLDER);
-                            if (dir.equals("")) {
-                                return true;
-                            }
-                            File gamesFolder = new File(dir);
-                            if (!gamesFolder.exists()) {
-                                message.replace(0, message.length(), Main.getString("invalid_gamesFolder_exist"));
-                                return false;
-                            }
-                            if (!gamesFolder.isDirectory()) {
-                                message.replace(0, message.length(), Main.getString("invalid_gamesFolder_is_no_folder"));
-                                return false;
-                            }
-                            return true;
-                        }*/
-                        return true;
-                    }
-
-                    @Override
-                    public void onInvalid() {
-                        setLineInvalid(setting.getKey());
-                    }
-                });
-                node2 = gamesFolderField;
             } else if (setting.isClass(UIScale.class)) {
                 /**************** ON LAUNCH ACTION **************/
                 ComboBox<UIScale> uiScaleComboBox = new ComboBox<>();
@@ -727,8 +683,7 @@ public class SettingsScene extends BaseScene {
                     @Override
                     public void handle(ActionEvent event) {
                         settings().setSettingValue(PredefinedSetting.UI_SCALE, uiScaleComboBox.getValue());
-                        displayRestartDialog();
-                        Main.restart(getParentStage(), "Applying new UI scale");
+                        displayRestartDialog("Applying new UI scale");
                         if (changeListener != null) {
                             changeListener.changed(null, null, uiScaleComboBox.getValue());
                         }
@@ -763,8 +718,7 @@ public class SettingsScene extends BaseScene {
                                     changeListener.changed(null, null, themeComboBox.getValue());
                                 }
                                 chosenTheme.applyTheme();
-                                displayRestartDialog();
-                                Main.restart(getParentStage(), "ApplyingTheme");
+                                displayRestartDialog("ApplyingTheme");
                             } catch (IOException | ZipException e) {
                                 GameRoomAlert.error(Main.getString("error_applying_theme"));
                             }
@@ -944,12 +898,12 @@ public class SettingsScene extends BaseScene {
 
     }
 
-    public static void displayRestartDialog() {
+    public static void displayRestartDialog(String reason) {
         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.WARNING);
         alert.setContentText(Main.getString("GameRoom_will_restart"));
 
         Optional<ButtonType> result = alert.showAndWait();
-        //TODO restart
+        Main.restart(Main.MAIN_SCENE.getParentStage(), reason);
     }
 
     @Override

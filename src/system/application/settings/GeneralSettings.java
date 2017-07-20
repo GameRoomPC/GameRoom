@@ -351,8 +351,7 @@ public class GeneralSettings {
         settings().setSettingValue(PredefinedSetting.THEME, Theme.DEFAULT_THEME);
         settings().setSettingValue(PredefinedSetting.ENABLE_STATIC_WALLPAPER, false);
         Platform.runLater(() -> {
-            SettingsScene.displayRestartDialog();
-            Main.restart(Main.MAIN_SCENE.getParentStage(), "Not in supporter mode anymore");
+            SettingsScene.displayRestartDialog("Not in supporter mode anymore");
         });
     }
 }

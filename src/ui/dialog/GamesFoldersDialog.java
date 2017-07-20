@@ -118,15 +118,13 @@ public class GamesFoldersDialog extends GameRoomDialog {
             DirectoryChooser chooser = new DirectoryChooser();
             File chosen = chooser.showDialog(getOwner());
             if(GameFolderManager.isFolderExcluded(chosen)){
-                //TODO localize
-                GameRoomAlert.error("Sorry, you can not add "+chosen.getAbsolutePath()+" as a games folder");
+                GameRoomAlert.error(Main.getString("sorry_cannot_add_games_folders",chosen.getAbsolutePath()));
                 return;
             }
             if (chosen != null && GameFolderManager.addDefaultFolder(chosen)) {
                 listView.getItems().add(chosen);
             } else {
-                //TODO localize
-                GameRoomAlert.error("Could not add folder");
+                GameRoomAlert.error(Main.getString("error_could_not_add_games_folder"));
             }
         });
         deleteButton = new Button(Main.getString("delete"));
@@ -135,8 +133,7 @@ public class GamesFoldersDialog extends GameRoomDialog {
                     && GameFolderManager.deleteDefaultFolder(listView.getSelectionModel().getSelectedItem())) {
                 listView.getItems().remove(listView.getSelectionModel().getSelectedIndex());
             } else {
-                //TODO localize
-                GameRoomAlert.error("Could not remove folder");
+                GameRoomAlert.error(Main.getString("error_could_not_remove_games_folder"));
             }
         });
         buttonBox.getChildren().addAll(addButton, deleteButton);

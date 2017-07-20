@@ -86,7 +86,7 @@ public class GameStarter {
             Monitor timeMonitor = new Monitor(this);
             timeMonitor.start();
         } catch (IOException e) {
-            //TODO catch case cannot monitor playtime
+            GeneralToast.displayToast(Main.getString("error_cannot_monitor") + getGameEntry().getName(),MAIN_SCENE.getParentStage());
             e.printStackTrace();
         }
 
