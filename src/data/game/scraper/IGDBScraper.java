@@ -8,11 +8,8 @@ import data.game.entry.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -430,7 +427,7 @@ public class IGDBScraper {
         return null;
     }
 
-    private static Company getCompany(int id, JSONArray companiesData) {
+    private static Company extractCompany(int id, JSONArray companiesData) {
         Company c = Company.getFromIGDBId(id);
         try {
             if (c == null && companiesData != null) {
@@ -539,12 +536,12 @@ public class IGDBScraper {
      * @param companiesData data fetched about companies
      */
     private static void setGameCompanies(GameEntry entryToSet, JSONObject searchData, JSONArray companiesData) {
-
+        ArrayList<Company> companies = new ArrayList<>();
         try {
             int publishersNumber = searchData.getJSONArray("publishers").length();
             for (int j = 0; j < publishersNumber; j++) {
                 int igdbId = searchData.getJSONArray("publishers").getInt(j);
-                entryToSet.addPublisher(getCompany(igdbId, companiesData));
+                companies.add(extractCompany(igdbId, companiesData));
             }
         } catch (JSONException je) {
             if (je.toString().contains("not found")) {
@@ -553,14 +550,16 @@ public class IGDBScraper {
                 je.printStackTrace();
             }
         }
+        companies.removeIf(Objects::isNull);
+        entryToSet.setPublishers(companies);
 
+        companies.clear();
         try {
             int developersNumber = searchData.getJSONArray("developers").length();
 
             for (int j = 0; j < developersNumber; j++) {
                 int igdbId = searchData.getJSONArray("developers").getInt(j);
-                Company dev = Company.getFromIGDBId(igdbId);
-                entryToSet.addDeveloper(dev);
+                companies.add(extractCompany(igdbId, companiesData));
             }
         } catch (JSONException je) {
             if (je.toString().contains("not found")) {
@@ -569,6 +568,9 @@ public class IGDBScraper {
                 je.printStackTrace();
             }
         }
+        companies.removeIf(Objects::isNull);
+        entryToSet.setDevelopers(companies);
+
     }
 
     /**

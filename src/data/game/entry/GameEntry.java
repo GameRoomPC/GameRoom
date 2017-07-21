@@ -16,6 +16,8 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static data.io.FileUtils.getExtension;
 
@@ -586,12 +588,13 @@ public class GameEntry {
         }
     }
 
-    public ArrayList<GameGenre> getGenres() {
+    public List<GameGenre> getGenres() {
         return genres;
     }
 
-    public void setGenres(ArrayList<GameGenre> genres) {
-        this.genres = genres;
+    public void setGenres(Collection<GameGenre> genres) {
+        this.genres.clear();
+        this.genres.addAll(genres);
         if (savedLocally && !deleted) {
             try {
                 Statement batchStatement = DataBase.getUserConnection().createStatement();
@@ -604,12 +607,13 @@ public class GameEntry {
         }
     }
 
-    public ArrayList<GameTheme> getThemes() {
+    public List<GameTheme> getThemes() {
         return themes;
     }
 
-    public void setThemes(ArrayList<GameTheme> themes) {
-        this.themes = themes;
+    public void setThemes(Collection<GameTheme> themes) {
+        this.themes.clear();
+        this.themes.addAll(themes);
         if (savedLocally && !deleted) {
             try {
                 Statement batchStatement = DataBase.getUserConnection().createStatement();
@@ -1226,12 +1230,13 @@ public class GameEntry {
      *
      * @return a list containing all devs
      */
-    public ArrayList<Company> getDevelopers() {
+    public List<Company> getDevelopers() {
         return developers;
     }
 
-    public void setDevelopers(ArrayList<Company> developers) {
-        this.developers = developers;
+    public void setDevelopers(Collection<Company> developers) {
+        this.developers.clear();
+        this.developers.addAll(developers);
         if (savedLocally && !deleted) {
             try {
                 Statement batchStatement = DataBase.getUserConnection().createStatement();
@@ -1244,12 +1249,13 @@ public class GameEntry {
         }
     }
 
-    public ArrayList<Company> getPublishers() {
+    public List<Company> getPublishers() {
         return publishers;
     }
 
-    public void setPublishers(ArrayList<Company> publishers) {
-        this.publishers = publishers;
+    public void setPublishers(Collection<Company> publishers) {
+        this.publishers.clear();
+        this.publishers.addAll(publishers);
         if (savedLocally && !deleted) {
             try {
                 Statement batchStatement = DataBase.getUserConnection().createStatement();
