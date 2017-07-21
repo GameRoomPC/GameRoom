@@ -15,7 +15,6 @@ public class Company {
     private int igdb_id = DEFAULT_ID;
     private int id = DEFAULT_ID;
     private String name;
-    private int IGDBId;
 
 
     public Company(int igdb_id, String name, boolean updateIfExists) {
@@ -181,17 +180,17 @@ public class Company {
         while (set.next()) {
             int id = set.getInt("id");
             String key = set.getString("name_key");
-            ID_MAP.put(id, new Company(id, key,false));
+            ID_MAP.put(id, new Company(set.getInt("igdb_id"), key,false));
         }
         statement.close();
     }
 
     public int getIGDBId() {
-        return IGDBId;
+        return igdb_id;
     }
 
     public void setIGDBId(int IGDBId) {
-        this.IGDBId = IGDBId;
+        this.igdb_id = IGDBId;
     }
 
     public String getName() {
