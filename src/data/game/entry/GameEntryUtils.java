@@ -111,27 +111,12 @@ public class GameEntryUtils {
         }
     }
 
-    private static void loadGames(File entryFolder) {
-        /*ArrayList<UUID> uuids = GameEntryUtils.readUUIDS(entryFolder);
-        for (UUID uuid : uuids) {
-            GameEntry entry = new GameEntry(uuid);
-            addGame(entry);
-        }*/
-    }
-
     public static void addGame(GameEntry entry) {
-        addGame(entry, true);
-    }
-
-    private static void addGame(GameEntry entry, boolean filterByUUID) {
         boolean validToAdd = true;
-        if (filterByUUID) {
-            for (GameEntry entryInList : ENTRIES_LIST) {
-                validToAdd = entryInList.getId() != entry.getId();
-                if (!validToAdd) {
-                    Main.LOGGER.debug("Matching uuids for games : " + entryInList.getName());
-                    break;
-                }
+        for (GameEntry entryInList : ENTRIES_LIST) {
+            validToAdd = entryInList.getId() != entry.getId();
+            if (!validToAdd) {
+                break;
             }
         }
         if (validToAdd) {

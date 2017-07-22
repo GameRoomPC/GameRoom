@@ -3,12 +3,12 @@
 
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p %c{1}:%L - %msg%n" />
+            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p- %msg%n" />
         </Console>
 
         <RollingFile name="RollingFile" filename="${sys:data.dir}/log/GameRoom.log"
                      filepattern="${sys:data.dir}/log/GameRoom - %d{YYYY-MM-dd}.log">
-            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p - %msg%n" />
+            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p- %msg%n" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="500 KB" />
             </Policies>
