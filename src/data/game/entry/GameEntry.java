@@ -18,8 +18,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static data.io.FileUtils.getExtension;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Created by LM on 02/07/2016.
@@ -594,7 +596,9 @@ public class GameEntry {
 
     public void setGenres(Collection<GameGenre> genres) {
         this.genres.clear();
-        this.genres.addAll(genres);
+        //set all using this method call otherwise games scraping would infinite loop
+        Optional.ofNullable(genres).ifPresent(this.genres::addAll);
+
         if (savedLocally && !deleted) {
             try {
                 Statement batchStatement = DataBase.getUserConnection().createStatement();
@@ -613,7 +617,9 @@ public class GameEntry {
 
     public void setThemes(Collection<GameTheme> themes) {
         this.themes.clear();
-        this.themes.addAll(themes);
+        //set all using this method call otherwise games scraping would infinite loop
+        Optional.ofNullable(themes).ifPresent(this.themes::addAll);
+
         if (savedLocally && !deleted) {
             try {
                 Statement batchStatement = DataBase.getUserConnection().createStatement();
@@ -1236,7 +1242,9 @@ public class GameEntry {
 
     public void setDevelopers(Collection<Company> developers) {
         this.developers.clear();
-        this.developers.addAll(developers);
+        //set all using this method call otherwise games scraping would infinite loop
+        Optional.ofNullable(developers).ifPresent(this.developers::addAll);
+
         if (savedLocally && !deleted) {
             try {
                 Statement batchStatement = DataBase.getUserConnection().createStatement();
@@ -1255,7 +1263,9 @@ public class GameEntry {
 
     public void setPublishers(Collection<Company> publishers) {
         this.publishers.clear();
-        this.publishers.addAll(publishers);
+        //set all using this method call otherwise games scraping would infinite loop
+        Optional.ofNullable(publishers).ifPresent(this.publishers::addAll);
+
         if (savedLocally && !deleted) {
             try {
                 Statement batchStatement = DataBase.getUserConnection().createStatement();

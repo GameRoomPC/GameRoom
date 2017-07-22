@@ -59,6 +59,7 @@ public class GamesFoldersDialog extends GameRoomDialog {
             }
         });
         listView.getItems().addAll(GameFolderManager.getDefaultFolders());
+        //TODO fix empty window being white in basic theme
 
         mainPane.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
         mainPane.setPrefHeight(Main.SCREEN_HEIGHT * 1 / 2 * Main.SCREEN_HEIGHT / 1080);
