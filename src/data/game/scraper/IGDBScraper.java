@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
+import static ui.Main.LOGGER;
+
 /**
  * Created by LM on 03/07/2016.
  */
@@ -22,6 +24,8 @@ public class IGDBScraper {
     public static String IGDB_BASIC_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
     public static String IGDB_PRO_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
     public static String key = IGDB_BASIC_KEY;
+
+    public static int REQUEST_COUNTER = 0;
 
     public static void main(String[] args) throws IOException, UnirestException {
         String gameName = "Battlefield 1";
@@ -42,6 +46,7 @@ public class IGDBScraper {
     }
 
     public static JSONArray getAllFields(int id) throws UnirestException {
+        incrementRequestCounter();
         HttpResponse<JsonNode> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + id + "?fields=*")
                 .header("X-Mashape-Key", key)
                 .header("Accept", "application/json")
@@ -254,6 +259,7 @@ public class IGDBScraper {
 
     public static JSONArray searchGame(String gameName) throws UnirestException {
         gameName = gameName.replace(' ', '+');
+        incrementRequestCounter();
         HttpResponse<JsonNode> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/?fields=name&limit=10&offset=0&search=" + gameName)
                 .header("X-Mashape-Key", key)
                 .header("Accept", "application/json")
@@ -283,6 +289,7 @@ public class IGDBScraper {
             }
             i++;
         }
+        incrementRequestCounter();
         HttpResponse<JsonNode> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/genres/" + idsString + "?fields=name")
                 .header("X-Mashape-Key", key)
                 .header("Accept", "application/json")
@@ -313,6 +320,7 @@ public class IGDBScraper {
                 .asString();
         LOGGER.debug("Response getGamesData:" + responseString.getBody());*/
 
+        incrementRequestCounter();
         HttpResponse<JsonNode> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + idsString + "?fields=*")
                 .header("X-Mashape-Key", key)
                 .header("Accept", "application/json")
@@ -365,6 +373,7 @@ public class IGDBScraper {
 
     private static String getSerie(JSONObject gameData) throws UnirestException {
         int serieId = gameData.getInt("collection");
+        incrementRequestCounter();
         HttpResponse<JsonNode> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/collections/" + serieId + "?fields=name")
                 .header("X-Mashape-Key", key)
                 .header("Accept", "application/json")
@@ -413,6 +422,7 @@ public class IGDBScraper {
         }
         try {
 
+            incrementRequestCounter();
             HttpResponse<JsonNode> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/collections/" + idsString + /*"?fields=*"+*/ "?fields=name")
                     .header("X-Mashape-Key", key)
                     .header("Accept", "application/json")
@@ -456,6 +466,7 @@ public class IGDBScraper {
             i++;
         }
         try {
+            incrementRequestCounter();
             HttpResponse<JsonNode> response = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/companies/" + idsString + /*"?fields=*"+*/ "?fields=name")
                     .header("X-Mashape-Key", key)
                     .header("Accept", "application/json")
@@ -629,5 +640,10 @@ public class IGDBScraper {
                 je.printStackTrace();
             }
         }
+    }
+
+    private static void incrementRequestCounter(){
+        REQUEST_COUNTER++;
+        LOGGER.debug("IGDBScraper : added req, total="+REQUEST_COUNTER);
     }
 }

@@ -126,6 +126,7 @@ public class GameWatcher {
         tryScrapToAddEntries();
 
         LOGGER.info("GameWatcher ended");
+        LOGGER.info("IGDB requests made : "+IGDBScraper.REQUEST_COUNTER);
         for (Runnable onSeachDone : onSearchDoneListeners) {
             if (onSeachDone != null) {
                 onSeachDone.run();
