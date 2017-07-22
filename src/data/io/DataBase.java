@@ -52,6 +52,7 @@ public class DataBase {
                 DatabaseMetaData meta = USER_CONNECTION.getMetaData();
                 System.out.println("The driver name is " + meta.getDriverName());
                 System.out.println("DB path is \"" + url + "\"");
+                USER_CONNECTION.prepareStatement("PRAGMA foreign_keys = ON");
             }
 
         } catch (SQLException e) {
