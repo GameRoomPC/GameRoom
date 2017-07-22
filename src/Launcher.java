@@ -503,7 +503,7 @@ public class Launcher extends Application {
         });
 
         Menu gamesFoldersMenu = new Menu(Main.getString("games_folders"));
-        for (File f : GameFolderManager.getFoldersForPlatform(data.game.entry.Platform.NONE)) {
+        for (File f : GameFolderManager.getDefaultFolders()) {
             if (f != null && f.exists() && f.isDirectory()) {
                 MenuItem gamesFolderItem = new MenuItem(f.getName());
                 gamesFolderItem.addActionListener(e -> {

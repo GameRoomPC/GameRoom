@@ -16,8 +16,12 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 import static data.io.FileUtils.getExtension;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Created by LM on 02/07/2016.
@@ -586,12 +590,15 @@ public class GameEntry {
         }
     }
 
-    public ArrayList<GameGenre> getGenres() {
+    public List<GameGenre> getGenres() {
         return genres;
     }
 
-    public void setGenres(ArrayList<GameGenre> genres) {
-        this.genres = genres;
+    public void setGenres(Collection<GameGenre> genres) {
+        this.genres.clear();
+        //set all using this method call otherwise games scraping would infinite loop
+        Optional.ofNullable(genres).ifPresent(this.genres::addAll);
+
         if (savedLocally && !deleted) {
             try {
                 Statement batchStatement = DataBase.getUserConnection().createStatement();
@@ -604,12 +611,15 @@ public class GameEntry {
         }
     }
 
-    public ArrayList<GameTheme> getThemes() {
+    public List<GameTheme> getThemes() {
         return themes;
     }
 
-    public void setThemes(ArrayList<GameTheme> themes) {
-        this.themes = themes;
+    public void setThemes(Collection<GameTheme> themes) {
+        this.themes.clear();
+        //set all using this method call otherwise games scraping would infinite loop
+        Optional.ofNullable(themes).ifPresent(this.themes::addAll);
+
         if (savedLocally && !deleted) {
             try {
                 Statement batchStatement = DataBase.getUserConnection().createStatement();
@@ -1226,12 +1236,15 @@ public class GameEntry {
      *
      * @return a list containing all devs
      */
-    public ArrayList<Company> getDevelopers() {
+    public List<Company> getDevelopers() {
         return developers;
     }
 
-    public void setDevelopers(ArrayList<Company> developers) {
-        this.developers = developers;
+    public void setDevelopers(Collection<Company> developers) {
+        this.developers.clear();
+        //set all using this method call otherwise games scraping would infinite loop
+        Optional.ofNullable(developers).ifPresent(this.developers::addAll);
+
         if (savedLocally && !deleted) {
             try {
                 Statement batchStatement = DataBase.getUserConnection().createStatement();
@@ -1244,12 +1257,15 @@ public class GameEntry {
         }
     }
 
-    public ArrayList<Company> getPublishers() {
+    public List<Company> getPublishers() {
         return publishers;
     }
 
-    public void setPublishers(ArrayList<Company> publishers) {
-        this.publishers = publishers;
+    public void setPublishers(Collection<Company> publishers) {
+        this.publishers.clear();
+        //set all using this method call otherwise games scraping would infinite loop
+        Optional.ofNullable(publishers).ifPresent(this.publishers::addAll);
+
         if (savedLocally && !deleted) {
             try {
                 Statement batchStatement = DataBase.getUserConnection().createStatement();

@@ -1,5 +1,6 @@
 package data.io;
 
+import data.game.entry.Platform;
 import system.os.WindowsShortcut;
 import ui.Main;
 
@@ -39,11 +40,11 @@ public class FileUtils {
     }
 
     public static File newTempFile(String fileName) {
-        if(Main.FILES_MAP == null ||Main.FILES_MAP.isEmpty()){
+        if (Main.FILES_MAP == null || Main.FILES_MAP.isEmpty()) {
             throw new IllegalStateException("Cannot create tempfile : FILE_MAP is not initialized");
         }
         File tempFolder = Main.FILES_MAP.get("temp");
-        if(tempFolder == null || !tempFolder.exists()){
+        if (tempFolder == null || !tempFolder.exists()) {
             throw new IllegalStateException("Temp folder does not exist");
         }
 
@@ -117,7 +118,7 @@ public class FileUtils {
         }
     }
 
-    public static void deleteFolder(File folder){
+    public static void deleteFolder(File folder) {
         if (folder.exists() && folder.isDirectory()) {
             for (File sub : folder.listFiles()) {
                 deleteFolder(sub);
@@ -143,12 +144,10 @@ public class FileUtils {
             if (target[i].equals(base[i])) {
                 common += target[i] + pathSeparator;
                 commonIndex++;
-            }
-            else break;
+            } else break;
         }
 
-        if (commonIndex == 0)
-        {
+        if (commonIndex == 0) {
             //  Whoops -- not even a single common path element. This most
             //  likely indicates differing drive letters, like C: and D:.
             //  These paths cannot be relativized. Return the target path.
@@ -162,8 +161,7 @@ public class FileUtils {
         if (base.length == commonIndex) {
             //  Comment this out if you prefer that a relative path not start with ./
             //relative = "." + pathSeparator;
-        }
-        else {
+        } else {
             int numDirsUp = base.length - commonIndex - 1;
             //  The number of directories we have to backtrack is the length of
             //  the base path MINUS the number of common path elements, minus
@@ -203,8 +201,8 @@ public class FileUtils {
         }
     }
 
-    public static File tryResolveLnk(File file){
-        if (file == null || !file.exists() || file.isDirectory()){
+    public static File tryResolveLnk(File file) {
+        if (file == null || !file.exists() || file.isDirectory()) {
             return file;
         }
         try {
@@ -217,11 +215,35 @@ public class FileUtils {
         return file;
     }
 
-    public static String tryResolveLnk(String path){
-        if(path == null){
+    public static String tryResolveLnk(String path) {
+        if (path == null) {
             return null;
         }
         return tryResolveLnk(new File(path)).getAbsolutePath();
     }
 
+    public static String getNameNoExtension(String name, String[] possibleExtensions) {
+        if (name == null) {
+            throw new IllegalArgumentException("Name was null");
+        }
+        if (possibleExtensions == null) {
+            throw new IllegalArgumentException("PossibleExtensions is null");
+        }
+        boolean endsWith = false;
+        for (String ext : possibleExtensions) {
+            if (ext != null) {
+                endsWith = endsWith
+                        || name.toLowerCase().endsWith(ext
+                        .replace("*", "")
+                        .replace(".", "")
+                        .toLowerCase()
+                );
+            }
+        }
+        int dotIndex = name.lastIndexOf('.');
+        if (name.length() - dotIndex < 5 && endsWith) { //can have up to 4 letters of ext
+            return getNameNoExtension(name.substring(0, dotIndex), possibleExtensions);
+        }
+        return name;
+    }
 }

@@ -15,17 +15,16 @@ public class Company {
     private int igdb_id = DEFAULT_ID;
     private int id = DEFAULT_ID;
     private String name;
-    private int IGDBId;
 
 
-    public Company(int igdb_id, String name) {
+    public Company(int igdb_id, String name, boolean updateIfExists) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Company's name was either null or empty : \"" + name + "\"");
         }
         this.igdb_id = igdb_id;
         this.name = name;
 
-        insertInDB();
+        insertInDB(updateIfExists);
     }
 
     public Company(String name) {
@@ -35,15 +34,19 @@ public class Company {
         this.name = name;
     }
 
-    public int insertInDB() {
+    public int insertInDB(boolean updateIfExists) {
         try {
             if(isInDB()){
                 id = getIdInDb();
-                String sql = "UPDATE Company set name_key=?"+(igdb_id < 0 ? "" : ", igdb_id=?")+" where id="+id;
+                if(!updateIfExists){
+                    return id;
+                }
+                String sql = "UPDATE Company set name_key=?"+(igdb_id < 0 ? "" : ", igdb_id=?,id_needs_update=?")+" where id="+id;
                 PreparedStatement companyStatement = DataBase.getUserConnection().prepareStatement(sql);
                 companyStatement.setString(1, name);
                 if (igdb_id >= 0) {
                     companyStatement.setInt(2, igdb_id);
+                    companyStatement.setInt(3, 0);
                 }
                 companyStatement.execute();
                 companyStatement.close();
@@ -114,13 +117,13 @@ public class Company {
         //try to see if it exists in db
         try {
             Connection connection = DataBase.getUserConnection();
-            PreparedStatement statement = connection.prepareStatement("select * from Company where igdb_id = ?");
+            PreparedStatement statement = connection.prepareStatement("select * from Company where igdb_id = ? AND id_needs_update = 0");
             statement.setInt(1, igdb_id);
             ResultSet set = statement.executeQuery();
             if (set.next()) {
                 int companyId = set.getInt("id");
                 String key = set.getString("name_key");
-                Company newCompany = new Company(companyId, key);
+                Company newCompany = new Company(companyId, key,false);
                 newCompany.setIGDBId(igdb_id);
                 ID_MAP.put(companyId, newCompany);
 
@@ -155,8 +158,8 @@ public class Company {
                 if (set.next()) {
                     int companyId = set.getInt("id");
                     String key = set.getString("name_key");
-                    Company newCompany = new Company(companyId, key);
-                    newCompany.setIGDBId(set.getInt("igdb_id"));
+                    Company newCompany = new Company(set.getInt("igdb_id"),key,false);
+                    newCompany.setId(companyId);
                     ID_MAP.put(companyId, newCompany);
 
                     return newCompany;
@@ -177,17 +180,17 @@ public class Company {
         while (set.next()) {
             int id = set.getInt("id");
             String key = set.getString("name_key");
-            ID_MAP.put(id, new Company(id, key));
+            ID_MAP.put(id, new Company(set.getInt("igdb_id"), key,false));
         }
         statement.close();
     }
 
     public int getIGDBId() {
-        return IGDBId;
+        return igdb_id;
     }
 
     public void setIGDBId(int IGDBId) {
-        this.IGDBId = IGDBId;
+        this.igdb_id = IGDBId;
     }
 
     public String getName() {
@@ -226,5 +229,14 @@ public class Company {
             return "-";
         }
         return name;
+    }
+
+    private void setId(int id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode(){
+        return id;
     }
 }

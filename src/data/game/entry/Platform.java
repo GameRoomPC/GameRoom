@@ -1,11 +1,8 @@
 package data.game.entry;
 
 import data.io.DataBase;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import ui.Main;
 
-import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,13 +35,13 @@ public class Platform {
     private boolean isPC;
     private String defaultSupportedExtensions;
     private String supportedExtensions;
-    private String ROMFolder="";
+    private String ROMFolder = "";
 
     private Platform(ResultSet set) throws SQLException {
         id = set.getInt("id");
         nameKey = set.getString("name_key");
         isPC = set.getBoolean("is_pc");
-        defaultSupportedExtensions =  set.getString("default_supported_extensions");
+        defaultSupportedExtensions = set.getString("default_supported_extensions");
         supportedExtensions = set.getString("supported_extensions");
         if (supportedExtensions == null) {
             supportedExtensions = defaultSupportedExtensions;
@@ -150,6 +147,14 @@ public class Platform {
         return items;
     }
 
+    public static Collection<Platform> getNonPCPlatforms() {
+        ArrayList<Platform> items = new ArrayList<>(Platform.values());
+        items.removeIf(Platform::isPC);
+        items.removeIf(platform -> platform.equals(Platform.NONE));
+        items.sort(Comparator.comparing(Platform::getName));
+        return items;
+    }
+
     public int getId() {
         return id;
     }
@@ -216,7 +221,7 @@ public class Platform {
         }
         String[] cpy = supportedExtensions.split(",");
         for (int i = 0; i < cpy.length; i++) {
-            if(!cpy[i].isEmpty()) {
+            if (!cpy[i].isEmpty()) {
                 cpy[i] = "*." + cpy[i];
 
             }

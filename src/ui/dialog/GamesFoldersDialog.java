@@ -9,7 +9,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
 import ui.Main;
 
@@ -59,7 +58,8 @@ public class GamesFoldersDialog extends GameRoomDialog {
                 deleteButton.setDisable(false);
             }
         });
-        listView.getItems().addAll(GameFolderManager.getFoldersForPlatform(Platform.NONE));
+        listView.getItems().addAll(GameFolderManager.getDefaultFolders());
+        //TODO fix empty window being white in basic theme
 
         mainPane.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
         mainPane.setPrefHeight(Main.SCREEN_HEIGHT * 1 / 2 * Main.SCREEN_HEIGHT / 1080);

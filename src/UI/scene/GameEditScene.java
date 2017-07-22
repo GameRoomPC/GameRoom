@@ -259,7 +259,7 @@ public class GameEditScene extends BaseScene {
     }
 
     private void initCenter(Image coverImage) {
-        ImageUtils.setWindowBackground(entry.getImagePath(1),backgroundView);
+        ImageUtils.setWindowBackground(entry.getImagePath(1), backgroundView);
 
         contentPane = new GridPane();
         //contentPane.setGridLinesVisible(true);
@@ -501,16 +501,11 @@ public class GameEditScene extends BaseScene {
         devComboBox.setId("developer");
         if (entry.getDevelopers() != null) {
             for (Company developer : entry.getDevelopers()) {
-                devComboBox.getCheckModel().check(devComboBox.getCheckModel().getItemIndex(developer));
+                devComboBox.getCheckModel().check(developer);
             }
         }
-        devComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<Company>() {
-            @Override
-            public void onChanged(Change<? extends Company> c) {
-                ArrayList<Company> newDevs = new ArrayList<>();
-                newDevs.addAll(devComboBox.getCheckModel().getCheckedItems());
-                entry.setDevelopers(newDevs);
-            }
+        devComboBox.getCheckModel().getCheckedItems().addListener((ListChangeListener<Company>) c -> {
+            entry.setDevelopers(devComboBox.getCheckModel().getCheckedItems());
         });
         contentPane.add(createTitleLabel("developer", false), 0, row_count);
         contentPane.add(devComboBox, 1, row_count);
@@ -522,16 +517,11 @@ public class GameEditScene extends BaseScene {
         pubComboBox.setId("publisher");
         if (entry.getPublishers() != null) {
             for (Company publisher : entry.getPublishers()) {
-                pubComboBox.getCheckModel().check(pubComboBox.getCheckModel().getItemIndex(publisher));
+                pubComboBox.getCheckModel().check(publisher);
             }
         }
-        pubComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<Company>() {
-            @Override
-            public void onChanged(Change<? extends Company> c) {
-                ArrayList<Company> newPublishers = new ArrayList<>();
-                newPublishers.addAll(pubComboBox.getCheckModel().getCheckedItems());
-                entry.setPublishers(newPublishers);
-            }
+        pubComboBox.getCheckModel().getCheckedItems().addListener((ListChangeListener<Company>) c -> {
+            entry.setPublishers(pubComboBox.getCheckModel().getCheckedItems());
         });
         contentPane.add(createTitleLabel("publisher", false), 0, row_count);
         contentPane.add(pubComboBox, 1, row_count);
@@ -811,12 +801,14 @@ public class GameEditScene extends BaseScene {
                                 ((PathTextField) node).setText((String) newValue);
                             }
                         } else if (property.equals("genre")) {
+                            ((CheckComboBox) node).getCheckModel().clearChecks();
                             if (node instanceof CheckComboBox) {
                                 for (GameGenre genre : (ArrayList<GameGenre>) newValue) {
                                     ((CheckComboBox) node).getCheckModel().check(genre);
                                 }
                             }
                         } else if (property.equals("theme")) {
+                            ((CheckComboBox) node).getCheckModel().clearChecks();
                             if (node instanceof CheckComboBox) {
                                 for (GameTheme theme : (ArrayList<GameTheme>) newValue) {
                                     ((CheckComboBox) node).getCheckModel().check(theme);
@@ -824,18 +816,21 @@ public class GameEditScene extends BaseScene {
                             }
                         } else if (property.equals("developer")) {
                             if (node instanceof CheckComboBox) {
+                                ((CheckComboBox) node).getCheckModel().clearChecks();
                                 for (Company dev : (ArrayList<Company>) newValue) {
                                     ((CheckComboBox) node).getCheckModel().check(dev);
                                 }
                             }
                         } else if (property.equals("publisher")) {
                             if (node instanceof CheckComboBox) {
+                                ((CheckComboBox) node).getCheckModel().clearChecks();
                                 for (Company pub : (ArrayList<Company>) newValue) {
                                     ((CheckComboBox) node).getCheckModel().check(pub);
                                 }
                             }
                         } else if (property.equals("serie")) {
                             if (node instanceof ComboBox) {
+                                ((ComboBox) node).getSelectionModel().clearSelection();
                                 ((ComboBox<Serie>) node).getSelectionModel().select((Serie) newValue);
                             }
                         } else if (newValue instanceof LocalDateTime) {

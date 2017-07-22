@@ -277,7 +277,7 @@ public class OldGameEntry {
             String[] devs = developer.split(",\\s");
             for (String s : devs) {
                 Company dev = new Company(s);
-                int devId = dev.insertInDB();
+                int devId = dev.insertInDB(false);
 
                 if (devId != -1) {
                     devSQLJoiner.add("(" + sqlId + "," + devId + ")");
@@ -291,7 +291,7 @@ public class OldGameEntry {
             String[] pubs = publisher.split(",\\s");
             for (String s : pubs) {
                 Company pub = new Company(s);
-                int pubId = pub.insertInDB();
+                int pubId = pub.insertInDB(false);
 
                 if (pubId != -1) {
                     pubSQLJoiner.add("(" + sqlId + "," + pubId + ")");
