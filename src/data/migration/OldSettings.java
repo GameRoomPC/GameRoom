@@ -3,7 +3,6 @@ package data.migration;
 import data.game.entry.Platform;
 import data.game.scraper.SteamPreEntry;
 import data.io.DataBase;
-import system.application.settings.PredefinedSetting;
 import ui.Main;
 
 import java.io.File;
@@ -13,12 +12,9 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.UUID;
 
-import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.FILES_MAP;
 
 /**
@@ -52,7 +48,7 @@ public class OldSettings {
                             Connection connection = DataBase.getUserConnection();
                             PreparedStatement statement = connection.prepareStatement("INSERT OR REPLACE INTO GameFolder (path,platform_id) VALUES (?,?)");
                             statement.setString(1, value.toString().replace("\"",""));
-                            statement.setInt(2, Platform.NONE_ID);
+                            statement.setInt(2, Platform.PC_ID);
                             statement.execute();
                             statement.close();
                         } catch (SQLException e) {

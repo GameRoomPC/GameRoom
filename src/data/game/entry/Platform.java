@@ -22,14 +22,14 @@ public class Platform {
 
     private final static HashMap<Integer, Platform> ID_MAP = new HashMap<>();
 
-    public final static int DEFAULT_ID = -1;
-    public final static int NONE_ID = -2;
+    public final static int PC_ID = -2;
 
-    public final static Platform NONE = new Platform(NONE_ID, NONE_ID, "default", true, "exe,lnk");
+    public final static Platform PC = new Platform(PC_ID, 6, "pc", true, "exe,lnk");
 
 
-    private int igdb_id = DEFAULT_ID;
-    private int id = DEFAULT_ID;
+    private final static int NONE_ID = -1;
+    private int igdb_id = NONE_ID;
+    private int id = NONE_ID;
 
     private String nameKey;
     private boolean isPC;
@@ -49,7 +49,7 @@ public class Platform {
         ROMFolder = set.getString("path");
     }
 
-    //should only be used to build the NONE platform
+    //should only be used to build the PC platform
     private Platform(int id, int igdb_id, String nameKey, boolean isPC, String supportedExtensions) {
         if (nameKey == null || nameKey.isEmpty()) {
             throw new IllegalArgumentException("Platform's nameKey was either null or empty : \"" + nameKey + "\"");
@@ -141,7 +141,7 @@ public class Platform {
     public static Collection<Platform> getEmulablePlatforms() {
         ArrayList<Platform> items = new ArrayList<>(Platform.values());
         items.removeIf(Platform::isPC);
-        items.removeIf(platform -> platform.equals(Platform.NONE));
+        items.removeIf(platform -> platform.equals(Platform.PC));
         items.removeIf(platform -> Emulator.getPossibleEmulators(platform).isEmpty());
         items.sort(Comparator.comparing(Platform::getName));
         return items;
@@ -150,7 +150,7 @@ public class Platform {
     public static Collection<Platform> getNonPCPlatforms() {
         ArrayList<Platform> items = new ArrayList<>(Platform.values());
         items.removeIf(Platform::isPC);
-        items.removeIf(platform -> platform.equals(Platform.NONE));
+        items.removeIf(platform -> platform.equals(Platform.PC));
         items.sort(Comparator.comparing(Platform::getName));
         return items;
     }

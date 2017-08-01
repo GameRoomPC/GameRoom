@@ -461,7 +461,7 @@ public class GameEditScene extends BaseScene {
         });
 
         /**************************PLATFORM*********************************************/
-        if (!entry.getPlatform().isPC() || entry.getPlatform().equals(data.game.entry.Platform.NONE) && SUPPORTER_MODE) {
+        if (!entry.getPlatform().isPC() || entry.getPlatform().equals(data.game.entry.Platform.PC) && SUPPORTER_MODE) {
             try {
                 data.game.entry.Platform.initWithDb();
             } catch (SQLException e) {
@@ -469,7 +469,7 @@ public class GameEditScene extends BaseScene {
             }
 
             final ObservableList<data.game.entry.Platform> platforms = FXCollections.observableArrayList(data.game.entry.Platform.getEmulablePlatforms());
-            platforms.add(0, data.game.entry.Platform.NONE);
+            platforms.add(0, data.game.entry.Platform.PC);
 
             // Create the CheckComboBox with the data
             final ComboBox<data.game.entry.Platform> platformComboBox = new ComboBox<data.game.entry.Platform>(platforms);

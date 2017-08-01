@@ -7,12 +7,6 @@ import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.GeneralToast;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import static ui.Main.MAIN_SCENE;
 
 /**
@@ -74,7 +68,7 @@ public abstract class GameScanner {
 
     public Platform getPlatform(){
         if(profile == null){
-            return Platform.NONE;
+            return Platform.PC;
         }
         int platformID = profile.getPlatformId();
         return Platform.getFromId(platformID);

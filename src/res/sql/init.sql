@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS PlaySession (
 
 CREATE TABLE IF NOT EXISTS Platform (
 	id integer PRIMARY KEY,
-	igdb_id integer unique,
+	igdb_id integer default -1,
 	name_key text,
 	default_supported_extensions text,
 	supported_extensions text,
@@ -197,27 +197,27 @@ INSERT OR REPLACE INTO GameGenre(igdb_id,name_key) VALUES
 	(32,"indie"),
 	(33,"arcade");
 	
-INSERT OR REPLACE INTO Platform(id,name_key,is_pc,default_supported_extensions) VALUES
-	(-2,"default",1,"exe,lnk"),
-	(1,"steam",1,"exe,jar,lnk"),
-	(2,"steam_online",1,"exe,lnk"),
-	(3,"origin",1,"exe,lnk"),
-	(4,"uplay",1,"exe,lnk"),
-	(5,"battlenet",1,"exe,lnk"),
-	(6,"gog",1,"exe,lnk"),
-	(7,"wii",0,"ciso,iso,wbfs"),
-	(8,"gamecube",0,"iso"),
-	(9,"n64",0,"n64"),
-	(10,"ps2",0,"elf,gz,iso"),
-	(11,"ps3",0,"iso,pkg,bin,elf"),
-	(12,"wiiu",0,"iso,rpx,wud,wux"),
-	(13,"gb",0,"gb"),
-	(14,"gbc",0,"gc"),
-	(15,"gba",0,"gba"),
-	(16,"nes",0,"nes"),
-	(17,"snes",0,"sfc,smc"),
-	(18,"psx",0,"bin,iso,img,cue,ccd,mds,pbp,ecm"),
-	(19,"psp",0,"iso,cso,pbp,elf,prx");
+INSERT OR REPLACE INTO Platform(id,name_key,is_pc,default_supported_extensions,igdb_id) VALUES
+	(-2,"pc",1,"exe,lnk",-1,6),
+	(1,"steam",1,"exe,jar,lnk",-1),
+	(2,"steam_online",1,"exe,lnk",-1),
+	(3,"origin",1,"exe,lnk",-1),
+	(4,"uplay",1,"exe,lnk",-1),
+	(5,"battlenet",1,"exe,lnk",-1),
+	(6,"gog",1,"exe,lnk",-1),
+	(7,"wii",0,"ciso,iso,wbfs",5),
+	(8,"gamecube",0,"iso",21),
+	(9,"n64",0,"n64",4),
+	(10,"ps2",0,"elf,gz,iso",8),
+	(11,"ps3",0,"iso,pkg,bin,elf",9),
+	(12,"wiiu",0,"iso,rpx,wud,wux",41),
+	(13,"gb",0,"gb",33),
+	(14,"gbc",0,"gc",22),
+	(15,"gba",0,"gba",24),
+	(16,"nes",0,"nes",18),
+	(17,"snes",0,"sfc,smc",19),
+	(18,"psx",0,"bin,iso,img,cue,ccd,mds,pbp,ecm",7),
+	(19,"psp",0,"iso,cso,pbp,elf,prx",38);
 	
 INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
 	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %a %p"),

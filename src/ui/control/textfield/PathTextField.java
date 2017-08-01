@@ -4,7 +4,6 @@ import data.game.entry.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
@@ -36,7 +35,7 @@ public class PathTextField extends StackPane {
     private String[] extensions;
 
     public PathTextField(String initialPath, Window ownerWindow, int fileChooserCode, String fileChooserTitle) {
-        this(initialPath,ownerWindow,fileChooserCode,fileChooserTitle, Platform.NONE.getSupportedExtensions());
+        this(initialPath,ownerWindow,fileChooserCode,fileChooserTitle, Platform.PC.getSupportedExtensions());
     }
 
     public PathTextField(String initialPath, Window ownerWindow, int fileChooserCode, String fileChooserTitle, String[] extensions) {

@@ -61,7 +61,7 @@ public class FolderGameScanner extends GameScanner {
     }
 
     public void scanAndAddGames() {
-        GameFolderManager.getDefaultFolders().forEach(gamesFolder -> {
+        GameFolderManager.getPCFolders().forEach(gamesFolder -> {
             if (!gamesFolder.exists() || !gamesFolder.isDirectory()) {
                 return;
             }
@@ -74,7 +74,7 @@ public class FolderGameScanner extends GameScanner {
                     File file = FileUtils.tryResolveLnk(f);
                     GameEntry potentialEntry = new GameEntry(cleanNameForDisplay(
                             f.getName(),
-                            Platform.NONE.getSupportedExtensions()
+                            Platform.PC.getSupportedExtensions()
                     )); //f because we prefer to use the .lnk name if its the case !
                     potentialEntry.setPath(file.getAbsolutePath());
                     if (checkValidToAdd(potentialEntry)) {
@@ -163,7 +163,7 @@ public class FolderGameScanner extends GameScanner {
     }
 
     public static boolean isPotentiallyAGame(File file) {
-        return isPotentiallyAGame(file, Platform.NONE.getSupportedExtensions());
+        return isPotentiallyAGame(file, Platform.PC.getSupportedExtensions());
     }
 
     @Override
@@ -300,6 +300,6 @@ public class FolderGameScanner extends GameScanner {
     }
 
     public static boolean fileHasValidExtension(File file) {
-        return fileHasValidExtension(file, Platform.NONE.getSupportedExtensions());
+        return fileHasValidExtension(file, Platform.PC.getSupportedExtensions());
     }
 }
