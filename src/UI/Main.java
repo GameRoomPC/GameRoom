@@ -164,11 +164,12 @@ public class Main {
     }
 
     public static void open(Stage stage) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
+        Platform.runLater(() -> {
+            if (!MAIN_SCENE.getParentStage().isShowing()) {
+                stage.setIconified(false);
                 stage.show();
             }
+            stage.toFront();
         });
     }
 

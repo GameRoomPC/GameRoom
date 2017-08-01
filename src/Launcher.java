@@ -102,14 +102,7 @@ public class Launcher extends Application {
         }
 
         if (!DEV_MODE) {
-            DDE.addActivationListener(s -> {
-                if (!MAIN_SCENE.getParentStage().isShowing()) {
-                    open(MAIN_SCENE.getParentStage());
-                }
-                Platform.runLater(() -> {
-                    MAIN_SCENE.getParentStage().toFront();
-                });
-            });
+            DDE.addActivationListener(s -> open(MAIN_SCENE.getParentStage()));
             DDE.ready();
         }
 
@@ -230,13 +223,16 @@ public class Launcher extends Application {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            primaryStage.hide();
+            primaryStage.setIconified(true);
             primaryStage.setOpacity(1);
         }
         Platform.runLater(() -> {
             primaryStage.setWidth(primaryStage.getWidth());
             primaryStage.setHeight(primaryStage.getHeight());
             primaryStage.setMaximized(settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED));
+            if (!(START_MINIMIZED && appStart)) {
+                primaryStage.toFront();
+            }
         });
     }
 
@@ -422,13 +418,7 @@ public class Launcher extends Application {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    if (!MAIN_SCENE.getParentStage().isShowing()) {
-                        open(MAIN_SCENE.getParentStage());
-                    } else {
-                        Platform.runLater(() -> {
-                            MAIN_SCENE.getParentStage().toFront();
-                        });
-                    }
+                    open(MAIN_SCENE.getParentStage());
                 }
             }
 
@@ -455,20 +445,17 @@ public class Launcher extends Application {
         TRAY_ICON.setImageAutoSize(true);
         Platform.setImplicitExit(DEV_MODE && false);
 
-        MAIN_SCENE.getParentStage().setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                if (event.getEventType().equals(WindowEvent.WINDOW_CLOSE_REQUEST)) {
-                    if (!DEV_MODE) {
-                        MAIN_SCENE.getParentStage().hide();
-                        if (trayMessageCount < 2 && !settings().getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING) && !settings().getBoolean(PredefinedSetting.NO_NOTIFICATIONS)) {
-                            TRAY_ICON.displayMessage("GameRoom"
-                                    , Main.getString("tray_icon_still_running"), TrayIcon.MessageType.NONE);
-                            trayMessageCount++;
-                        } else {
-                            if (!settings().getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING)) {
-                                settings().setSettingValue(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING, true);
-                            }
+        MAIN_SCENE.getParentStage().setOnCloseRequest(event -> {
+            if (event.getEventType().equals(WindowEvent.WINDOW_CLOSE_REQUEST)) {
+                if (!DEV_MODE) {
+                    MAIN_SCENE.getParentStage().setIconified(true);
+                    if (trayMessageCount < 2 && !settings().getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING) && !settings().getBoolean(PredefinedSetting.NO_NOTIFICATIONS)) {
+                        TRAY_ICON.displayMessage("GameRoom"
+                                , Main.getString("tray_icon_still_running"), TrayIcon.MessageType.NONE);
+                        trayMessageCount++;
+                    } else {
+                        if (!settings().getBoolean(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING)) {
+                            settings().setSettingValue(PredefinedSetting.NO_MORE_ICON_TRAY_WARNING, true);
                         }
                     }
                 }
@@ -478,27 +465,14 @@ public class Launcher extends Application {
 
         // Create a pop-up menu components
         MenuItem openItem = new MenuItem(Main.getString("open"));
-        openItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!MAIN_SCENE.getParentStage().isShowing()) {
-                    open(MAIN_SCENE.getParentStage());
-                } else {
-                    Platform.runLater(() -> {
-                        MAIN_SCENE.getParentStage().toFront();
-                    });
-                }
-            }
-        });
+        openItem.addActionListener(e -> open(MAIN_SCENE.getParentStage()));
+
         MenuItem gameRoomFolderItem = new MenuItem(Main.getString("gameroom_folder"));
-        gameRoomFolderItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    Desktop.getDesktop().open(new File(Launcher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile());
-                } catch (IOException | URISyntaxException e1) {
-                    e1.printStackTrace();
-                }
+        gameRoomFolderItem.addActionListener(e -> {
+            try {
+                Desktop.getDesktop().open(new File(Launcher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile());
+            } catch (IOException | URISyntaxException e1) {
+                e1.printStackTrace();
             }
         });
 
@@ -518,24 +492,16 @@ public class Launcher extends Application {
         }
 
         MenuItem settingsItem = new MenuItem(Main.getString("Settings"));
-        settingsItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                MAIN_SCENE.fadeTransitionTo(new SettingsScene(new StackPane(), MAIN_SCENE.getParentStage(), MAIN_SCENE), MAIN_SCENE.getParentStage());
-                open(MAIN_SCENE.getParentStage());
-            }
+        settingsItem.addActionListener(e -> {
+            MAIN_SCENE.fadeTransitionTo(new SettingsScene(new StackPane(), MAIN_SCENE.getParentStage(), MAIN_SCENE), MAIN_SCENE.getParentStage());
+            open(MAIN_SCENE.getParentStage());
         });
         //CheckboxMenuItem cb1 = new CheckboxMenuItem("Set auto size");
         //CheckboxMenuItem cb2 = new CheckboxMenuItem("Set tooltip");
         START_TRAY_MENU.setLabel(Main.getString("start"));
         MenuItem exitItem = new MenuItem(Main.getString("exit"));
 
-        exitItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                forceStop(MAIN_SCENE.getParentStage(), "tray icon exitItem called");
-            }
-        });
+        exitItem.addActionListener(e -> forceStop(MAIN_SCENE.getParentStage(), "tray icon exitItem called"));
 
         //Add components to pop-up menu
         popup.add(openItem);
@@ -543,7 +509,7 @@ public class Launcher extends Application {
         popup.addSeparator();
         popup.add(gameRoomFolderItem);
 
-        if(gamesFoldersMenu.getItemCount() > 0){
+        if (gamesFoldersMenu.getItemCount() > 0) {
             popup.add(gamesFoldersMenu);
         }
         popup.add(settingsItem);
