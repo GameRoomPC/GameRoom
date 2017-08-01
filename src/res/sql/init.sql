@@ -198,7 +198,7 @@ INSERT OR REPLACE INTO GameGenre(igdb_id,name_key) VALUES
 	(33,"arcade");
 	
 INSERT OR REPLACE INTO Platform(id,name_key,is_pc,default_supported_extensions,igdb_id) VALUES
-	(-2,"pc",1,"exe,lnk",-1,6),
+	(-2,"pc",1,"exe,lnk",6),
 	(1,"steam",1,"exe,jar,lnk",-1),
 	(2,"steam_online",1,"exe,lnk",-1),
 	(3,"origin",1,"exe,lnk",-1),
