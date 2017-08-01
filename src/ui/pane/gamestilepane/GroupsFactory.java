@@ -273,7 +273,7 @@ public class GroupsFactory {
                         return false;
                     }
                 }
-                return entry.getPlatform().equals(Platform.PC);
+                return entry.getPlatform().isPC();
             }
         };
         othersTilePane.setTitle(Main.getString("others"));
@@ -292,7 +292,7 @@ public class GroupsFactory {
         othersTilePane.setPrefTileHeight(originalTilePane.getTilePane().getPrefTileHeight());
         othersTilePane.setPrefTileWidth(originalTilePane.getTilePane().getPrefTileWidth());
         for(Platform platform : Platform.values()){
-            if(!platform.equals(Platform.PC)) {
+            if(!platform.isPC()) {
                 GroupRowTilePane tilePane = new GroupRowTilePane(mainScene) {
                     @Override
                     public boolean fillsRequirement(GameEntry entry) {
@@ -300,7 +300,7 @@ public class GroupsFactory {
                     }
                 };
                 tilePane.setTitle(platform.getName());
-                tilePane.getIconButton().setImageViewId(platform.getIconCSSId());
+                tilePane.getIconButton().setImageViewStyle(platform.getCSSIconStyle());
                 tilePane.getIconButton().setManaged(true);
 
                 for (GameButton button : originalTilePane.getGameButtons()) {

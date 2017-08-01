@@ -192,7 +192,7 @@ public abstract class BaseScene extends Scene {
         return titleLabel;
     }
 
-    StackPane createTop(EventHandler<ActionEvent> backButtonEventHandler, String title, String iconCSSId) {
+    StackPane createTop(EventHandler<ActionEvent> backButtonEventHandler, String title, String cssIconStyle) {
         StackPane topPane = new StackPane();
         topPane.getStyleClass().add("header");
         backButton = createBackButton(backButtonEventHandler);
@@ -201,7 +201,7 @@ public abstract class BaseScene extends Scene {
         titleLabel.getStyleClass().add("title-label");
 
         Node titleNode = null;
-        if (iconCSSId != null) {
+        if (cssIconStyle != null) {
             ImageView iconView = new ImageView();
             double width = 42 * Main.SCREEN_WIDTH / 1920 * settings().getUIScale().getScale();
             double height = 42 * Main.SCREEN_HEIGHT / 1080 * settings().getUIScale().getScale();
@@ -209,7 +209,7 @@ public abstract class BaseScene extends Scene {
             iconView.setPreserveRatio(true);
             iconView.setFitWidth(width);
             iconView.setFitHeight(height);
-            iconView.setId(iconCSSId);
+            iconView.setStyle(cssIconStyle);
 
             HBox box = new HBox();
             box.setSpacing(15 * Main.SCREEN_WIDTH / 1920);
@@ -244,10 +244,10 @@ public abstract class BaseScene extends Scene {
         }, title,null);
     }
 
-    StackPane createTop(String title,String iconCSSId) {
+    StackPane createTop(String title,String cssIconStyle) {
         return createTop(event -> {
             fadeTransitionTo(previousScene, parentStage);
-        }, title,iconCSSId);
+        }, title,cssIconStyle);
     }
 
     void disableBackButton() {

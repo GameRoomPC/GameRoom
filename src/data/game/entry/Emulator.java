@@ -201,7 +201,7 @@ public class Emulator {
     }
 
     public String getArgSchema(Platform platform) {
-        if (platform == null || platform.isPC()) {
+        if (platform == null || platform.isPCLauncher()) {
             return defaultArgSchema;
         }
 

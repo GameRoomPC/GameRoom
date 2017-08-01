@@ -67,7 +67,7 @@ public class Monitor {
                 stopMonitor = true;
             }
         });
-        if (getGameEntry().getPlatform().isPC()) {
+        if (getGameEntry().getPlatform().isPCLauncher()) {
             processName = getGameEntry().getProcessName();
         } else {
             Emulator e = Emulator.getChosenEmulator(getGameEntry().getPlatform());

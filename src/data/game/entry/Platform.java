@@ -1,6 +1,7 @@
 package data.game.entry;
 
 import data.io.DataBase;
+import javafx.scene.Node;
 import ui.Main;
 
 import java.sql.*;
@@ -32,7 +33,7 @@ public class Platform {
     private int id = NONE_ID;
 
     private String nameKey;
-    private boolean isPC;
+    private boolean isPCLauncher;
     private String defaultSupportedExtensions;
     private String supportedExtensions;
     private String ROMFolder = "";
@@ -40,7 +41,7 @@ public class Platform {
     private Platform(ResultSet set) throws SQLException {
         id = set.getInt("id");
         nameKey = set.getString("name_key");
-        isPC = set.getBoolean("is_pc");
+        isPCLauncher = set.getBoolean("is_pc");
         defaultSupportedExtensions = set.getString("default_supported_extensions");
         supportedExtensions = set.getString("supported_extensions");
         if (supportedExtensions == null) {
@@ -57,7 +58,7 @@ public class Platform {
         this.igdb_id = igdb_id;
         this.nameKey = nameKey;
         this.id = id;
-        this.isPC = isPC;
+        this.isPCLauncher = isPC;
         this.supportedExtensions = supportedExtensions;
     }
 
@@ -126,6 +127,21 @@ public class Platform {
         return s.equals(Main.NO_STRING) ? nameKey : s;
     }
 
+    public void setCSSIcon(Node node){
+        if(node == null){
+            return;
+        }
+        node.setStyle(getCSSIconStyle());
+    }
+
+    public String getCSSIconStyle(){
+        if (id == STEAM_ONLINE_ID) {
+            return "-fx-image: url(\"icons/launcher/steam.png\")";
+        }else{
+            return "-fx-image: url(\"icons/launcher/"+nameKey+".png\")";
+        }
+    }
+
     public String getIconCSSId() {
         if (id == STEAM_ONLINE_ID) {
             //TODO implement a cleaner way to have icons for this
@@ -140,8 +156,8 @@ public class Platform {
 
     public static Collection<Platform> getEmulablePlatforms() {
         ArrayList<Platform> items = new ArrayList<>(Platform.values());
+        items.removeIf(Platform::isPCLauncher);
         items.removeIf(Platform::isPC);
-        items.removeIf(platform -> platform.equals(Platform.PC));
         items.removeIf(platform -> Emulator.getPossibleEmulators(platform).isEmpty());
         items.sort(Comparator.comparing(Platform::getName));
         return items;
@@ -149,8 +165,8 @@ public class Platform {
 
     public static Collection<Platform> getNonPCPlatforms() {
         ArrayList<Platform> items = new ArrayList<>(Platform.values());
+        items.removeIf(Platform::isPCLauncher);
         items.removeIf(Platform::isPC);
-        items.removeIf(platform -> platform.equals(Platform.PC));
         items.sort(Comparator.comparing(Platform::getName));
         return items;
     }
@@ -164,8 +180,8 @@ public class Platform {
         return getName();
     }
 
-    public boolean isPC() {
-        return isPC;
+    public boolean isPCLauncher() {
+        return isPCLauncher;
     }
 
     public void setChosenEmulator(Emulator chosenEmulator) {
@@ -293,5 +309,9 @@ public class Platform {
 
     public String getROMFolder() {
         return ROMFolder;
+    }
+
+    public boolean isPC(){
+        return this.equals(PC);
     }
 }
