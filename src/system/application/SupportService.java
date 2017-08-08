@@ -218,7 +218,7 @@ public class SupportService {
             }
         } catch (Exception e) {
             //Here we catch any uncatched exception that could have occured
-            if(DEV_MODE){
+            if (DEV_MODE) {
                 e.printStackTrace();
             }
         }
@@ -229,15 +229,17 @@ public class SupportService {
      *
      * @return a comma separated list of GPUs
      */
-    private static String getGPUNames() {
+    public static String getGPUNames() {
         Terminal t = new Terminal();
         StringJoiner joiner = new StringJoiner(",");
 
         try {
             String[] output = t.execute("wmic", "path", "win32_VideoController", "get", "name");
-            for (String s : output) {
-                if (s != null && !s.startsWith("Name")) {
-                    joiner.add(s.trim());
+            for (int i = 0; i < output.length; i++) {
+                if (i > 1) {
+                    if (output[i] != null && !output[i].isEmpty() && !output[i].startsWith("Name")) {
+                        joiner.add(output[i].trim());
+                    }
                 }
             }
         } catch (IOException e) {
@@ -252,15 +254,17 @@ public class SupportService {
      *
      * @return a comma separated list of CPUs
      */
-    private static String getCPUNames() {
+    public static String getCPUNames() {
         Terminal t = new Terminal();
         StringJoiner joiner = new StringJoiner(",");
 
         try {
             String[] output = t.execute("wmic", "cpu", "get", "name");
-            for (String s : output) {
-                if (s != null && !s.startsWith("Name")) {
-                    joiner.add(s.trim());
+            for (int i = 0; i < output.length; i++) {
+                if (i > 1) {
+                    if (output[i] != null && !output[i].isEmpty() && !output[i].startsWith("Name")) {
+                        joiner.add(output[i].trim());
+                    }
                 }
             }
         } catch (IOException e) {
@@ -273,7 +277,7 @@ public class SupportService {
     /**
      * @return a comma separated list of infos about the OS
      */
-    private static String getOSInfo() {
+    public static String getOSInfo() {
         return System.getProperty("os.name") + ","
                 + System.getProperty("os.version") + ","
                 + System.getProperty("os.arch");
@@ -282,7 +286,7 @@ public class SupportService {
     /**
      * @return the total playtime on every games
      */
-    private static long getTotalPlaytime() {
+    public static long getTotalPlaytime() {
         final long[] totalPlaytime = {0};
         GameEntryUtils.ENTRIES_LIST.forEach(gameEntry -> totalPlaytime[0] += gameEntry.getPlayTimeSeconds());
         return totalPlaytime[0];
@@ -291,24 +295,36 @@ public class SupportService {
     /**
      * @return the RAM amount of the memorychip of the device, -1 if there was an error
      */
-    private static long getRAMAmount() {
+    public static long getRAMAmount() {
         Terminal t = new Terminal();
         try {
             String[] output = t.execute("wmic", "memorychip", "get", "capacity");
-            for (String s : output) {
-                if (s != null && !s.startsWith("Name")) {
+
+            for (int i = 0; i < output.length; i++) {
+                if (i > 1) {
                     try {
-                        return Long.parseLong(s.trim()) / (1024 * 1024);
+                        return Long.parseLong(output[i].trim()) / (1024 * 1024);
 
                     } catch (NumberFormatException e) {
-                        return -1;
+
                     }
                 }
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         return -1;
+    }
+
+    public static void printSystemInfo() {
+        if (LOGGER != null) {
+            LOGGER.info("System info :");
+            LOGGER.info("\tOS : " + getOSInfo());
+            LOGGER.info("\tGPU : " + getGPUNames());
+            LOGGER.info("\tCPU : " + getCPUNames());
+            LOGGER.info("\tRAM amount : " + getRAMAmount() + "Mb");
+        }
     }
 }
