@@ -45,7 +45,7 @@ public class Monitor {
 
     private volatile boolean stopMonitor = false;
 
-    private static long timer = 0;
+    private long timer = 0;
 
     private ArrayList<StandbyInterval> standbyIntervals = new ArrayList<>();
 
