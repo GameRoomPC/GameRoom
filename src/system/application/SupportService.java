@@ -12,6 +12,7 @@ import data.http.key.KeyChecker;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import org.json.JSONException;
 import system.application.settings.PredefinedSetting;
 import system.os.Terminal;
 import ui.Main;
@@ -43,7 +44,7 @@ public class SupportService {
     private final static long MIN_INSTALL_PING_TIME = TimeUnit.DAYS.toMillis(3);
     private final static long PING_FREQ = TimeUnit.DAYS.toMillis(1);
 
-    private final static String GAMEROOM_API_URL = "http://62.210.219.110/";
+    private final static String GAMEROOM_API_URL = "http://62.210.219.110/api/v1";
 
     private Thread thread;
     private static volatile boolean DISPLAYING_SUPPORT_ALERT = false;
@@ -51,6 +52,9 @@ public class SupportService {
     private SupportService() {
         thread = new Thread(() -> {
             while (Main.KEEP_THREADS_RUNNING) {
+                if (DEV_MODE) {
+                    //LOGGER.info("SupportService Running");
+                }
                 long start = System.currentTimeMillis();
 
                 checkAndDisplaySupportAlert();
@@ -199,14 +203,15 @@ public class SupportService {
             long sinceInstall = System.currentTimeMillis() - installDate.getTime();
             long lastPing = System.currentTimeMillis() - lastPingDate.getTime();
 
-            if (sinceInstall >= MIN_INSTALL_PING_TIME && lastPing >= PING_FREQ) {
+            if (sinceInstall >= MIN_INSTALL_PING_TIME  && lastPing >= PING_FREQ) {
+                HttpResponse<JsonNode> response = null;
                 try {
                     if (settings().getBoolean(PredefinedSetting.ALLOW_COLLECT_SYSTEM_INFO)) {
-                        HttpResponse<JsonNode> response = Unirest.post(GAMEROOM_API_URL + "/Stats/DailyPing")
+                        response = Unirest.post(GAMEROOM_API_URL + "/Stats/DailyPing")
                                 .header("Accept", "application/json")
                                 .field("NbGames", GameEntryUtils.ENTRIES_LIST.size())
                                 .field("TotalPlaytime", getTotalPlaytime())
-                                .field("IsSupporter", KeyChecker.assumeSupporterMode())
+                                .field("IsSupporter", KeyChecker.assumeSupporterMode() ? 1 : 0)
                                 .field("ThemeUsed", settings().getTheme().getName())
                                 .field("GPUs", getGPUNames())
                                 .field("CPUs", getCPUNames())
@@ -214,13 +219,20 @@ public class SupportService {
                                 .field("OSInfo", getOSInfo())
                                 .asJson();
                     } else {
-                        HttpResponse<JsonNode> response = Unirest.post(GAMEROOM_API_URL + "/Stats/DailyPing")
+                        response = Unirest.post(GAMEROOM_API_URL + "/Stats/DailyPing")
                                 .header("Accept", "application/json")
                                 .asJson();
                     }
-                } catch (UnirestException e) {
+
+                    if (response != null && response.getBody().getObject().getJSONObject("status").getInt("code") == 200) {
+                        settings().setSettingValue(PredefinedSetting.LAST_PING_DATE, new Date());
+                    }
+                } catch (UnirestException | JSONException e) {
                     if (DEV_MODE) {
                         e.printStackTrace();
+                        if(response!=null){
+                            LOGGER.error(response.getStatusText());
+                        }
                     }
                 }
             }
