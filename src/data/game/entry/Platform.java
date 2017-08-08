@@ -2,6 +2,8 @@ package data.game.entry;
 
 import data.io.DataBase;
 import javafx.scene.Node;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.ImageView;
 import ui.Main;
 
 import java.sql.*;
@@ -40,6 +42,7 @@ public class Platform {
 
     private Platform(ResultSet set) throws SQLException {
         id = set.getInt("id");
+        igdb_id = set.getInt("igdb_id");
         nameKey = set.getString("name_key");
         isPCLauncher = set.getBoolean("is_pc");
         defaultSupportedExtensions = set.getString("default_supported_extensions");
@@ -98,6 +101,24 @@ public class Platform {
         return platform;
     }
 
+    public static Platform getFromIGDBId(int IGDBid) {
+        if (IGDBid == NONE_ID) {
+            return null;
+        }
+        try {
+            initWithDb();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        for (Platform p : values()) {
+            if (p.getIGDBId() == IGDBid) {
+                return p;
+            }
+        }
+        return null;
+    }
+
     public static void initWithDb() throws SQLException {
         Connection connection = DataBase.getUserConnection();
         Statement statement = connection.createStatement();
@@ -127,18 +148,21 @@ public class Platform {
         return s.equals(Main.NO_STRING) ? nameKey : s;
     }
 
-    public void setCSSIcon(Node node){
-        if(node == null){
+    public void setCSSIcon(Node node) {
+        if (node == null) {
             return;
         }
         node.setStyle(getCSSIconStyle());
+        Tooltip.install(node, new Tooltip(getName()));
+        node.setPickOnBounds(true);
+
     }
 
-    public String getCSSIconStyle(){
+    public String getCSSIconStyle() {
         if (id == STEAM_ONLINE_ID) {
             return "-fx-image: url(\"icons/launcher/steam.png\")";
-        }else{
-            return "-fx-image: url(\"icons/launcher/"+nameKey+".png\")";
+        } else {
+            return "-fx-image: url(\"icons/launcher/" + nameKey + ".png\")";
         }
     }
 
@@ -311,7 +335,7 @@ public class Platform {
         return ROMFolder;
     }
 
-    public boolean isPC(){
+    public boolean isPC() {
         return this.equals(PC);
     }
 }

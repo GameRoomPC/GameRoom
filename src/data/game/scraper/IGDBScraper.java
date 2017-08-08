@@ -5,6 +5,7 @@ import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.*;
+import org.apache.commons.lang.ArrayUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -118,6 +119,20 @@ public class IGDBScraper {
 
     public static String getCoverImageHash(JSONObject jsob) {
         return jsob.getJSONObject("cover").getString("cloudinary_id");
+    }
+
+    public static int[] getPlatformIds(JSONObject jsob){
+        try {
+            JSONArray releaseDates = jsob.getJSONArray("release_dates");
+            int[] platformIds = new int[releaseDates.length()];
+            for (int i = 0; i < releaseDates.length(); i++) {
+                int id = releaseDates.getJSONObject(i).optInt("platform",-1);
+                platformIds[i] = ArrayUtils.contains(platformIds, id) ? -1 : id;
+            }
+            return platformIds;
+        }catch (JSONException e){
+            return new int[]{};
+        }
     }
 
     public static String[] getScreenshotHash(int id, JSONArray gamesData) {
