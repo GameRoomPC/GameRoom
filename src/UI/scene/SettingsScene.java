@@ -527,6 +527,8 @@ public class SettingsScene extends BaseScene {
         /***********************ROW CONSTRAINTS****************************/
         /**********************NO CONTROL INIT BELOW THIS*******************/
 
+        initEmulatorTab();
+
         wrappingPane.setCenter(tabPane);
         BorderPane.setMargin(tabPane, new Insets(10 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920, 20 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920));
 
@@ -919,6 +921,14 @@ public class SettingsScene extends BaseScene {
         getRootStackPane().getChildren().add(wrappingPane);
     }
 
+    public void initEmulatorTab(){
+        Tab emulatorTab = new Tab(Main.getString("emulators"));
+        emulatorTab.setClosable(false);
+        emulatorTab.setTooltip(new Tooltip(emulatorTab.getText()));
+        emulatorTab.setContent(new EmulationDialog.EmulationPane(null));
+        tabPane.getTabs().add(emulatorTab);
+    }
+
     public static boolean checkAndDisplayRegisterDialog() {
         if (!SUPPORTER_MODE) {
             displayRegisterDialog(null, null);
@@ -962,9 +972,7 @@ public class SettingsScene extends BaseScene {
                         default:
                             break;
                     }
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                } catch (UnirestException e1) {
+                } catch (IOException | UnirestException e1) {
                     e1.printStackTrace();
                 }
             }

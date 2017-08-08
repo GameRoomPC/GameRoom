@@ -473,6 +473,30 @@ public class GameEditScene extends BaseScene {
 
             // Create the CheckComboBox with the data
             final ComboBox<data.game.entry.Platform> platformComboBox = new ComboBox<data.game.entry.Platform>(platforms);
+
+            platformComboBox.setCellFactory(param -> new ListCell<data.game.entry.Platform>() {
+                private ImageView imageView = new ImageView();
+                @Override
+                public void updateItem(data.game.entry.Platform platform, boolean empty) {
+                    super.updateItem(platform, empty);
+                    if (empty || platform == null) {
+                        imageView.setId("");
+                        setText(null);
+                        setGraphic(null);
+                    } else {
+                        double width = 25*Main.SCREEN_WIDTH/1920;
+                        double height =  25*Main.SCREEN_HEIGHT/1080;
+
+                        platform.setCSSIconDark(imageView);
+                        imageView.setFitWidth(width);
+                        imageView.setFitHeight(height);
+                        imageView.setSmooth(true);
+
+                        setText(platform.getName());
+                        setGraphic(imageView);
+                    }
+                }
+            });
             platformComboBox.setId("platform");
             if (entry.getPlatform() != null) {
                 platformComboBox.getSelectionModel().select(entry.getPlatform());

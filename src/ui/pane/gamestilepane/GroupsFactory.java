@@ -300,7 +300,7 @@ public class GroupsFactory {
                     }
                 };
                 tilePane.setTitle(platform.getName());
-                tilePane.getIconButton().setImageViewStyle(platform.getCSSIconStyle());
+                tilePane.getIconButton().setImageViewStyle(platform.getCSSIconStyle(false));
                 tilePane.getIconButton().setManaged(true);
 
                 for (GameButton button : originalTilePane.getGameButtons()) {

@@ -152,17 +152,27 @@ public class Platform {
         if (node == null) {
             return;
         }
-        node.setStyle(getCSSIconStyle());
+        node.setStyle(getCSSIconStyle(false));
         Tooltip.install(node, new Tooltip(getName()));
         node.setPickOnBounds(true);
 
     }
 
-    public String getCSSIconStyle() {
+    public void setCSSIconDark(Node node) {
+        if (node == null) {
+            return;
+        }
+        node.setStyle(getCSSIconStyle(true));
+        Tooltip.install(node, new Tooltip(getName()));
+        node.setPickOnBounds(true);
+
+    }
+
+    public String getCSSIconStyle(boolean dark) {
         if (id == STEAM_ONLINE_ID) {
-            return "-fx-image: url(\"icons/launcher/steam.png\")";
+            return "-fx-image: url(\"icons/launcher"+ (dark ? "-dark" : "") +"/steam.png\")";
         } else {
-            return "-fx-image: url(\"icons/launcher/" + nameKey + ".png\")";
+            return "-fx-image: url(\"icons/launcher"+ (dark ? "-dark" : "") +"/" + nameKey + ".png\")";
         }
     }
 

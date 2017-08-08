@@ -1,10 +1,14 @@
 package ui.control.specific;
 
 import javafx.beans.value.ChangeListener;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import ui.control.button.ImageButton;
+
+import static ui.Main.SCREEN_HEIGHT;
+import static ui.Main.SCREEN_WIDTH;
 
 /**
  * Created by LM on 10/02/2017.
@@ -29,6 +33,9 @@ public class FloatingSearchBar extends HBox {
         setAlignment(Pos.BASELINE_CENTER);
         setFocusTraversable(false);
         setPickOnBounds(false);
+
+        setPadding(new Insets(10*SCREEN_HEIGHT/1080,0*SCREEN_WIDTH/1920,10*SCREEN_HEIGHT/1080,0*SCREEN_WIDTH/1920));
+
     }
 
     public void clearSearchField() {

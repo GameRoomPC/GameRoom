@@ -5,8 +5,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import ui.control.button.ImageButton;
 
+import static ui.Main.SCREEN_HEIGHT;
 import static ui.Main.SCREEN_WIDTH;
 
 /**
@@ -19,20 +21,24 @@ public class SearchBar extends HBox {
     private double imgSize;
 
     public SearchBar(ChangeListener<String> changeListener){
-        imgSize = SCREEN_WIDTH / 30;
+        imgSize =20*SCREEN_WIDTH/1080;
         searchButton = new ImageButton("search-button", imgSize, imgSize);
         searchButton.setFocusTraversable(false);
+        //searchButton.setPadding(new Insets(20*SCREEN_HEIGHT/1080,20*SCREEN_WIDTH/1080,20*SCREEN_HEIGHT/1080,20*SCREEN_WIDTH/1080));
 
         searchField = new TextField();
         searchField.setFocusTraversable(false);
         searchField.textProperty().addListener(changeListener);
-        searchField.setPadding(new Insets(0,15*SCREEN_WIDTH/1080,0,0));
+        //searchField.setPadding(new Insets(10*SCREEN_HEIGHT/1080,10*SCREEN_WIDTH/1080,10*SCREEN_HEIGHT/1080,10*SCREEN_WIDTH/1080));
 
         getChildren().addAll(searchButton,searchField);
 
         setAlignment(Pos.BASELINE_CENTER);
         setFocusTraversable(false);
         setPickOnBounds(false);
+
+        setHgrow(searchField, Priority.ALWAYS);
+        setHgrow(searchButton,Priority.NEVER);
     }
 
     public void clearSearchField() {
