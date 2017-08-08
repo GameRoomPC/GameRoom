@@ -502,6 +502,7 @@ public class SettingsScene extends BaseScene {
             }
         });
         addPropertyLine(PredefinedSetting.DEBUG_MODE, true);
+        addPropertyLine(PredefinedSetting.ALLOW_COLLECT_SYSTEM_INFO, true);
 
         /***********************OPEN LOG FOLDER **************************************/
         if ((settings().getBoolean(PredefinedSetting.ADVANCED_MODE))) {

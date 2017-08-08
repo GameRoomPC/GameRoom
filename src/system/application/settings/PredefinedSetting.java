@@ -8,13 +8,11 @@ import javafx.beans.property.SimpleBooleanProperty;
 import system.application.OnLaunchAction;
 import system.os.PowerMode;
 import ui.Main;
-import ui.control.drawer.DrawerMenu;
 import ui.theme.Theme;
 import ui.theme.UIScale;
 
 import java.io.File;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
 
 import static system.application.settings.SettingValue.*;
@@ -82,6 +80,7 @@ public enum PredefinedSetting {
     ,SHOW_PC_ICON("showPCIcon", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     , INSTALL_DATE("installDate", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , LAST_PING_DATE("lastPingDate", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
+    ,ALLOW_COLLECT_SYSTEM_INFO("allowCollectSystemInfo", new SettingValue(true,Boolean.class,CATEGORY_GENERAL))
     ;
 
 

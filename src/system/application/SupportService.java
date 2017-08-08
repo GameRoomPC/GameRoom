@@ -201,19 +201,27 @@ public class SupportService {
 
             if (sinceInstall >= MIN_INSTALL_PING_TIME && lastPing >= PING_FREQ) {
                 try {
-                    HttpResponse<JsonNode> response = Unirest.post(GAMEROOM_API_URL + "/Stats/DailyPing")
-                            .header("Accept", "application/json")
-                            .field("NbGames", GameEntryUtils.ENTRIES_LIST.size())
-                            .field("TotalPlaytime", getTotalPlaytime())
-                            .field("IsSupporter", KeyChecker.assumeSupporterMode())
-                            .field("ThemeUsed", settings().getTheme().getName())
-                            .field("GPUs", getGPUNames())
-                            .field("CPUs", getCPUNames())
-                            .field("RAMAmount", getRAMAmount())
-                            .field("OSInfo", getOSInfo())
-                            .asJson();
+                    if (settings().getBoolean(PredefinedSetting.ALLOW_COLLECT_SYSTEM_INFO)) {
+                        HttpResponse<JsonNode> response = Unirest.post(GAMEROOM_API_URL + "/Stats/DailyPing")
+                                .header("Accept", "application/json")
+                                .field("NbGames", GameEntryUtils.ENTRIES_LIST.size())
+                                .field("TotalPlaytime", getTotalPlaytime())
+                                .field("IsSupporter", KeyChecker.assumeSupporterMode())
+                                .field("ThemeUsed", settings().getTheme().getName())
+                                .field("GPUs", getGPUNames())
+                                .field("CPUs", getCPUNames())
+                                .field("RAMAmount", getRAMAmount())
+                                .field("OSInfo", getOSInfo())
+                                .asJson();
+                    } else {
+                        HttpResponse<JsonNode> response = Unirest.post(GAMEROOM_API_URL + "/Stats/DailyPing")
+                                .header("Accept", "application/json")
+                                .asJson();
+                    }
                 } catch (UnirestException e) {
-                    e.printStackTrace();
+                    if (DEV_MODE) {
+                        e.printStackTrace();
+                    }
                 }
             }
         } catch (Exception e) {
