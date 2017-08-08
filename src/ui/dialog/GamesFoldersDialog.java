@@ -37,7 +37,6 @@ public class GamesFoldersDialog extends GameRoomDialog {
 
         listView = new ListView<File>();
         listView.setEditable(false);
-        listView.getStyleClass().add("dark-list-view");
         listView.setCellFactory(param -> new ListCell<File>() {
             @Override
             public void updateItem(File file, boolean empty) {
@@ -47,7 +46,6 @@ public class GamesFoldersDialog extends GameRoomDialog {
                 } else {
                     setText(file.getAbsolutePath());
                 }
-                getStyleClass().add("dark-list-cell");
             }
         });
         listView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {

@@ -104,8 +104,8 @@ public class EmulationDialog extends GameRoomDialog<ButtonType> {
                 }
             });
             listView.getSelectionModel().select(focusedPlatform == null ? 0 : items.indexOf(focusedPlatform));
-            listView.setPrefWidth(1.1 * settings().getWindowWidth() / 5.0);
-            listView.setPrefHeight(3 * settings().getWindowHeight() / 5.0);
+            listView.setPrefWidth(1.2 * settings().getWindowWidth() / 5.0);
+            listView.setPrefHeight(2.5 * settings().getWindowHeight() / 5.0);
 
             SearchBar bar = new SearchBar((observable, oldValue, newValue) -> {
                 listView.setItems(
