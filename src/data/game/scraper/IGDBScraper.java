@@ -21,11 +21,11 @@ import static ui.Main.LOGGER;
  * Created by LM on 03/07/2016.
  */
 public class IGDBScraper {
-    public static String IGDB_BASIC_KEY = "cff3a054ff3da380605461b3d7ce53b8";
-    public static String IGDB_PRO_KEY = "cff3a054ff3da380605461b3d7ce53b8";
+    public static String IGDB_BASIC_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
+    public static String IGDB_PRO_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
     public static String key = IGDB_BASIC_KEY;
 
-    private static final String API_URL = "https://api-2445582011268.apicast.io";
+    private static final String API_URL = "https://igdbcom-internet-game-database-v1.p.mashape.com";
 
     public static int REQUEST_COUNTER = 0;
 
