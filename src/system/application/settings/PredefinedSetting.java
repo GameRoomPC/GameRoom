@@ -80,6 +80,8 @@ public enum PredefinedSetting {
     ,SUPPORTER_KEY_PRICE("supporterKeyPrice", new SettingValue("8",String.class,CATEGORY_NONE))
     ,CHOSEN_CONTROLLER("chosenController", new SettingValue(null,String.class,CATEGORY_UI))
     ,SHOW_PC_ICON("showPCIcon", new SettingValue(false,Boolean.class,CATEGORY_NONE))
+    , INSTALL_DATE("installDate", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
+    , LAST_PING_DATE("lastPingDate", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     ;
 
 

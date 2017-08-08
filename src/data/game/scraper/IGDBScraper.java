@@ -25,7 +25,7 @@ public class IGDBScraper {
     public static String IGDB_PRO_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
     public static String key = IGDB_BASIC_KEY;
 
-    private static final String API_URL = "https://igdbcom-internet-game-database-v1.p.mashape.com";
+    public static final String API_URL = "https://igdbcom-internet-game-database-v1.p.mashape.com";
 
     public static int REQUEST_COUNTER = 0;
 
