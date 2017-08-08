@@ -66,12 +66,10 @@ public class Platform {
     }
 
     public static Platform getFromId(int id) {
-        if (ID_MAP.isEmpty()) {
-            try {
-                initWithDb();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        try {
+            initWithDb();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         Platform platform = ID_MAP.get(id);
@@ -170,9 +168,9 @@ public class Platform {
 
     public String getCSSIconStyle(boolean dark) {
         if (id == STEAM_ONLINE_ID) {
-            return "-fx-image: url(\""+ThemeUtils.getCSSResourcesRoot()+"icons/launcher"+ (dark ? "-dark" : "") +"/steam.png\")";
+            return "-fx-image: url(\"" + ThemeUtils.getCSSResourcesRoot() + "icons/launcher" + (dark ? "-dark" : "") + "/steam.png\")";
         } else {
-            return "-fx-image: url(\""+ThemeUtils.getCSSResourcesRoot()+"icons/launcher"+ (dark ? "-dark" : "") +"/" + nameKey + ".png\")";
+            return "-fx-image: url(\"" + ThemeUtils.getCSSResourcesRoot() + "icons/launcher" + (dark ? "-dark" : "") + "/" + nameKey + ".png\")";
         }
     }
 
