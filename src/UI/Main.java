@@ -96,7 +96,7 @@ public class Main {
         SupportService.printSystemInfo();
         LOGGER.info("Started app with screen true resolution : " + (int) TRUE_SCREEN_WIDTH + "x" + (int) TRUE_SCREEN_HEIGHT);
 
-        settings().load();
+        settings(); //ensures settings are loaded
         Emulator.loadEmulators();
 
         SUPPORTER_MODE = settings().getString(SUPPORTER_KEY) != null
