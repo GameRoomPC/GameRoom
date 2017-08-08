@@ -29,7 +29,7 @@ public class DataBase {
             connect();
             INSTANCE.readAndExecSQLInit();
         } catch (IOException e) {
-            GameRoomAlert.error(Main.getString("error_initializing_db") + " : " + e.getMessage());
+            GameRoomAlert.error(Main.getString("error_initializing_db")+" : " + e.getMessage());
         }
     }
 
@@ -69,7 +69,7 @@ public class DataBase {
 
         List<String> lines = new ArrayList<>();
         String line;
-        while ((line = r.readLine()) != null) {
+        while ((line=r.readLine()) != null) {
             lines.add(line);
         }
         r.close();
@@ -87,7 +87,6 @@ public class DataBase {
                     stmt.close();
                     sql = "";
                 }
-                LOGGER.debug(s);
             }
 
             conn.close();
@@ -113,7 +112,7 @@ public class DataBase {
     }
 
     public static Connection getUserConnection() throws SQLException {
-        if (USER_CONNECTION == null) {
+        if(USER_CONNECTION == null){
             connect();
         }
         return USER_CONNECTION;
