@@ -128,16 +128,18 @@ public abstract class GameButton extends BorderPane {
         initNotInstalled();
     }
 
-    private void setLauncherLogo() {
+    public void setLauncherLogo() {
         double width = 20 * Main.SCREEN_WIDTH / 1920;
         double height = 20 * Main.SCREEN_HEIGHT / 1080;
 
-        if(!entry.getPlatform().equals(Platform.PC)) {
+        if(!entry.getPlatform().isPC() || (entry.getPlatform().isPC() && settings().getBoolean(PredefinedSetting.SHOW_PC_ICON))) {
             titleLogoView.setSmooth(false);
             titleLogoView.setPreserveRatio(true);
             titleLogoView.setFitWidth(width);
             titleLogoView.setFitHeight(height);
             entry.getPlatform().setCSSIcon(titleLogoView);
+        }else{
+            titleLogoView.setStyle("");
         }
     }
 

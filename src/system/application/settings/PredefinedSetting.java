@@ -79,6 +79,7 @@ public enum PredefinedSetting {
     ,KEEP_COVER_RATIO("keepCoverRatio", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ,SUPPORTER_KEY_PRICE("supporterKeyPrice", new SettingValue("8",String.class,CATEGORY_NONE))
     ,CHOSEN_CONTROLLER("chosenController", new SettingValue(null,String.class,CATEGORY_UI))
+    ,SHOW_PC_ICON("showPCIcon", new SettingValue(false,Boolean.class,CATEGORY_NONE))
     ;
 
 

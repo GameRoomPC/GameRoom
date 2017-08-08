@@ -123,7 +123,8 @@ public class GameInfoScene extends BaseScene {
     }
 
     private void initTop() {
-        StackPane topStackPane = createTop(entry.getName(), entry.getPlatform().isPC() ? null : entry.getPlatform().getCSSIconStyle());
+        StackPane topStackPane = createTop(entry.getName(),
+                !entry.getPlatform().isPC() || (entry.getPlatform().isPC() && settings().getBoolean(PredefinedSetting.SHOW_PC_ICON))? entry.getPlatform().getCSSIconStyle() : null);
         if (!settings().getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
             try {
                 ytButton = new YoutubePlayerAndButton(entry, this);
