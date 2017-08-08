@@ -3,8 +3,8 @@ package data.game.entry;
 import data.io.DataBase;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.ImageView;
 import ui.Main;
+import ui.theme.ThemeUtils;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -170,9 +170,9 @@ public class Platform {
 
     public String getCSSIconStyle(boolean dark) {
         if (id == STEAM_ONLINE_ID) {
-            return "-fx-image: url(\"icons/launcher"+ (dark ? "-dark" : "") +"/steam.png\")";
+            return "-fx-image: url(\""+ThemeUtils.getCSSResourcesRoot()+"icons/launcher"+ (dark ? "-dark" : "") +"/steam.png\")";
         } else {
-            return "-fx-image: url(\"icons/launcher"+ (dark ? "-dark" : "") +"/" + nameKey + ".png\")";
+            return "-fx-image: url(\""+ThemeUtils.getCSSResourcesRoot()+"icons/launcher"+ (dark ? "-dark" : "") +"/" + nameKey + ".png\")";
         }
     }
 
