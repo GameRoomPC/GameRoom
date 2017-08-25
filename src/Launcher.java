@@ -73,7 +73,7 @@ public class Launcher extends Application {
         System.setProperty("data.dir", DATA_PATH);
         Main.LOGGER = LogManager.getLogger(Main.class);
 
-        System.setErr(new PrintStream(System.err) {
+        /*System.setErr(new PrintStream(System.err) {
             public void print(final String string) {
                 LOGGER.error(string);
                 if (DEV_MODE || settings().getBoolean(PredefinedSetting.DEBUG_MODE)) {
@@ -86,7 +86,7 @@ public class Launcher extends Application {
                     });
                 }
             }
-        });
+        });*/
         System.setOut(new PrintStream(System.out) {
             public void print(final String string) {
                 //System.out.print(string);
@@ -223,7 +223,7 @@ public class Launcher extends Application {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            primaryStage.setIconified(true);
+            primaryStage.hide();
             primaryStage.setOpacity(1);
         }
         Platform.runLater(() -> {
