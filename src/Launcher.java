@@ -8,6 +8,7 @@ import data.migration.OldSettings;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
@@ -280,14 +281,14 @@ public class Launcher extends Application {
             }
         });
         maximizedListener = (observable, oldValue, newValue) -> {
-            if (!settings().getBoolean(PredefinedSetting.FULL_SCREEN)) {
+            if (!settings().getBoolean(PredefinedSetting.FULL_SCREEN) && !primaryStage.isIconified()) {
                 settings().setSettingValue(PredefinedSetting.WINDOW_MAXIMIZED, newValue);
             }
         };
         primaryStage.maximizedProperty().addListener(maximizedListener);
 
         primaryStage.xProperty().addListener((observable, oldValue, newValue) -> {
-            if (!monitoringXPosition) {
+            if (!monitoringXPosition && !primaryStage.isIconified()) {
                 monitoringXPosition = true;
                 Main.getExecutorService().submit(() -> {
                     try {
@@ -301,7 +302,7 @@ public class Launcher extends Application {
         });
 
         primaryStage.yProperty().addListener((observable, oldValue, newValue) -> {
-            if (!monitoringYPosition) {
+            if (!monitoringYPosition && !primaryStage.isIconified()) {
                 monitoringYPosition = true;
                 Main.getExecutorService().submit(() -> {
                     try {
@@ -313,6 +314,16 @@ public class Launcher extends Application {
                 });
             }
         });
+
+        primaryStage.widthProperty().addListener((ChangeListener<Number>) (observableValue, oldSceneWidth, newSceneWidth) -> {
+            if( !primaryStage.isIconified()) {
+                settings().setSettingValue(PredefinedSetting.WINDOW_WIDTH, newSceneWidth.intValue());
+            }
+        });
+        primaryStage.heightProperty().addListener((ChangeListener<Number>) (observableValue, oldSceneHeight, newSceneHeight) -> {
+            if( !primaryStage.isIconified()) {
+                settings().setSettingValue(PredefinedSetting.WINDOW_HEIGHT, newSceneHeight.intValue());
+            }            });
     }
 
     private void setFullScreen(Stage primaryStage, boolean fullScreen) {

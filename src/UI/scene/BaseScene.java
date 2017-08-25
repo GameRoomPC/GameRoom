@@ -80,22 +80,6 @@ public abstract class BaseScene extends Scene {
         rootStackPane.getChildren().add(backgroundView);
         rootStackPane.getChildren().add(maskView);
         initAndAddWrappingPaneToRoot();
-
-        widthProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneWidth, Number newSceneWidth) {
-                //ui.Main.LOGGER.debug("New window's width : "+ newSceneWidth);
-                settings().setSettingValue(PredefinedSetting.WINDOW_WIDTH, newSceneWidth.intValue());
-            }
-        });
-        heightProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneHeight, Number newSceneHeight) {
-                //ui.Main.LOGGER.debug("New window's height : "+ newSceneHeight);
-                settings().setSettingValue(PredefinedSetting.WINDOW_HEIGHT, newSceneHeight.intValue());
-            }
-        });
-
     }
 
     public StackPane getRootStackPane() {
