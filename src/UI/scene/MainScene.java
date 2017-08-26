@@ -856,4 +856,13 @@ public class MainScene extends BaseScene {
         groupRowList.forEach(groupRowTilePane -> groupRowTilePane.getGameButtons().forEach(GameButton::showCover));
 
     }
+
+    public void reloadLauncherLogos() {
+        tilePane.getGameButtons().forEach(GameButton::setLauncherLogo);
+        toAddTilePane.getGameButtons().forEach(GameButton::setLauncherLogo);
+        recentlyAddedTilePane.getGameButtons().forEach(GameButton::setLauncherLogo);
+        lastPlayedTilePane.getGameButtons().forEach(GameButton::setLauncherLogo);
+        groupRowList.forEach(groupRowTilePane -> groupRowTilePane.getGameButtons().forEach(GameButton::setLauncherLogo));
+
+    }
 }

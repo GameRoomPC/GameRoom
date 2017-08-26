@@ -1,7 +1,10 @@
 package data.game.entry;
 
 import data.io.DataBase;
+import javafx.scene.Node;
+import javafx.scene.control.Tooltip;
 import ui.Main;
+import ui.theme.ThemeUtils;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -22,25 +25,26 @@ public class Platform {
 
     private final static HashMap<Integer, Platform> ID_MAP = new HashMap<>();
 
-    public final static int DEFAULT_ID = -1;
-    public final static int NONE_ID = -2;
+    public final static int PC_ID = -2;
 
-    public final static Platform NONE = new Platform(NONE_ID, NONE_ID, "default", true, "exe,lnk");
+    public final static Platform PC = new Platform(PC_ID, 6, "pc", true, "exe,lnk");
 
 
-    private int igdb_id = DEFAULT_ID;
-    private int id = DEFAULT_ID;
+    private final static int NONE_ID = -1;
+    private int igdb_id = NONE_ID;
+    private int id = NONE_ID;
 
     private String nameKey;
-    private boolean isPC;
+    private boolean isPCLauncher;
     private String defaultSupportedExtensions;
     private String supportedExtensions;
     private String ROMFolder = "";
 
     private Platform(ResultSet set) throws SQLException {
         id = set.getInt("id");
+        igdb_id = set.getInt("igdb_id");
         nameKey = set.getString("name_key");
-        isPC = set.getBoolean("is_pc");
+        isPCLauncher = set.getBoolean("is_pc");
         defaultSupportedExtensions = set.getString("default_supported_extensions");
         supportedExtensions = set.getString("supported_extensions");
         if (supportedExtensions == null) {
@@ -49,7 +53,7 @@ public class Platform {
         ROMFolder = set.getString("path");
     }
 
-    //should only be used to build the NONE platform
+    //should only be used to build the PC platform
     private Platform(int id, int igdb_id, String nameKey, boolean isPC, String supportedExtensions) {
         if (nameKey == null || nameKey.isEmpty()) {
             throw new IllegalArgumentException("Platform's nameKey was either null or empty : \"" + nameKey + "\"");
@@ -57,17 +61,15 @@ public class Platform {
         this.igdb_id = igdb_id;
         this.nameKey = nameKey;
         this.id = id;
-        this.isPC = isPC;
+        this.isPCLauncher = isPC;
         this.supportedExtensions = supportedExtensions;
     }
 
     public static Platform getFromId(int id) {
-        if (ID_MAP.isEmpty()) {
-            try {
-                initWithDb();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        try {
+            initWithDb();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         Platform platform = ID_MAP.get(id);
@@ -95,6 +97,24 @@ public class Platform {
         }
 
         return platform;
+    }
+
+    public static Platform getFromIGDBId(int IGDBid) {
+        if (IGDBid == NONE_ID) {
+            return null;
+        }
+        try {
+            initWithDb();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        for (Platform p : values()) {
+            if (p.getIGDBId() == IGDBid) {
+                return p;
+            }
+        }
+        return null;
     }
 
     public static void initWithDb() throws SQLException {
@@ -126,6 +146,34 @@ public class Platform {
         return s.equals(Main.NO_STRING) ? nameKey : s;
     }
 
+    public void setCSSIcon(Node node) {
+        if (node == null) {
+            return;
+        }
+        node.setStyle(getCSSIconStyle(false));
+        Tooltip.install(node, new Tooltip(getName()));
+        node.setPickOnBounds(true);
+
+    }
+
+    public void setCSSIconDark(Node node) {
+        if (node == null) {
+            return;
+        }
+        node.setStyle(getCSSIconStyle(true));
+        Tooltip.install(node, new Tooltip(getName()));
+        node.setPickOnBounds(true);
+
+    }
+
+    public String getCSSIconStyle(boolean dark) {
+        if (id == STEAM_ONLINE_ID) {
+            return "-fx-image: url(\"" + ThemeUtils.getCSSResourcesRoot() + "icons/launcher" + (dark ? "-dark" : "") + "/steam.png\")";
+        } else {
+            return "-fx-image: url(\"" + ThemeUtils.getCSSResourcesRoot() + "icons/launcher" + (dark ? "-dark" : "") + "/" + nameKey + ".png\")";
+        }
+    }
+
     public String getIconCSSId() {
         if (id == STEAM_ONLINE_ID) {
             //TODO implement a cleaner way to have icons for this
@@ -140,8 +188,8 @@ public class Platform {
 
     public static Collection<Platform> getEmulablePlatforms() {
         ArrayList<Platform> items = new ArrayList<>(Platform.values());
+        items.removeIf(Platform::isPCLauncher);
         items.removeIf(Platform::isPC);
-        items.removeIf(platform -> platform.equals(Platform.NONE));
         items.removeIf(platform -> Emulator.getPossibleEmulators(platform).isEmpty());
         items.sort(Comparator.comparing(Platform::getName));
         return items;
@@ -149,8 +197,8 @@ public class Platform {
 
     public static Collection<Platform> getNonPCPlatforms() {
         ArrayList<Platform> items = new ArrayList<>(Platform.values());
+        items.removeIf(Platform::isPCLauncher);
         items.removeIf(Platform::isPC);
-        items.removeIf(platform -> platform.equals(Platform.NONE));
         items.sort(Comparator.comparing(Platform::getName));
         return items;
     }
@@ -164,8 +212,8 @@ public class Platform {
         return getName();
     }
 
-    public boolean isPC() {
-        return isPC;
+    public boolean isPCLauncher() {
+        return isPCLauncher;
     }
 
     public void setChosenEmulator(Emulator chosenEmulator) {
@@ -293,5 +341,9 @@ public class Platform {
 
     public String getROMFolder() {
         return ROMFolder;
+    }
+
+    public boolean isPC() {
+        return this.equals(PC);
     }
 }

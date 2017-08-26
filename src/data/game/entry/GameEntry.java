@@ -1,12 +1,10 @@
 package data.game.entry;
 
 import data.io.DataBase;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.image.Image;
 import system.application.GameStarter;
 import ui.Main;
-import ui.dialog.GameRoomAlert;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +19,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static data.io.FileUtils.getExtension;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Created by LM on 02/07/2016.
@@ -71,7 +68,7 @@ public class GameEntry {
     /*FOR IGDB PURPOSE ONLY, should not be stored*/
     private String[] igdb_imageHash = new String[IMAGES_NUMBER];
 
-    private Platform platform = Platform.NONE;
+    private Platform platform = Platform.PC;
     private int platformGameId = 0;
 
     private transient boolean inDb = false;
@@ -663,7 +660,7 @@ public class GameEntry {
 
     public void setPlatform(Platform platform) {
         if (platform == null) {
-            this.platform = Platform.NONE;
+            this.platform = Platform.PC;
         }
         this.platform = platform;
 

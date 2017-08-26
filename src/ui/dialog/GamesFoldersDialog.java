@@ -1,7 +1,6 @@
 package ui.dialog;
 
 import data.game.GameFolderManager;
-import data.game.entry.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -38,7 +37,6 @@ public class GamesFoldersDialog extends GameRoomDialog {
 
         listView = new ListView<File>();
         listView.setEditable(false);
-        listView.getStyleClass().add("dark-list-view");
         listView.setCellFactory(param -> new ListCell<File>() {
             @Override
             public void updateItem(File file, boolean empty) {
@@ -48,7 +46,6 @@ public class GamesFoldersDialog extends GameRoomDialog {
                 } else {
                     setText(file.getAbsolutePath());
                 }
-                getStyleClass().add("dark-list-cell");
             }
         });
         listView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -58,7 +55,7 @@ public class GamesFoldersDialog extends GameRoomDialog {
                 deleteButton.setDisable(false);
             }
         });
-        listView.getItems().addAll(GameFolderManager.getDefaultFolders());
+        listView.getItems().addAll(GameFolderManager.getPCFolders());
         //TODO fix empty window being white in basic theme
 
         mainPane.setPrefWidth(Main.SCREEN_WIDTH * 1 / 3 * Main.SCREEN_WIDTH / 1920);
@@ -121,7 +118,7 @@ public class GamesFoldersDialog extends GameRoomDialog {
                 GameRoomAlert.error(Main.getString("sorry_cannot_add_games_folders",chosen.getAbsolutePath()));
                 return;
             }
-            if (chosen != null && GameFolderManager.addDefaultFolder(chosen)) {
+            if (chosen != null && GameFolderManager.addPCFolder(chosen)) {
                 listView.getItems().add(chosen);
             } else {
                 GameRoomAlert.error(Main.getString("error_could_not_add_games_folder"));
@@ -130,7 +127,7 @@ public class GamesFoldersDialog extends GameRoomDialog {
         deleteButton = new Button(Main.getString("delete"));
         deleteButton.setOnAction(event -> {
             if (listView.getSelectionModel().getSelectedItem() != null
-                    && GameFolderManager.deleteDefaultFolder(listView.getSelectionModel().getSelectedItem())) {
+                    && GameFolderManager.deletePCFolder(listView.getSelectionModel().getSelectedItem())) {
                 listView.getItems().remove(listView.getSelectionModel().getSelectedIndex());
             } else {
                 GameRoomAlert.error(Main.getString("error_could_not_remove_games_folder"));

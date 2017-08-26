@@ -33,6 +33,7 @@ import org.controlsfx.control.CheckComboBox;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
@@ -47,6 +48,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
 import static ui.Main.SCREEN_WIDTH;
 
@@ -173,7 +175,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                                 th.setDaemon(true);
                                 th.start();
                             }
-                        }catch (JSONException e){
+                        } catch (JSONException e) {
                             GameRoomAlert.errorIGDB();
                         }
                     }
@@ -280,7 +282,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
     }
 
     public HashMap<String, Boolean> getDoNotUpdateFieldsMap() {
-        if(doNotUpdateFieldsMap == null){
+        if (doNotUpdateFieldsMap == null) {
             return new HashMap<>();
         }
         return doNotUpdateFieldsMap;
@@ -313,7 +315,10 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             SearchItem row = new SearchItem(value, this, value.getString("name")
                     , IGDBScraper.getReleaseDate(value.getInt("id"), gamesDataArray)
                     , value.getInt("id")
-                    , coverHash, prefRowWidth);
+                    , coverHash
+                    , prefRowWidth
+                    , IGDBScraper.getPlatformIds(value)
+            );
             row.prefWidthProperty().bind(prefRowWidth);
             return row;
         }
@@ -346,14 +351,16 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         private String coverHash;
         private String date;
         private int id;
+        private int[] platformIds;
 
-        private SearchItem(Object value, SelectListPane parentList, String gameName, Date date, int id, String coverHash, ReadOnlyDoubleProperty prefRowWidth) {
+        private SearchItem(Object value, SelectListPane parentList, String gameName, Date date, int id, String coverHash, ReadOnlyDoubleProperty prefRowWidth, int[] platformIds) {
             super(value, parentList);
             this.gameName = gameName;
             this.date = date != null ? new SimpleDateFormat("yyyy").format(date) : null;
             this.id = id;
             this.coverHash = coverHash;
             this.prefRowWidth = prefRowWidth;
+            this.platformIds = platformIds;
 
             addContent();
         }
@@ -396,9 +403,29 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                     "    -fx-font-weight: 600;" +
                     "    -fx-font-style: italic;");*/
             yearLabel.setId("search-result-year-label");
+
+            HBox logoBox = new HBox(5*Main.SCREEN_WIDTH / 1920);
+            logoBox.prefWidthProperty().bind(prefRowWidth);
+            double logoWidth = 25 * Main.SCREEN_WIDTH / 1920;
+            double logoHeight = 25 * Main.SCREEN_HEIGHT / 1080;
+
+
+            for (int i = 0; i < platformIds.length; i++) {
+                data.game.entry.Platform p = data.game.entry.Platform.getFromIGDBId(platformIds[i]);
+                if (p != null) {
+                    ImageView temp = new ImageView();
+                    temp.setSmooth(false);
+                    temp.setPreserveRatio(true);
+                    temp.setFitWidth(logoWidth);
+                    temp.setFitHeight(logoHeight);
+                    p.setCSSIcon(temp);
+                    logoBox.getChildren().add(temp);
+                }
+            }
+
             VBox box = new VBox();
             box.prefWidthProperty().bind(prefRowWidth);
-            box.getChildren().addAll(nameLabel, yearLabel);
+            box.getChildren().addAll(nameLabel, yearLabel, logoBox);
             add(box, columnCount++, 0);
             GridPane.setMargin(box, new Insets(20 * Main.SCREEN_HEIGHT / 1080, 30 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 30 * Main.SCREEN_WIDTH / 1920));
         }

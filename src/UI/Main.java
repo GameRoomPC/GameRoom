@@ -6,6 +6,7 @@ import javafx.application.Platform;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.Logger;
 import system.application.GameRoomUpdater;
+import system.application.SupportService;
 import system.application.settings.PredefinedSetting;
 import system.application.settings.SettingValue;
 import system.device.GameController;
@@ -92,9 +93,10 @@ public class Main {
         PredefinedSetting.WINDOW_WIDTH.setDefaultValue(new SettingValue((int) TRUE_SCREEN_WIDTH, Integer.class, PredefinedSetting.WINDOW_WIDTH.getDefaultValue().getCategory()));
         PredefinedSetting.WINDOW_HEIGHT.setDefaultValue(new SettingValue((int) TRUE_SCREEN_HEIGHT, Integer.class, PredefinedSetting.WINDOW_HEIGHT.getDefaultValue().getCategory()));
 
+        SupportService.printSystemInfo();
         LOGGER.info("Started app with screen true resolution : " + (int) TRUE_SCREEN_WIDTH + "x" + (int) TRUE_SCREEN_HEIGHT);
 
-        settings().load();
+        settings(); //ensures settings are loaded
         Emulator.loadEmulators();
 
         SUPPORTER_MODE = settings().getString(SUPPORTER_KEY) != null
@@ -164,11 +166,12 @@ public class Main {
     }
 
     public static void open(Stage stage) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
+        Platform.runLater(() -> {
+            if (!MAIN_SCENE.getParentStage().isShowing()) {
+                stage.setIconified(false);
                 stage.show();
             }
+            stage.toFront();
         });
     }
 

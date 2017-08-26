@@ -200,6 +200,14 @@ public final class SubMenuFactory {
         });
         editMenu.addItem(keepRatioCheckBox);
 
+        CheckBoxItem showPCIconCheckBox = new CheckBoxItem("show_pc_icon", true);
+        showPCIconCheckBox.setSelected(settings().getBoolean(PredefinedSetting.SHOW_PC_ICON));
+        showPCIconCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            settings().setSettingValue(PredefinedSetting.SHOW_PC_ICON, newValue);
+            mainScene.reloadLauncherLogos();
+        });
+        editMenu.addItem(showPCIconCheckBox);
+
         CheckBoxItem fullScreenCheckBox = new CheckBoxItem("fullscreen", true);
         fullScreenCheckBox.selectedProperty().bindBidirectional(settings().getBooleanProperty(PredefinedSetting.FULL_SCREEN));
 

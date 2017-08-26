@@ -143,6 +143,10 @@ public class ImageButton extends Button {
         setImageView(id,width,height);
     }
 
+    public void setImageViewStyle(String style){
+        view.setStyle(style);
+    }
+
     public void setImageView(String id, double width, double height){
         view = new ImageView();
         view.setPreserveRatio(true);

@@ -45,7 +45,7 @@ public class Monitor {
 
     private volatile boolean stopMonitor = false;
 
-    private static long timer = 0;
+    private long timer = 0;
 
     private ArrayList<StandbyInterval> standbyIntervals = new ArrayList<>();
 
@@ -67,7 +67,7 @@ public class Monitor {
                 stopMonitor = true;
             }
         });
-        if (getGameEntry().getPlatform().isPC()) {
+        if (getGameEntry().getPlatform().isPCLauncher()) {
             processName = getGameEntry().getProcessName();
         } else {
             Emulator e = Emulator.getChosenEmulator(getGameEntry().getPlatform());

@@ -431,7 +431,7 @@ public class GameWatcher {
                 foundEntry.saveEntry();
                 foundEntry.setName(cleanNameForDisplay(
                         foundEntry.getName(),
-                        data.game.entry.Platform.NONE.getSupportedExtensions())
+                        data.game.entry.Platform.PC.getSupportedExtensions())
                 );
 
                 Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
@@ -465,7 +465,9 @@ public class GameWatcher {
                 .replace("x86", "")
                 .replace("x64", "")
                 .replace("()", "")
-                .replaceAll("\\(.*\\)","");
+                .replaceAll("\\(.*\\)","")
+                .replaceAll("\\[.*\\]","")
+                .replaceAll("\\{.*\\}","");
     }
 
     public static String cleanNameForDisplay(String name, String[] possibleExtensions) {
