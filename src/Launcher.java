@@ -72,9 +72,9 @@ public class Launcher extends Application {
             DATA_PATH = WinReg.readDataPath();
         }
 
-        if(!DEV_MODE){
-            SplashScreen.setTextColor(149,156,161);
-            SplashScreen.setTextFont("Arial",8);
+        if (!DEV_MODE) {
+            SplashScreen.setTextColor(149, 156, 161);
+            SplashScreen.setTextFont("Arial", 8);
             setSplashscreenText("Opening GameRoom");
         }
 
@@ -217,7 +217,7 @@ public class Launcher extends Application {
         initXboxController(primaryStage);
         setFullScreen(primaryStage, settings().getBoolean(PredefinedSetting.FULL_SCREEN));
 
-        if(!DEV_MODE) {
+        if (!DEV_MODE) {
             SplashScreen.close();
         }
         openStage(primaryStage, true);
@@ -232,9 +232,9 @@ public class Launcher extends Application {
             primaryStage.setX(settings().getDouble(PredefinedSetting.WINDOW_X));
             primaryStage.setY(settings().getDouble(PredefinedSetting.WINDOW_Y));
         }
-            primaryStage.setWidth(primaryStage.getWidth());
-            primaryStage.setHeight(primaryStage.getHeight());
-            primaryStage.setMaximized(settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED));
+        primaryStage.setWidth(primaryStage.getWidth());
+        primaryStage.setHeight(primaryStage.getHeight());
+        primaryStage.setMaximized(settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED));
 
         if (START_MINIMIZED && appStart) {
             try {
@@ -245,12 +245,8 @@ public class Launcher extends Application {
             primaryStage.setIconified(true);
         } else {
             primaryStage.show();
+            primaryStage.toFront();
         }
-
-
-            if (!(START_MINIMIZED && appStart)) {
-                primaryStage.toFront();
-            }
     }
 
     private void initPrimaryStage(Stage primaryStage, Scene initScene) {
@@ -432,9 +428,9 @@ public class Launcher extends Application {
         System.exit(0);
     }
 
-    private static void setSplashscreenText(String text){
-        if(!DEV_MODE){
-            SplashScreen.setText(text,5,120);
+    private static void setSplashscreenText(String text) {
+        if (!DEV_MODE) {
+            SplashScreen.setText(text, 5, 120);
         }
     }
 
