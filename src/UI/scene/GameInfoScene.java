@@ -1,10 +1,8 @@
 package ui.scene;
 
-import data.game.entry.Company;
-import data.game.entry.GameEntry;
-import data.game.entry.GameGenre;
-import data.game.entry.GameTheme;
+import data.game.entry.*;
 import data.http.images.ImageUtils;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -128,8 +126,8 @@ public class GameInfoScene extends BaseScene {
         if (!settings().getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
             try {
                 ytButton = new YoutubePlayerAndButton(entry, this);
-                entry.setOnGameLaunched(() -> ytButton.automaticPause());
-                entry.setOnGameStopped(() -> ytButton.automaticPlay());
+                entry.setOnGameLaunched(() -> Platform.runLater(() -> ytButton.automaticPause()));
+                entry.setOnGameStopped(() -> Platform.runLater(() -> ytButton.automaticPlay()));
                 topStackPane.getChildren().addAll(ytButton.getSoundMuteButton());
                 StackPane.setAlignment(ytButton.getSoundMuteButton(), Pos.CENTER_RIGHT);
                 setOnSceneFadedOutAction(() -> {
