@@ -211,39 +211,36 @@ public class GameWatcher {
         final boolean[] alreadyDisplayedIGDBError = {false};
         for (GameEntry entry : entriesToAdd) {
             if (entry.isWaitingToBeScrapped() && !entry.isBeingScraped() && !GameEntryUtils.isGameIgnored(entry)) {
-                Callable task = new Callable() {
-                    @Override
-                    public Object call() throws Exception {
-                        try {
-                            entry.setSavedLocally(true);
-                            entry.setBeingScraped(true);
-                            entry.setSavedLocally(false);
-                            JSONArray search_results = IGDBScraper.searchGame(entry.getName());
-                            if (search_results != null) {
-                                int igdbId = LevenshteinDistance.closestName(entry.getName(), search_results);
-                                searchIGDBIDs.add(igdbId);
-                                entry.setIgdb_id(igdbId);
-                                toScrapEntries.add(entry);
-                                Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
-                            }
-
-                        } catch (Exception e) {
-                            if (e instanceof IOException) {
-                                Main.LOGGER.error(entry.getName() + " not found on igdb first guess");
-                            } else if (e instanceof UnirestException) {
-                                if (!alreadyDisplayedIGDBError[0]) {
-                                    GameRoomAlert.errorIGDB();
-                                    alreadyDisplayedIGDBError[0] = true;
-                                }
-                            }
-                            entry.setSavedLocally(true);
-                            entry.setWaitingToBeScrapped(false);
-                            entry.setBeingScraped(false);
-                            entry.setSavedLocally(false);
+                Callable task = () -> {
+                    try {
+                        entry.setSavedLocally(true);
+                        entry.setBeingScraped(true);
+                        entry.setSavedLocally(false);
+                        JSONArray search_results = IGDBScraper.searchGame(entry.getName());
+                        if (search_results != null) {
+                            int igdbId = LevenshteinDistance.closestName(entry.getName(), search_results);
+                            searchIGDBIDs.add(igdbId);
+                            entry.setIgdb_id(igdbId);
+                            toScrapEntries.add(entry);
                             Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
                         }
-                        return null;
+
+                    } catch (Exception e) {
+                        if (e instanceof IOException) {
+                            Main.LOGGER.error(entry.getName() + " not found on igdb first guess");
+                        } else if (e instanceof UnirestException) {
+                            if (!alreadyDisplayedIGDBError[0]) {
+                                GameRoomAlert.errorIGDB();
+                                alreadyDisplayedIGDBError[0] = true;
+                            }
+                        }
+                        entry.setSavedLocally(true);
+                        entry.setWaitingToBeScrapped(false);
+                        entry.setBeingScraped(false);
+                        entry.setSavedLocally(false);
+                        Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
                     }
+                    return null;
                 };
                 tasks.add(task);
             }
@@ -285,6 +282,7 @@ public class GameWatcher {
                             for (GameEntry scrappedEntry : scrappedEntries) {
                                 GameEntry toScrapEntry = getGameWithIGDBId(scrappedEntry.getIgdb_id(), toScrapEntries);
                                 if (toScrapEntry != null && !GameEntryUtils.isGameIgnored(toScrapEntry)) {
+                                    LOGGER.debug("Added scrapped info to game \""+toScrapEntry.getName()+"\"");
                                     toScrapEntry.setSavedLocally(true);
                                     if (toScrapEntry.getDescription() == null || toScrapEntry.getDescription().equals("")) {
                                         toScrapEntry.setDescription(scrappedEntry.getDescription());
