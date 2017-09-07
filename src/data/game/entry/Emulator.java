@@ -90,7 +90,9 @@ public class Emulator {
             ResultSet set = statement.executeQuery();
 
             if (set.next()) {
-                loadEmulators();
+                if (EMULATOR_MAPPING.isEmpty()) {
+                    loadEmulators();
+                }
                 int emuId = set.getInt("emu_id");
                 return EMULATOR_MAPPING.get(emuId);
             }
