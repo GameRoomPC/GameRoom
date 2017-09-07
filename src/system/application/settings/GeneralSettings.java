@@ -18,6 +18,7 @@ import system.os.PowerMode;
 import ui.Main;
 import ui.scene.SettingsScene;
 import ui.theme.Theme;
+import ui.theme.ThemeUtils;
 import ui.theme.UIScale;
 
 import java.io.File;
@@ -265,7 +266,7 @@ public class GeneralSettings {
         if(settingValue == null){
             return (Theme) THEME.getDefaultValue().getSettingValue();
         }
-        return settingValue.getSettingValue();
+        return ThemeUtils.getThemeFromName(settingValue.getSettingValue().getName());
     }
 
     public String getSupporterKeyPrice() {

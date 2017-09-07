@@ -146,21 +146,11 @@ public class Platform {
         return s.equals(Main.NO_STRING) ? nameKey : s;
     }
 
-    public void setCSSIcon(Node node) {
+    public void setCSSIcon(Node node, boolean dark) {
         if (node == null) {
             return;
         }
-        node.setStyle(getCSSIconStyle(false));
-        Tooltip.install(node, new Tooltip(getName()));
-        node.setPickOnBounds(true);
-
-    }
-
-    public void setCSSIconDark(Node node) {
-        if (node == null) {
-            return;
-        }
-        node.setStyle(getCSSIconStyle(true));
+        node.setStyle(getCSSIconStyle(dark));
         Tooltip.install(node, new Tooltip(getName()));
         node.setPickOnBounds(true);
 

@@ -418,7 +418,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                     temp.setPreserveRatio(true);
                     temp.setFitWidth(logoWidth);
                     temp.setFitHeight(logoHeight);
-                    p.setCSSIcon(temp);
+                    p.setCSSIcon(temp,false);
                     logoBox.getChildren().add(temp);
                 }
             }

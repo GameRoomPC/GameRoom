@@ -58,7 +58,7 @@ public class PlatformSettingsPane extends BorderPane {
         iconView.setPreserveRatio(true);
         iconView.setFitWidth(width);
         iconView.setFitHeight(height);
-        platform.setCSSIcon(iconView);
+        platform.setCSSIcon(iconView,false);
 
         HBox box = new HBox();
         box.setSpacing(15 * Main.SCREEN_WIDTH / 1920);

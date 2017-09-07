@@ -79,7 +79,7 @@ public class EmulationDialog extends GameRoomDialog<ButtonType> {
                         double width = 30*Main.SCREEN_WIDTH/1920;
                         double height =  30*Main.SCREEN_HEIGHT/1080;
 
-                        platform.setCSSIconDark(imageView);
+                        platform.setCSSIcon(imageView,settings().getTheme().useDarkPlatformIconsInList());
                         imageView.setFitWidth(width);
                         imageView.setFitHeight(height);
                         imageView.setSmooth(true);

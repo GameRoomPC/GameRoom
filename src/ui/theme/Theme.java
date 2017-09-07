@@ -33,15 +33,19 @@ public class Theme {
     private final static String PROPERTY_DATE = "date";
     private final static String PROPERTY_VERSION = "version";
     private final static String PROPERTY_DESCRIPTION = "description";
+    private final static String PROPERTY_DARK_PLATFORM_ICONS_IN_LIST = "darkPlatformIconsInList";
 
     private final static SimpleDateFormat PROPERTY_DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
 
     /**** META *****/
     private String name = "";
     private String author = "";
-    private transient Date creationDate;
+
+    //Following fields are transient because we don't want to use them to store the chosen theme in the db
     private transient String version = "";
+    private transient Date creationDate;
     private transient String description;
+    private transient boolean darkPlatformIconsInList = true;
 
     /**** FILE SYSTEM ***/
     private transient String fileName;
@@ -97,7 +101,6 @@ public class Theme {
             if (isValid()) {
                 java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(file);
 
-                Enumeration<? extends ZipEntry> entries = zipFile.entries();
                 ZipEntry infoEntry = zipFile.getEntry(FILE_NAME_INFO);
                 InputStream stream = zipFile.getInputStream(infoEntry);
 
@@ -106,6 +109,7 @@ public class Theme {
                 this.name = configTheme.name;
                 this.description = configTheme.description;
                 this.version = configTheme.version;
+                this.darkPlatformIconsInList = configTheme.darkPlatformIconsInList;
                 stream.close();
             }
         } catch (IOException e) {
@@ -123,6 +127,9 @@ public class Theme {
         theme.name = properties.getProperty(PROPERTY_NAME).replace("\"", "");
         theme.description = properties.getProperty(PROPERTY_DESCRIPTION).replace("\"", "");
         theme.version = properties.getProperty(PROPERTY_VERSION).replace("\"", "");
+
+        String darkStr = properties.getProperty(PROPERTY_DARK_PLATFORM_ICONS_IN_LIST);
+        theme.darkPlatformIconsInList = darkStr == null || Boolean.parseBoolean(darkStr);
 
         try {
             theme.creationDate = PROPERTY_DATE_FORMAT.parse(properties.getProperty(PROPERTY_DATE).replace("\"", ""));
@@ -234,6 +241,10 @@ public class Theme {
 
     public String getVersion() {
         return version;
+    }
+
+    public boolean useDarkPlatformIconsInList() {
+        return darkPlatformIconsInList;
     }
 }
 
