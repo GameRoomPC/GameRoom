@@ -60,16 +60,17 @@ public class ThemeUtils {
     }
 
     public static List<Theme> getInstalledThemes() {
-        INSTALLED_THEMES.clear();
-        INSTALLED_THEMES.add(Theme.DEFAULT_THEME);
-        File themeFolder = Main.FILES_MAP.get("themes");
-        File[] children = themeFolder.listFiles();
-        if (children != null) {
-            for (File file : children) {
-                if (!file.isDirectory() && file.getName().toLowerCase().contains(".zip")) {
-                    Theme tempTheme = new Theme(file.getName());
-                    if (tempTheme.isValid()) {
-                        INSTALLED_THEMES.add(tempTheme);
+        if(INSTALLED_THEMES.isEmpty()){
+            INSTALLED_THEMES.add(Theme.DEFAULT_THEME);
+            File themeFolder = Main.FILES_MAP.get("themes");
+            File[] children = themeFolder.listFiles();
+            if (children != null) {
+                for (File file : children) {
+                    if (!file.isDirectory() && file.getName().toLowerCase().contains(".zip")) {
+                        Theme tempTheme = new Theme(file.getName());
+                        if (tempTheme.isValid()) {
+                            INSTALLED_THEMES.add(tempTheme);
+                        }
                     }
                 }
             }
@@ -101,7 +102,9 @@ public class ThemeUtils {
         }
 
         InputStream stream = new FileInputStream(propertiesFile);
-        return Theme.readConfig(stream);
+        Theme th =  Theme.readConfig(stream);
+        stream.close();
+        return th;
     }
 
     private static Theme checkForUpdatesOfCurrentTheme() {

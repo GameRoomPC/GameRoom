@@ -21,6 +21,7 @@ import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import org.apache.logging.log4j.LogManager;
 import org.boris.winrun4j.DDE;
+import org.boris.winrun4j.SplashScreen;
 import system.application.Monitor;
 import system.application.settings.PredefinedSetting;
 import system.device.ControllerButtonListener;
@@ -71,6 +72,12 @@ public class Launcher extends Application {
             DATA_PATH = WinReg.readDataPath();
         }
 
+        if (!DEV_MODE) {
+            SplashScreen.setTextColor(149, 156, 161);
+            SplashScreen.setTextFont("Arial", 8);
+            setSplashscreenText("Opening GameRoom");
+        }
+
         System.setProperty("data.dir", DATA_PATH);
         Main.LOGGER = LogManager.getLogger(Main.class);
 
@@ -106,12 +113,17 @@ public class Launcher extends Application {
             DDE.addActivationListener(s -> open(MAIN_SCENE.getParentStage()));
             DDE.ready();
         }
-
+        setSplashscreenText("Checking files...");
         initFiles();
+        setSplashscreenText("Initializing DB connection...");
         DataBase.initDB();
+        setSplashscreenText("Migrating settings...");
         OldSettings.transferOldSettings();
+        setSplashscreenText("Loading settings...");
         Main.main(args);
+        setSplashscreenText("Migrating games...");
         OldGameEntry.transferOldGameEntries();
+        setSplashscreenText("Loading games...");
         GameEntryUtils.loadGames();
 
         String gameToStartID = getArg(ARGS_START_GAME, args, true);
@@ -197,11 +209,17 @@ public class Launcher extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        setSplashscreenText("Configuring window...");
+
         MAIN_SCENE = new MainScene(primaryStage);
         initPrimaryStage(primaryStage, MAIN_SCENE);
         initTrayIcon();
         initXboxController(primaryStage);
         setFullScreen(primaryStage, settings().getBoolean(PredefinedSetting.FULL_SCREEN));
+
+        if (!DEV_MODE) {
+            SplashScreen.close();
+        }
         openStage(primaryStage, true);
 
         if (!DEV_MODE) {
@@ -210,31 +228,25 @@ public class Launcher extends Application {
     }
 
     private void openStage(Stage primaryStage, boolean appStart) {
-        if (START_MINIMIZED && appStart) {
-            primaryStage.setOpacity(0);
-        }
         if (!settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED)) {
             primaryStage.setX(settings().getDouble(PredefinedSetting.WINDOW_X));
             primaryStage.setY(settings().getDouble(PredefinedSetting.WINDOW_Y));
         }
-        primaryStage.show();
+        primaryStage.setWidth(primaryStage.getWidth());
+        primaryStage.setHeight(primaryStage.getHeight());
+        primaryStage.setMaximized(settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED));
+
         if (START_MINIMIZED && appStart) {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            primaryStage.hide();
-            primaryStage.setOpacity(1);
+            primaryStage.setIconified(true);
+        } else {
+            primaryStage.show();
+            primaryStage.toFront();
         }
-        Platform.runLater(() -> {
-            primaryStage.setWidth(primaryStage.getWidth());
-            primaryStage.setHeight(primaryStage.getHeight());
-            primaryStage.setMaximized(settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED));
-            if (!(START_MINIMIZED && appStart)) {
-                primaryStage.toFront();
-            }
-        });
     }
 
     private void initPrimaryStage(Stage primaryStage, Scene initScene) {
@@ -316,14 +328,15 @@ public class Launcher extends Application {
         });
 
         primaryStage.widthProperty().addListener((ChangeListener<Number>) (observableValue, oldSceneWidth, newSceneWidth) -> {
-            if( !primaryStage.isIconified()) {
+            if (!primaryStage.isIconified()) {
                 settings().setSettingValue(PredefinedSetting.WINDOW_WIDTH, newSceneWidth.intValue());
             }
         });
         primaryStage.heightProperty().addListener((ChangeListener<Number>) (observableValue, oldSceneHeight, newSceneHeight) -> {
-            if( !primaryStage.isIconified()) {
+            if (!primaryStage.isIconified()) {
                 settings().setSettingValue(PredefinedSetting.WINDOW_HEIGHT, newSceneHeight.intValue());
-            }            });
+            }
+        });
     }
 
     private void setFullScreen(Stage primaryStage, boolean fullScreen) {
@@ -413,6 +426,12 @@ public class Launcher extends Application {
         }
 
         System.exit(0);
+    }
+
+    private static void setSplashscreenText(String text) {
+        if (!DEV_MODE) {
+            SplashScreen.setText(text, 5, 120);
+        }
     }
 
     private void initTrayIcon() {

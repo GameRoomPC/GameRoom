@@ -957,6 +957,7 @@ public class GameEntry {
         setCmd(GameEntry.CMD_BEFORE_START, set.getString("cmd_before"));
         setCmd(GameEntry.CMD_AFTER_END, set.getString("cmd_after"));
         setYoutubeSoundtrackHash(set.getString("yt_hash"));
+        setArgs(set.getString("launch_args"));
 
         Timestamp addedTimestamp = set.getTimestamp("added_date");
         setAddedDate(addedTimestamp == null ? null : addedTimestamp.toLocalDateTime());

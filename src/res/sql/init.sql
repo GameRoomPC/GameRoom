@@ -217,7 +217,8 @@ INSERT OR REPLACE INTO Platform(id,name_key,is_pc,default_supported_extensions,i
 	(16,"nes",0,"nes",18),
 	(17,"snes",0,"sfc,smc",19),
 	(18,"psx",0,"bin,iso,img,cue,ccd,mds,pbp,ecm",7),
-	(19,"psp",0,"iso,cso,pbp,elf,prx",38);
+	(19,"psp",0,"iso,cso,pbp,elf,prx",38),
+	(20,"msdos",0,"exe",13);
 	
 INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
 	(1,"Dolphin", "C:\Program Files\Dolphin\Dolphin.exe","/b /e %a %p"),
@@ -227,7 +228,8 @@ INSERT OR IGNORE INTO Emulator(id,name,default_path,default_args_schema) VALUES
 	(5,"RetroArch","C:\Program Files (x86)\retroarch.exe","-f -L ""path/to/core"" %a %p"),
 	(6,"RPCS3","C:\Program Files (x86)\rpcs3.exe","%a %p"),
 	(7,"PPSSPP","C:\Program Files (x86)\PPSSPP\PPSSPPWindows64.exe","%a %p"),
-	(8,"ePSXe","C:\Program Files (x86)\ePSXe205\ePSXe.exe","-nogui -loadbin %a %p");
+	(8,"ePSXe","C:\Program Files (x86)\ePSXe205\ePSXe.exe","-nogui -loadbin %a %p"),
+	(9,"DOSBox","C:\Program Files (x86)\DOSBox-0.74\DOSBox.exe","%p %a -fullscreen -noconsole -exit");
 
 INSERT OR IGNORE INTO emulates(emu_id,platform_id) VALUES
 	(1,7),
@@ -245,8 +247,10 @@ INSERT OR IGNORE INTO emulates(emu_id,platform_id) VALUES
 	(5,17),
 	(5,18),
 	(5,19),
+	(5,20),
 	(6,11),
 	(7,19),
-	(8,18);
+	(8,18),
+	(9,20);
 	
 	

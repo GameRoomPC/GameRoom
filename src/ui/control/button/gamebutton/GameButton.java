@@ -137,7 +137,7 @@ public abstract class GameButton extends BorderPane {
             titleLogoView.setPreserveRatio(true);
             titleLogoView.setFitWidth(width);
             titleLogoView.setFitHeight(height);
-            entry.getPlatform().setCSSIcon(titleLogoView);
+            entry.getPlatform().setCSSIcon(titleLogoView,false);
         }else{
             titleLogoView.setStyle("");
         }

@@ -58,7 +58,7 @@ public class PlatformSettingsPane extends BorderPane {
         iconView.setPreserveRatio(true);
         iconView.setFitWidth(width);
         iconView.setFitHeight(height);
-        platform.setCSSIcon(iconView);
+        platform.setCSSIcon(iconView,false);
 
         HBox box = new HBox();
         box.setSpacing(15 * Main.SCREEN_WIDTH / 1920);
@@ -170,9 +170,11 @@ public class PlatformSettingsPane extends BorderPane {
         possibleEmulators.sort(Comparator.comparing(Emulator::toString));
 
         final ComboBox<Emulator> emuComboBox = new ComboBox<Emulator>(possibleEmulators);
+        Emulator chosenEmu = Emulator.getChosenEmulator(platform);
         for (Emulator emulator : possibleEmulators) {
-            if (emulator.equals(Emulator.getChosenEmulator(platform))) {
+            if (emulator.equals(chosenEmu)) {
                 emuComboBox.getSelectionModel().select(emulator);
+                break;
             }
         }
 

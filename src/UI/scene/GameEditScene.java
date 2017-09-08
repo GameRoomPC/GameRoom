@@ -487,7 +487,7 @@ public class GameEditScene extends BaseScene {
                         double width = 25*Main.SCREEN_WIDTH/1920;
                         double height =  25*Main.SCREEN_HEIGHT/1080;
 
-                        platform.setCSSIconDark(imageView);
+                        platform.setCSSIcon(imageView,settings().getTheme().useDarkPlatformIconsInList());
                         imageView.setFitWidth(width);
                         imageView.setFitHeight(height);
                         imageView.setSmooth(true);
@@ -840,6 +840,12 @@ public class GameEditScene extends BaseScene {
                             }
                         } else if (property.equals("developer")) {
                             if (node instanceof CheckComboBox) {
+                                final ObservableList<Company> allCompanies = FXCollections.observableArrayList();
+                                allCompanies.addAll(Company.values());
+                                allCompanies.sort(Comparator.comparing(Company::getName));
+                                ((CheckComboBox) node).getItems().clear();
+                                ((CheckComboBox) node).getItems().addAll(allCompanies);
+
                                 ((CheckComboBox) node).getCheckModel().clearChecks();
                                 for (Company dev : (ArrayList<Company>) newValue) {
                                     ((CheckComboBox) node).getCheckModel().check(dev);
@@ -847,6 +853,12 @@ public class GameEditScene extends BaseScene {
                             }
                         } else if (property.equals("publisher")) {
                             if (node instanceof CheckComboBox) {
+                                final ObservableList<Company> allCompanies = FXCollections.observableArrayList();
+                                allCompanies.addAll(Company.values());
+                                allCompanies.sort(Comparator.comparing(Company::getName));
+                                ((CheckComboBox) node).getItems().clear();
+                                ((CheckComboBox) node).getItems().addAll(allCompanies);
+
                                 ((CheckComboBox) node).getCheckModel().clearChecks();
                                 for (Company pub : (ArrayList<Company>) newValue) {
                                     ((CheckComboBox) node).getCheckModel().check(pub);
@@ -854,6 +866,12 @@ public class GameEditScene extends BaseScene {
                             }
                         } else if (property.equals("serie")) {
                             if (node instanceof ComboBox) {
+                                final ObservableList<Serie> allSeries = FXCollections.observableArrayList();
+                                allSeries.addAll(Serie.values());
+                                allSeries.sort(Comparator.comparing(Serie::getName));
+                                ((ComboBox<Serie>) node).getItems().clear();
+                                ((ComboBox<Serie>) node).getItems().addAll(allSeries);
+
                                 ((ComboBox) node).getSelectionModel().clearSelection();
                                 ((ComboBox<Serie>) node).getSelectionModel().select((Serie) newValue);
                             }
