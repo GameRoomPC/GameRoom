@@ -661,11 +661,12 @@ public class GameEntry {
     public void setPlatform(Platform platform) {
         if (platform == null) {
             this.platform = Platform.PC;
-        }
-        this.platform = platform;
+        }else{
+            this.platform = platform;
 
-        if (platform.getId() == Platform.STEAM_ID || platform.getId() == Platform.STEAM_ONLINE_ID) {
-            setPath("steam://rungameid/" + platformGameId);
+            if (platform.getId() == Platform.STEAM_ID || platform.getId() == Platform.STEAM_ONLINE_ID) {
+                setPath("steam://rungameid/" + platformGameId);
+            }
         }
         if (savedLocally && !deleted) {
             try {
