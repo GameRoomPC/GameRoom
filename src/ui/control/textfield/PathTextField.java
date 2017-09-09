@@ -98,7 +98,7 @@ public class PathTextField extends StackPane {
                             DirectoryChooser folderChooser = new DirectoryChooser();
                             folderChooser.setTitle(fileChooserTitle);
 
-                            if (initialPath == null || initialPath.equals("")) {
+                            if (initialPath == null || initialPath.equals("") || !initialDir.exists()) {
                                 initialDir = new File(System.getProperty("user.home"));
                             }
                             folderChooser.setInitialDirectory(initialDir);
