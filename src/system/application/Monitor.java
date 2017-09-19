@@ -32,7 +32,7 @@ public class Monitor {
 
     private final static long MONITOR_REFRESH = TimeUnit.SECONDS.toMillis(1);
     private final static long MAX_AWAIT_CREATION_TIME = TimeUnit.MINUTES.toMillis(2);
-    private final static long MAX_MONITOR_GAP_TIME = TimeUnit.SECONDS.toMillis(10);
+    private final static long MAX_MONITOR_GAP_TIME = TimeUnit.SECONDS.toMillis(15);
     private final static long MIN_MONITOR_TIME = TimeUnit.SECONDS.toMillis(20);
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss", Locale.ENGLISH);
