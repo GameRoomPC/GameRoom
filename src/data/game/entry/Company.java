@@ -176,7 +176,7 @@ public class Company {
     private static void initWithDb() throws SQLException {
         Connection connection = DataBase.getUserConnection();
         Statement statement = connection.createStatement();
-        ResultSet set = statement.executeQuery("select * from Company");
+        ResultSet set = statement.executeQuery("select * from Company where id_needs_update = 0");
         while (set.next()) {
             int id = set.getInt("id");
             String key = set.getString("name_key");
