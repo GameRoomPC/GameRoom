@@ -86,7 +86,7 @@ public class GameStarter {
             Monitor timeMonitor = new Monitor(this);
             timeMonitor.start();
         } catch (IOException e) {
-            GeneralToast.displayToast(Main.getString("error_cannot_monitor") + getGameEntry().getName(),MAIN_SCENE.getParentStage());
+            GeneralToast.displayToast(Main.getString("error_cannot_monitor") + getGameEntry().getName(), MAIN_SCENE.getParentStage());
             e.printStackTrace();
         }
 
@@ -155,15 +155,17 @@ public class GameStarter {
     private static String getPowerShellAdminCMD(String path, List<String> args, boolean asAdmin) {
         StringBuilder powerShellCmd = new StringBuilder("Start-Process -FilePath ");
         powerShellCmd.append("\'\\\""); //PS syntax + blank escaping
-        powerShellCmd.append(path);
+        powerShellCmd.append(path.replace("'", "''")
+                .replace("’", "’’"));
         powerShellCmd.append("\\\"\'"); //PS syntax + blank escaping
         if (args != null && !args.isEmpty()) {
             powerShellCmd.append(" -ArgumentList ");
 
             for (String s : args) {
-                if(!s.trim().isEmpty()) {
+                if (!s.trim().isEmpty()) {
                     powerShellCmd.append("\'\\\""); //PS syntax + blank escaping
-                    powerShellCmd.append(s);
+                    powerShellCmd.append(s.replace("'", "''")
+                            .replace("’", "’’"));
                     powerShellCmd.append("\\\"\'"); //PS syntax + blank escaping
                     powerShellCmd.append(',');
                 }
@@ -186,7 +188,7 @@ public class GameStarter {
         entry.setSavedLocally(false);
     }
 
-    private void onPostGameLaunched(){
+    private void onPostGameLaunched() {
         if (settings().getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.CLOSE)) {
             Main.forceStop(MAIN_SCENE.getParentStage(), "launchAction = OnLaunchAction.CLOSE");
         } else if (settings().getOnLaunchAction(PredefinedSetting.ON_GAME_LAUNCH_ACTION).equals(OnLaunchAction.HIDE)) {

@@ -661,11 +661,12 @@ public class GameEntry {
     public void setPlatform(Platform platform) {
         if (platform == null) {
             this.platform = Platform.PC;
-        }
-        this.platform = platform;
+        }else{
+            this.platform = platform;
 
-        if (platform.getId() == Platform.STEAM_ID || platform.getId() == Platform.STEAM_ONLINE_ID) {
-            setPath("steam://rungameid/" + platformGameId);
+            if (platform.getId() == Platform.STEAM_ID || platform.getId() == Platform.STEAM_ONLINE_ID) {
+                setPath("steam://rungameid/" + platformGameId);
+            }
         }
         if (savedLocally && !deleted) {
             try {
@@ -808,11 +809,12 @@ public class GameEntry {
 
     @Override
     public String toString() {
-        return "GameEntry:name=" + name +
-                ",release_date=" + (releaseDate != null ? DATE_DISPLAY_FORMAT.format(releaseDate) : null) +
-                ",platform=" + platform.getName() +
-                ",platform_game_id=" + platformGameId +
-                "playTime=" + getPlayTimeFormatted(TIME_FORMAT_FULL_DOUBLEDOTS);
+        return "GameEntry: name=" + name +
+                ", release_date=" + (releaseDate != null ? DATE_DISPLAY_FORMAT.format(releaseDate) : null) +
+                ", rating=" + aggregated_rating +
+                ", platform=" + platform.getName() +
+                ", platform_game_id=" + platformGameId +
+                ", playTime=" + getPlayTimeFormatted(TIME_FORMAT_FULL_DOUBLEDOTS);
     }
 
     public boolean isToAdd() {
