@@ -364,11 +364,11 @@ public class MainScene extends BaseScene {
                 if(c.next()){
                     c.getAddedSubList().forEach(o -> {
                         o.clearCover();
-                        Main.LOGGER.debug("clearedCover: "+o.getEntry().getName());
+                        Main.LOGGER.debug("clearedCover: "+o.getEntryOld().getName());
                     });
                     c.getRemoved().forEach(o -> {
                         o.showCover();
-                        Main.LOGGER.debug("showedCover: "+o.getEntry().getName());
+                        Main.LOGGER.debug("showedCover: "+o.getEntryOld().getName());
                     });
                     System.out.println();
                 }

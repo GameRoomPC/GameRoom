@@ -5,16 +5,21 @@ import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.*;
+import data.io.DataBase;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import ui.Main;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ui.Main.LOGGER;
 
@@ -26,39 +31,31 @@ public class IGDBScraper {
     public static String IGDB_PRO_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
     public static String key = IGDB_BASIC_KEY;
 
-    public static final String API_URL = "https://igdbcom-internet-game-database-v1.p.mashape.com";
+    public static final String API_URL = "http://62.210.219.110/api/v1";
 
     public static int REQUEST_COUNTER = 0;
 
     public static void main(String[] args) throws IOException, UnirestException {
+        String appdataFolder = System.getenv("APPDATA");
+        String dataPath = appdataFolder + File.separator + "GameRoom_dev";
+        System.out.println("Datapath :" + dataPath);
+        System.setProperty("data.dir", dataPath);
+        Main.LOGGER = LogManager.getLogger(IGDBScraper.class);
+        Main.FILES_MAP.put("db", new File("D:\\Documents\\GameRoom\\library.db"));
+        DataBase.initDB();
+
         String gameName = "Battlefield 1";
         JSONArray bf4_results = searchGame(gameName);
+        //System.out.println(bf4_results.toString(4));
         if (bf4_results != null) {
             ArrayList list = new ArrayList();
-            list.add(bf4_results.getJSONObject(0).getInt("id"));
-            JSONArray bf4_data = null;
-            try {
-                bf4_data = getGamesData(list);
-                System.out.println(bf4_data.toString(4));
-            } catch (UnirestException e) {
-                e.printStackTrace();
+            ArrayList<GameEntry> entries = getEntries(bf4_results);
+            for (GameEntry ge : entries) {
+                System.out.println(ge);
             }
         } else {
             System.out.println("Found no matching game for " + gameName);
         }
-    }
-
-    public static JSONArray getAllFields(int id) throws UnirestException {
-        incrementRequestCounter();
-        HttpResponse<JsonNode> response = Unirest.get(API_URL + "/games/" + id + "?fields=*")
-                .header("X-Mashape-Key", key)
-                .header("Accept", "application/json")
-                .asJson();
-
-        if (response.getBody().isArray()) {
-            return response.getBody().getArray();
-        }
-        return null;
     }
 
     private static Date getReleaseDate(JSONObject gameData) {
@@ -76,12 +73,7 @@ public class IGDBScraper {
                 }
                 //}
             }
-            releaseDates.sort(new Comparator<Date>() {
-                @Override
-                public int compare(Date o1, Date o2) {
-                    return o1.compareTo(o2);
-                }
-            });
+            releaseDates.sort(Date::compareTo);
             return ((releaseDates.size() > 0) ? releaseDates.get(0) : null);
         } catch (JSONException jse) {
             if (jse.toString().contains("not found")) {
@@ -109,44 +101,37 @@ public class IGDBScraper {
     }
 
     public static String[] getScreenshotHash(JSONObject jsob) {
-        JSONArray screenshotsArray = jsob.getJSONArray("screenshots");
-        String[] result = new String[screenshotsArray.length()];
-        for (int i = 0; i < screenshotsArray.length(); i++) {
-            result[i] = screenshotsArray.getJSONObject(i).getString("cloudinary_id");
+        String[] result = new String[0];
+        if (jsob != null
+                && jsob.has("screenshot_hashs")
+                && !jsob.isNull("screenshot_hashs")) {
+            JSONArray screenshotsArray = jsob.getJSONArray("screenshot_hashs");
+            result = new String[screenshotsArray.length()];
+            for (int i = 0; i < screenshotsArray.length(); i++) {
+                result[i] = screenshotsArray.getString(i);
+            }
         }
         return result;
     }
 
     public static String getCoverImageHash(JSONObject jsob) {
-        return jsob.getJSONObject("cover").getString("cloudinary_id");
+        return jsob.optString("cover_hash",null);
     }
 
-    public static int[] getPlatformIds(JSONObject jsob){
+    public static int[] getPlatformIds(JSONObject jsob) {
         try {
             JSONArray releaseDates = jsob.getJSONArray("release_dates");
             int[] platformIds = new int[releaseDates.length()];
             for (int i = 0; i < releaseDates.length(); i++) {
-                int id = releaseDates.getJSONObject(i).optInt("platform",-1);
+                int id = releaseDates.getJSONObject(i).optInt("platform", -1);
                 platformIds[i] = ArrayUtils.contains(platformIds, id) ? -1 : id;
             }
             return platformIds;
-        }catch (JSONException e){
+        } catch (JSONException e) {
             return new int[]{};
         }
     }
 
-    public static String[] getScreenshotHash(int id, JSONArray gamesData) {
-        return getScreenshotHash(gamesData.getJSONObject(indexOf(id, gamesData)));
-    }
-
-    public static String getCoverImageHash(int id, JSONArray gamesData) {
-        return getCoverImageHash(gamesData.getJSONObject(indexOf(id, gamesData)));
-    }
-
-    /*public static GameEntry getEntry(int id){
-        JSONArray gamesData = getGamesData(new ArrayList<>(id));
-        return getEntry(gamesData.getJSONObject(indexOf(id,gamesData)));
-    }*/
     public static ArrayList<GameEntry> getEntries(JSONArray searchData) throws UnirestException {
         ArrayList<GameEntry> entries = new ArrayList<>();
 
@@ -174,52 +159,27 @@ public class IGDBScraper {
         return getEntry(game_data, true);
     }
 
+
     private static GameEntry getEntry(JSONObject game_data, boolean allowUseMoreRequest) {
         GameEntry entry = new GameEntry(game_data.getString("name"));
         entry.setSavedLocally(false);
 
-        try {
-            entry.setDescription(game_data.getString("summary"));
-        } catch (JSONException je) {
-            if (je.toString().contains("not found")) {
-                //Main.LOGGER.warn(entry.getName()+" : no synopsis");
-            } else {
-                je.printStackTrace();
-            }
+        entry.setDescription(game_data.optString("description"));
+
+        if (!game_data.has("release_date") && !game_data.isNull("release_date")) {
+            Date release_date = new Date(game_data.getLong("release_date"));
+            LocalDateTime date = release_date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            entry.setReleaseDate(date);
+        } else {
+            entry.setReleaseDate(null);
         }
 
-        try {
-            ArrayList<String> years = new ArrayList<>();
-            for (Object obj : game_data.getJSONArray("release_dates")) {
-                //Windows platform is number 6
-                //if (((JSONObject) obj).getInt("platform") == 6) {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
-                years.add(sdf.format(new Date(((JSONObject) obj).getLong("date"))));
-                //}
-            }
-            years.sort(new Comparator<String>() {
-                @Override
-                public int compare(String o1, String o2) {
-                    return o1.compareTo(o2);
-                }
-            });
-            Date releaseDate = getReleaseDate(game_data);
-            LocalDateTime date = releaseDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-            entry.setReleaseDate(date);
-        } catch (JSONException je) {
-            if (je.toString().contains("not found")) {
-                //Main.LOGGER.warn(entry.getName()+" : no release date");
-            } else {
-                je.printStackTrace();
-            }
-        }
         if (allowUseMoreRequest) {
             JSONArray companiesData = getCompaniesData(getUnknownCompaniesIDs(game_data));
             JSONArray seriesData = getSeriesData(getUnknownSeriesIDs(game_data));
             setGameCompanies(entry, game_data, companiesData);
             setGameSerie(entry, game_data, seriesData);
         }
-
         try {
             entry.setGenres(getGenres(game_data));
         } catch (JSONException je) {
@@ -261,15 +221,7 @@ public class IGDBScraper {
                 je.printStackTrace();
             }
         }
-        try {
-            entry.setAggregated_rating(game_data.getInt("aggregated_rating"));
-        } catch (JSONException je) {
-            if (je.toString().contains("not found")) {
-                //Main.LOGGER.warn(entry.getName()+" : no aggregated_rating");
-            } else {
-                je.printStackTrace();
-            }
-        }
+        entry.setAggregated_rating(game_data.optInt("aggregated_rating", 0));
 
         return entry;
     }
@@ -277,15 +229,11 @@ public class IGDBScraper {
     public static JSONArray searchGame(String gameName) throws UnirestException {
         gameName = gameName.replace(' ', '+');
         incrementRequestCounter();
-        HttpResponse<JsonNode> response = Unirest.get(API_URL + "/games/?fields=name&limit=10&offset=0&search=" + gameName)
-                .header("X-Mashape-Key", key)
+        HttpResponse<JsonNode> response = Unirest.get(API_URL + "/Games/SearchGame/" + gameName)
                 .header("Accept", "application/json")
                 .asJson();
 
-        if (response.getBody().isArray()) {
-            return response.getBody().getArray();
-        }
-        return null;
+        return extractData(response, "games");
     }
 
     public static JSONObject getGameData(int id) throws UnirestException {
@@ -294,70 +242,28 @@ public class IGDBScraper {
         return getGamesData(list).getJSONObject(0);
     }
 
-    public static JSONArray getGenresData(Collection<Integer> ids) throws UnirestException {
-        String idsString = "";
-        int i = 0;
-        for (Integer id : ids) {
-            if (id >= 0) {
-                idsString += id;
-                if (i != ids.size() - 1) {
-                    idsString += ",";
-                }
-            }
-            i++;
-        }
-        incrementRequestCounter();
-        HttpResponse<JsonNode> response = Unirest.get(API_URL + "/genres/" + idsString + "?fields=name")
-                .header("X-Mashape-Key", key)
-                .header("Accept", "application/json")
-                .asJson();
-        if (response.getBody().isArray()) {
-            return response.getBody().getArray();
-        }
-        return null;
-    }
-
     public static JSONArray getGamesData(Collection<Integer> ids) throws UnirestException {
-        String idsString = "";
-        int i = 0;
-        for (Integer id : ids) {
-            if (id >= 0) {
-                idsString += id;
-                if (i != ids.size() - 1) {
-                    idsString += ",";
-                }
-            }
-            i++;
-        }
-        /*LOGGER.debug("IDS string: \"" + idsString+"\"");
-
-        HttpResponse<String> responseString = Unirest.get("https://igdbcom-internet-game-database-v1.p.mashape.com/games/" + idsString + "?fields=*")
-                .header("X-Mashape-Key", key)
-                .header("Accept", "application/json")
-                .asString();
-        LOGGER.debug("Response getGamesData:" + responseString.getBody());*/
+        String idsString = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
 
         incrementRequestCounter();
-        HttpResponse<JsonNode> response = Unirest.get(API_URL + "/games/" + idsString + "?fields=*")
-                .header("X-Mashape-Key", key)
+        HttpResponse<JsonNode> response = Unirest.get(API_URL + "/Games/GetGames/" + idsString)
                 .header("Accept", "application/json")
                 .asJson();
-        if (response.getBody().isArray()) {
-            return response.getBody().getArray();
-        }
-        return null;
+        return extractData(response, "games");
     }
 
     private static ArrayList<GameGenre> getGenres(JSONObject gameData) {
         try {
-            int genresNumber = gameData.getJSONArray("genres").length();
-            ArrayList<GameGenre> genres = new ArrayList<>();
+            if (gameData.has("genres") && !gameData.isNull("genres")) {
+                int genresNumber = gameData.getJSONArray("genres").length();
+                ArrayList<GameGenre> genres = new ArrayList<>();
 
-            for (int i = 0; i < genresNumber; i++) {
-                int genreId = gameData.getJSONArray("genres").getInt(i);
-                genres.add(GameGenre.getGenreFromID(genreId));
+                for (int i = 0; i < genresNumber; i++) {
+                    int genreId = gameData.getJSONArray("genres").getInt(i);
+                    genres.add(GameGenre.getGenreFromID(genreId));
+                }
+                return genres;
             }
-            return genres;
         } catch (JSONException jse) {
             if (jse.toString().contains("not found")) {
                 //Main.LOGGER.error("Genres not found");
@@ -370,40 +276,22 @@ public class IGDBScraper {
 
     private static ArrayList<GameTheme> getThemes(JSONObject gameData) {
         try {
-            int themesNumber = gameData.getJSONArray("themes").length();
-            ArrayList<GameTheme> themes = new ArrayList<>();
+            if (gameData.has("themes") && !gameData.isNull("themes")) {
 
-            for (int i = 0; i < themesNumber; i++) {
-                int genreId = gameData.getJSONArray("themes").getInt(i);
-                themes.add(GameTheme.getThemeFromId(genreId));
+                int themesNumber = gameData.getJSONArray("themes").length();
+                ArrayList<GameTheme> themes = new ArrayList<>();
+
+                for (int i = 0; i < themesNumber; i++) {
+                    int genreId = gameData.getJSONArray("themes").getInt(i);
+                    themes.add(GameTheme.getThemeFromId(genreId));
+                }
+                return themes;
             }
-            return themes;
         } catch (JSONException jse) {
             if (jse.toString().contains("not found")) {
                 //Main.LOGGER.error("Themes not found");
             } else {
                 jse.printStackTrace();
-            }
-        }
-        return null;
-    }
-
-    private static String getSerie(JSONObject gameData) throws UnirestException {
-        int serieId = gameData.getInt("collection");
-        incrementRequestCounter();
-        HttpResponse<JsonNode> response = Unirest.get(API_URL + "/collections/" + serieId + "?fields=name")
-                .header("X-Mashape-Key", key)
-                .header("Accept", "application/json")
-                .asJson();
-
-        if (response.getBody().isArray()) {
-            try {
-                JSONArray array = response.getBody().getArray();
-                return array.getJSONObject(0).getString("name");
-            } catch (JSONException jse) {
-                if (jse.toString().contains("not found")) {
-                    //Main.LOGGER.error("Serie not found");
-                }
             }
         }
         return null;
@@ -423,31 +311,15 @@ public class IGDBScraper {
     }
 
     private static JSONArray getSeriesData(Collection<Integer> ids) {
-        if (ids.size() < 1) {
-            return null;
-        }
-        String idsString = "";
-        int i = 0;
-        for (Integer id : ids) {
-            if (id >= 0) {
-                idsString += id;
-                if (i != ids.size() - 1) {
-                    idsString += ",";
-                }
-            }
-            i++;
-        }
+        String idsString = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
+
         try {
 
             incrementRequestCounter();
-            HttpResponse<JsonNode> response = Unirest.get(API_URL + "/collections/" + idsString + /*"?fields=*"+*/ "?fields=name")
-                    .header("X-Mashape-Key", key)
+            HttpResponse<JsonNode> response = Unirest.get(API_URL + "/Series/GetSeries/" + idsString)
                     .header("Accept", "application/json")
                     .asJson();
-            if (response.getBody().isArray()) {
-                return response.getBody().getArray();
-            }
-
+            return extractData(response, "series");
         } catch (UnirestException e) {
             //there was no serie ?
         }
@@ -468,31 +340,16 @@ public class IGDBScraper {
     }
 
     private static JSONArray getCompaniesData(Collection<Integer> ids) {
-        if (ids.size() < 1) {
-            return null;
-        }
-        String idsString = "";
-        int i = 0;
-        for (Integer id : ids) {
-            if (id >= 0) {
-                idsString += id;
-                if (i != ids.size() - 1) {
-                    idsString += ",";
-                }
-            }
-            i++;
-        }
+        String idsString = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
+
         try {
             incrementRequestCounter();
-            HttpResponse<JsonNode> response = Unirest.get(API_URL + "/companies/" + idsString + /*"?fields=*"+*/ "?fields=name")
-                    .header("X-Mashape-Key", key)
+            HttpResponse<JsonNode> response = Unirest.get(API_URL + "/Companies/GetCompanies/" + idsString)
                     .header("Accept", "application/json")
                     .asJson();
 
-            if (response.getBody().isArray()) {
-                return response.getBody().getArray();
-            }
-            return null;
+            return extractData(response, "companies");
+
         } catch (UnirestException e) {
             //there was no company ?
         }
@@ -508,12 +365,14 @@ public class IGDBScraper {
     private static HashSet<Integer> getUnknownCompaniesIDs(JSONObject searchData) {
         HashSet<Integer> companiesIDs = new HashSet<>();
         try {
-            int publishersNumber = searchData.getJSONArray("publishers").length();
-            for (int j = 0; j < publishersNumber; j++) {
-                int igdbId = searchData.getJSONArray("publishers").getInt(j);
-                Company publi = Company.getFromIGDBId(igdbId);
-                if (publi == null) {
-                    companiesIDs.add(igdbId);
+            if (searchData.has("publishers") && !searchData.isNull("publishers")) {
+                int publishersNumber = searchData.getJSONArray("publishers").length();
+                for (int j = 0; j < publishersNumber; j++) {
+                    int igdbId = searchData.getJSONArray("publishers").getInt(j);
+                    Company publi = Company.getFromIGDBId(igdbId);
+                    if (publi == null) {
+                        companiesIDs.add(igdbId);
+                    }
                 }
             }
         } catch (JSONException je) {
@@ -525,12 +384,14 @@ public class IGDBScraper {
         }
 
         try {
-            int developersNumber = searchData.getJSONArray("developers").length();
-            for (int j = 0; j < developersNumber; j++) {
-                int igdbId = searchData.getJSONArray("developers").getInt(j);
-                Company dev = Company.getFromIGDBId(igdbId);
-                if (dev == null) {
-                    companiesIDs.add(igdbId);
+            if (searchData.has("developers") && !searchData.isNull("developers")) {
+                int developersNumber = searchData.getJSONArray("developers").length();
+                for (int j = 0; j < developersNumber; j++) {
+                    int igdbId = searchData.getJSONArray("developers").getInt(j);
+                    Company dev = Company.getFromIGDBId(igdbId);
+                    if (dev == null) {
+                        companiesIDs.add(igdbId);
+                    }
                 }
             }
         } catch (JSONException je) {
@@ -566,10 +427,12 @@ public class IGDBScraper {
     private static void setGameCompanies(GameEntry entryToSet, JSONObject searchData, JSONArray companiesData) {
         ArrayList<Company> companies = new ArrayList<>();
         try {
-            int publishersNumber = searchData.getJSONArray("publishers").length();
-            for (int j = 0; j < publishersNumber; j++) {
-                int igdbId = searchData.getJSONArray("publishers").getInt(j);
-                companies.add(extractCompany(igdbId, companiesData));
+            if (searchData.has("publishers") && !searchData.isNull("publishers")) {
+                int publishersNumber = searchData.getJSONArray("publishers").length();
+                for (int j = 0; j < publishersNumber; j++) {
+                    int igdbId = searchData.getJSONArray("publishers").getInt(j);
+                    companies.add(extractCompany(igdbId, companiesData));
+                }
             }
         } catch (JSONException je) {
             if (je.toString().contains("not found")) {
@@ -583,11 +446,13 @@ public class IGDBScraper {
 
         companies.clear();
         try {
-            int developersNumber = searchData.getJSONArray("developers").length();
+            if (searchData.has("developers") && !searchData.isNull("developers")) {
+                int developersNumber = searchData.getJSONArray("developers").length();
 
-            for (int j = 0; j < developersNumber; j++) {
-                int igdbId = searchData.getJSONArray("developers").getInt(j);
-                companies.add(extractCompany(igdbId, companiesData));
+                for (int j = 0; j < developersNumber; j++) {
+                    int igdbId = searchData.getJSONArray("developers").getInt(j);
+                    companies.add(extractCompany(igdbId, companiesData));
+                }
             }
         } catch (JSONException je) {
             if (je.toString().contains("not found")) {
@@ -610,10 +475,12 @@ public class IGDBScraper {
     private static HashSet<Integer> getUnknownSeriesIDs(JSONObject searchData) {
         HashSet<Integer> seriesIDs = new HashSet<>();
         try {
-            int serieId = searchData.getInt("collection");
-            Serie serie = Serie.getFromIGDBId(serieId);
-            if (serie == null) {
-                seriesIDs.add(serieId);
+            if (searchData.has("collection") && !searchData.isNull("collection")) {
+                int serieId = searchData.getInt("collection");
+                Serie serie = Serie.getFromIGDBId(serieId);
+                if (serie == null) {
+                    seriesIDs.add(serieId);
+                }
             }
         } catch (JSONException je) {
             if (je.toString().contains("not found")) {
@@ -648,8 +515,10 @@ public class IGDBScraper {
     private static void setGameSerie(GameEntry entryToSet, JSONObject searchData, JSONArray seriesData) {
 
         try {
-            int serieId = searchData.getInt("collection");
-            entryToSet.setSerie(getSerie(serieId, seriesData));
+            if (searchData.has("collection") && !searchData.isNull("collection")) {
+                int serieId = searchData.getInt("collection");
+                entryToSet.setSerie(getSerie(serieId, seriesData));
+            }
         } catch (JSONException je) {
             if (je.toString().contains("not found")) {
                 //Main.LOGGER.warn(entry.getName()+" : no serie");
@@ -666,5 +535,14 @@ public class IGDBScraper {
         } else {
             System.out.println("IGDBScraper : added req, total=" + REQUEST_COUNTER);
         }
+    }
+
+    private static JSONArray extractData(HttpResponse<JsonNode> response, String key) {
+        if (response.getBody() != null
+                && response.getBody().getObject() != null
+                && response.getBody().getObject().optJSONObject("data") != null) {
+            return response.getBody().getObject().optJSONObject("data").optJSONArray(key);
+        }
+        return null;
     }
 }

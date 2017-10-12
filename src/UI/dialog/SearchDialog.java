@@ -28,12 +28,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.util.StringConverter;
-import org.apache.http.conn.ConnectTimeoutException;
 import org.controlsfx.control.CheckComboBox;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
@@ -43,12 +41,13 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
 import static ui.Main.SCREEN_WIDTH;
 
@@ -312,8 +311,13 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                     je.printStackTrace();
                 }
             }
+            Date release_date = null;
+            if(!value.has("release_date") && !value.isNull("release_date")){
+                release_date = new Date(value.getLong("release_date"));
+            }
+
             SearchItem row = new SearchItem(value, this, value.getString("name")
-                    , IGDBScraper.getReleaseDate(value.getInt("id"), gamesDataArray)
+                    , release_date
                     , value.getInt("id")
                     , coverHash
                     , prefRowWidth
