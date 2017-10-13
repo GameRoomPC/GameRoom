@@ -465,7 +465,8 @@ public class GameWatcher {
                 .replace("()", "")
                 .replaceAll("\\(.*\\)","")
                 .replaceAll("\\[.*\\]","")
-                .replaceAll("\\{.*\\}","");
+                .replaceAll("\\{.*\\}","")
+                .trim();
     }
 
     public static String cleanNameForDisplay(String name, String[] possibleExtensions) {
