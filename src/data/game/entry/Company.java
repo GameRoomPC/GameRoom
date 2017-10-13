@@ -14,6 +14,7 @@ public class Company {
     private final static HashMap<Integer, Company> ID_MAP = new HashMap<>();
     private int igdb_id = DEFAULT_ID;
     private int id = DEFAULT_ID;
+    private boolean id_needs_update = true;
     private String name;
 
 
@@ -23,6 +24,7 @@ public class Company {
         }
         this.igdb_id = igdb_id;
         this.name = name;
+        this.id_needs_update = false;
 
         insertInDB(updateIfExists);
     }
@@ -110,7 +112,7 @@ public class Company {
         }
 
         for (Company company : ID_MAP.values()) {
-            if (company.getIGDBId() == igdb_id) {
+            if (company.getIGDBId() == igdb_id && ! company.idNeedsUpdate()) {
                 return company;
             }
         }
@@ -137,6 +139,14 @@ public class Company {
         return null;
     }
 
+    public boolean idNeedsUpdate() {
+        return id_needs_update;
+    }
+
+    public void setIdNeedsUpdate(boolean idNeedsUpdate) {
+        this.id_needs_update = idNeedsUpdate;
+    }
+
     public static Company getFromId(int id) {
         if (ID_MAP.isEmpty()) {
             try {
@@ -158,8 +168,11 @@ public class Company {
                 if (set.next()) {
                     int companyId = set.getInt("id");
                     String key = set.getString("name_key");
+                    boolean idNeedsUpdate = set.getBoolean("id_needs_update");
                     Company newCompany = new Company(set.getInt("igdb_id"),key,false);
                     newCompany.setId(companyId);
+                    newCompany.setIdNeedsUpdate(idNeedsUpdate);
+
                     ID_MAP.put(companyId, newCompany);
 
                     return newCompany;
