@@ -38,12 +38,12 @@ public class Company {
 
     public int insertInDB(boolean updateIfExists) {
         try {
-            if(isInDB()){
+            if (isInDB()) {
                 id = getIdInDb();
-                if(!updateIfExists){
+                if (!updateIfExists) {
                     return id;
                 }
-                String sql = "UPDATE Company set name_key=?"+(igdb_id < 0 ? "" : ", igdb_id=?,id_needs_update=?")+" where id="+id;
+                String sql = "UPDATE Company set name_key=?" + (igdb_id < 0 ? "" : ", igdb_id=?,id_needs_update=?") + " where id=" + id;
                 PreparedStatement companyStatement = DataBase.getUserConnection().prepareStatement(sql);
                 companyStatement.setString(1, name);
                 if (igdb_id >= 0) {
@@ -52,7 +52,7 @@ public class Company {
                 }
                 companyStatement.execute();
                 companyStatement.close();
-            }else {
+            } else {
                 String sql = "INSERT OR IGNORE INTO Company(name_key," + (igdb_id < 0 ? "id_needs_update) VALUES (?,?)" : "igdb_id) VALUES (?,?)");
                 PreparedStatement companyStatement = DataBase.getUserConnection().prepareStatement(sql);
                 companyStatement.setString(1, name);
@@ -65,8 +65,8 @@ public class Company {
                 companyStatement.close();
 
                 id = getIdInDb();
-                ID_MAP.put(id, this);
             }
+            ID_MAP.put(id, this);
 
             return id;
             //DataBase.commit();
@@ -76,7 +76,7 @@ public class Company {
         return DEFAULT_ID;
     }
 
-    private boolean isInDB(){
+    private boolean isInDB() {
         return getIdInDb() != DEFAULT_ID;
     }
 
@@ -112,7 +112,7 @@ public class Company {
         }
 
         for (Company company : ID_MAP.values()) {
-            if (company.getIGDBId() == igdb_id && ! company.idNeedsUpdate()) {
+            if (company.getIGDBId() == igdb_id && !company.idNeedsUpdate()) {
                 return company;
             }
         }
@@ -125,7 +125,7 @@ public class Company {
             if (set.next()) {
                 int companyId = set.getInt("id");
                 String key = set.getString("name_key");
-                Company newCompany = new Company(companyId, key,false);
+                Company newCompany = new Company(companyId, key, false);
                 newCompany.setIGDBId(igdb_id);
                 ID_MAP.put(companyId, newCompany);
 
@@ -158,7 +158,7 @@ public class Company {
 
         Company company = ID_MAP.get(id);
 
-        if(company == null){
+        if (company == null) {
             //try to see if it exists in db
             try {
                 Connection connection = DataBase.getUserConnection();
@@ -169,7 +169,7 @@ public class Company {
                     int companyId = set.getInt("id");
                     String key = set.getString("name_key");
                     boolean idNeedsUpdate = set.getBoolean("id_needs_update");
-                    Company newCompany = new Company(set.getInt("igdb_id"),key,false);
+                    Company newCompany = new Company(set.getInt("igdb_id"), key, false);
                     newCompany.setId(companyId);
                     newCompany.setIdNeedsUpdate(idNeedsUpdate);
 
@@ -193,7 +193,7 @@ public class Company {
         while (set.next()) {
             int id = set.getInt("id");
             String key = set.getString("name_key");
-            ID_MAP.put(id, new Company(set.getInt("igdb_id"), key,false));
+            ID_MAP.put(id, new Company(set.getInt("igdb_id"), key, false));
         }
         statement.close();
     }
@@ -218,14 +218,14 @@ public class Company {
         return id;
     }
 
-    public static String getDisplayString(Collection<Company> companies){
-        if(companies == null || companies.isEmpty()){
+    public static String getDisplayString(Collection<Company> companies) {
+        if (companies == null || companies.isEmpty()) {
             return "-";
         }
         String temp = "";
         int i = 0;
-        for(Company c : companies){
-            if(c!=null) {
+        for (Company c : companies) {
+            if (c != null) {
                 temp += c.getName();
                 if (i != companies.size() - 1) {
                     temp += ", ";
@@ -237,8 +237,8 @@ public class Company {
     }
 
     @Override
-    public String toString(){
-        if(name == null){
+    public String toString() {
+        if (name == null) {
             return "-";
         }
         return name;
@@ -249,7 +249,7 @@ public class Company {
     }
 
     @Override
-    public int hashCode(){
+    public int hashCode() {
         return id;
     }
 }
