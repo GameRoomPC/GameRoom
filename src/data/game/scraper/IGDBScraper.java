@@ -15,7 +15,6 @@ import ui.Main;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -297,12 +296,12 @@ public class IGDBScraper {
         return null;
     }
 
-    private static Serie getSerie(int id, JSONArray serieData) {
+    private static Serie extractSerie(int id, JSONArray serieData) {
         Serie s = Serie.getFromIGDBId(id);
         try {
             if (s == null && serieData != null) {
                 String name = serieData.getJSONObject(indexOf(id, serieData)).getString("name");
-                s = new Serie(id, name);
+                s = new Serie(id, name,true);
             }
         } catch (JSONException je) {
             return Serie.NONE;
@@ -517,7 +516,7 @@ public class IGDBScraper {
         try {
             if (searchData.has("collection") && !searchData.isNull("collection")) {
                 int serieId = searchData.getInt("collection");
-                entryToSet.setSerie(getSerie(serieId, seriesData));
+                entryToSet.setSerie(extractSerie(serieId, seriesData));
             }
         } catch (JSONException je) {
             if (je.toString().contains("not found")) {
