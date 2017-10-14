@@ -114,21 +114,24 @@ public class IGDBScraper {
     }
 
     public static String getCoverImageHash(JSONObject jsob) {
-        return jsob.optString("cover_hash",null);
+        return jsob.optString("cover_hash", null);
     }
 
     public static int[] getPlatformIds(JSONObject jsob) {
         try {
-            JSONArray releaseDates = jsob.getJSONArray("release_dates");
-            int[] platformIds = new int[releaseDates.length()];
-            for (int i = 0; i < releaseDates.length(); i++) {
-                int id = releaseDates.getJSONObject(i).optInt("platform", -1);
-                platformIds[i] = ArrayUtils.contains(platformIds, id) ? -1 : id;
+            if (jsob.has("platforms") && !jsob.isNull("platforms")) {
+                JSONArray platforms = jsob.getJSONArray("platforms");
+                int[] platformIds = new int[platforms.length()];
+                for (int i = 0; i < platforms.length(); i++) {
+                    int id = platforms.getInt(i);
+                    platformIds[i] = ArrayUtils.contains(platformIds, id) ? -1 : id;
+                }
+                return platformIds;
             }
-            return platformIds;
         } catch (JSONException e) {
-            return new int[]{};
+            e.printStackTrace();
         }
+        return new int[]{};
     }
 
     public static ArrayList<GameEntry> getEntries(JSONArray searchData) throws UnirestException {
@@ -301,7 +304,7 @@ public class IGDBScraper {
         try {
             if (s == null && serieData != null) {
                 String name = serieData.getJSONObject(indexOf(id, serieData)).getString("name");
-                s = new Serie(id, name,true);
+                s = new Serie(id, name, true);
             }
         } catch (JSONException je) {
             return Serie.NONE;
