@@ -17,7 +17,6 @@ public class Company {
     private boolean id_needs_update = true;
     private String name;
 
-
     public Company(int igdb_id, String name, boolean updateIfExists) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Company's name was either null or empty : \"" + name + "\"");
@@ -125,8 +124,8 @@ public class Company {
             if (set.next()) {
                 int companyId = set.getInt("id");
                 String key = set.getString("name_key");
-                Company newCompany = new Company(companyId, key, false);
-                newCompany.setIGDBId(igdb_id);
+                Company newCompany = new Company(igdb_id, key, false);
+                newCompany.setId(companyId);
                 ID_MAP.put(companyId, newCompany);
 
                 return newCompany;
