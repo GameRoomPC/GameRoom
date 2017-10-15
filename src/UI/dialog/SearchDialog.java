@@ -8,7 +8,9 @@ import data.game.scraper.OnDLDoneHandler;
 import data.http.SimpleImageInfo;
 import data.http.images.ImageUtils;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -63,6 +65,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
     private SearchList searchListPane;
 
     private HashMap<String, Boolean> doNotUpdateFieldsMap;
+    private BooleanProperty allowDLCs = new SimpleBooleanProperty(false);
 
     public SearchDialog(HashMap<String, Boolean> doNotUpdateFieldsMap) {
         this(doNotUpdateFieldsMap, null);
@@ -114,7 +117,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             searchListPane.clearItems();
             Platform.runLater(() -> statusLabel.setText(Main.getString("searching") + "..."));
             try {
-                JSONArray resultArray = IGDBScraper.searchGame(searchField.getText());
+                JSONArray resultArray = IGDBScraper.searchGame(searchField.getText(),allowDLCs.getValue());
                 if (resultArray == null) {
                     Platform.runLater(() -> statusLabel.setText(Main.getString("no_result") + "/" + Main.getString("no_internet")));
                 } else {
@@ -126,7 +129,6 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                             Task scrapping = new Task() {
                                 @Override
                                 protected String call() throws Exception {
-                                    searchListPane.setGamesDataArray(resultArray);
                                     Platform.runLater(() -> statusLabel.setText(""));
                                     Platform.runLater(() -> searchListPane.addItems(resultArray.iterator()));
                                     return null;
@@ -162,12 +164,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         for (String key : doNotUpdateFieldsMap.keySet()) {
             fields.add(key);
         }
-        fields.sort(new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
-                return o1.compareTo(o2);
-            }
-        });
+        fields.sort(String::compareTo);
         // Create the CheckComboBox with the data
         final CheckComboBox<String> fieldsComboBox = new CheckComboBox<String>(fields);
         fieldsComboBox.setConverter(new StringConverter<String>() {
@@ -202,16 +199,31 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         Label doNotUpdateLabel = new Label(Main.getString("do_not_update") + ":");
         doNotUpdateLabel.setFocusTraversable(false);
         HBox notUpdateHbox = new HBox();
-        notUpdateHbox.setAlignment(Pos.CENTER);
+        notUpdateHbox.setAlignment(Pos.CENTER_LEFT);
         notUpdateHbox.setSpacing(10 * Main.SCREEN_WIDTH / 1920);
         notUpdateHbox.getChildren().addAll(doNotUpdateLabel, fieldsComboBox);
 
+        CheckBox searchDLCCheckBox = new CheckBox();
+        searchDLCCheckBox.setSelected(false);
+        searchDLCCheckBox.selectedProperty().bindBidirectional(allowDLCs);
+        Label searchDLCLabel = new Label(Main.getString("search_also_DLCs") + ":");
+        searchDLCLabel.setFocusTraversable(false);
+        HBox searchDLCHbox = new HBox();
+        searchDLCHbox.setAlignment(Pos.CENTER_LEFT);
+        searchDLCHbox.setSpacing(10 * Main.SCREEN_WIDTH / 1920);
+        searchDLCHbox.getChildren().addAll(searchDLCLabel, searchDLCCheckBox);
+
+        VBox bottomVbox = new VBox();
+        bottomVbox.setAlignment(Pos.BASELINE_LEFT);
+        bottomVbox.setSpacing(5 * Main.SCREEN_WIDTH / 1920);
+        bottomVbox.getChildren().addAll(searchDLCHbox, notUpdateHbox);
+
         mainPane.setTop(topBox);
         mainPane.setCenter(centerPane);
-        mainPane.setBottom(notUpdateHbox);
+        mainPane.setBottom(bottomVbox);
 
         BorderPane.setMargin(topBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
-        BorderPane.setMargin(notUpdateHbox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 0 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
+        BorderPane.setMargin(bottomVbox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 0 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
         ButtonType cancelButtonType = new ButtonType(ui.Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType nextButtonType = new ButtonType(Main.getString("next"), ButtonBar.ButtonData.OK_DONE);
@@ -227,7 +239,6 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         setOnHiding(event -> {
             if (searchListPane.getSelectedValue() != null) {
                 selectedEntry = IGDBScraper.getEntry(searchListPane.getSelectedValue());
-                String coverHash = IGDBScraper.getEntry(searchListPane.getSelectedValue()).getIgdb_imageHash(0);
             }
         });
         if (gameName != null) {
@@ -247,16 +258,11 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
     }
 
     private static class SearchList extends SelectListPane<JSONObject> {
-        private JSONArray gamesDataArray;
         private ReadOnlyDoubleProperty prefRowWidth;
 
         public SearchList(ReadOnlyDoubleProperty prefRowWidth) {
             super();
             this.prefRowWidth = prefRowWidth;
-        }
-
-        public void setGamesDataArray(JSONArray gamesDataArray) {
-            this.gamesDataArray = gamesDataArray;
         }
 
         @Override

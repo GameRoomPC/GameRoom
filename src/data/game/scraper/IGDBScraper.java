@@ -44,7 +44,7 @@ public class IGDBScraper {
         DataBase.initDB();
 
         String gameName = "Battlefield 1";
-        JSONArray bf4_results = searchGame(gameName);
+        JSONArray bf4_results = searchGame(gameName,true);
         //System.out.println(bf4_results.toString(4));
         if (bf4_results != null) {
             ArrayList list = new ArrayList();
@@ -228,10 +228,11 @@ public class IGDBScraper {
         return entry;
     }
 
-    public static JSONArray searchGame(String gameName) throws UnirestException {
+    public static JSONArray searchGame(String gameName, boolean allowDLCs) throws UnirestException {
         gameName = gameName.replace(' ', '+');
         incrementRequestCounter();
-        HttpResponse<JsonNode> response = Unirest.get(API_URL + "/Games/SearchGame/" + gameName)
+        String args = "?dlc=" + (allowDLCs ? "1" : "0");
+        HttpResponse<JsonNode> response = Unirest.get(API_URL + "/Games/SearchGame/" + gameName + args)
                 .header("Accept", "application/json")
                 .asJson();
 
