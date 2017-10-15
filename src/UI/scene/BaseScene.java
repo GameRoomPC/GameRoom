@@ -80,10 +80,8 @@ public abstract class BaseScene extends Scene {
         rootStackPane.getChildren().add(maskView);
         initAndAddWrappingPaneToRoot();
 
-        getWrappingPane().maxHeightProperty().bind(heightProperty());
-        getWrappingPane().prefHeightProperty().bind(heightProperty());
-        getWrappingPane().maxWidthProperty().bind(widthProperty());
-        getWrappingPane().prefWidthProperty().bind(widthProperty());
+        /*getWrappingPane().maxHeightProperty().bind(heightProperty());
+        getWrappingPane().maxWidthProperty().bind(widthProperty());*/
     }
     BaseScene(StackPane stackPane, Stage parentStage) {
         this(stackPane,parentStage,parentStage.getScene().getWidth(),parentStage.getScene().getHeight());
@@ -99,9 +97,9 @@ public abstract class BaseScene extends Scene {
 
     public void fadeTransitionTo(BaseScene scene2, Stage stage, boolean backgroundViewToo) {
         if (scene2 instanceof MainScene) {
-
             ((MainScene) scene2).setChangeBackgroundNextTime(true);
         }
+
         Timeline fadeOutTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(getWrappingPane().opacityProperty(), getWrappingPane().opacityProperty().getValue(), Interpolator.LINEAR),
@@ -117,6 +115,7 @@ public abstract class BaseScene extends Scene {
                 onSceneFadedOutAction.run();
             }
             scene2.getWrappingPane().setOpacity(0);
+            scene2.getWrappingPane().setPrefHeight(getWrappingPane().getHeight());
             stage.setScene(scene2);
             stage.setFullScreen(settings().getBoolean(PredefinedSetting.FULL_SCREEN));
             Timeline fadeInTimeline = new Timeline(

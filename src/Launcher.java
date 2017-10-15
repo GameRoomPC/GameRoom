@@ -230,8 +230,11 @@ public class Launcher extends Application {
             primaryStage.setX(settings().getDouble(PredefinedSetting.WINDOW_X));
             primaryStage.setY(settings().getDouble(PredefinedSetting.WINDOW_Y));
         }
-        /*primaryStage.setWidth(primaryStage.getWidth());
-        primaryStage.setHeight(primaryStage.getHeight());*/
+        /*strangely the two following lines will fix some scaling issues that occurs when not in maximized mode and switching
+        between to scenes, the main scene would scale in height too much otherwise.
+         */
+        primaryStage.setWidth(primaryStage.getWidth());
+        primaryStage.setHeight(primaryStage.getHeight());
         primaryStage.setMaximized(settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED));
 
         if (START_MINIMIZED && appStart) {
