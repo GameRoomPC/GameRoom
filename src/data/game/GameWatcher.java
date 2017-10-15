@@ -126,7 +126,7 @@ public class GameWatcher {
         tryScrapToAddEntries();
 
         LOGGER.info("GameWatcher ended");
-        LOGGER.info("IGDB requests made : "+IGDBScraper.REQUEST_COUNTER);
+        LOGGER.info("IGDB requests made : " + IGDBScraper.REQUEST_COUNTER);
         for (Runnable onSeachDone : onSearchDoneListeners) {
             if (onSeachDone != null) {
                 onSeachDone.run();
@@ -216,7 +216,7 @@ public class GameWatcher {
                         entry.setSavedLocally(true);
                         entry.setBeingScraped(true);
                         entry.setSavedLocally(false);
-                        JSONArray search_results = IGDBScraper.searchGame(entry.getName(),true);
+                        JSONArray search_results = IGDBScraper.searchGame(entry.getName(), true);
                         if (search_results != null) {
                             int igdbId = LevenshteinDistance.closestName(entry.getName(), search_results);
                             searchIGDBIDs.add(igdbId);
@@ -272,7 +272,7 @@ public class GameWatcher {
                     try {
                         JSONArray gamesDataArray = IGDBScraper.getGamesData(ids);
                         if (gamesDataArray != null) {
-                            ArrayList<GameEntry> scrappedEntries = IGDBScraper.getEntries(gamesDataArray);
+                            ArrayList<GameEntry> scrappedEntries = IGDBScraper.getGameEntries(gamesDataArray);
 
                             int i = 0;
 
@@ -282,7 +282,7 @@ public class GameWatcher {
                             for (GameEntry scrappedEntry : scrappedEntries) {
                                 GameEntry toScrapEntry = getGameWithIGDBId(scrappedEntry.getIgdb_id(), toScrapEntries);
                                 if (toScrapEntry != null && !GameEntryUtils.isGameIgnored(toScrapEntry)) {
-                                    LOGGER.debug("Added scrapped info to game \""+toScrapEntry.getName()+"\"");
+                                    LOGGER.debug("Added scrapped info to game \"" + toScrapEntry.getName() + "\"");
                                     toScrapEntry.setSavedLocally(true);
                                     if (toScrapEntry.getDescription() == null || toScrapEntry.getDescription().equals("")) {
                                         toScrapEntry.setDescription(scrappedEntry.getDescription());
@@ -463,9 +463,9 @@ public class GameWatcher {
                 .replace("x86", "")
                 .replace("x64", "")
                 .replace("()", "")
-                .replaceAll("\\(.*\\)","")
-                .replaceAll("\\[.*\\]","")
-                .replaceAll("\\{.*\\}","")
+                .replaceAll("\\(.*\\)", "")
+                .replaceAll("\\[.*\\]", "")
+                .replaceAll("\\{.*\\}", "")
                 .trim();
     }
 

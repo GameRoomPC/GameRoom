@@ -112,12 +112,12 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             searchListPane.clearItems();
             Platform.runLater(() -> statusLabel.setText(Main.getString("searching") + "..."));
             try {
-                JSONArray resultArray = IGDBScraper.searchGame(searchField.getText(),allowDLCs.getValue());
+                JSONArray resultArray = IGDBScraper.searchGame(searchField.getText(), allowDLCs.getValue());
                 if (resultArray == null) {
                     Platform.runLater(() -> statusLabel.setText(Main.getString("no_result") + "/" + Main.getString("no_internet")));
                 } else {
                     try {
-                        if (resultArray == null ||resultArray.length() == 0) {
+                        if (resultArray == null || resultArray.length() == 0) {
                             Platform.runLater(() -> statusLabel.setText(Main.getString("no_result")));
                         } else {
                             Platform.runLater(() -> statusLabel.setText(Main.getString("loading") + "..."));
@@ -264,7 +264,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         protected ListItem<JSONObject> createListItem(JSONObject value) {
             String coverHash = null;
             try {
-                coverHash = IGDBScraper.getCoverImageHash(value);
+                coverHash = IGDBScraper.extractCoverImageHash(value);
             } catch (JSONException je) {
                 Main.LOGGER.debug("No cover for game " + value.getString("name"));
                 if (!je.toString().contains("cover")) {
@@ -272,7 +272,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 }
             }
             Date release_date = null;
-            if(!value.has("release_date") && !value.isNull("release_date")){
+            if (!value.has("release_date") && !value.isNull("release_date")) {
                 release_date = new Date(value.getLong("release_date"));
             }
 
@@ -281,7 +281,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                     , value.getInt("id")
                     , coverHash
                     , prefRowWidth
-                    , IGDBScraper.getPlatformIds(value)
+                    , IGDBScraper.extractPlatformIds(value)
             );
             row.prefWidthProperty().bind(prefRowWidth);
             return row;
@@ -368,7 +368,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                     "    -fx-font-style: italic;");*/
             yearLabel.setId("search-result-year-label");
 
-            HBox logoBox = new HBox(5*Main.SCREEN_WIDTH / 1920);
+            HBox logoBox = new HBox(5 * Main.SCREEN_WIDTH / 1920);
             logoBox.prefWidthProperty().bind(prefRowWidth);
             double logoWidth = 25 * Main.SCREEN_WIDTH / 1920;
             double logoHeight = 25 * Main.SCREEN_HEIGHT / 1080;
@@ -382,7 +382,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                     temp.setPreserveRatio(true);
                     temp.setFitWidth(logoWidth);
                     temp.setFitHeight(logoHeight);
-                    p.setCSSIcon(temp,false);
+                    p.setCSSIcon(temp, false);
                     logoBox.getChildren().add(temp);
                 }
             }

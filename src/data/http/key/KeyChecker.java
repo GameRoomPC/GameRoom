@@ -6,7 +6,6 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import system.application.GameRoomUpdater;
 import system.application.settings.PredefinedSetting;
 import system.os.WinReg;
 import ui.Main;
@@ -23,7 +22,7 @@ import static ui.Main.SUPPORTER_MODE;
  * Created by LM on 05/08/2016.
  */
 public class KeyChecker {
-    public final static String API_URL = "https://gameroom.me";
+    private final static String API_URL = "https://gameroom.me";
     private final static String VALIDATION_KEY = "57a0dc1fa9b0d0.08408190";
     private final static boolean DEBUGGING = false;
 
@@ -46,9 +45,18 @@ public class KeyChecker {
 
     private final static String MESSAGE_DOMAIN_ALREADY_INACTIVE = "The license key on this domain is already inactive";
 
-    public static boolean attemptingUUIDUpdate = false;
+    private static boolean attemptingUUIDUpdate = false;
 
 
+    /**
+     * Will attempt to deactivate the given supporter key, by giving the machine guid as domain or a comma separated list
+     * of host's MAC addresses if the machine guid is null or empty
+     *
+     * @param key the key to deactivate
+     * @return a {@link JSONObject} containing the return message. Might be null
+     * @throws IOException      in case there was an error parsing the response
+     * @throws UnirestException in case there was an error contacting the API
+     */
     public static JSONObject deactivateKey(String key) throws IOException, UnirestException {
         String guid = WinReg.readHWGUID();
         if (guid == null || guid.isEmpty()) {
@@ -58,6 +66,15 @@ public class KeyChecker {
         return deactivateKey(key, guid);
     }
 
+    /**
+     * Will attempt to deactivate the given supporter key, using the given unique id as domain
+     *
+     * @param key  the key to deactivate
+     * @param uuid the domain to be used
+     * @return a {@link JSONObject} containing the return message. Might be null
+     * @throws IOException      in case there was an error parsing the response
+     * @throws UnirestException in case there was an error contacting the API
+     */
     private static JSONObject deactivateKey(String key, String uuid) throws IOException, UnirestException {
         HttpResponse<JsonNode> response = Unirest.post(API_URL)
                 .field("secret_key", VALIDATION_KEY)
@@ -77,6 +94,15 @@ public class KeyChecker {
         return null;
     }
 
+    /**
+     * Will attempt to activate the given supporter key, by giving the machine guid as domain or a comma separated list
+     * of host's MAC addresses if the machine guid is null or empty
+     *
+     * @param key the key to activate
+     * @return a {@link JSONObject} containing the return message. Might be null
+     * @throws IOException      in case there was an error parsing the response
+     * @throws UnirestException in case there was an error contacting the API
+     */
     public static JSONObject activateKey(String key) throws IOException, UnirestException {
         String guid = WinReg.readHWGUID();
         if (guid == null || guid.isEmpty()) {
@@ -86,6 +112,16 @@ public class KeyChecker {
         return activateKey(key, guid, true);
     }
 
+    /**
+     * Will attempt to activate the given supporter key, using the given uuid as domain
+     *
+     * @param key             the key to activate
+     * @param uuid            the unique identifier to use as domain
+     * @param checkValidFirst if we should first check if the key has already been registered for this domain
+     * @return a {@link JSONObject} containing the return message. Might be null
+     * @throws IOException      in case there was an error parsing the response
+     * @throws UnirestException in case there was an error contacting the API
+     */
     private static JSONObject activateKey(String key, String uuid, boolean checkValidFirst) throws IOException, UnirestException {
         if (checkValidFirst && isKeyValid(key, uuid)) {
             LOGGER.debug("KeyChecker : key already activated, validating");
@@ -112,6 +148,14 @@ public class KeyChecker {
         return null;
     }
 
+    /**
+     * Checks if the given key is valid & registered, by giving the machine guid as domain or a comma separated list
+     * of host's MAC addresses if the machine guid is null or empty
+     *
+     * @param key the key to activate
+     * @return true if key is valid & registered with the given domain (see {@link KeyChecker#isKeyValid(String, String)}
+     * false otherwise
+     */
     public static boolean isKeyValid(String key) {
         String guid = WinReg.readHWGUID();
         if (guid == null || guid.isEmpty()) {
@@ -126,8 +170,16 @@ public class KeyChecker {
         return isKeyValid(key, guid);
     }
 
-    public static boolean isKeyValid(String key, String guid) {
-        if (!testInet(API_URL.replace("https://", ""))) {
+    /**
+     * Checks if the given key is valid & registered, using the given guid as domain. Will attempt to {@link KeyChecker#tryReplaceMACPerGUID()}
+     * if it detects a MAC address in use as domain.
+     *
+     * @param key  the key to activate
+     * @param guid the unique identifier to use as domain
+     * @return true if key is valid & registered with the given domain, false otherwise
+     */
+    private static boolean isKeyValid(String key, String guid) {
+        if (!isDomainUp(API_URL)) {
             LOGGER.error("KeyChecker : GameRoom not reachable");
             return false;
         }
@@ -184,6 +236,14 @@ public class KeyChecker {
         return false;
     }
 
+    /**
+     * Helper method for {@link KeyChecker#isKeyValid(String, String)}. Asks if a given key is valid
+     *
+     * @param key the key to check
+     * @return a JSONObject containing the server's response
+     * @throws IOException      in case of connectivity issues to the server
+     * @throws UnirestException in case of response parsing issues
+     */
     private static JSONObject askKeyValid(String key) throws IOException, UnirestException {
         HttpResponse<JsonNode> response = Unirest.post(API_URL)
                 .field("secret_key", VALIDATION_KEY)
@@ -202,8 +262,13 @@ public class KeyChecker {
         return null;
     }
 
+    /**
+     * @return a comma separated list {@link String} containing all MAC Addresses of the device. This is now useless as
+     * a UID as it can changes overtime (new WiFi interface added etc...)
+     * @throws SocketException in case there was an error getting the {@link NetworkInterface}s
+     */
     private static String getAllMACAddresses() throws SocketException {
-        String MACAddresses = " ";
+        StringBuilder MACAddresses = new StringBuilder(" ");
         Enumeration<NetworkInterface> networkInterfaceEnumeration = NetworkInterface.getNetworkInterfaces();
         while (networkInterfaceEnumeration.hasMoreElements()) {
             NetworkInterface networkInterface = networkInterfaceEnumeration.nextElement();
@@ -220,14 +285,19 @@ public class KeyChecker {
                         macAddressBuilder.append(":");
                     }
                 }
-                if (!macAddressBuilder.toString().equals("00:00:00:00:00:00:00:E0") && !MACAddresses.contains(macAddressBuilder.toString())) {
-                    MACAddresses += macAddressBuilder.toString() + ",";
+                if (!macAddressBuilder.toString().equals("00:00:00:00:00:00:00:E0") && !MACAddresses.toString().contains(macAddressBuilder.toString())) {
+                    MACAddresses.append(macAddressBuilder.toString()).append(",");
                 }
             }
         }
         return MACAddresses.substring(0, MACAddresses.length() - 1);
     }
 
+    /**
+     * @return a {@link String} containing the currently used MAC Address,
+     * @throws UnknownHostException in case localhost is not known (...)
+     * @throws SocketException      in case there was an error getting the {@link NetworkInterface}
+     */
     private static String getMACAddress() throws UnknownHostException,
             SocketException {
 
@@ -250,9 +320,22 @@ public class KeyChecker {
         return macAddressBuilder.toString();
     }
 
-    public static boolean testInet(String site) {
+    /**
+     * Checks whether a given domain is up and running.
+     *
+     * @param site the domain name to check . Can give URLs with http or https in it, or just domain name, will
+     *             always extract domain name; e.g.: if site equals "https://gameroom.me/random.php", this will ping "gameroom.me"
+     * @return true if the domain name is reachable, false otherwise
+     */
+    private static boolean isDomainUp(String site) {
+        if (site == null || site.isEmpty()) {
+            throw new IllegalArgumentException("Given domain is null or empty");
+        }
+        String domain = site.replace("https://", "")
+                .replace("http://", "")
+                .replaceAll("/.*", "");
         Socket sock = new Socket();
-        InetSocketAddress addr = new InetSocketAddress(site, 80);
+        InetSocketAddress addr = new InetSocketAddress(domain, 80);
         try {
             sock.connect(addr, 3000);
             return true;
@@ -261,7 +344,7 @@ public class KeyChecker {
         } finally {
             try {
                 sock.close();
-            } catch (IOException e) {
+            } catch (IOException ignored) {
             }
         }
     }
@@ -275,7 +358,7 @@ public class KeyChecker {
         boolean valid = false;
         if (supporterKey == null || supporterKey.isEmpty()) {
             valid = false;
-        } else if (KeyChecker.testInet(GameRoomUpdater.HTTPS_HOST)) {
+        } else if (KeyChecker.isDomainUp(API_URL)) {
             valid = KeyChecker.isKeyValid(supporterKey);
         } else {
             /*/if you are looking at this comment : yes you are a smarty one, congrats. Decompiling a .jar is so hard...*/
@@ -287,7 +370,13 @@ public class KeyChecker {
         return valid;
     }
 
-    public static void tryReplaceMACPerGUID() {
+    /**
+     * Attempts to replace the current domain associated to the supporter key (i.e. comma separated list of MAC addresses
+     * as {@link KeyChecker#getAllMACAddresses()} returns them) by the Machine GUID readable using {@link WinReg#readHWGUID()}.
+     * It first asks to deactivate the older domain. If this fails, goes no further. Then tries to activate the key using the
+     * Machine GUID.
+     */
+    private static void tryReplaceMACPerGUID() {
         LOGGER.debug("KeyChecker : will attempt to update uuid");
         if (DEBUGGING) {
             try {
@@ -296,11 +385,11 @@ public class KeyChecker {
             }
         }
         String guid = WinReg.readHWGUID();
-        if (guid != null && !guid.isEmpty() && testInet(GameRoomUpdater.HTTPS_HOST)) {
+        if (guid != null && !guid.isEmpty() && isDomainUp(API_URL)) {
             //System.out.println("MachineGUID : " + guid);
             String key = settings().getString(PredefinedSetting.SUPPORTER_KEY);
             try {
-                JSONObject deactResponse = deactivateKey(key,getAllMACAddresses());
+                JSONObject deactResponse = deactivateKey(key, getAllMACAddresses());
                 if (deactResponse == null) {
                     LOGGER.error("KeyChecker : error deactivating uuid, null response");
                     return;
@@ -311,7 +400,7 @@ public class KeyChecker {
                             break;
                         case KeyChecker.RESULT_ERROR:
                             String message = deactResponse.getString(KeyChecker.FIELD_MESSAGE);
-                            if(! message.equals(MESSAGE_DOMAIN_ALREADY_INACTIVE)){
+                            if (!message.equals(MESSAGE_DOMAIN_ALREADY_INACTIVE)) {
                                 LOGGER.error("KeyChecker : error deactivating old uuid, " + deactResponse.getString(KeyChecker.FIELD_MESSAGE));
                                 return;
                             }
@@ -320,7 +409,7 @@ public class KeyChecker {
                     }
                 }
 
-                JSONObject actResponse = activateKey(key, guid,false);
+                JSONObject actResponse = activateKey(key, guid, false);
                 if (actResponse == null) {
                     LOGGER.error("KeyChecker : error updating uuid, null response");
                 } else {

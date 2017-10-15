@@ -23,10 +23,20 @@ import java.util.stream.Collectors;
 import static ui.Main.LOGGER;
 
 /**
- * Created by LM on 03/07/2016.
+ * This class is responsible for querying the API server containing all information provided by IGDB, as well as extracting
+ * data from JSON response and building {@link GameEntry}s, {@link Company}s or {@link Serie}s out of it!
+ * <p>
+ * There is a naming convention for methods :
+ * - methods starting with "extract" will just parse JSON data and will not cause more queries
+ * - methods starting with "get" will usually query the API server ({@link IGDBScraper#getEntry(JSONObject, boolean)}
+ * extracts data and queries, thus is named with a starting "get"
+ *
+ * @author LM. Garret (admin@gameroom.me)
+ * @date 03/07/2016.
  */
+
 public class IGDBScraper {
-    public static final String API_URL = "http://62.210.219.110/api/v1";
+    private static final String API_URL = "http://62.210.219.110/api/v1";
 
     public static int REQUEST_COUNTER = 0;
 
@@ -40,11 +50,11 @@ public class IGDBScraper {
         DataBase.initDB();
 
         String gameName = "Battlefield 1";
-        JSONArray bf4_results = searchGame(gameName,true);
+        JSONArray bf4_results = searchGame(gameName, true);
         //System.out.println(bf4_results.toString(4));
         if (bf4_results != null) {
             ArrayList list = new ArrayList();
-            ArrayList<GameEntry> entries = getEntries(bf4_results);
+            ArrayList<GameEntry> entries = getGameEntries(bf4_results);
             for (GameEntry ge : entries) {
                 System.out.println(ge);
             }
@@ -53,41 +63,23 @@ public class IGDBScraper {
         }
     }
 
-    private static Date getReleaseDate(JSONObject gameData) {
-        ArrayList<Date> releaseDates = new ArrayList<>();
-        try {
-            for (Object obj : gameData.getJSONArray("release_dates")) {
-                //Windows platform is number 6
-                //if (((JSONObject) obj).getInt("platform") == 6) {
-                try {
-                    releaseDates.add(new Date(((JSONObject) obj).getLong("date")));
-                } catch (JSONException je) {
-                    if (!je.toString().contains("date")) {
-                        je.printStackTrace();
-                    }
-                }
-                //}
-            }
-            releaseDates.sort(Date::compareTo);
-            return ((releaseDates.size() > 0) ? releaseDates.get(0) : null);
-        } catch (JSONException jse) {
-            if (jse.toString().contains("not found")) {
-                //Main.LOGGER.error("Year not found");
-            } else {
-                jse.printStackTrace();
-            }
-        }
-        return null;
-    }
-
-    public static Date getReleaseDate(int id, JSONArray gamesData) {
-        return getReleaseDate(gamesData.getJSONObject(indexOf(id, gamesData)));
-    }
-
+    /**
+     * Helper method which finds the index of the object with th given id inside the given {@link JSONArray}
+     *
+     * @param id   the id of the object we want the index of
+     * @param data the {@link JSONArray} on which we iterate
+     * @return -1 if the array has no such object with the given id, the index of the object in the array otherwise
+     */
     private static int indexOf(int id, JSONArray data) {
         int i = 0;
+        if (data == null || data.length() == 0) {
+            return -1;
+        }
         for (Object obj : data) {
-            if (((JSONObject) obj).getInt("id") == id) {
+            if (obj instanceof JSONObject
+                    && ((JSONObject) obj).has("id")
+                    && !((JSONObject) obj).isNull("id")
+                    && ((JSONObject) obj).getInt("id") == id) {
                 return i;
             }
             i++;
@@ -95,7 +87,13 @@ public class IGDBScraper {
         return -1;
     }
 
-    public static String[] getScreenshotHash(JSONObject jsob) {
+    /**
+     * Extracts the screenshots hashs (i.e. cloudinary ids) from the given {@link JSONObject}
+     *
+     * @param jsob the {@link JSONObject} to extract hashs from
+     * @return a {@link String} array containing hashs if found
+     */
+    public static String[] extractScreenshotHash(JSONObject jsob) {
         String[] result = new String[0];
         if (jsob != null
                 && jsob.has("screenshot_hashs")
@@ -109,11 +107,24 @@ public class IGDBScraper {
         return result;
     }
 
-    public static String getCoverImageHash(JSONObject jsob) {
+    /**
+     * Extracts the cover hash (i.e. cloudinary id) from the given {@link JSONObject}
+     *
+     * @param jsob the {@link JSONObject} to extract hash from
+     * @return a {@link String} containing hash if found, null otherwise
+     */
+    public static String extractCoverImageHash(JSONObject jsob) {
         return jsob.optString("cover_hash", null);
     }
 
-    public static int[] getPlatformIds(JSONObject jsob) {
+    /**
+     * Extracts the (IGDB) platform ids from the given {@link JSONObject}
+     *
+     * @param jsob the {@link JSONObject} to extract ids from
+     * @return a {@link Integer} array containing ids of platforms if found. There are no valid duplicates of ids in this
+     * array, as any already present id in this array is replaced by -1
+     */
+    public static int[] extractPlatformIds(JSONObject jsob) {
         try {
             if (jsob.has("platforms") && !jsob.isNull("platforms")) {
                 JSONArray platforms = jsob.getJSONArray("platforms");
@@ -130,15 +141,31 @@ public class IGDBScraper {
         return new int[]{};
     }
 
-    public static ArrayList<GameEntry> getEntries(JSONArray searchData) throws UnirestException {
+    /**
+     * Typically to be used when we have just searched for a game, and we want to build all possible {@link GameEntry}s
+     * from this search
+     * <p>
+     * This will first query the API server to get data about unknown {@link Company} and {@link Serie} for all those games,
+     * looking into the given {@link JSONArray} for ids to compare against the one stored in the {@link DataBase} (see
+     * {@link IGDBScraper#extractUnknownCompaniesIDs(JSONArray)} and {@link IGDBScraper#extractUnknownSeriesIDs(JSONArray)}.
+     * <p>
+     * Then it will extract {@link GameEntry}s out of the given {@link JSONArray}, set companies and series from the
+     * data that the API server returned for each of them, and return those entries into an {@link ArrayList}.
+     *
+     * @param gamesData a {@link JSONArray} containing data about some {@link GameEntry}s
+     * @return an {@link ArrayList} of ready to use {@link GameEntry}s, with {@link Company}s and {@link Serie} queried if
+     * needed and set for each of them.
+     * @throws UnirestException in case an error occurred while contacting the API server
+     */
+    public static ArrayList<GameEntry> getGameEntries(JSONArray gamesData) throws UnirestException {
         ArrayList<GameEntry> entries = new ArrayList<>();
 
-        JSONArray companiesData = getCompaniesData(getUnknownCompaniesIDs(searchData));
-        JSONArray seriesData = getSeriesData(getUnknownSeriesIDs(searchData));
+        JSONArray companiesData = getCompaniesData(extractUnknownCompaniesIDs(gamesData));
+        JSONArray seriesData = getSeriesData(extractUnknownSeriesIDs(gamesData));
 
 
-        for (int i = 0; i < searchData.length(); i++) {
-            JSONObject gameData = searchData.getJSONObject(i);
+        for (int i = 0; i < gamesData.length(); i++) {
+            JSONObject gameData = gamesData.getJSONObject(i);
             GameEntry entry = getEntry(gameData, false);
             setGameCompanies(entry, gameData, companiesData);
             setGameSerie(entry, gameData, seriesData);
@@ -153,11 +180,25 @@ public class IGDBScraper {
         return entries;
     }
 
+    /**
+     * See {@link IGDBScraper#getEntry(JSONObject, boolean)}
+     */
     public static GameEntry getEntry(JSONObject game_data) {
         return getEntry(game_data, true);
     }
 
 
+    /**
+     * Builds a {@link GameEntry} instance out of the given {@link JSONObject}. Will contact server (@param allowUseMoreRequest)
+     * if allowed to fetch data about {@link Company}s and {@link Serie} in order to complete the {@link GameEntry}
+     *
+     * @param game_data           the {@link JSONObject} containing data to build the {@link GameEntry}
+     * @param allowUseMoreRequest true if the method is allowed to contact the API server about {@link Company}s and
+     *                            {@link Serie} in order to complete the {@link GameEntry}, false otherwise. This false
+     *                            case is typically when we have already queried the API server about those {@link Company}s
+     *                            and {@link Serie}s and we are sure they are available in the {@link DataBase} !
+     * @return a {@link GameEntry} based on the {@link JSONObject} given
+     */
     private static GameEntry getEntry(JSONObject game_data, boolean allowUseMoreRequest) {
         GameEntry entry = new GameEntry(game_data.getString("name"));
         entry.setSavedLocally(false);
@@ -173,13 +214,13 @@ public class IGDBScraper {
         }
 
         if (allowUseMoreRequest) {
-            JSONArray companiesData = getCompaniesData(getUnknownCompaniesIDs(game_data));
-            JSONArray seriesData = getSeriesData(getUnknownSeriesIDs(game_data));
+            JSONArray companiesData = getCompaniesData(extractUnknownCompaniesIDs(game_data));
+            JSONArray seriesData = getSeriesData(extractUnknownSeriesIDs(game_data));
             setGameCompanies(entry, game_data, companiesData);
             setGameSerie(entry, game_data, seriesData);
         }
         try {
-            entry.setGenres(getGenres(game_data));
+            entry.setGenres(extractGenres(game_data));
         } catch (JSONException je) {
             if (je.toString().contains("not found")) {
                 //Main.LOGGER.warn(entry.getName()+" : no developers");
@@ -188,7 +229,7 @@ public class IGDBScraper {
             }
         }
         try {
-            entry.setThemes(getThemes(game_data));
+            entry.setThemes(extractThemes(game_data));
         } catch (JSONException je) {
             if (je.toString().contains("not found")) {
                 //Main.LOGGER.warn(entry.getName()+" : no developers");
@@ -198,8 +239,8 @@ public class IGDBScraper {
         }
 
         try {
-            entry.setIgdb_imageHash(0, IGDBScraper.getCoverImageHash(game_data));
-            String[] screenshotsHashes = IGDBScraper.getScreenshotHash(game_data);
+            entry.setIgdb_imageHash(0, IGDBScraper.extractCoverImageHash(game_data));
+            String[] screenshotsHashes = IGDBScraper.extractScreenshotHash(game_data);
             for (int i = 0; i < screenshotsHashes.length; i++) {
                 entry.setIgdb_imageHash(i + 1, screenshotsHashes[i]);
             }
@@ -224,10 +265,18 @@ public class IGDBScraper {
         return entry;
     }
 
+    /**
+     * Queries the APi server to search for a game.
+     *
+     * @param gameName  the name of the game we are looking for
+     * @param allowDLCs if we want DLCs to appear in our search results
+     * @return a {@link JSONArray} containing data about games matching the given name, or null if there was a parsing issue
+     * @throws UnirestException in case an error occurred while querying the API server
+     */
     public static JSONArray searchGame(String gameName, boolean allowDLCs) throws UnirestException {
         gameName = gameName.replace(' ', '+');
-        incrementRequestCounter();
         String args = "?dlc=" + (allowDLCs ? "1" : "0");
+        incrementRequestCounter();
         HttpResponse<JsonNode> response = Unirest.get(API_URL + "/Games/SearchGame/" + gameName + args)
                 .header("Accept", "application/json")
                 .asJson();
@@ -235,12 +284,30 @@ public class IGDBScraper {
         return extractData(response, "games");
     }
 
+    /**
+     * Queries the API server and gets data about a single game
+     *
+     * @param id IGDB id of the game we're interested in
+     * @return a {@link JSONObject} containing data about our game, null if no data was found
+     * @throws UnirestException if there was an error while querying the API server
+     */
     public static JSONObject getGameData(int id) throws UnirestException {
         ArrayList<Integer> list = new ArrayList<>();
         list.add(id);
-        return getGamesData(list).getJSONObject(0);
+        JSONArray array = getGamesData(list);
+        if (array != null && array.length() > 0) {
+            return array.getJSONObject(0);
+        }
+        return null;
     }
 
+    /**
+     * Queries the API server to get data about a collection of games
+     *
+     * @param ids a {@link Collection} of IGDB ids of the games we're interested in
+     * @return a {@link JSONArray} containing data about our games, null if no data was found
+     * @throws UnirestException if there was an error while querying the API server
+     */
     public static JSONArray getGamesData(Collection<Integer> ids) throws UnirestException {
         String idsString = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
 
@@ -251,7 +318,13 @@ public class IGDBScraper {
         return extractData(response, "games");
     }
 
-    private static ArrayList<GameGenre> getGenres(JSONObject gameData) {
+    /**
+     * Extracts {@link GameGenre}s from the given {@link JSONObject}
+     *
+     * @param gameData the {@link JSONObject} to extract {@link GameGenre}s from
+     * @return an {@link ArrayList} of {@link GameGenre}s if some are found, null otherwise
+     */
+    private static ArrayList<GameGenre> extractGenres(JSONObject gameData) {
         try {
             if (gameData.has("genres") && !gameData.isNull("genres")) {
                 int genresNumber = gameData.getJSONArray("genres").length();
@@ -273,7 +346,13 @@ public class IGDBScraper {
         return null;
     }
 
-    private static ArrayList<GameTheme> getThemes(JSONObject gameData) {
+    /**
+     * Extracts {@link GameTheme}s from the given {@link JSONObject}
+     *
+     * @param gameData the {@link JSONObject} to extract {@link GameTheme}s from
+     * @return an {@link ArrayList} of {@link GameTheme}s if some are found, null otherwise
+     */
+    private static ArrayList<GameTheme> extractThemes(JSONObject gameData) {
         try {
             if (gameData.has("themes") && !gameData.isNull("themes")) {
 
@@ -296,6 +375,12 @@ public class IGDBScraper {
         return null;
     }
 
+    /**
+     * Extracts {@link Serie} from the given {@link JSONObject}
+     *
+     * @param serieData the {@link JSONObject} to extract the {@link Serie} from
+     * @return a {@link Serie} if found, {@link Serie#NONE} otherwise
+     */
     private static Serie extractSerie(int id, JSONArray serieData) {
         Serie s = Serie.getFromIGDBId(id);
         try {
@@ -309,11 +394,16 @@ public class IGDBScraper {
         return s;
     }
 
+    /**
+     * Queries the API server to get data about a collection of {@link Serie}
+     *
+     * @param ids a {@link Collection} of IGDB ids of the series we're interested in
+     * @return a {@link JSONArray} containing data about our series, null if no data was found
+     */
     private static JSONArray getSeriesData(Collection<Integer> ids) {
         String idsString = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
 
         try {
-
             incrementRequestCounter();
             HttpResponse<JsonNode> response = Unirest.get(API_URL + "/Series/GetSeries/" + idsString)
                     .header("Accept", "application/json")
@@ -325,6 +415,13 @@ public class IGDBScraper {
         return null;
     }
 
+    /**
+     * Extracts {@link Company} from the given {@link JSONArray}
+     *
+     * @param id            IGDB id of the {@link Company} to extract
+     * @param companiesData the {@link JSONArray} to extract the {@link Company} from
+     * @return a {@link Serie} if found, null otherwise
+     */
     private static Company extractCompany(int id, JSONArray companiesData) {
         Company c = Company.getFromIGDBId(id);
         try {
@@ -338,6 +435,12 @@ public class IGDBScraper {
         return c;
     }
 
+    /**
+     * Queries the API server to get data about a collection of {@link Company}
+     *
+     * @param ids a {@link Collection} of IGDB ids of the companies we're interested in
+     * @return a {@link JSONArray} containing data about our companies, null if no data was found
+     */
     private static JSONArray getCompaniesData(Collection<Integer> ids) {
         String idsString = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
 
@@ -361,7 +464,7 @@ public class IGDBScraper {
      * @param searchData a json object containing the research on a game
      * @return a hashset containing IDs of yet unknown companies
      */
-    private static HashSet<Integer> getUnknownCompaniesIDs(JSONObject searchData) {
+    private static HashSet<Integer> extractUnknownCompaniesIDs(JSONObject searchData) {
         HashSet<Integer> companiesIDs = new HashSet<>();
         try {
             if (searchData.has("publishers") && !searchData.isNull("publishers")) {
@@ -404,15 +507,15 @@ public class IGDBScraper {
     }
 
     /**
-     * See @getUnknownCompaniesIDs(JSONObject searchData)
+     * See {@link IGDBScraper#extractUnknownCompaniesIDs(JSONObject searchData))
      *
      * @param searchData a JSONArray of search about games
      * @return a hashset containing idsof yet unknown companies
      */
-    private static HashSet<Integer> getUnknownCompaniesIDs(JSONArray searchData) {
+    private static HashSet<Integer> extractUnknownCompaniesIDs(JSONArray searchData) {
         HashSet<Integer> companiesIDs = new HashSet<>();
         for (int i = 0; i < searchData.length(); i++) {
-            companiesIDs.addAll(getUnknownCompaniesIDs(searchData.getJSONObject(i)));
+            companiesIDs.addAll(extractUnknownCompaniesIDs(searchData.getJSONObject(i)));
         }
         return companiesIDs;
     }
@@ -471,7 +574,7 @@ public class IGDBScraper {
      * @param searchData a json object containing the research on a game
      * @return a hashset containing IDs of yet unknown series
      */
-    private static HashSet<Integer> getUnknownSeriesIDs(JSONObject searchData) {
+    private static HashSet<Integer> extractUnknownSeriesIDs(JSONObject searchData) {
         HashSet<Integer> seriesIDs = new HashSet<>();
         try {
             if (searchData.has("collection") && !searchData.isNull("collection")) {
@@ -492,21 +595,21 @@ public class IGDBScraper {
     }
 
     /**
-     * See @getUnknownSeriesIDs(JSONObject searchData)
+     * See {@link IGDBScraper#extractUnknownSeriesIDs(JSONObject searchData)}
      *
      * @param searchData a JSONArray of search about games
      * @return a hashset containing ids of yet unknown serie
      */
-    private static HashSet<Integer> getUnknownSeriesIDs(JSONArray searchData) {
+    private static HashSet<Integer> extractUnknownSeriesIDs(JSONArray searchData) {
         HashSet<Integer> seriesIDs = new HashSet<>();
         for (int i = 0; i < searchData.length(); i++) {
-            seriesIDs.addAll(getUnknownSeriesIDs(searchData.getJSONObject(i)));
+            seriesIDs.addAll(extractUnknownSeriesIDs(searchData.getJSONObject(i)));
         }
         return seriesIDs;
     }
 
     /**
-     * Given searchData on a game and serieDAta, update it with corresponding serie
+     * Given searchData on a game and serieData, update it with corresponding serie
      *
      * @param searchData data fetched about a game
      * @param seriesData data fetched about series
@@ -527,6 +630,9 @@ public class IGDBScraper {
         }
     }
 
+    /**
+     * Basically increments the request counter for this GameRoom's execution.
+     */
     private static void incrementRequestCounter() {
         REQUEST_COUNTER++;
         if (LOGGER != null) {
@@ -536,8 +642,27 @@ public class IGDBScraper {
         }
     }
 
+    /**
+     * Assuming the response from the API server follows the following convention :
+     * {
+     * "status": {
+     * "message": "success",
+     * "code": 200,
+     * "process_time": 257.42197036743
+     * },
+     * "data": {
+     * <key> : [..]
+     * }
+     * }
+     * This method will extract the data given by the server at the key position.
+     *
+     * @param response the response from the server
+     * @param key      the key at which the wanted data is located in the response
+     * @return a JSONArray if the response follows the convention and if there is data, null otherwise
+     */
     private static JSONArray extractData(HttpResponse<JsonNode> response, String key) {
-        if (response.getBody() != null
+        if (response != null
+                && response.getBody() != null
                 && response.getBody().getObject() != null
                 && response.getBody().getObject().optJSONObject("data") != null) {
             return response.getBody().getObject().optJSONObject("data").optJSONArray(key);

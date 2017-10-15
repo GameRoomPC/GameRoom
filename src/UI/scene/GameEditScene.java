@@ -476,6 +476,7 @@ public class GameEditScene extends BaseScene {
 
             platformComboBox.setCellFactory(param -> new ListCell<data.game.entry.Platform>() {
                 private ImageView imageView = new ImageView();
+
                 @Override
                 public void updateItem(data.game.entry.Platform platform, boolean empty) {
                     super.updateItem(platform, empty);
@@ -484,10 +485,10 @@ public class GameEditScene extends BaseScene {
                         setText(null);
                         setGraphic(null);
                     } else {
-                        double width = 25*Main.SCREEN_WIDTH/1920;
-                        double height =  25*Main.SCREEN_HEIGHT/1080;
+                        double width = 25 * Main.SCREEN_WIDTH / 1920;
+                        double height = 25 * Main.SCREEN_HEIGHT / 1080;
 
-                        platform.setCSSIcon(imageView,settings().getTheme().useDarkPlatformIconsInList());
+                        platform.setCSSIcon(imageView, settings().getTheme().useDarkPlatformIconsInList());
                         imageView.setFitWidth(width);
                         imageView.setFitHeight(height);
                         imageView.setSmooth(true);
@@ -642,7 +643,7 @@ public class GameEditScene extends BaseScene {
                                                      try {
                                                          JSONObject gameData = IGDBScraper.getGameData(gameEntry.getIgdb_id());
                                                          if (gameData != null) {
-                                                             gameEntry.setIgdb_imageHashs(IGDBScraper.getScreenshotHash(gameData));
+                                                             gameEntry.setIgdb_imageHashs(IGDBScraper.extractScreenshotHash(gameData));
                                                              openImageSelector(gameEntry);
                                                          } else {
                                                              GameRoomAlert.info(Main.getString("error_no_screenshot_igdb"));
