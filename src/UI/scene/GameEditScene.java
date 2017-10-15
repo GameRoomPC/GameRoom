@@ -231,22 +231,19 @@ public class GameEditScene extends BaseScene {
             }
         });
         Button igdbButton = new Button(Main.getString("fetch_from_igdb"));
-        igdbButton.setOnAction(new EventHandler<ActionEvent>() {
-                                   @Override
-                                   public void handle(ActionEvent event) {
-                                       SearchDialog dialog = new SearchDialog(createDoNotUpdateFielsMap(), entry.getName());
-                                       Optional<ButtonType> result = dialog.showAndWait();
-                                       result.ifPresent(val -> {
-                                           if (!val.getButtonData().isCancelButton()) {
-                                               GameEntry gameEntry = dialog.getSelectedEntry();
-                                               if (gameEntry != null) {
-                                                   onNewEntryData(gameEntry, dialog.getDoNotUpdateFieldsMap());
-                                               }
-                                           }
-                                       });
+        igdbButton.setOnAction(event -> {
+            SearchDialog dialog = new SearchDialog(createDoNotUpdateFielsMap(), entry.getName());
+            Optional<ButtonType> result = dialog.showAndWait();
+            result.ifPresent(val -> {
+                if (!val.getButtonData().isCancelButton()) {
+                    GameEntry gameEntry = dialog.getSelectedEntry();
+                    if (gameEntry != null) {
+                        onNewEntryData(gameEntry, dialog.getDoNotUpdateFieldsMap());
+                    }
+                }
+            });
 
-                                   }
-                               }
+        }
 
         );
 

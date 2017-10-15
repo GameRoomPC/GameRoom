@@ -2,22 +2,18 @@ package ui.dialog;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.GameEntry;
+import data.game.entry.Platform;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.SimpleImageInfo;
 import data.http.images.ImageUtils;
-import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ReadOnlyDoubleProperty;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -41,10 +37,12 @@ import ui.pane.SelectListPane;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 
+import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
 import static ui.Main.SCREEN_WIDTH;
 
@@ -61,6 +59,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
 
     private HashMap<String, Boolean> doNotUpdateFieldsMap;
     private BooleanProperty allowDLCs = new SimpleBooleanProperty(false);
+    private IntegerProperty platformIdToSearch = new SimpleIntegerProperty(-1);
 
     public SearchDialog(HashMap<String, Boolean> doNotUpdateFieldsMap) {
         this(doNotUpdateFieldsMap, null);
@@ -92,7 +91,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         });
         //Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
         //ImageButton searchButton = new ImageButton(searchImage);
-        double imgSize = SCREEN_WIDTH / 28;
+        double imgSize = 40 * SCREEN_WIDTH / 1920;
         ImageButton searchButton = new ImageButton("search-button", imgSize, imgSize);
 
         mainPane.getStyleClass().add("container");
@@ -108,39 +107,8 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
 
         searchListPane = new SearchList(topBox.widthProperty());
 
-        searchButton.setOnAction(event -> {
-            searchListPane.clearItems();
-            Platform.runLater(() -> statusLabel.setText(Main.getString("searching") + "..."));
-            try {
-                JSONArray resultArray = IGDBScraper.searchGame(searchField.getText(), allowDLCs.getValue(),-1);
-                if (resultArray == null) {
-                    Platform.runLater(() -> statusLabel.setText(Main.getString("no_result") + "/" + Main.getString("no_internet")));
-                } else {
-                    try {
-                        if (resultArray == null || resultArray.length() == 0) {
-                            Platform.runLater(() -> statusLabel.setText(Main.getString("no_result")));
-                        } else {
-                            Platform.runLater(() -> statusLabel.setText(Main.getString("loading") + "..."));
-                            Task scrapping = new Task() {
-                                @Override
-                                protected String call() throws Exception {
-                                    Platform.runLater(() -> statusLabel.setText(""));
-                                    Platform.runLater(() -> searchListPane.addItems(resultArray.iterator()));
-                                    return null;
-                                }
-                            };
-                            Main.getExecutorService().submit(scrapping);
-                        }
-                    } catch (JSONException e) {
-                        GameRoomAlert.errorGameRoomAPI();
-                    }
-                }
-            } catch (UnirestException e) {
-                LOGGER.error(e.getMessage());
-                GameRoomAlert.errorGameRoomAPI();
-                close();
-            }
-        });
+        searchButton.setOnAction(event -> startResearch());
+
         searchListPane.setPadding(new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
         try {
@@ -191,16 +159,72 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 }
             }
         });
-        Label doNotUpdateLabel = new Label(Main.getString("do_not_update") + ":");
+        /*Label doNotUpdateLabel = new Label(Main.getString("do_not_update") + ":");
         doNotUpdateLabel.setFocusTraversable(false);
         HBox notUpdateHbox = new HBox();
         notUpdateHbox.setAlignment(Pos.CENTER_LEFT);
         notUpdateHbox.setSpacing(10 * Main.SCREEN_WIDTH / 1920);
-        notUpdateHbox.getChildren().addAll(doNotUpdateLabel, fieldsComboBox);
+        notUpdateHbox.getChildren().addAll(doNotUpdateLabel, fieldsComboBox);*/
+
+        try {
+            Platform.initWithDb();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        final ObservableList<Platform> platforms = FXCollections.observableArrayList(Platform.getEmulablePlatforms());
+        platforms.add(0, Platform.ALL_PLATFORMS);
+        platforms.add(1, Platform.PC);
+
+        Label restrictPlatformLabel = new Label(Main.getString("platform") + ":");
+        restrictPlatformLabel.setFocusTraversable(false);
+
+        // Create the CheckComboBox with the data
+        final ComboBox<Platform> platformComboBox = new ComboBox<>(platforms);
+
+        platformComboBox.setCellFactory(param -> new ListCell<Platform>() {
+            private ImageView imageView = new ImageView();
+
+            @Override
+            public void updateItem(Platform platform, boolean empty) {
+                super.updateItem(platform, empty);
+                if (empty || platform == null) {
+                    //Corresponds to the "all" choice !
+                    imageView.setId("");
+                    setText(Main.getString("all_platforms"));
+                    setGraphic(null);
+                } else {
+                    double width = 25 * Main.SCREEN_WIDTH / 1920;
+                    double height = 25 * Main.SCREEN_HEIGHT / 1080;
+
+                    platform.setCSSIcon(imageView, settings().getTheme().useDarkPlatformIconsInList());
+                    imageView.setFitWidth(width);
+                    imageView.setFitHeight(height);
+                    imageView.setSmooth(true);
+
+                    setText(platform.getName());
+                    setGraphic(imageView);
+                }
+            }
+        });
+        platformComboBox.setId("platform");
+        platformComboBox.getSelectionModel().select(0);
+        platformComboBox.maxWidthProperty().bind(searchField.widthProperty().subtract(restrictPlatformLabel.widthProperty()));
+
+        platformComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            platformIdToSearch.setValue(newValue.getIGDBId());
+            startResearch();
+        });
+
+        HBox restrictPlatformHbox = new HBox();
+        restrictPlatformHbox.setAlignment(Pos.CENTER_LEFT);
+        restrictPlatformHbox.setSpacing(10 * Main.SCREEN_WIDTH / 1920);
+        restrictPlatformHbox.getChildren().addAll(restrictPlatformLabel, platformComboBox);
 
         CheckBox searchDLCCheckBox = new CheckBox();
         searchDLCCheckBox.setSelected(false);
-        searchDLCCheckBox.selectedProperty().bindBidirectional(allowDLCs);
+        allowDLCs.bind(searchDLCCheckBox.selectedProperty());
+        searchDLCCheckBox.selectedProperty().addListener(observable -> startResearch());
         Label searchDLCLabel = new Label(Main.getString("search_also_DLCs") + ":");
         searchDLCLabel.setFocusTraversable(false);
         HBox searchDLCHbox = new HBox();
@@ -211,13 +235,13 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         VBox bottomVbox = new VBox();
         bottomVbox.setAlignment(Pos.BASELINE_LEFT);
         bottomVbox.setSpacing(5 * Main.SCREEN_WIDTH / 1920);
-        bottomVbox.getChildren().addAll(searchDLCHbox, notUpdateHbox);
+        bottomVbox.getChildren().addAll(searchDLCHbox, restrictPlatformHbox);
 
         mainPane.setTop(topBox);
         mainPane.setCenter(centerPane);
         mainPane.setBottom(bottomVbox);
 
-        BorderPane.setMargin(topBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
+        BorderPane.setMargin(topBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920));
         BorderPane.setMargin(bottomVbox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 0 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
         ButtonType cancelButtonType = new ButtonType(ui.Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -237,7 +261,41 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             }
         });
         if (gameName != null) {
-            searchButton.fireEvent(new ActionEvent());
+            startResearch();
+        }
+    }
+
+    private void startResearch(){
+        searchListPane.clearItems();
+        javafx.application.Platform.runLater(() -> statusLabel.setText(Main.getString("searching") + "..."));
+        try {
+            JSONArray resultArray = IGDBScraper.searchGame(searchField.getText(), allowDLCs.get(), platformIdToSearch.get());
+            if (resultArray == null) {
+                javafx.application.Platform.runLater(() -> statusLabel.setText(Main.getString("no_result") + "/" + Main.getString("no_internet")));
+            } else {
+                try {
+                    if (resultArray == null || resultArray.length() == 0) {
+                        javafx.application.Platform.runLater(() -> statusLabel.setText(Main.getString("no_result")));
+                    } else {
+                        javafx.application.Platform.runLater(() -> statusLabel.setText(Main.getString("loading") + "..."));
+                        Task scrapping = new Task() {
+                            @Override
+                            protected String call() throws Exception {
+                                javafx.application.Platform.runLater(() -> statusLabel.setText(""));
+                                javafx.application.Platform.runLater(() -> searchListPane.addItems(resultArray.iterator()));
+                                return null;
+                            }
+                        };
+                        Main.getExecutorService().submit(scrapping);
+                    }
+                } catch (JSONException e) {
+                    GameRoomAlert.errorGameRoomAPI();
+                }
+            }
+        } catch (UnirestException e) {
+            LOGGER.error(e.getMessage());
+            GameRoomAlert.errorGameRoomAPI();
+            close();
         }
     }
 
@@ -289,17 +347,14 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
     }
 
     private void remapEnterKey(Pane pane, Button searchButton, TextField searchField) throws AWTException {
-        pane.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                if (!event.isShiftDown()) {
-                    switch (event.getCode()) {
-                        case ENTER:
-                            if (searchField.isFocused() && !searchField.getText().equals("")) {
-                                searchButton.fireEvent(new ActionEvent());
-                            }
-                            break;
-                    }
+        pane.addEventFilter(KeyEvent.ANY, event -> {
+            if (!event.isShiftDown()) {
+                switch (event.getCode()) {
+                    case ENTER:
+                        if (searchField.isFocused() && !searchField.getText().equals("")) {
+                            startResearch();
+                        }
+                        break;
                 }
             }
         });
@@ -343,7 +398,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                             e.printStackTrace();
                         }
                         boolean finalKeepRatio = keepRatio;
-                        Platform.runLater(() -> {
+                        javafx.application.Platform.runLater(() -> {
                             ImageUtils.transitionToImage(new Image("file:" + File.separator + File.separator + File.separator + outputFile.getAbsolutePath(), COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, finalKeepRatio, true), coverView);
                         });
                     }
@@ -375,7 +430,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
 
 
             for (int i = 0; i < platformIds.length; i++) {
-                data.game.entry.Platform p = data.game.entry.Platform.getFromIGDBId(platformIds[i]);
+                Platform p = Platform.getFromIGDBId(platformIds[i]);
                 if (p != null) {
                     ImageView temp = new ImageView();
                     temp.setSmooth(false);
