@@ -85,7 +85,7 @@ public class MainScene extends BaseScene {
     private boolean changeBackgroundNextTime = false;
 
     public MainScene(Stage parentStage) {
-        super(new StackPane(), parentStage);
+        super(new StackPane(), parentStage, parentStage.getWidth(), parentStage.getHeight());
         setCursor(Cursor.DEFAULT);
         addEventHandler(MouseEvent.MOUSE_MOVED, event -> {
             if (getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
@@ -192,6 +192,8 @@ public class MainScene extends BaseScene {
         scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
+        scrollPane.maxHeightProperty().bind(heightProperty());
+
         //centerPane.setPrefViewportHeight(tilePane.getPrefHeight());
         scrollPane.setFocusTraversable(false);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);

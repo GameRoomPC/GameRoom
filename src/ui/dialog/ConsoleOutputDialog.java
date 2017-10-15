@@ -18,7 +18,7 @@ import java.util.Optional;
 /**
  * Created by LM on 11/08/2016.
  */
-public class ConsoleOutputDialog extends GameRoomDialog {
+public class ConsoleOutputDialog extends GameRoomDialog<ButtonType> {
     private TextArea textArea = new TextArea("");
     private boolean showing = false;
 

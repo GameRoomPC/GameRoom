@@ -45,8 +45,8 @@ public abstract class BaseScene extends Scene {
     ImageView maskView;
     private ImageButton backButton;
 
-    BaseScene(StackPane stackPane, Stage parentStage) {
-        super(stackPane, settings().getWindowWidth(), settings().getWindowHeight());
+    BaseScene(StackPane stackPane, Stage parentStage, double sceneWidth, double sceneHeight){
+        super(stackPane, sceneWidth, sceneHeight);
         this.rootStackPane = stackPane;
         rootStackPane.getStyleClass().add("base-scene-root");
         setParentStage(parentStage);
@@ -58,7 +58,6 @@ public abstract class BaseScene extends Scene {
         maskView.setId("background-mask");
 
         //resizeBackgrounds();
-
         backgroundView.fitWidthProperty().bind(widthProperty());
         backgroundView.fitHeightProperty().bind(heightProperty());
         maskView.fitWidthProperty().bind(widthProperty());
@@ -80,6 +79,14 @@ public abstract class BaseScene extends Scene {
         rootStackPane.getChildren().add(backgroundView);
         rootStackPane.getChildren().add(maskView);
         initAndAddWrappingPaneToRoot();
+
+        getWrappingPane().maxHeightProperty().bind(heightProperty());
+        getWrappingPane().prefHeightProperty().bind(heightProperty());
+        getWrappingPane().maxWidthProperty().bind(widthProperty());
+        getWrappingPane().prefWidthProperty().bind(widthProperty());
+    }
+    BaseScene(StackPane stackPane, Stage parentStage) {
+        this(stackPane,parentStage,parentStage.getScene().getWidth(),parentStage.getScene().getHeight());
     }
 
     public StackPane getRootStackPane() {
@@ -105,28 +112,25 @@ public abstract class BaseScene extends Scene {
                 ));
         fadeOutTimeline.setCycleCount(1);
         fadeOutTimeline.setAutoReverse(false);
-        fadeOutTimeline.setOnFinished(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                if (onSceneFadedOutAction != null) {
-                    onSceneFadedOutAction.run();
-                }
-                scene2.getWrappingPane().setOpacity(0);
-                stage.setScene(scene2);
-                stage.setFullScreen(settings().getBoolean(PredefinedSetting.FULL_SCREEN));
-                Timeline fadeInTimeline = new Timeline(
-                        new KeyFrame(Duration.seconds(0),
-                                new KeyValue(scene2.getWrappingPane().opacityProperty(), 0, Interpolator.LINEAR),
-                                new KeyValue(scene2.getBackgroundView().opacityProperty(), backgroundViewToo ? 0 : scene2.getBackgroundView().opacityProperty().getValue(), Interpolator.LINEAR)),
-                        new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                new KeyValue(scene2.getWrappingPane().opacityProperty(), 1, Interpolator.LINEAR),
-                                new KeyValue(scene2.getBackgroundView().opacityProperty(), backgroundViewToo ? BACKGROUND_IMAGE_MAX_OPACITY : BACKGROUND_IMAGE_MAX_OPACITY, Interpolator.LINEAR)
-                        ));
-                stage.getScene().getRoot().setMouseTransparent(false);
-                fadeInTimeline.setCycleCount(1);
-                fadeInTimeline.setAutoReverse(false);
-                fadeInTimeline.play();
+        fadeOutTimeline.setOnFinished(event -> {
+            if (onSceneFadedOutAction != null) {
+                onSceneFadedOutAction.run();
             }
+            scene2.getWrappingPane().setOpacity(0);
+            stage.setScene(scene2);
+            stage.setFullScreen(settings().getBoolean(PredefinedSetting.FULL_SCREEN));
+            Timeline fadeInTimeline = new Timeline(
+                    new KeyFrame(Duration.seconds(0),
+                            new KeyValue(scene2.getWrappingPane().opacityProperty(), 0, Interpolator.LINEAR),
+                            new KeyValue(scene2.getBackgroundView().opacityProperty(), backgroundViewToo ? 0 : scene2.getBackgroundView().opacityProperty().getValue(), Interpolator.LINEAR)),
+                    new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                            new KeyValue(scene2.getWrappingPane().opacityProperty(), 1, Interpolator.LINEAR),
+                            new KeyValue(scene2.getBackgroundView().opacityProperty(), backgroundViewToo ? BACKGROUND_IMAGE_MAX_OPACITY : BACKGROUND_IMAGE_MAX_OPACITY, Interpolator.LINEAR)
+                    ));
+            stage.getScene().getRoot().setMouseTransparent(false);
+            fadeInTimeline.setCycleCount(1);
+            fadeInTimeline.setAutoReverse(false);
+            fadeInTimeline.play();
         });
         fadeOutTimeline.play();
     }
@@ -220,12 +224,6 @@ public abstract class BaseScene extends Scene {
 
     StackPane createTop(EventHandler<ActionEvent> backButtonEventHandler, String title) {
         return createTop(backButtonEventHandler,title,null);
-    }
-
-    StackPane createTop(String title) {
-        return createTop(event -> {
-            fadeTransitionTo(previousScene, parentStage);
-        }, title,null);
     }
 
     StackPane createTop(String title,String cssIconStyle) {

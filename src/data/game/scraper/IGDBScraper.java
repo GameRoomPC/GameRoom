@@ -26,10 +26,6 @@ import static ui.Main.LOGGER;
  * Created by LM on 03/07/2016.
  */
 public class IGDBScraper {
-    public static String IGDB_BASIC_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
-    public static String IGDB_PRO_KEY = "ntso6TigR0msheVZZBFQPyOuqu6tp1OdtgFjsnkTZXRLTj9tgb";
-    public static String key = IGDB_BASIC_KEY;
-
     public static final String API_URL = "http://62.210.219.110/api/v1";
 
     public static int REQUEST_COUNTER = 0;

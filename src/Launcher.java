@@ -86,11 +86,16 @@ public class Launcher extends Application {
                 LOGGER.error(string);
                 if (DEV_MODE || settings().getBoolean(PredefinedSetting.DEBUG_MODE)) {
                     Platform.runLater(() -> {
-                        if (console[0] == null) {
-                            console[0] = new ConsoleOutputDialog();
+                        try {
+                            if (console[0] == null) {
+                                console[0] = new ConsoleOutputDialog();
+                            }
+                            console[0].appendLine(string);
+                            console[0].showConsole();
+                        } catch (Exception e) {
+                            LOGGER.error("Console crashed ! ");
+                            LOGGER.error(e.getMessage());
                         }
-                        console[0].appendLine(string);
-                        console[0].showConsole();
                     });
                 }
             }
@@ -135,13 +140,6 @@ public class Launcher extends Application {
             } else {
                 //TODO implement starting the game that has the given id
             }
-        }
-
-        String igdbKey = getArg(ARGS_FLAG_IGDB_KEY, args, true);
-        if (igdbKey != null) {
-            IGDBScraper.IGDB_BASIC_KEY = igdbKey;
-            IGDBScraper.IGDB_PRO_KEY = igdbKey;
-            IGDBScraper.key = igdbKey;
         }
         String showMode = getArg(ARGS_FLAG_SHOW, args, true);
         if (showMode != null) {
@@ -232,8 +230,8 @@ public class Launcher extends Application {
             primaryStage.setX(settings().getDouble(PredefinedSetting.WINDOW_X));
             primaryStage.setY(settings().getDouble(PredefinedSetting.WINDOW_Y));
         }
-        primaryStage.setWidth(primaryStage.getWidth());
-        primaryStage.setHeight(primaryStage.getHeight());
+        /*primaryStage.setWidth(primaryStage.getWidth());
+        primaryStage.setHeight(primaryStage.getHeight());*/
         primaryStage.setMaximized(settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED));
 
         if (START_MINIMIZED && appStart) {
@@ -277,19 +275,16 @@ public class Launcher extends Application {
         if (initScene instanceof BaseScene) {
             ((BaseScene) initScene).setParentStage(primaryStage);
         }
-        primaryStage.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, new EventHandler<javafx.scene.input.KeyEvent>() {
-            @Override
-            public void handle(javafx.scene.input.KeyEvent event) {
-                if (event.getCode() == KeyCode.F11) {
-                    boolean wasFullScreen = settings().getBoolean(PredefinedSetting.FULL_SCREEN);
-                    settings().setSettingValue(PredefinedSetting.FULL_SCREEN, !wasFullScreen);
-                }
-                if (event.getCode() == KeyCode.F10) {
-                    //TODO toggle drawerMenu of MainScene
-                }
-                if (event.getCode() == KeyCode.F && event.isControlDown()) {
-                    MAIN_SCENE.showSearchField();
-                }
+        primaryStage.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.F11) {
+                boolean wasFullScreen = settings().getBoolean(PredefinedSetting.FULL_SCREEN);
+                settings().setSettingValue(PredefinedSetting.FULL_SCREEN, !wasFullScreen);
+            }
+            if (event.getCode() == KeyCode.F10) {
+                //TODO toggle drawerMenu of MainScene
+            }
+            if (event.getCode() == KeyCode.F && event.isControlDown()) {
+                MAIN_SCENE.showSearchField();
             }
         });
         maximizedListener = (observable, oldValue, newValue) -> {
@@ -327,12 +322,12 @@ public class Launcher extends Application {
             }
         });
 
-        primaryStage.widthProperty().addListener((ChangeListener<Number>) (observableValue, oldSceneWidth, newSceneWidth) -> {
+        primaryStage.widthProperty().addListener((observableValue, oldSceneWidth, newSceneWidth) -> {
             if (!primaryStage.isIconified()) {
                 settings().setSettingValue(PredefinedSetting.WINDOW_WIDTH, newSceneWidth.intValue());
             }
         });
-        primaryStage.heightProperty().addListener((ChangeListener<Number>) (observableValue, oldSceneHeight, newSceneHeight) -> {
+        primaryStage.heightProperty().addListener((observableValue, oldSceneHeight, newSceneHeight) -> {
             if (!primaryStage.isIconified()) {
                 settings().setSettingValue(PredefinedSetting.WINDOW_HEIGHT, newSceneHeight.intValue());
             }
