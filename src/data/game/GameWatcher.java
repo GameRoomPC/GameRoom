@@ -216,7 +216,10 @@ public class GameWatcher {
                         entry.setSavedLocally(true);
                         entry.setBeingScraped(true);
                         entry.setSavedLocally(false);
-                        JSONArray search_results = IGDBScraper.searchGame(entry.getName(), true);
+                        JSONArray search_results = IGDBScraper.searchGame(entry.getName(),
+                                true,
+                                entry.getPlatform().getIGDBId()
+                        );
                         if (search_results != null) {
                             int igdbId = LevenshteinDistance.closestName(entry.getName(), search_results);
                             searchIGDBIDs.add(igdbId);

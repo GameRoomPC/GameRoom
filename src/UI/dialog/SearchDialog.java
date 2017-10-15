@@ -112,7 +112,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             searchListPane.clearItems();
             Platform.runLater(() -> statusLabel.setText(Main.getString("searching") + "..."));
             try {
-                JSONArray resultArray = IGDBScraper.searchGame(searchField.getText(), allowDLCs.getValue());
+                JSONArray resultArray = IGDBScraper.searchGame(searchField.getText(), allowDLCs.getValue(),-1);
                 if (resultArray == null) {
                     Platform.runLater(() -> statusLabel.setText(Main.getString("no_result") + "/" + Main.getString("no_internet")));
                 } else {

@@ -50,7 +50,7 @@ public class IGDBScraper {
         DataBase.initDB();
 
         String gameName = "Battlefield 1";
-        JSONArray bf4_results = searchGame(gameName, true);
+        JSONArray bf4_results = searchGame(gameName, true,Platform.PC.getId());
         //System.out.println(bf4_results.toString(4));
         if (bf4_results != null) {
             ArrayList list = new ArrayList();
@@ -270,12 +270,17 @@ public class IGDBScraper {
      *
      * @param gameName  the name of the game we are looking for
      * @param allowDLCs if we want DLCs to appear in our search results
+     * @param platformId IGDB id of a {@link Platform}. Will restrict the search for games only on this platform, or search for
+     *                   games on all {@link Platform}s if is -1.
      * @return a {@link JSONArray} containing data about games matching the given name, or null if there was a parsing issue
      * @throws UnirestException in case an error occurred while querying the API server
      */
-    public static JSONArray searchGame(String gameName, boolean allowDLCs) throws UnirestException {
+    public static JSONArray searchGame(String gameName, boolean allowDLCs, int platformId) throws UnirestException {
         gameName = gameName.replace(' ', '+');
         String args = "?dlc=" + (allowDLCs ? "1" : "0");
+        if(platformId != -1){
+            args += ",platform_id="+platformId;
+        }
         incrementRequestCounter();
         HttpResponse<JsonNode> response = Unirest.get(API_URL + "/Games/SearchGame/" + gameName + args)
                 .header("Accept", "application/json")
