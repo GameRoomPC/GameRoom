@@ -1,7 +1,6 @@
 package ui.dialog;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
-import data.LevenshteinDistance;
 import data.game.entry.GameEntry;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
@@ -43,12 +42,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 import static ui.Main.LOGGER;
 import static ui.Main.SCREEN_WIDTH;
@@ -137,12 +132,12 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                             Main.getExecutorService().submit(scrapping);
                         }
                     } catch (JSONException e) {
-                        GameRoomAlert.errorIGDB();
+                        GameRoomAlert.errorGameRoomAPI();
                     }
                 }
             } catch (UnirestException e) {
                 LOGGER.error(e.getMessage());
-                GameRoomAlert.errorIGDB();
+                GameRoomAlert.errorGameRoomAPI();
                 close();
             }
         });

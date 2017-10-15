@@ -41,4 +41,16 @@ public class WinReg {
         String appdataFolder = System.getenv("APPDATA");
         return appdataFolder + File.separator + "GameRoom";
     }
+
+    public static String readHWGUID() {
+        String machineGuid32 = readString(HKLM, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid");
+        if (machineGuid32 != null && !machineGuid32.isEmpty()) {
+            return machineGuid32;
+        }
+        String machineGuid64 = readString(HKLM, "SOFTWARE\\WOW6432NODE\\Microsoft\\Cryptography", "MachineGuid");
+        if (machineGuid64 != null && !machineGuid64.isEmpty()) {
+            return machineGuid64;
+        }
+        return null;
+    }
 }

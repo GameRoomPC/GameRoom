@@ -1,28 +1,21 @@
 package ui.dialog;
 
-import javafx.application.Platform;
 import javafx.beans.NamedArg;
 import javafx.event.EventHandler;
-import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.DialogEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
-import system.application.settings.PredefinedSetting;
-import system.device.GameController;
 import ui.Main;
 import ui.theme.ThemeUtils;
 
 import java.util.Optional;
 
 import static system.application.settings.GeneralSettings.settings;
-import static ui.Main.LOGGER;
 import static ui.Main.MAIN_SCENE;
-import static ui.Main.gameController;
 
 /**
  * Created by LM on 06/08/2016.
@@ -83,8 +76,8 @@ public class GameRoomAlert extends Alert {
         return displayAlert(AlertType.ERROR, s);
     }
 
-    public static ButtonType errorIGDB() {
-        return error(Main.getString("error_igdb"));
+    public static ButtonType errorGameRoomAPI() {
+        return error(Main.getString("error_gameroom_api"));
     }
 
     private static ButtonType displayAlert(AlertType type, String s) {

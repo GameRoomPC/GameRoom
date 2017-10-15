@@ -230,7 +230,7 @@ public class GameWatcher {
                             Main.LOGGER.error(entry.getName() + " not found on igdb first guess");
                         } else if (e instanceof UnirestException) {
                             if (!alreadyDisplayedIGDBError[0]) {
-                                GameRoomAlert.errorIGDB();
+                                GameRoomAlert.errorGameRoomAPI();
                                 alreadyDisplayedIGDBError[0] = true;
                             }
                         }
@@ -350,7 +350,7 @@ public class GameWatcher {
                         }
                     } catch (UnirestException e) {
                         LOGGER.error(e.getMessage());
-                        GameRoomAlert.errorIGDB();
+                        GameRoomAlert.errorGameRoomAPI();
                         anErrorOccured = true;
                     }
                 }

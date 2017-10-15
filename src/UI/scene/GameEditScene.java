@@ -654,7 +654,7 @@ public class GameEditScene extends BaseScene {
                                                              jse.printStackTrace();
                                                          }
                                                      } catch (UnirestException e) {
-                                                         GameRoomAlert.errorIGDB();
+                                                         GameRoomAlert.errorGameRoomAPI();
                                                          LOGGER.error(e.getMessage());
                                                      }
                                                  } else {

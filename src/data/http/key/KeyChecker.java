@@ -1,17 +1,17 @@
 package data.http.key;
 
 import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import system.application.GameRoomUpdater;
 import system.application.settings.PredefinedSetting;
+import system.os.WinReg;
 import ui.Main;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.*;
 import java.util.Enumeration;
 
@@ -44,50 +44,94 @@ public class KeyChecker {
     public final static String STATUS_BLOCKED = "blocked";
     public final static String STATUS_EXPIRED = "expired";
 
+    private final static String MESSAGE_DOMAIN_ALREADY_INACTIVE = "The license key on this domain is already inactive";
+
+    public static boolean attemptingUUIDUpdate = false;
+
+
     public static JSONObject deactivateKey(String key) throws IOException, UnirestException {
-        HttpResponse<String> response = Unirest.post(API_URL)
+        String guid = WinReg.readHWGUID();
+        if (guid == null || guid.isEmpty()) {
+            LOGGER.debug("KeyChecker : empty guid, will use mac deactivation");
+            return deactivateKey(key, getAllMACAddresses());
+        }
+        return deactivateKey(key, guid);
+    }
+
+    private static JSONObject deactivateKey(String key, String uuid) throws IOException, UnirestException {
+        HttpResponse<JsonNode> response = Unirest.post(API_URL)
                 .field("secret_key", VALIDATION_KEY)
                 .field("slm_action", "slm_deactivate")
                 .field("registered_domain", getAllMACAddresses())
                 .field("license_key", key)
-                .asString();
+                .asJson();
 
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
-        String json = reader.readLine();
-        if (DEBUGGING) {
-            LOGGER.debug("deactivateKey response : " + json);
+        if (response.getBody() != null && response.getBody().getObject() != null) {
+            JSONObject obj = response.getBody().getObject();
+            if (DEBUGGING) {
+                LOGGER.debug("deactivateKey response : " + obj.toString(4));
+            }
+            return obj;
         }
-        return new JSONObject(json);
+        return null;
     }
 
     public static JSONObject activateKey(String key) throws IOException, UnirestException {
-        if(isKeyValid(key)){
+        String guid = WinReg.readHWGUID();
+        if (guid == null || guid.isEmpty()) {
+            LOGGER.debug("KeyChecker : empty guid, will use mac activation");
+            return activateKey(key, getAllMACAddresses(), true);
+        }
+        return activateKey(key, guid, true);
+    }
+
+    private static JSONObject activateKey(String key, String uuid, boolean checkValidFirst) throws IOException, UnirestException {
+        if (checkValidFirst && isKeyValid(key, uuid)) {
+            LOGGER.debug("KeyChecker : key already activated, validating");
             //this allows the user to reactivate a key on the same device !
             JSONObject obj = new JSONObject();
-            obj.put(FIELD_RESULT,RESULT_SUCCESS);
-            obj.put(FIELD_MESSAGE,"License_key_activated");
+            obj.put(FIELD_RESULT, RESULT_SUCCESS);
+            obj.put(FIELD_MESSAGE, "License_key_activated");
             return obj;
         }
-        HttpResponse<String> response = Unirest.post(API_URL)
+        HttpResponse<JsonNode> response = Unirest.post(API_URL)
                 .field("secret_key", VALIDATION_KEY)
                 .field("slm_action", "slm_activate")
-                .field("registered_domain", getAllMACAddresses())
+                .field("registered_domain", uuid)
                 .field("license_key", key)
-                .asString();
+                .asJson();
 
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
-        String json = reader.readLine();
-        if (DEBUGGING) {
-            LOGGER.debug("activateKey response : " + json);
+        if (response.getBody() != null && response.getBody().getObject() != null) {
+            JSONObject obj = response.getBody().getObject();
+            if (DEBUGGING) {
+                LOGGER.debug("activateKey response : " + obj.toString(4));
+            }
+            return obj;
         }
-        return new JSONObject(json);
+        return null;
     }
 
     public static boolean isKeyValid(String key) {
-        if (!testInet("igdb.com") && !testInet(API_URL.replace("https://", ""))) {
-            LOGGER.error("KeyChecker : IGDB not joinable");
+        String guid = WinReg.readHWGUID();
+        if (guid == null || guid.isEmpty()) {
+            LOGGER.debug("KeyChecker : empty guid, will use mac validation");
+            try {
+                return isKeyValid(key, getAllMACAddresses());
+            } catch (SocketException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return isKeyValid(key, guid);
+    }
+
+    public static boolean isKeyValid(String key, String guid) {
+        if (!testInet(API_URL.replace("https://", ""))) {
+            LOGGER.error("KeyChecker : GameRoom not reachable");
+            return false;
+        }
+        if (guid == null || guid.isEmpty()) {
             return false;
         }
         try {
@@ -99,32 +143,41 @@ public class KeyChecker {
                         JSONArray registeredDomains = response.getJSONArray(FIELD_REGISTERED_DOMAINS);
 
                         boolean found = false;
+                        boolean isUsingMACUUID = false;
                         for (int i = 0; i < registeredDomains.length() && !found; i++) {
-                            found = registeredDomains.getJSONObject(i).getString(FIELD_REGISTERED_DOMAIN).contains(getMACAddress());
+                            String uuid = registeredDomains.getJSONObject(i).getString(FIELD_REGISTERED_DOMAIN);
+                            isUsingMACUUID = isUsingMACUUID || uuid.contains(":");
+                            if (isUsingMACUUID) {
+                                found = uuid.contains(getMACAddress());
+                            } else {
+                                found = uuid.contains(guid);
+                            }
                         }
-                        if(found){
+                        if (isUsingMACUUID && !attemptingUUIDUpdate) {
+                            attemptingUUIDUpdate = true;
+                            tryReplaceMACPerGUID();
+                        }
+
+                        if (found) {
                             LOGGER.info("KeyChecker : Supporter mode activated!");
-                        }else{
-                            LOGGER.info("KeyChecker : invalid MAC Address, "+getMACAddress()/*+". Valid addresses are : "*/);
-                            /*for (int i = 0; i < registeredDomains.length() && !found; i++) {
-                                Main.LOGGER.info("\t"+registeredDomains.getJSONObject(i).getString(FIELD_REGISTERED_DOMAIN));
-                            }*/
+                        } else {
+                            LOGGER.info("KeyChecker : invalid uuid");
                         }
                         return found;
-                    }else {
-                        LOGGER.error("KeyChecker : "+response.toString());
+                    } else {
+                        LOGGER.error("KeyChecker : " + response.toString());
                     }
                 } else {
-                    LOGGER.error("KeyChecker : "+response.toString());
+                    LOGGER.error("KeyChecker : " + response.toString());
                 }
-            }else{
+            } else {
                 LOGGER.info("KeyChecker : received null");
             }
         } catch (Exception e) {
-            if(e.toString().contains("org.apache.http.conn.ConnectTimeoutException") || e.getMessage().contains("java.net.SocketTimeoutException: Read timed out")){
+            if (e.toString().contains("org.apache.http.conn.ConnectTimeoutException") || e.getMessage().contains("java.net.SocketTimeoutException: Read timed out")) {
                 LOGGER.error("[KeyChecker] gameroom.me not reachable");
                 LOGGER.error(e.getMessage());
-            }else{
+            } else {
                 e.printStackTrace();
             }
         }
@@ -132,28 +185,30 @@ public class KeyChecker {
     }
 
     private static JSONObject askKeyValid(String key) throws IOException, UnirestException {
-        HttpResponse<String> response = Unirest.post(API_URL)
+        HttpResponse<JsonNode> response = Unirest.post(API_URL)
                 .field("secret_key", VALIDATION_KEY)
                 .field("slm_action", "slm_check")
                 .field("license_key", key)
-                .asString();
+                .asJson();
 
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getRawBody(), "UTF-8"));
-        String json = reader.readLine();
-        if (DEBUGGING) {
-            LOGGER.debug("isKeyValid response : " + json);
+        if (response.getBody() != null && response.getBody().getObject() != null) {
+            JSONObject obj = response.getBody().getObject();
+            if (DEBUGGING) {
+                LOGGER.debug("askKeyValid response : " + obj.toString(4));
+            }
+            return obj;
         }
-        return new JSONObject(json);
+        return null;
     }
 
     private static String getAllMACAddresses() throws SocketException {
         String MACAddresses = " ";
         Enumeration<NetworkInterface> networkInterfaceEnumeration = NetworkInterface.getNetworkInterfaces();
-        while(networkInterfaceEnumeration.hasMoreElements()){
+        while (networkInterfaceEnumeration.hasMoreElements()) {
             NetworkInterface networkInterface = networkInterfaceEnumeration.nextElement();
             byte[] macAddressBytes = networkInterface.getHardwareAddress();
-            if(macAddressBytes!=null) {
+            if (macAddressBytes != null) {
                 StringBuilder macAddressBuilder = new StringBuilder();
 
                 for (int macAddressByteIndex = 0; macAddressByteIndex < macAddressBytes.length; macAddressByteIndex++) {
@@ -165,13 +220,14 @@ public class KeyChecker {
                         macAddressBuilder.append(":");
                     }
                 }
-                if(!macAddressBuilder.toString().equals("00:00:00:00:00:00:00:E0") && !MACAddresses.contains(macAddressBuilder.toString())){
+                if (!macAddressBuilder.toString().equals("00:00:00:00:00:00:00:E0") && !MACAddresses.contains(macAddressBuilder.toString())) {
                     MACAddresses += macAddressBuilder.toString() + ",";
                 }
             }
         }
-        return MACAddresses.substring(0,MACAddresses.length()-1);
+        return MACAddresses.substring(0, MACAddresses.length() - 1);
     }
+
     private static String getMACAddress() throws UnknownHostException,
             SocketException {
 
@@ -210,18 +266,18 @@ public class KeyChecker {
         }
     }
 
-    public static boolean assumeSupporterMode(){
-        if(SUPPORTER_MODE){
+    public static boolean assumeSupporterMode() {
+        if (SUPPORTER_MODE) {
             //we have already checked so no need to check again
             return true;
         }
         String supporterKey = settings().getString(PredefinedSetting.SUPPORTER_KEY);
         boolean valid = false;
-        if(supporterKey == null || supporterKey.isEmpty()){
+        if (supporterKey == null || supporterKey.isEmpty()) {
             valid = false;
-        }else if(KeyChecker.testInet(GameRoomUpdater.HTTPS_HOST)){
+        } else if (KeyChecker.testInet(GameRoomUpdater.HTTPS_HOST)) {
             valid = KeyChecker.isKeyValid(supporterKey);
-        }else{
+        } else {
             /*/if you are looking at this comment : yes you are a smarty one, congrats. Decompiling a .jar is so hard...*/
             valid = supporterKey.startsWith("326")
                     || supporterKey.equals("586be5b151ba0")
@@ -229,5 +285,60 @@ public class KeyChecker {
         }
         Main.SUPPORTER_MODE = valid;
         return valid;
+    }
+
+    public static void tryReplaceMACPerGUID() {
+        LOGGER.debug("KeyChecker : will attempt to update uuid");
+        if (DEBUGGING) {
+            try {
+                LOGGER.debug("KeyChecker MAC Addresses : " + getAllMACAddresses());
+            } catch (SocketException ignored) {
+            }
+        }
+        String guid = WinReg.readHWGUID();
+        if (guid != null && !guid.isEmpty() && testInet(GameRoomUpdater.HTTPS_HOST)) {
+            //System.out.println("MachineGUID : " + guid);
+            String key = settings().getString(PredefinedSetting.SUPPORTER_KEY);
+            try {
+                JSONObject deactResponse = deactivateKey(key,getAllMACAddresses());
+                if (deactResponse == null) {
+                    LOGGER.error("KeyChecker : error deactivating uuid, null response");
+                    return;
+                } else {
+                    switch (deactResponse.getString(KeyChecker.FIELD_RESULT)) {
+                        case KeyChecker.RESULT_SUCCESS:
+                            LOGGER.info("KeyChecker : successful deactivation of old uuid");
+                            break;
+                        case KeyChecker.RESULT_ERROR:
+                            String message = deactResponse.getString(KeyChecker.FIELD_MESSAGE);
+                            if(! message.equals(MESSAGE_DOMAIN_ALREADY_INACTIVE)){
+                                LOGGER.error("KeyChecker : error deactivating old uuid, " + deactResponse.getString(KeyChecker.FIELD_MESSAGE));
+                                return;
+                            }
+                        default:
+                            break;
+                    }
+                }
+
+                JSONObject actResponse = activateKey(key, guid,false);
+                if (actResponse == null) {
+                    LOGGER.error("KeyChecker : error updating uuid, null response");
+                } else {
+                    switch (actResponse.getString(KeyChecker.FIELD_RESULT)) {
+                        case KeyChecker.RESULT_SUCCESS:
+                            LOGGER.info("KeyChecker : successful update of uuid");
+                            break;
+                        case KeyChecker.RESULT_ERROR:
+                            LOGGER.error("KeyChecker : error updating uuid, " + actResponse.getString(KeyChecker.FIELD_MESSAGE));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            } catch (IOException | UnirestException e) {
+                LOGGER.error("KeyChecker : error updating uuid");
+                e.printStackTrace();
+            }
+        }
     }
 }
