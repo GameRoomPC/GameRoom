@@ -62,7 +62,7 @@ public class KeyChecker {
         HttpResponse<JsonNode> response = Unirest.post(API_URL)
                 .field("secret_key", VALIDATION_KEY)
                 .field("slm_action", "slm_deactivate")
-                .field("registered_domain", getAllMACAddresses())
+                .field("registered_domain", uuid)
                 .field("license_key", key)
                 .asJson();
 
