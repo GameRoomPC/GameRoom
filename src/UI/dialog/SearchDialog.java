@@ -60,8 +60,6 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
     private Label statusLabel;
     private GameEntry selectedEntry;
 
-    private JSONArray gamesDataArray;
-
     private SearchList searchListPane;
 
     private HashMap<String, Boolean> doNotUpdateFieldsMap;
@@ -112,77 +110,38 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
 
         searchListPane = new SearchList(topBox.widthProperty());
 
-        searchButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                searchListPane.clearItems();
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        statusLabel.setText(Main.getString("searching") + "...");
-                    }
-                });
-                try {
-                    JSONArray resultArray = IGDBScraper.searchGame(searchField.getText());
-                    if (resultArray == null) {
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                statusLabel.setText(Main.getString("no_result") + "/" + Main.getString("no_internet"));
-                            }
-                        });
-                    } else {
-                        try {
-                            List<Integer> ids = LevenshteinDistance.getSortedIds(gameName, resultArray);
-                            if (ids.size() == 0) {
-                                Platform.runLater(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        statusLabel.setText(Main.getString("no_result"));
-                                    }
-                                });
-                            } else {
-                                Platform.runLater(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        statusLabel.setText(Main.getString("loading") + "...");
-                                    }
-                                });
-                                Task<String> scrapping = new Task<String>() {
-                                    @Override
-                                    protected String call() throws Exception {
-                                        gamesDataArray = IGDBScraper.getGamesData(ids);
-                                        if (gamesDataArray == null) {
-                                            GameRoomAlert.errorIGDB();
-                                            return null;
-                                        }
-                                        String gameList = "SearchResult : ";
-                                        searchListPane.setGamesDataArray(gamesDataArray);
-                                        Platform.runLater(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                statusLabel.setText("");
-                                            }
-                                        });
-                                        Platform.runLater(() -> searchListPane.addItems(gamesDataArray.iterator()));
-
-                                        Main.LOGGER.debug(gameList.substring(0, gameList.length() - 3));
-                                        return null;
-                                    }
-                                };
-                                Thread th = new Thread(scrapping);
-                                th.setDaemon(true);
-                                th.start();
-                            }
-                        } catch (JSONException e) {
-                            GameRoomAlert.errorIGDB();
+        searchButton.setOnAction(event -> {
+            searchListPane.clearItems();
+            Platform.runLater(() -> statusLabel.setText(Main.getString("searching") + "..."));
+            try {
+                JSONArray resultArray = IGDBScraper.searchGame(searchField.getText());
+                if (resultArray == null) {
+                    Platform.runLater(() -> statusLabel.setText(Main.getString("no_result") + "/" + Main.getString("no_internet")));
+                } else {
+                    try {
+                        if (resultArray == null ||resultArray.length() == 0) {
+                            Platform.runLater(() -> statusLabel.setText(Main.getString("no_result")));
+                        } else {
+                            Platform.runLater(() -> statusLabel.setText(Main.getString("loading") + "..."));
+                            Task scrapping = new Task() {
+                                @Override
+                                protected String call() throws Exception {
+                                    searchListPane.setGamesDataArray(resultArray);
+                                    Platform.runLater(() -> statusLabel.setText(""));
+                                    Platform.runLater(() -> searchListPane.addItems(resultArray.iterator()));
+                                    return null;
+                                }
+                            };
+                            Main.getExecutorService().submit(scrapping);
                         }
+                    } catch (JSONException e) {
+                        GameRoomAlert.errorIGDB();
                     }
-                } catch (UnirestException e) {
-                    LOGGER.error(e.getMessage());
-                    GameRoomAlert.errorIGDB();
-                    close();
                 }
+            } catch (UnirestException e) {
+                LOGGER.error(e.getMessage());
+                GameRoomAlert.errorIGDB();
+                close();
             }
         });
         searchListPane.setPadding(new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
