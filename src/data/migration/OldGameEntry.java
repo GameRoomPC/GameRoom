@@ -123,7 +123,6 @@ public class OldGameEntry {
         LoadingWindow.getInstance().show();
 
         try {
-            Statement statement = DataBase.getUserConnection().createStatement();
             StringJoiner genreSQLJoiner = new StringJoiner(",","INSERT OR IGNORE INTO has_genre(game_id,genre_id) VALUES ",";");
             StringJoiner themeSQLJoiner = new StringJoiner(",","INSERT OR IGNORE INTO has_theme(game_id,theme_id) VALUES ",";");
             StringJoiner platformSQLJoiner = new StringJoiner(",","INSERT OR IGNORE INTO runs_on(platformGameId,platform_id,game_id) VALUES ",";");
@@ -142,8 +141,10 @@ public class OldGameEntry {
                 entry.exportDevs(devSQLJoiner);
                 entry.exportPublishers(pubSQLJoiner);
                 entry.exportSerie(serieSQLJoiner);
-                entry.movePictures(statement);
+                entry.movePictures();
             }
+            Statement statement = DataBase.getUserConnection().createStatement();
+
             LoadingWindow.getInstance().setProgress(i++,Main.getString("applying_changes")+"...");
             statement.addBatch(genreSQLJoiner.toString());
             statement.addBatch(themeSQLJoiner.toString());
@@ -151,6 +152,12 @@ public class OldGameEntry {
             statement.addBatch(devSQLJoiner.toString());
             statement.addBatch(pubSQLJoiner.toString());
             statement.addBatch(serieSQLJoiner.toString());
+            LOGGER.debug(genreSQLJoiner.toString());
+            LOGGER.debug(themeSQLJoiner.toString());
+            LOGGER.debug(platformSQLJoiner.toString());
+            LOGGER.debug(devSQLJoiner.toString());
+            LOGGER.debug(pubSQLJoiner.toString());
+            LOGGER.debug(serieSQLJoiner.toString());
 
             statement.executeBatch();
 
@@ -164,6 +171,7 @@ public class OldGameEntry {
 
 
         } catch (SQLException e) {
+            LoadingWindow.getInstance().setProgress(-1,Main.getString("error_initializing_db"));
             e.printStackTrace();
         }
 
@@ -207,7 +215,7 @@ public class OldGameEntry {
         statement.setString(14, igdb_imageHash[0]);
         statement.setString(15, igdb_imageHash[1]);
         statement.setInt(16, igdb_id);
-        statement.setBoolean(17, waitingToBeScrapped);
+        statement.setBoolean(17, false);
         statement.setBoolean(18, toAdd);
         statement.setBoolean(19, ignored);
         statement.setBoolean(19, false);
@@ -231,7 +239,6 @@ public class OldGameEntry {
     }
 
     private void exportThemes(StringJoiner themeSQLJoiner) throws SQLException {
-        StringJoiner joiner = new StringJoiner(",");
         if (themes != null) {
             for (OldTheme theme : themes) {
                 int themeID = GameTheme.getIGDBId(theme.getKey());
@@ -303,14 +310,15 @@ public class OldGameEntry {
     private void exportSerie(StringJoiner serieSQLJoiner) throws SQLException {
         if (serie != null && !serie.isEmpty()) {
             Serie gameSerie = new Serie(serie);
+            int serieId = gameSerie.insertInDB(false);
 
             if (gameSerie.getId() != Serie.DEFAULT_ID) {
-                serieSQLJoiner.add("(" + sqlId + "," + gameSerie.getId() + ")");
+                serieSQLJoiner.add("(" + sqlId + "," + serieId + ")");
             }
         }
     }
 
-    private void movePictures(Statement statement) {
+    private void movePictures() {
         File coverFolder = FILES_MAP.get("cover");
         File screenshotFolder = FILES_MAP.get("screenshot");
         File workingdir = Main.FILES_MAP.get("working_dir");

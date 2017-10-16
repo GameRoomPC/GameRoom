@@ -10,6 +10,7 @@ import data.game.scanner.ScannerProfile;
 import data.game.scraper.SteamProfile;
 import data.io.DataBase;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -154,10 +155,17 @@ public class GeneralSettings {
         return (int) setting.getSettingValue();
     }
 
-    public Boolean getBoolean(PredefinedSetting key) {
+    public boolean getBoolean(PredefinedSetting key) {
         SettingValue setting = settingsMap.get(key.getKey());
         if(setting == null){
-            return (Boolean)key.getDefaultValue().getSettingValue();
+            Object val = key.getDefaultValue().getSettingValue();
+            if(val instanceof Boolean){
+                return (Boolean) key.getDefaultValue().getSettingValue();
+            }else if(val instanceof BooleanProperty){
+                return ((BooleanProperty) key.getDefaultValue().getSettingValue()).get();
+            }else{
+                return (boolean) key.getDefaultValue().getSettingValue();
+            }
         }
         if (setting.getSettingValue() instanceof SimpleBooleanProperty) {
             return ((SimpleBooleanProperty) setting.getSettingValue()).getValue();
@@ -301,7 +309,11 @@ public class GeneralSettings {
     }
 
     public boolean isGameScannerEnabled(ScannerProfile profile) {
-        ScannerProfile[] enabledValues = (ScannerProfile[]) settingsMap.get(PredefinedSetting.ENABLED_GAME_SCANNERS.getKey()).getSettingValue();
+        SettingValue value= settingsMap.get(PredefinedSetting.ENABLED_GAME_SCANNERS.getKey());
+        if(value == null){
+            return false;
+        }
+        ScannerProfile[] enabledValues = (ScannerProfile[]) value.getSettingValue();
 
         boolean enabled = false;
         for (ScannerProfile disabledProfile : enabledValues) {

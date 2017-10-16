@@ -47,6 +47,7 @@ public class Serie {
         this(DEFAULT_ID, igdb_id, name, updateIfExists);
     }
 
+    @Deprecated
     public Serie(String name) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Company's name was either null or empty : \"" + name + "\"");
@@ -56,17 +57,21 @@ public class Serie {
 
     public int insertInDB(boolean updateIfExists) {
         try {
-            if (isInDB()) {
+            int tempId = getIdInDb();
+            if (tempId != DEFAULT_ID) {
                 id = getIdInDb();
                 if (!updateIfExists) {
                     return id;
                 }
-                String sql = "UPDATE Serie set name_key=?" + (igdb_id < 0 ? "" : ", igdb_id=?,id_needs_update=?") + " where id=?" + id;
+                String sql = "UPDATE Serie set name_key=?" + (igdb_id < 0 ? "" : ", igdb_id=?,id_needs_update=?") + " where id=?";
                 PreparedStatement serieStatement = DataBase.getUserConnection().prepareStatement(sql);
                 serieStatement.setString(1, name);
                 if (igdb_id >= 0) {
                     serieStatement.setInt(2, igdb_id);
                     serieStatement.setInt(3, 0);
+                    serieStatement.setInt(4,id);
+                }else{
+                    serieStatement.setInt(2,id);
                 }
                 serieStatement.execute();
                 serieStatement.close();
@@ -93,10 +98,6 @@ public class Serie {
         return -1;
     }
 
-    private boolean isInDB() {
-        return getIdInDb() != DEFAULT_ID;
-    }
-
     private int getIdInDb() {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Serie's name was either null or empty : \"" + name + "\"");
@@ -110,8 +111,8 @@ public class Serie {
 
             if (result.next()) {
                 id = result.getInt(1);
-                result.close();
             }
+            result.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -28,6 +28,12 @@ public class Company {
         insertInDB(updateIfExists);
     }
 
+    /**
+     * Should onyl by used for {@link data.migration.OldGameEntry}. Allows to create a {@link Company} not inserted into
+     * DB
+     * @param name name of the company created
+     */
+    @Deprecated
     public Company(String name) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Company's name was either null or empty : \"" + name + "\"");
@@ -37,17 +43,21 @@ public class Company {
 
     public int insertInDB(boolean updateIfExists) {
         try {
-            if (isInDB()) {
-                id = getIdInDb();
+            int tempId = getIdInDb();
+            if (tempId != DEFAULT_ID) {
+                id = tempId;
                 if (!updateIfExists) {
                     return id;
                 }
-                String sql = "UPDATE Company set name_key=?" + (igdb_id < 0 ? "" : ", igdb_id=?,id_needs_update=?") + " where id=" + id;
+                String sql = "UPDATE Company set name_key=?" + (igdb_id < 0 ? "" : ", igdb_id=?,id_needs_update=?") + " where id=?";
                 PreparedStatement companyStatement = DataBase.getUserConnection().prepareStatement(sql);
                 companyStatement.setString(1, name);
                 if (igdb_id >= 0) {
                     companyStatement.setInt(2, igdb_id);
                     companyStatement.setInt(3, 0);
+                    companyStatement.setInt(4,id);
+                }else{
+                    companyStatement.setInt(2,id);
                 }
                 companyStatement.execute();
                 companyStatement.close();
@@ -75,10 +85,6 @@ public class Company {
         return DEFAULT_ID;
     }
 
-    private boolean isInDB() {
-        return getIdInDb() != DEFAULT_ID;
-    }
-
     private int getIdInDb() {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Company's name was either null or empty : \"" + name + "\"");
@@ -92,8 +98,8 @@ public class Company {
 
             if (result.next()) {
                 id = result.getInt(1);
-                result.close();
             }
+            result.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -40,7 +40,7 @@ public class ROMScanner extends FolderGameScanner {
                 return;
             }
             for (File f : children) {
-                GameWatcher.getInstance().submitTask(() -> {
+                ScanTask task = new ScanTask(this, () -> {
                     File file = FileUtils.tryResolveLnk(f);
                     GameEntry potentialEntry = new GameEntry(cleanNameForDisplay(
                             f.getName(),
@@ -57,6 +57,7 @@ public class ROMScanner extends FolderGameScanner {
                     }
                     return null;
                 });
+                GameWatcher.getInstance().submitTask(task);
             }
         });
     }
@@ -66,5 +67,10 @@ public class ROMScanner extends FolderGameScanner {
         if (MAIN_SCENE != null) {
             GeneralToast.displayToast(Main.getString("scanning") + " " + Main.getString("rom_folders"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
         }
+    }
+
+    @Override
+    public String getScannerName(){
+        return "ROMs scanner";
     }
 }

@@ -64,6 +64,13 @@ public class IGDBScraper {
     }
 
     /**
+     * Inits all whats needed for the IGDBScraper
+     */
+    public static void init(){
+        Unirest.setTimeouts(6000,10000);
+    }
+
+    /**
      * Helper method which finds the index of the object with th given id inside the given {@link JSONArray}
      *
      * @param id   the id of the object we want the index of

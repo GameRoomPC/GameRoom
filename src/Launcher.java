@@ -8,9 +8,7 @@ import data.migration.OldSettings;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -36,7 +34,9 @@ import ui.scene.MainScene;
 import ui.scene.SettingsScene;
 
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -81,7 +81,7 @@ public class Launcher extends Application {
         System.setProperty("data.dir", DATA_PATH);
         Main.LOGGER = LogManager.getLogger(Main.class);
 
-        System.setErr(new PrintStream(System.err) {
+        /*System.setErr(new PrintStream(System.err) {
             public void print(final String string) {
                 LOGGER.error(string);
                 if (DEV_MODE || settings().getBoolean(PredefinedSetting.DEBUG_MODE)) {
@@ -105,7 +105,7 @@ public class Launcher extends Application {
                 //System.out.print(string);
                 LOGGER.debug(string);
             }
-        });
+        });*/
 
         System.out.println("\n\n==========================================NEW START============================================");
 
@@ -118,6 +118,8 @@ public class Launcher extends Application {
             DDE.addActivationListener(s -> open(MAIN_SCENE.getParentStage()));
             DDE.ready();
         }
+        IGDBScraper.init();
+
         setSplashscreenText("Checking files...");
         initFiles();
         setSplashscreenText("Initializing DB connection...");
@@ -429,6 +431,8 @@ public class Launcher extends Application {
     private static void setSplashscreenText(String text) {
         if (!DEV_MODE) {
             SplashScreen.setText(text, 5, 120);
+        } else {
+            LOGGER.info(text);
         }
     }
 

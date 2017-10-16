@@ -1,11 +1,14 @@
 package data.migration;
 
+import data.game.entry.Platform;
 import ui.Main;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.plaf.basic.BasicProgressBarUI;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 
 /**
@@ -22,6 +25,7 @@ public class LoadingWindow {
     private Color flatterRed = new Color(0.9294f, 0.2666f, 0.1451f);
     private Color flatterDark = new Color(0.1843f, 0.2039f, 0.2235f);
     private JProgressBar progressBar;
+    private JButton quitButton;
     private JLabel titleLabel;
     private JLabel statusLabel;
     private JFrame loadingFrame;
@@ -45,6 +49,19 @@ public class LoadingWindow {
 
             protected Color getSelectionForeground() {
                 return Color.white;
+            }
+        });
+
+        quitButton = new JButton("OK");
+        /*quitButton.setBackground(flatterDark);
+        quitButton.setForeground(flatterRed);*/
+        quitButton.setFont(fontSmall);
+        quitButton.setVisible(false);
+        quitButton.setAction(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadingFrame.dispose();
+                javafx.application.Platform.exit();
             }
         });
 
@@ -85,6 +102,7 @@ public class LoadingWindow {
         textAndBarPanel.add(titleLabel);
         textAndBarPanel.add(statusLabel);
         textAndBarPanel.add(progressBar);
+        textAndBarPanel.add(quitButton);
         textAndBarPanel.setBackground(flatterDark);
 
         JLabel iconLabel = new JLabel(icon);
@@ -119,11 +137,17 @@ public class LoadingWindow {
     /**
      * Changes the progress associated to this LoadingWindow
      *
-     * @param value value of the progress, from 0 to {@link JProgressBar#getMaximum()}
+     * @param value value of the progress, from 0 to {@link JProgressBar#getMaximum()}; or -1 for an error, which displays
+     *              a quit button
      * @param text  the text associated to those changes
      */
     public void setProgress(int value, String text) {
-        progressBar.setValue(value);
+        if(value <0){
+            progressBar.setVisible(false);
+            quitButton.setVisible(true);
+        }else {
+            progressBar.setValue(value);
+        }
         statusLabel.setText(text);
     }
 

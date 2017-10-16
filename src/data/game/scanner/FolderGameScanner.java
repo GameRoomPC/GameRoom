@@ -11,7 +11,6 @@ import ui.Main;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 import static data.game.GameWatcher.cleanNameForDisplay;
 import static data.game.GameWatcher.formatNameForComparison;
@@ -70,7 +69,7 @@ public class FolderGameScanner extends GameScanner {
                 return;
             }
             for (File f : children) {
-                Callable<Object> task = () -> {
+                ScanTask task = new ScanTask(this,() -> {
                     File file = FileUtils.tryResolveLnk(f);
                     GameEntry potentialEntry = new GameEntry(cleanNameForDisplay(
                             f.getName(),
@@ -84,7 +83,7 @@ public class FolderGameScanner extends GameScanner {
                         }
                     }
                     return null;
-                };
+                });
                 GameWatcher.getInstance().submitTask(task);
             }
         });
@@ -175,6 +174,11 @@ public class FolderGameScanner extends GameScanner {
                 GeneralToast.displayToast(Main.getString("scanning") + " " + Main.getString("games_folders"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
             }
         }
+    }
+
+    @Override
+    public String getScannerName(){
+        return "GameFolders scanner";
     }
 
 
