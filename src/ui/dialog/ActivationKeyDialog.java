@@ -27,7 +27,7 @@ public class ActivationKeyDialog extends GameRoomDialog{
         keyField.textProperty().addListener((observable, oldValue, newValue) -> {
             supporterKey = newValue;
         });
-        BorderPane.setMargin(keyField, UIValues.insets(UIValues.UIValues.CONTROL_MEDIUM));
+        BorderPane.setMargin(keyField, UIValues.CONTROL_MEDIUM.insets());
 
         initTopPane();
         mainPane.setCenter(keyField);
@@ -42,7 +42,7 @@ public class ActivationKeyDialog extends GameRoomDialog{
     private void initTopPane() {
         Label infoLabel = new Label(Main.getString("input_here_supporter_key")+" "+Main.getString("supporter_key_infos",settings().getSupporterKeyPrice()+"€"));
         infoLabel.setWrapText(true);
-        BorderPane.setMargin(infoLabel, UIValues.insets(UIValues.UIValues.CONTROL_MEDIUM));
+        BorderPane.setMargin(infoLabel, UIValues.CONTROL_MEDIUM.insets());
 
         mainPane.setTop(infoLabel);
     }

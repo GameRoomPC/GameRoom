@@ -28,7 +28,7 @@ public class ChoiceDialog extends GameRoomDialog<ButtonType> {
         choicesBox.getChildren().addAll(choiceDialogButtons);
         choicesBox.getStyleClass().add("vbox");
         for(ChoiceDialogButton db : choiceDialogButtons){
-            db.setPadding(UIValues.insets(UIValues.UIValues.CONTROL_SMALL));
+            db.setPadding(UIValues.CONTROL_SMALL.insets());
             db.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<Event>() {
                 @Override
                 public void handle(Event event) {
