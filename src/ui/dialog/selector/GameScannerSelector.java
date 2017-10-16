@@ -1,5 +1,6 @@
 package ui.dialog.selector;
 
+import data.game.entry.Platform;
 import data.game.scanner.ScannerProfile;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -95,7 +96,12 @@ public class GameScannerSelector extends GameRoomDialog<ButtonType> {
         protected void addContent() {
             coverView.setFitWidth(Main.SCREEN_HEIGHT/35);
             coverView.setFitHeight(Main.SCREEN_HEIGHT/35);
-            coverView.setId(profile.getIconCSSID());
+            if(profile != null){
+                Platform p = Platform.getFromId(profile.getPlatformId());
+                if(p != null){
+                    p.setCSSIcon(coverView,false);
+                }
+            }
             coverPane.getChildren().add(coverView);
 
             GridPane.setMargin(coverPane, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
