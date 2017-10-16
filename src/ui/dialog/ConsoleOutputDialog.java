@@ -8,6 +8,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import ui.Main;
+import ui.UIValues;
 
 import java.awt.*;
 import java.io.File;
@@ -25,10 +26,7 @@ public class ConsoleOutputDialog extends GameRoomDialog<ButtonType> {
     public ConsoleOutputDialog(){
         textArea.setEditable(false);
         textArea.setWrapText(true);
-        textArea.setPadding(new Insets(10 * Main.SCREEN_HEIGHT / 1080
-                , 10 * Main.SCREEN_WIDTH / 1920
-                , 10 * Main.SCREEN_HEIGHT / 1080
-                , 10 * Main.SCREEN_WIDTH / 1920));
+        textArea.setPadding(UIValues.CONTROL_SMALL.insets());
         /*textArea.setStyle("-fx-font-family: 'Helvetica Neue';\n" +
                 "    -fx-background-color: derive(-dark, 20%);\n"+
                 "    -fx-font-size: 16.0px;\n" +

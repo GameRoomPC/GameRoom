@@ -40,6 +40,7 @@ import system.os.Terminal;
 import system.os.WindowsShortcut;
 import ui.GeneralToast;
 import ui.Main;
+import ui.UIValues;
 import ui.control.ValidEntryCondition;
 import ui.control.button.HelpButton;
 import ui.control.button.ImageButton;
@@ -938,7 +939,7 @@ public class GameEditScene extends BaseScene {
         });
         pane.getChildren().addAll(defaultImageView, coverView, changeImageButton);
         wrappingPane.setLeft(pane);
-        BorderPane.setMargin(pane, new Insets(50 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920, 50 * SCREEN_HEIGHT / 1080, 50 * SCREEN_WIDTH / 1920));
+        BorderPane.setMargin(pane, UIValues.CONTROL_HUGE.insets());
         return pane;
     }
 

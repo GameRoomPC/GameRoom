@@ -31,6 +31,7 @@ import system.application.settings.SettingValue;
 import system.os.PowerMode;
 import system.os.mslinks.ShellLink;
 import ui.Main;
+import ui.UIValues;
 import ui.control.ValidEntryCondition;
 import ui.control.button.HelpButton;
 import ui.control.textfield.CMDTextField;
@@ -107,7 +108,7 @@ public class SettingsScene extends BaseScene {
             flowPane.maxWidthProperty().bind(scrollPane.widthProperty());
             flowPane.prefHeightProperty().bind(scrollPane.heightProperty());
 
-            flowPane.setPadding(new Insets(20 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920, 20 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920));
+            flowPane.setPadding(UIValues.CONTROL_MEDIUM.insets());
 
 
             Tab tab = new Tab(Main.getString(category));
