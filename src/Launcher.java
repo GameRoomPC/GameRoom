@@ -431,8 +431,9 @@ public class Launcher extends Application {
     private static void setSplashscreenText(String text) {
         if (!DEV_MODE) {
             SplashScreen.setText(text, 5, 120);
+        } else {
+            LOGGER.info(text);
         }
-        LOGGER.info(text);
     }
 
     private void initTrayIcon() {
