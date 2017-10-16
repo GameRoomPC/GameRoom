@@ -28,6 +28,12 @@ public class Company {
         insertInDB(updateIfExists);
     }
 
+    /**
+     * Should onyl by used for {@link data.migration.OldGameEntry}. Allows to create a {@link Company} not inserted into
+     * DB
+     * @param name name of the company created
+     */
+    @Deprecated
     public Company(String name) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Company's name was either null or empty : \"" + name + "\"");

@@ -47,6 +47,7 @@ public class Serie {
         this(DEFAULT_ID, igdb_id, name, updateIfExists);
     }
 
+    @Deprecated
     public Serie(String name) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Company's name was either null or empty : \"" + name + "\"");
