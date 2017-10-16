@@ -9,6 +9,7 @@ import data.game.entry.GameEntryUtils;
 import data.game.entry.Platform;
 import data.game.scanner.GameScanner;
 import data.game.scanner.OnGameFound;
+import data.game.scanner.ScanTask;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.*;
 import org.jsoup.Jsoup;
@@ -27,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.Callable;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
@@ -40,15 +40,12 @@ public class SteamOnlineScraper {
 
     static void scanSteamOnlineGames(GameScanner scanner) {
         scanNonInstalledSteamGames(entry -> {
-            Callable task = new Callable() {
-                @Override
-                public Object call() throws Exception {
-                    if (!GameEntryUtils.isGameIgnored(entry) && !SteamLocalScraper.isSteamGameInstalled(entry.getPlatformGameID())) {
-                        scanner.checkAndAdd(entry);
-                    }
-                    return null;
+            ScanTask task = new ScanTask(scanner,() -> {
+                if (!GameEntryUtils.isGameIgnored(entry) && !SteamLocalScraper.isSteamGameInstalled(entry.getPlatformGameID())) {
+                    scanner.checkAndAdd(entry);
                 }
-            };
+                return null;
+            });
             GameWatcher.getInstance().submitTask(task);
         });
     }

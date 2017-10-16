@@ -21,4 +21,9 @@ public class LauncherScanner extends FolderGameScanner {
         LauncherGameScraper.scanInstalledGames(this);
     }
 
+    @Override
+    public String getScannerName(){
+        return profile.name();
+    }
+
 }

@@ -104,7 +104,8 @@ public class GameWatcher {
         if (MAIN_SCENE != null) {
             GeneralToast.displayToast(Main.getString("search_started"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
         }
-        //validateKey();
+        originalGameFoundNumber = entriesToAdd.size();
+
         scanNewGamesRoutine();
         scanNewOnlineGamesRoutine();
 
@@ -377,41 +378,11 @@ public class GameWatcher {
         for (GameScanner scanner : onlineGameScanners) {
             scanner.startScanning();
         }
-        //now we wait for the scanners to have all finished
-        boolean allScannersDone = true;
-        while (!allScannersDone) {
-            allScannersDone = true;
-
-            for (GameScanner scanner : onlineGameScanners) {
-                allScannersDone = allScannersDone && scanner.isScanDone();
-            }
-            try {
-                Thread.sleep(2 * 100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private void scanNewGamesRoutine() {
-        originalGameFoundNumber = entriesToAdd.size();
-
         for (GameScanner scanner : localGameScanners) {
             scanner.startScanning();
-        }
-        //now we wait for the scanners to have all finished
-        boolean allScannersDone = true;
-        while (!allScannersDone) {
-            allScannersDone = true;
-
-            for (GameScanner scanner : localGameScanners) {
-                allScannersDone = allScannersDone && scanner.isScanDone();
-            }
-            try {
-                Thread.sleep(2 * 100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
     }
 

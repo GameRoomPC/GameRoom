@@ -7,14 +7,22 @@ import ui.Main;
 import ui.control.button.gamebutton.GameButton;
 import ui.GeneralToast;
 
+import java.util.HashSet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static ui.Main.LOGGER;
 import static ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 19/08/2016.
  */
 public abstract class GameScanner {
+    private final static int MAX_LATCH_AWAIT_SECONDS = 20;
+
     ScannerProfile profile = null;
     private volatile boolean scanDone = false;
+    private volatile HashSet<CountDownLatch> tasksLatchs = new HashSet<>();
     GameWatcher parentLooker;
 
 
@@ -25,10 +33,32 @@ public abstract class GameScanner {
     public final void startScanning() {
         scanDone = false;
         if (profile == null || profile.isEnabled()) {
+            LOGGER.info(getScannerName() + " started");
             displayStartToast();
             scanAndAddGames();
+
+            final int[] size = {tasksLatchs.size()};
+            LOGGER.debug(getScannerName() + ": "+ size[0] +" latchs");
+            tasksLatchs.forEach(latch -> {
+                try {
+                    int sec = 20;
+                    boolean completed = latch.await(MAX_LATCH_AWAIT_SECONDS, TimeUnit.SECONDS);
+                    if(!completed){
+                        LOGGER.debug(getScannerName() + ": skeeping latch"+ (size[0]) +" after "+MAX_LATCH_AWAIT_SECONDS+"s");
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                LOGGER.debug(getScannerName() + " : "+ (--size[0]) +" latchs remaining");
+            });
+            if (profile != null)
+                LOGGER.info(getScannerName() + " finished");
         }
         scanDone = true;
+    }
+
+    protected void addLatch(CountDownLatch latch) {
+        tasksLatchs.add(latch);
     }
 
     protected abstract void scanAndAddGames();
@@ -66,11 +96,19 @@ public abstract class GameScanner {
         return profile;
     }
 
-    public Platform getPlatform(){
-        if(profile == null){
+    public Platform getPlatform() {
+        if (profile == null) {
             return Platform.PC;
         }
         int platformID = profile.getPlatformId();
         return Platform.getFromId(platformID);
+    }
+
+    public String getScannerName() {
+        if (getScannerProfile() != null) {
+            return getScannerProfile().name()+" scanner";
+        } else {
+            return "(unnamed scanner)";
+        }
     }
 }

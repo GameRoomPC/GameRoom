@@ -5,12 +5,20 @@ import data.game.entry.GameEntry;
 import data.game.entry.Platform;
 import data.game.scanner.FolderGameScanner;
 import data.game.scanner.GameScanner;
+import data.game.scanner.ScanTask;
 import data.io.FileUtils;
+import org.apache.commons.lang.ArrayUtils;
 import system.os.Terminal;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by LM on 29/08/2016.
@@ -24,25 +32,25 @@ public class LauncherGameScraper {
         switch (scanner.getScannerProfile()) {
             case GOG:
                 scanGOGGames(scanner);
-                return;
+                break;
             case UPLAY:
                 scanUplayGames(scanner);
-                return;
+                break;
             case ORIGIN:
                 scanOriginGames(scanner);
-                return;
+                break;
             case BATTLE_NET:
                 scanBattleNetGames(scanner);
-                return;
+                break;
             case STEAM:
                 scanSteamGames(scanner);
-                return;
+                break;
             case STEAM_ONLINE:
                 SteamOnlineScraper.checkIfCanScanSteam(false);
                 scanSteamOnlineGames(scanner);
-                return;
+                break;
             default:
-                return;
+                break;
         }
     }
 
@@ -61,55 +69,52 @@ public class LauncherGameScraper {
             output = terminal.execute("reg", "query", '"' + regFolder + '"');
             for (String s : output) {
                 if (s.contains(regFolder)) {
-                    Callable task = new Callable() {
-                        @Override
-                        public Object call() throws Exception {
-                            int index = s.indexOf(regFolder) + regFolder.length() + 1;
-                            String subFolder = s.substring(index);
+                    ScanTask task = new ScanTask(scanner,() -> {
+                        int index = s.indexOf(regFolder) + regFolder.length() + 1;
+                        String subFolder = s.substring(index);
 
-                            String[] subOutPut = terminal.execute("reg", "query", '"' + regFolder + "\\" + subFolder + '"');
-                            String installDir = null;
-                            String name = null;
+                        String[] subOutPut = terminal.execute("reg", "query", '"' + regFolder + "\\" + subFolder + '"');
+                        String installDir = null;
+                        String name = null;
 
-                            boolean notAGame = false; //this is to detect GOG non games
-                            for (String s2 : subOutPut) {
-                                if (s2.contains(installDirPrefix)) {
-                                    int index2 = s2.indexOf(installDirPrefix) + installDirPrefix.length();
-                                    installDir = s2.substring(index2).replace("/", "\\").replace("\"", "");
-                                    ;
-                                } else if (namePrefix != null && s2.contains(namePrefix)) {
-                                    int index2 = s2.indexOf(namePrefix) + namePrefix.length();
-                                    name = s2.substring(index2).replace("®", "").replace("™", "");
-                                } else if (s2.contains("DEPENDSON    REG_SZ    ")) {
-                                    notAGame = !s2.equals("    DEPENDSON    REG_SZ    ");
-                                }
+                        boolean notAGame = false; //this is to detect GOG non games
+                        for (String s2 : subOutPut) {
+                            if (s2.contains(installDirPrefix)) {
+                                int index2 = s2.indexOf(installDirPrefix) + installDirPrefix.length();
+                                installDir = s2.substring(index2).replace("/", "\\").replace("\"", "");
+                                ;
+                            } else if (namePrefix != null && s2.contains(namePrefix)) {
+                                int index2 = s2.indexOf(namePrefix) + namePrefix.length();
+                                name = s2.substring(index2).replace("®", "").replace("™", "");
+                            } else if (s2.contains("DEPENDSON    REG_SZ    ")) {
+                                notAGame = !s2.equals("    DEPENDSON    REG_SZ    ");
                             }
-                            if (installDir != null && !notAGame) {
-                                File file = new File(installDir);
-                                if (file.exists()) {
-                                    if (name == null) {
-                                        name = file.isDirectory() ? file.getName() : new File(file.getParent()).getName();
-                                    }
-                                    GameEntry potentialEntry = new GameEntry(name);
-                                    potentialEntry.setPath(file.getAbsolutePath());
-                                    potentialEntry.setInstalled(true);
-
-                                    int id = 0;
-                                    try {
-                                        id = Integer.parseInt(subFolder);
-                                        if (id == -1) {
-                                            id = 0;
-                                        }
-                                    } catch (NumberFormatException nfe) {
-                                        //no id to scrap!
-                                    }
-                                    potentialEntry.setPlatform(scanner.getPlatform());
-                                    scanner.checkAndAdd(potentialEntry);
-                                }
-                            }
-                            return null;
                         }
-                    };
+                        if (installDir != null && !notAGame) {
+                            File file = new File(installDir);
+                            if (file.exists()) {
+                                if (name == null) {
+                                    name = file.isDirectory() ? file.getName() : new File(file.getParent()).getName();
+                                }
+                                GameEntry potentialEntry = new GameEntry(name);
+                                potentialEntry.setPath(file.getAbsolutePath());
+                                potentialEntry.setInstalled(true);
+
+                                int id = 0;
+                                try {
+                                    id = Integer.parseInt(subFolder);
+                                    if (id == -1) {
+                                        id = 0;
+                                    }
+                                } catch (NumberFormatException nfe) {
+                                    //no id to scrap!
+                                }
+                                potentialEntry.setPlatform(scanner.getPlatform());
+                                scanner.checkAndAdd(potentialEntry);
+                            }
+                        }
+                        return null;
+                    });
                     GameWatcher.getInstance().submitTask(task);
 
                     try {
@@ -155,38 +160,35 @@ public class LauncherGameScraper {
             String[] output = terminal.execute("reg", "query", regFolder);
             for (String line : output) {
                 if (line.startsWith(regFolder)) {
-                    Callable task = new Callable() {
-                        @Override
-                        public Object call() throws Exception {
-                            String[] gameRegOutput = terminal.execute("reg", "query", line);
+                    ScanTask task = new ScanTask(scanner, () -> {
+                        String[] gameRegOutput = terminal.execute("reg", "query", line);
 
-                            String name = null;
-                            String path = null;
-                            String root = null;
-                            for (String propLine : gameRegOutput) {
-                                if (propLine.contains(pathPrefix)) {
-                                    path = getValue(pathPrefix, propLine).replace("\"", "");
-                                    ;
-                                }
-                                if (propLine.contains(namePrefix)) {
-                                    name = getValue(namePrefix, propLine);
-                                }
-                                if (propLine.contains(rootPrefix)) {
-                                    root = getValue(rootPrefix, propLine).replace("\"", "");
-                                    ;
-                                }
+                        String name = null;
+                        String path = null;
+                        String root = null;
+                        for (String propLine : gameRegOutput) {
+                            if (propLine.contains(pathPrefix)) {
+                                path = getValue(pathPrefix, propLine).replace("\"", "");
+                                ;
                             }
-                            if (name != null && path != null) {
-                                GameEntry entry = new GameEntry(name);
-                                entry.setPath(path);
-                                if (gameIsOrigin(root)) {
-                                    entry.setPlatform(Platform.ORIGIN_ID);
-                                    scanner.checkAndAdd(entry);
-                                }
+                            if (propLine.contains(namePrefix)) {
+                                name = getValue(namePrefix, propLine);
                             }
-                            return null;
+                            if (propLine.contains(rootPrefix)) {
+                                root = getValue(rootPrefix, propLine).replace("\"", "");
+                                ;
+                            }
                         }
-                    };
+                        if (name != null && path != null) {
+                            GameEntry entry = new GameEntry(name);
+                            entry.setPath(path);
+                            if (gameIsOrigin(root)) {
+                                entry.setPlatform(Platform.ORIGIN_ID);
+                                scanner.checkAndAdd(entry);
+                            }
+                        }
+                        return null;
+                    });
                     GameWatcher.getInstance().submitTask(task);
                 }
             }
@@ -228,68 +230,64 @@ public class LauncherGameScraper {
         Terminal terminal = new Terminal(false);
         try {
             String[] output = terminal.execute("reg", "query", '"' + regFolder + '"', "/s", "/f", '"' + keyWord + '"');
-            for (String line : output) {
-                if (line.startsWith(regFolder)) {
-                    Callable task = new Callable() {
-                        @Override
-                        public Object call() throws Exception {
-                            String appCode = line.substring(regFolder.length() + 1); //+1 for the \
+            List<String> linesToProcess = Arrays.stream(output).filter(s -> s.startsWith(regFolder)).collect(Collectors.toList());
+            linesToProcess.forEach(line -> {
+                ScanTask task = new ScanTask(scanner,() -> {
+                    String appCode = line.substring(regFolder.length() + 1); //+1 for the \
 
-                            boolean excluded = false;
-                            for (String excludedName : excludedNames) {
-                                excluded = appCode.equals(excludedName);
-                                if (excluded) {
-                                    break;
-                                }
-                            }
-                            if (!excluded) {
-                                String[] gameRegOutput = terminal.execute("reg", "query", '"' + regFolder + '\\' + appCode + '"');
-                                String pathPrefix = "DisplayIcon    REG_SZ";
-                                String rootPrefix = "InstallLocation    REG_SZ";
-                                String namePrefix = "DisplayName    REG_SZ";
-                                String path = null;
-                                String name = appCode;
-
-                                for (String s : gameRegOutput) {
-                                    if (s.contains(pathPrefix)) {
-                                        String tempPath = getValue(pathPrefix, s).replace("\"", "");
-                                        if (FolderGameScanner.fileHasValidExtension(new File(tempPath))) {
-                                            path = tempPath;
-                                            ;
-                                        }
-                                        break;
-                                    }
-                                    if (s.contains(rootPrefix)) {
-                                        if (path == null) {
-                                            path = getValue(rootPrefix, s).replace("\"", "");
-                                        }
-                                    }
-                                    if (s.contains(namePrefix)) {
-                                        name = getValue(namePrefix, s);
-                                    }
-                                }
-                                String resolvedPath = FileUtils.tryResolveLnk(path);
-                                if (resolvedPath != null && FolderGameScanner.isPotentiallyAGame(new File(resolvedPath))) {
-                                    GameEntry entry = new GameEntry(name);
-                                    entry.setPath(resolvedPath);
-
-                                    entry.setPlatform(scanner.getPlatform());
-
-                                    entry.setInstalled(true);
-                                    scanner.checkAndAdd(entry);
-                                }
-                                try {
-                                    Thread.sleep(100);
-                                } catch (InterruptedException ignored) {
-                                }
-                            }
-                            return null;
+                    boolean excluded = false;
+                    for (String excludedName : excludedNames) {
+                        excluded = appCode.equals(excludedName);
+                        if (excluded) {
+                            break;
                         }
-                    };
-                    GameWatcher.getInstance().submitTask(task);
+                    }
+                    if (!excluded) {
+                        String[] gameRegOutput = terminal.execute("reg", "query", '"' + regFolder + '\\' + appCode + '"');
+                        String pathPrefix = "DisplayIcon    REG_SZ";
+                        String rootPrefix = "InstallLocation    REG_SZ";
+                        String namePrefix = "DisplayName    REG_SZ";
+                        String path = null;
+                        String name = appCode;
 
-                }
-            }
+                        for (String s : gameRegOutput) {
+                            if (s.contains(pathPrefix)) {
+                                String tempPath = getValue(pathPrefix, s).replace("\"", "");
+                                if (FolderGameScanner.fileHasValidExtension(new File(tempPath))) {
+                                    path = tempPath;
+                                    ;
+                                }
+                                break;
+                            }
+                            if (s.contains(rootPrefix)) {
+                                if (path == null) {
+                                    path = getValue(rootPrefix, s).replace("\"", "");
+                                }
+                            }
+                            if (s.contains(namePrefix)) {
+                                name = getValue(namePrefix, s);
+                            }
+                        }
+                        String resolvedPath = FileUtils.tryResolveLnk(path);
+                        if (resolvedPath != null && FolderGameScanner.isPotentiallyAGame(new File(resolvedPath))) {
+                            GameEntry entry = new GameEntry(name);
+                            entry.setPath(resolvedPath);
+
+                            entry.setPlatform(scanner.getPlatform());
+
+                            entry.setInstalled(true);
+                            scanner.checkAndAdd(entry);
+                        }
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException ignored) {
+                        }
+                    }
+                    return null;
+                });
+                GameWatcher.getInstance().submitTask(task);
+
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }
