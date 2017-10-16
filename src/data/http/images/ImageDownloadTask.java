@@ -76,6 +76,7 @@ public class ImageDownloadTask extends Task {
                 }
                 return downloaded;
             } catch (IOException e) {
+                Main.LOGGER.error("Error downloading image " + url);
                 Main.LOGGER.error(e.toString());
                 return false;
             }
@@ -91,6 +92,7 @@ public class ImageDownloadTask extends Task {
                 }
                 return downloaded;
             } catch (Exception e2) {
+                Main.LOGGER.error("Error downloading alternative image " + alternativeURLs[urlIndex]);
                 Main.LOGGER.error(e2.toString());
                 return false;
             }

@@ -70,6 +70,7 @@ public class ImageUtils {
     private final static double BACKGROUND_IMAGE_BLUR = 7;
     private final static double BACKGROUND_IMAGE_LOAD_RATIO = 2 / 3.0;
 
+    @Deprecated
     public static Task downloadSteamImageToCache(int steam_id, String type, String size, OnDLDoneHandler dlDoneHandler) {
         String imageURL = STEAM_IMAGE_URL_PREFIX + steam_id + "/" + type + (type.equals(STEAM_TYPE_HEADER) ? "" : size) + ".jpg";
         String imageFileName = steam_id + "_" + type + (type.equals(STEAM_TYPE_HEADER) ? "" : size) + ".jpg";
@@ -139,6 +140,9 @@ public class ImageUtils {
         return downloadImgToCache(imageURL, getIGDBImageCacheFileOutput(igdb_id, imageHash, type, size), dlDoneHandler, alternativeURLs);
     }
 
+    /**
+     * See {@link ImageUtils#downloadIGDBImageToCache(int, String, String, String, OnDLDoneHandler)} )}
+     */
     private static Task downloadImgToCache(String url, File fileOutput, OnDLDoneHandler dlDoneHandler, String... alternativeURLs) {
         fileOutput.deleteOnExit();
         ImageDownloadTask task = new ImageDownloadTask(url, fileOutput, dlDoneHandler);
@@ -147,6 +151,9 @@ public class ImageUtils {
         return task;
     }
 
+    /**
+     * See {@link ImageUtils#downloadIGDBImageToCache(int, String, String, String, OnDLDoneHandler)} )}
+     */
     private static Task downloadImgToCache(String url, String filenameOutput, OnDLDoneHandler dlDoneHandler) {
         return downloadImgToCache(url, getOutputImageCacheFile(filenameOutput), dlDoneHandler);
     }
@@ -286,10 +293,16 @@ public class ImageUtils {
                 1);
     }
 
+    /**
+     * See {@link ImageUtils#transitionToCover(File, double, double, ImageView)} )}
+     */
     public static void transitionToCover(String imgPath, double requestedWidth, double requestedHeight, ImageView imageView) {
         transitionToCover(new File(imgPath), requestedWidth, requestedHeight, imageView);
     }
 
+    /**
+     * See {@link ImageUtils#transitionToCover(File, double, double, ImageView)} )}
+     */
     public static void transitionToCover(Image img, ImageView imageView) {
         boolean preserveRatio = shouldKeepImageRatio(img);
         imageView.setPreserveRatio(preserveRatio);
