@@ -1,3 +1,4 @@
+import com.mashape.unirest.http.Unirest;
 import data.game.GameFolderManager;
 import data.game.entry.GameEntryUtils;
 import data.game.scraper.IGDBScraper;
@@ -118,6 +119,8 @@ public class Launcher extends Application {
             DDE.addActivationListener(s -> open(MAIN_SCENE.getParentStage()));
             DDE.ready();
         }
+        IGDBScraper.init();
+
         setSplashscreenText("Checking files...");
         initFiles();
         setSplashscreenText("Initializing DB connection...");
