@@ -255,7 +255,6 @@ public class LauncherGameScraper {
                                 String tempPath = getValue(pathPrefix, s).replace("\"", "");
                                 if (FolderGameScanner.fileHasValidExtension(new File(tempPath))) {
                                     path = tempPath;
-                                    ;
                                 }
                                 break;
                             }
