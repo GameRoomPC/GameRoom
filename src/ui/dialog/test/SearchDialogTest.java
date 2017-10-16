@@ -31,7 +31,7 @@ public class SearchDialogTest extends Application {
     private static void initScene() {
         Button launchButton = new Button("Launch");
 
-        SearchDialog dialog = new SearchDialog(new HashMap<>());
+        SearchDialog dialog = new SearchDialog("test");
 
         launchButton.setOnAction(e -> {
                     Optional<ButtonType> result = dialog.showAndWait();

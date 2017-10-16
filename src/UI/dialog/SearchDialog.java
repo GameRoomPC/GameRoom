@@ -45,6 +45,7 @@ import java.util.HashMap;
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
 import static ui.Main.SCREEN_WIDTH;
+import static ui.Main.SUPPORTER_MODE;
 
 /**
  * Created by LM on 12/07/2016.
@@ -57,17 +58,11 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
 
     private SearchList searchListPane;
 
-    private HashMap<String, Boolean> doNotUpdateFieldsMap;
     private BooleanProperty allowDLCs = new SimpleBooleanProperty(false);
     private IntegerProperty platformIdToSearch = new SimpleIntegerProperty(-1);
 
-    public SearchDialog(HashMap<String, Boolean> doNotUpdateFieldsMap) {
-        this(doNotUpdateFieldsMap, null);
-    }
-
-    public SearchDialog(HashMap<String, Boolean> doNotUpdateFieldsMap, String gameName) {
+    public SearchDialog(String gameName) {
         super();
-        this.doNotUpdateFieldsMap = doNotUpdateFieldsMap;
         getDialogPane().getStyleClass().add("search-dialog");
 
         statusLabel = new Label(Main.getString("search_a_game"));
@@ -82,15 +77,10 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             searchField.setText(gameName);
         }
 
-        showingProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                if (newValue)
-                    searchField.requestFocus();
-            }
+        showingProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue)
+                searchField.requestFocus();
         });
-        //Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
-        //ImageButton searchButton = new ImageButton(searchImage);
         double imgSize = 40 * SCREEN_WIDTH / 1920;
         ImageButton searchButton = new ImageButton("search-button", imgSize, imgSize);
 
@@ -112,7 +102,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         searchListPane.setPadding(new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
         try {
-            remapEnterKey(getDialogPane(), searchButton, searchField);
+            remapEnterKey(getDialogPane(), searchField);
         } catch (AWTException e) {
             e.printStackTrace();
         }
@@ -122,49 +112,6 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         centerPane.setFocusTraversable(false);
 
         centerPane.getChildren().addAll(searchListPane, statusLabel);
-
-        ObservableList<String> fields = FXCollections.observableArrayList();
-        for (String key : doNotUpdateFieldsMap.keySet()) {
-            fields.add(key);
-        }
-        fields.sort(String::compareTo);
-        // Create the CheckComboBox with the data
-        final CheckComboBox<String> fieldsComboBox = new CheckComboBox<String>(fields);
-        fieldsComboBox.setConverter(new StringConverter<String>() {
-            @Override
-            public String toString(String object) {
-                return Main.getString(object);
-            }
-
-            @Override
-            public String fromString(String string) {
-                return null;
-            }
-        });
-        for (String key : doNotUpdateFieldsMap.keySet()) {
-            if (doNotUpdateFieldsMap.get(key))
-                fieldsComboBox.getCheckModel().check(key);
-        }
-        fieldsComboBox.setPrefWidth(250 * Main.SCREEN_WIDTH / 1920);
-        fieldsComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
-            @Override
-            public void onChanged(Change<? extends String> c) {
-                while (c.next()) {
-                    for (String s : c.getAddedSubList()) {
-                        SearchDialog.this.doNotUpdateFieldsMap.put(s, true);
-                    }
-                    for (String s : c.getRemoved()) {
-                        SearchDialog.this.doNotUpdateFieldsMap.put(s, false);
-                    }
-                }
-            }
-        });
-        /*Label doNotUpdateLabel = new Label(Main.getString("do_not_update") + ":");
-        doNotUpdateLabel.setFocusTraversable(false);
-        HBox notUpdateHbox = new HBox();
-        notUpdateHbox.setAlignment(Pos.CENTER_LEFT);
-        notUpdateHbox.setSpacing(10 * Main.SCREEN_WIDTH / 1920);
-        notUpdateHbox.getChildren().addAll(doNotUpdateLabel, fieldsComboBox);*/
 
         try {
             Platform.initWithDb();
@@ -235,7 +182,10 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         VBox bottomVbox = new VBox();
         bottomVbox.setAlignment(Pos.BASELINE_LEFT);
         bottomVbox.setSpacing(5 * Main.SCREEN_WIDTH / 1920);
-        bottomVbox.getChildren().addAll(searchDLCHbox, restrictPlatformHbox);
+        bottomVbox.getChildren().add(searchDLCHbox);
+        if(SUPPORTER_MODE){
+            bottomVbox.getChildren().add(restrictPlatformHbox);
+        }
 
         mainPane.setTop(topBox);
         mainPane.setCenter(centerPane);
@@ -258,6 +208,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         setOnHiding(event -> {
             if (searchListPane.getSelectedValue() != null) {
                 selectedEntry = IGDBScraper.getEntry(searchListPane.getSelectedValue());
+                selectedEntry.setPlatform(Platform.getFromIGDBId(platformIdToSearch.get()));
             }
         });
         if (gameName != null) {
@@ -274,7 +225,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 javafx.application.Platform.runLater(() -> statusLabel.setText(Main.getString("no_result") + "/" + Main.getString("no_internet")));
             } else {
                 try {
-                    if (resultArray == null || resultArray.length() == 0) {
+                    if (resultArray.length() == 0) {
                         javafx.application.Platform.runLater(() -> statusLabel.setText(Main.getString("no_result")));
                     } else {
                         javafx.application.Platform.runLater(() -> statusLabel.setText(Main.getString("loading") + "..."));
@@ -303,23 +254,16 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         return selectedEntry;
     }
 
-    public HashMap<String, Boolean> getDoNotUpdateFieldsMap() {
-        if (doNotUpdateFieldsMap == null) {
-            return new HashMap<>();
-        }
-        return doNotUpdateFieldsMap;
-    }
-
     private static class SearchList extends SelectListPane<JSONObject> {
         private ReadOnlyDoubleProperty prefRowWidth;
 
-        public SearchList(ReadOnlyDoubleProperty prefRowWidth) {
+        SearchList(ReadOnlyDoubleProperty prefRowWidth) {
             super();
             this.prefRowWidth = prefRowWidth;
         }
 
         @Override
-        protected ListItem<JSONObject> createListItem(JSONObject value) {
+        protected ListItem createListItem(JSONObject value) {
             String coverHash = null;
             try {
                 coverHash = IGDBScraper.extractCoverImageHash(value);
@@ -334,19 +278,22 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 release_date = new Date(value.getLong("release_date"));
             }
 
-            SearchItem row = new SearchItem(value, this, value.getString("name")
-                    , release_date
-                    , value.getInt("id")
-                    , coverHash
-                    , prefRowWidth
-                    , IGDBScraper.extractPlatformIds(value)
+            SearchItem row = new SearchItem(
+                    value,
+                    this,
+                    value.getString("name"),
+                    release_date,
+                    value.getInt("id"),
+                    coverHash,
+                    prefRowWidth,
+                    IGDBScraper.extractPlatformIds(value)
             );
             row.prefWidthProperty().bind(prefRowWidth);
             return row;
         }
     }
 
-    private void remapEnterKey(Pane pane, Button searchButton, TextField searchField) throws AWTException {
+    private void remapEnterKey(Pane pane, TextField searchField) throws AWTException {
         pane.addEventFilter(KeyEvent.ANY, event -> {
             if (!event.isShiftDown()) {
                 switch (event.getCode()) {
@@ -360,7 +307,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         });
     }
 
-    private static class SearchItem<JSONObject> extends SelectListPane.ListItem {
+    private static class SearchItem extends SelectListPane.ListItem {
         private final static int COVER_WIDTH = 70;
         private StackPane coverPane = new StackPane();
         private ImageView coverView = new ImageView();
@@ -390,14 +337,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 ImageUtils.downloadIGDBImageToCache(id, coverHash, ImageUtils.IGDB_TYPE_COVER, ImageUtils.IGDB_SIZE_SMALL, new OnDLDoneHandler() {
                     @Override
                     public void run(File outputFile) {
-                        boolean keepRatio = true;
-                        try {
-                            SimpleImageInfo imageInfo = new SimpleImageInfo(outputFile);
-                            keepRatio = Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2;
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        boolean finalKeepRatio = keepRatio;
+                        boolean finalKeepRatio = ImageUtils.shouldKeepImageRatio(outputFile);
                         javafx.application.Platform.runLater(() -> {
                             ImageUtils.transitionToImage(new Image("file:" + File.separator + File.separator + File.separator + outputFile.getAbsolutePath(), COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, finalKeepRatio, true), coverView);
                         });
@@ -429,8 +369,8 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             double logoHeight = 25 * Main.SCREEN_HEIGHT / 1080;
 
 
-            for (int i = 0; i < platformIds.length; i++) {
-                Platform p = Platform.getFromIGDBId(platformIds[i]);
+            for (int platformId : platformIds) {
+                Platform p = Platform.getFromIGDBId(platformId);
                 if (p != null) {
                     ImageView temp = new ImageView();
                     temp.setSmooth(false);

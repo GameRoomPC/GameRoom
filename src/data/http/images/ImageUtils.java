@@ -332,15 +332,9 @@ public class ImageUtils {
         if(imgFile == null || !imgFile.exists()){
             return false;
         }
-        try {
-            SimpleImageInfo imageInfo = new SimpleImageInfo(new File(imgFile.getAbsolutePath()));
-            return Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2
-                    && settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO);
-        } catch (IOException e) {
-            LOGGER.error("Could not check image keep ratio for file : \"" + imgFile.getAbsolutePath() + "\"");
-            e.printStackTrace();
-        }
-        return false;
+        SimpleImageInfo imageInfo = new SimpleImageInfo(new File(imgFile.getAbsolutePath()));
+        return Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2
+                && settings().getBoolean(PredefinedSetting.KEEP_COVER_RATIO);
     }
 
     /**
