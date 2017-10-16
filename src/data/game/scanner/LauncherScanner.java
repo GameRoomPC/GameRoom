@@ -23,7 +23,7 @@ public class LauncherScanner extends FolderGameScanner {
 
     @Override
     public String getScannerName(){
-        return profile.name();
+        return profile.name()+" scanner";
     }
 
 }
