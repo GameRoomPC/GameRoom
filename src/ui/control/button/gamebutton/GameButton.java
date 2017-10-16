@@ -83,8 +83,6 @@ public abstract class GameButton extends BorderPane {
     ImageButton playButton;
     ImageButton infoButton;
 
-    private Pane parent;
-
 
     private GameEntry entry;
     private boolean inContextMenu = false;
@@ -94,7 +92,6 @@ public abstract class GameButton extends BorderPane {
 
     GameButton(GameEntry entry, BaseScene scene, Pane parent) {
         super();
-        this.parent = parent;
         this.entry = entry;
         this.parentScene = scene;
 
@@ -123,7 +120,7 @@ public abstract class GameButton extends BorderPane {
 
 
         setLauncherLogo();
-        showCover();
+        ImageUtils.getExecutorService().submit(this::showCover);
 
         initNotInstalled();
     }
@@ -322,7 +319,7 @@ public abstract class GameButton extends BorderPane {
         }
         defaultCoverView = new ImageView(defaultCoverImage);
 
-        showCover();
+        ImageUtils.getExecutorService().submit(this::showCover);
 
         playButton.setOnMouseClicked(mc -> {
             if (!entry.isSteamGame()) {
@@ -653,7 +650,8 @@ public abstract class GameButton extends BorderPane {
         double width = getCoverWidth();
         double height = getCoverHeight();
 
-        ImageUtils.getExecutorService().submit(() -> ImageUtils.transitionToCover(entry.getImagePath(0), width, height, coverView));
+        ImageUtils.transitionToCover(entry.getImagePath(0), width, height, coverView);
+        //ImageUtils.getExecutorService().submit(() -> ImageUtils.transitionToCover(entry.getImagePath(0), width, height, coverView));
     }
 
 }

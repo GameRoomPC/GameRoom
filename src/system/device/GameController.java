@@ -155,54 +155,59 @@ public class GameController {
         pollingTask = new SchedulableTask<Void>(0, POLL_RATE) {
             @Override
             protected Void execute() throws Exception {
-                boolean connected = false;
-                if (getController() != null && (connected = getController().poll()) && Main.KEEP_THREADS_RUNNING && !paused) {
-                    navKeyConsumed = false;
-                    EventQueue queue = getController().getEventQueue();
-                    Event event = new Event();
+                try {
+                    boolean connected = false;
+                    if (getController() != null && (connected = getController().poll()) && Main.KEEP_THREADS_RUNNING && !paused) {
+                        navKeyConsumed = false;
+                        EventQueue queue = getController().getEventQueue();
+                        Event event = new Event();
 
-                    /*********EVENT MODE *********/
-                    //First we treat the events
-                    while (queue.getNextEvent(event)) {
-                        onDataPolled(event.getComponent(), event.getValue(), false);
-                    }
+                        /*********EVENT MODE *********/
+                        //First we treat the events
+                        while (queue.getNextEvent(event)) {
+                            onDataPolled(event.getComponent(), event.getValue(), false);
+                        }
 
-                    /*****CONTINOUS MODE *******/
-                    //Here we treat the continuous usage of buttons, i.e. if there are being held
-                    Arrays.stream(getController().getComponents())
-                            //we filter to get only joysticks and nav pad
-                            .filter(component -> component.getName().contains("Axe") || component.getIdentifier().toString().contains("pov"))
-                            .forEach(component -> {
-                                float value = component.getPollData();
+                        /*****CONTINOUS MODE *******/
+                        //Here we treat the continuous usage of buttons, i.e. if there are being held
+                        Arrays.stream(getController().getComponents())
+                                //we filter to get only joysticks and nav pad
+                                .filter(component -> component.getName().contains("Axe") || component.getIdentifier().toString().contains("pov"))
+                                .forEach(component -> {
+                                    float value = component.getPollData();
 
-                                if (continuousMode && (System.currentTimeMillis() - firstNavKeyEvent > SECOND_NAV_DELAY)) {
-                                    //second navigation speed here
-                                    if ((System.currentTimeMillis() - lastNavKeyEvent > SECOND_NAV_POLL_RATE)) {
+                                    if (continuousMode && (System.currentTimeMillis() - firstNavKeyEvent > SECOND_NAV_DELAY)) {
+                                        //second navigation speed here
+                                        if ((System.currentTimeMillis() - lastNavKeyEvent > SECOND_NAV_POLL_RATE)) {
+                                            onDataPolled(component, value, true);
+                                            //is continous if a joystick or the nav pad is held
+                                            continuousMode = continuousX || continuousY || continuousPad;
+                                        }
+                                    } else if ((System.currentTimeMillis() - lastNavKeyEvent > FIRST_NAV_DELAY)) {
+                                        //first speed navigation here
+                                        boolean wasContinuous = continuousMode;
                                         onDataPolled(component, value, true);
                                         //is continous if a joystick or the nav pad is held
                                         continuousMode = continuousX || continuousY || continuousPad;
+                                        if (!wasContinuous && continuousMode) {
+                                            //first time we are in continous mode, record the current time
+                                            firstNavKeyEvent = System.currentTimeMillis();
+                                        }
                                     }
-                                } else if ((System.currentTimeMillis() - lastNavKeyEvent > FIRST_NAV_DELAY)) {
-                                    //first speed navigation here
-                                    boolean wasContinuous = continuousMode;
-                                    onDataPolled(component, value, true);
-                                    //is continous if a joystick or the nav pad is held
-                                    continuousMode = continuousX || continuousY || continuousPad;
-                                    if (!wasContinuous && continuousMode) {
-                                        //first time we are in continous mode, record the current time
-                                        firstNavKeyEvent = System.currentTimeMillis();
-                                    }
-                                }
-                            });
+                                });
 
-                }
-                if (!connected) {
-                    //means controller is disconnected and should look for an other
-                    LOGGER.debug("Controller disconnected: " + getController().getName());
-                    if (MAIN_SCENE != null) {
-                        GeneralToast.displayToast(controller.getName() + " " + Main.getString("disconnected"), MAIN_SCENE.getParentStage());
                     }
-                    setController((Controller) null);
+                    if (!connected) {
+                        //means controller is disconnected and should look for an other
+                        LOGGER.debug("Controller disconnected: " + getController().getName());
+                        if (MAIN_SCENE != null) {
+                            GeneralToast.displayToast(controller.getName() + " " + Main.getString("disconnected"), MAIN_SCENE.getParentStage());
+                        }
+                        setController((Controller) null);
+                    }
+                }catch (IndexOutOfBoundsException e){
+                    LOGGER.error("Gotcha you filthy error !");
+                    e.printStackTrace();
                 }
                 return null;
             }
