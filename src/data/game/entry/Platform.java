@@ -26,8 +26,10 @@ public class Platform {
     private final static HashMap<Integer, Platform> ID_MAP = new HashMap<>();
 
     public final static int PC_ID = -2;
+    private final static int ALL_PLATFORMS_ID = -3;
 
     public final static Platform PC = new Platform(PC_ID, 6, "pc", true, "exe,lnk");
+    public final static Platform ALL_PLATFORMS = new Platform(ALL_PLATFORMS_ID, -1, "all_platforms", true, "exe,lnk");
 
 
     private final static int NONE_ID = -1;
@@ -53,7 +55,7 @@ public class Platform {
         ROMFolder = set.getString("path");
     }
 
-    //should only be used to build the PC platform
+    //should only be used to build the PC platform and ALL_PLATFORMS
     private Platform(int id, int igdb_id, String nameKey, boolean isPC, String supportedExtensions) {
         if (nameKey == null || nameKey.isEmpty()) {
             throw new IllegalArgumentException("Platform's nameKey was either null or empty : \"" + nameKey + "\"");

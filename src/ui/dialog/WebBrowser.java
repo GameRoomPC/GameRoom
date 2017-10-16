@@ -1,6 +1,5 @@
 package ui.dialog;
 
-import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -10,6 +9,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import ui.Main;
+import ui.UIValues;
 
 import java.awt.*;
 import java.io.IOException;
@@ -56,11 +56,10 @@ public class WebBrowser extends GameRoomDialog<ButtonType> {
         urlLabel.textProperty().bind(webView.getEngine().locationProperty());
         backButton.setOnAction(e -> webView.getEngine().getHistory().go(-1));
         forwardButton.setOnAction(e -> webView.getEngine().getHistory().go(1));
-        double padding = 10 * Main.SCREEN_WIDTH / 1920;
-        HBox box = new HBox(padding);
+        HBox box = new HBox(UIValues.Constants.offsetSmall());
         box.setFocusTraversable(false);
         box.getChildren().addAll(backButton, forwardButton, urlLabel);
-        box.setPadding(new Insets(padding,padding,padding,padding));
+        box.setPadding(UIValues.CONTROL_SMALL.insets());
         return box;
     }
 

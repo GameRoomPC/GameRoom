@@ -2,6 +2,8 @@ package data.http;
 
 import java.io.*;
 
+import static ui.Main.LOGGER;
+
 /**
  * With this class, it is possible to read some information about an {@link javafx.scene.image.Image} without really
  * loading it, which allows to get the width and height without too much loading time !
@@ -16,9 +18,16 @@ public class SimpleImageInfo {
     private int width;
     private String mimeType;
 
-    public SimpleImageInfo(File file) throws IOException {
+    public SimpleImageInfo(File file) {
+        if (file == null) {
+            throw new IllegalArgumentException("Given file is null");
+        }
+        //Java 7 try with resources that automatically closes Closeable resources at the execution's end, exception or not
         try (InputStream is = new FileInputStream(file)) {
             processStream(is);
+        } catch (IOException e) {
+            LOGGER.error("Could not check image keep ratio for file : \"" + file.getAbsolutePath() + "\"");
+            LOGGER.error(e.getMessage());
         }
     }
 

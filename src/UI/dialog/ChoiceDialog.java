@@ -11,6 +11,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import ui.Main;
+import ui.UIValues;
 
 
 /**
@@ -27,7 +28,7 @@ public class ChoiceDialog extends GameRoomDialog<ButtonType> {
         choicesBox.getChildren().addAll(choiceDialogButtons);
         choicesBox.getStyleClass().add("vbox");
         for(ChoiceDialogButton db : choiceDialogButtons){
-            db.setPadding(new Insets(15* Main.SCREEN_WIDTH /1920, 15* Main.SCREEN_HEIGHT /1080,15* Main.SCREEN_WIDTH /1920, 15* Main.SCREEN_HEIGHT /1080));
+            db.setPadding(UIValues.CONTROL_SMALL.insets());
             db.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<Event>() {
                 @Override
                 public void handle(Event event) {

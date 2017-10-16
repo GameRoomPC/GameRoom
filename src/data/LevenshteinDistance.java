@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -52,22 +53,20 @@ public class LevenshteinDistance {
         return closestId;
     }
 
-    public static List<Integer> getSortedIds(String searchedName, JSONArray resultArray) throws JSONException{
+    /*public static List<Integer> getSortedIds(String searchedName, JSONArray resultArray) throws JSONException{
         ArrayList<SortingItem> items = new ArrayList<>();
         for (Object obj : resultArray) {
             JSONObject jsob = ((JSONObject) obj);
             items.add(new SortingItem(jsob.getInt("id"), distance(searchedName,jsob.getString("name"))));
         }
-        items.sort((o1, o2) -> {
-            return Integer.compare(o1.distance,o2.distance);
-        });
+        items.sort(Comparator.comparingInt(o -> o.distance));
 
         ArrayList<Integer> sortedIds = new ArrayList<>();
         for(SortingItem item : items){
             sortedIds.add(item.id);
         }
         return sortedIds;
-    }
+    }*/
 
     private static class SortingItem{
         int id;

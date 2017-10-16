@@ -31,10 +31,10 @@ import system.application.settings.SettingValue;
 import system.os.PowerMode;
 import system.os.mslinks.ShellLink;
 import ui.Main;
+import ui.UIValues;
 import ui.control.ValidEntryCondition;
 import ui.control.button.HelpButton;
 import ui.control.textfield.CMDTextField;
-import ui.control.textfield.PathTextField;
 import ui.dialog.*;
 import ui.dialog.selector.GameScannerSelector;
 import ui.dialog.selector.IgnoredEntrySelector;
@@ -108,7 +108,7 @@ public class SettingsScene extends BaseScene {
             flowPane.maxWidthProperty().bind(scrollPane.widthProperty());
             flowPane.prefHeightProperty().bind(scrollPane.heightProperty());
 
-            flowPane.setPadding(new Insets(20 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920, 20 * SCREEN_HEIGHT / 1080, 20 * SCREEN_WIDTH / 1920));
+            flowPane.setPadding(UIValues.CONTROL_MEDIUM.insets());
 
 
             Tab tab = new Tab(Main.getString(category));
@@ -365,30 +365,27 @@ public class SettingsScene extends BaseScene {
         supporterKeyLabel.setTooltip(new Tooltip(PredefinedSetting.SUPPORTER_KEY.getTooltip()));
         Button actDeactButton = new Button(buttonText);
 
-        actDeactButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                if (SUPPORTER_MODE) {
-                    try {
-                        JSONObject response = KeyChecker.deactivateKey(settings().getString(PredefinedSetting.SUPPORTER_KEY));
-                        if (response.getString(KeyChecker.FIELD_RESULT).equals(KeyChecker.RESULT_SUCCESS)) {
-                            settings().setSettingValue(PredefinedSetting.SUPPORTER_KEY, "");
-                            SUPPORTER_MODE = false;
-                            String keyStatus = Main.SUPPORTER_MODE ? settings().getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
-                            String buttonText = Main.SUPPORTER_MODE ? Main.getString("deactivate") : Main.getString("activate");
-                            actDeactButton.setText(buttonText);
-                            supporterKeyLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + " : " + keyStatus);
+        actDeactButton.setOnAction(event -> {
+            if (SUPPORTER_MODE) {
+                try {
+                    JSONObject response = KeyChecker.deactivateKey(settings().getString(PredefinedSetting.SUPPORTER_KEY));
+                    if (response != null && response.getString(KeyChecker.FIELD_RESULT).equals(KeyChecker.RESULT_SUCCESS)) {
+                        settings().setSettingValue(PredefinedSetting.SUPPORTER_KEY, "");
+                        SUPPORTER_MODE = false;
+                        String keyStatus1 = Main.SUPPORTER_MODE ? settings().getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
+                        String buttonText1 = Main.SUPPORTER_MODE ? Main.getString("deactivate") : Main.getString("activate");
+                        actDeactButton.setText(buttonText1);
+                        supporterKeyLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + " : " + keyStatus1);
 
-                            settings().onSupporterModeDeactivated();
-                        } else {
-                            Main.LOGGER.error("Error while trying to deactivate key : " + response.toString(4));
-                        }
-                    } catch (IOException | UnirestException e) {
-                        e.printStackTrace();
+                        settings().onSupporterModeDeactivated();
+                    } else {
+                        Main.LOGGER.error("Error while trying to deactivate key : " + (response!=null ? response.toString(4) : "null"));
                     }
-                } else {
-                    displayRegisterDialog(actDeactButton, supporterKeyLabel);
+                } catch (IOException | UnirestException e) {
+                    e.printStackTrace();
                 }
+            } else {
+                displayRegisterDialog(actDeactButton, supporterKeyLabel);
             }
         });
 
@@ -947,30 +944,34 @@ public class SettingsScene extends BaseScene {
             } else if (letter.getText().equals(Main.getString("activate"))) {
                 try {
                     JSONObject response = KeyChecker.activateKey(dialog.getSupporterKey());
-                    String message = Main.getString(response.getString(KeyChecker.FIELD_MESSAGE).replace(' ', '_'));
+                    if(response == null){
+                        GameRoomAlert.errorGameRoomAPI();
+                    }else {
+                        String message = Main.getString(response.getString(KeyChecker.FIELD_MESSAGE).replace(' ', '_'));
 
-                    switch (response.getString(KeyChecker.FIELD_RESULT)) {
-                        case KeyChecker.RESULT_SUCCESS:
-                            GameRoomAlert.info(message);
+                        switch (response.getString(KeyChecker.FIELD_RESULT)) {
+                            case KeyChecker.RESULT_SUCCESS:
+                                GameRoomAlert.info(message);
 
-                            settings().setSettingValue(PredefinedSetting.SUPPORTER_KEY, dialog.getSupporterKey());
-                            SUPPORTER_MODE = KeyChecker.isKeyValid(settings().getString(PredefinedSetting.SUPPORTER_KEY));
-                            String keyStatus = Main.SUPPORTER_MODE ? settings().getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
-                            String buttonText = Main.SUPPORTER_MODE ? Main.getString("deactivate") : Main.getString("activate");
-                            if (actDeactButton != null) {
-                                actDeactButton.setText(buttonText);
-                            }
-                            if (supporterModeLabel != null) {
-                                supporterModeLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + " : " + keyStatus);
-                            }
-                            settings().onSupporterModeActivated();
+                                settings().setSettingValue(PredefinedSetting.SUPPORTER_KEY, dialog.getSupporterKey());
+                                SUPPORTER_MODE = KeyChecker.isKeyValid(settings().getString(PredefinedSetting.SUPPORTER_KEY));
+                                String keyStatus = Main.SUPPORTER_MODE ? settings().getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
+                                String buttonText = Main.SUPPORTER_MODE ? Main.getString("deactivate") : Main.getString("activate");
+                                if (actDeactButton != null) {
+                                    actDeactButton.setText(buttonText);
+                                }
+                                if (supporterModeLabel != null) {
+                                    supporterModeLabel.setText(PredefinedSetting.SUPPORTER_KEY.getLabel() + " : " + keyStatus);
+                                }
+                                settings().onSupporterModeActivated();
 
-                            break;
-                        case KeyChecker.RESULT_ERROR:
-                            GameRoomAlert.error(message);
-                            break;
-                        default:
-                            break;
+                                break;
+                            case KeyChecker.RESULT_ERROR:
+                                GameRoomAlert.error(message);
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 } catch (IOException | UnirestException e1) {
                     e1.printStackTrace();

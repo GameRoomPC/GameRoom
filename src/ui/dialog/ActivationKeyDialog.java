@@ -1,12 +1,12 @@
 package ui.dialog;
 
-import javafx.geometry.Insets;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import ui.Main;
+import ui.UIValues;
 
 import static system.application.settings.GeneralSettings.settings;
 
@@ -27,7 +27,7 @@ public class ActivationKeyDialog extends GameRoomDialog{
         keyField.textProperty().addListener((observable, oldValue, newValue) -> {
             supporterKey = newValue;
         });
-        BorderPane.setMargin(keyField, new Insets(20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
+        BorderPane.setMargin(keyField, UIValues.CONTROL_MEDIUM.insets());
 
         initTopPane();
         mainPane.setCenter(keyField);
@@ -42,7 +42,7 @@ public class ActivationKeyDialog extends GameRoomDialog{
     private void initTopPane() {
         Label infoLabel = new Label(Main.getString("input_here_supporter_key")+" "+Main.getString("supporter_key_infos",settings().getSupporterKeyPrice()+"€"));
         infoLabel.setWrapText(true);
-        BorderPane.setMargin(infoLabel, new Insets(20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
+        BorderPane.setMargin(infoLabel, UIValues.CONTROL_MEDIUM.insets());
 
         mainPane.setTop(infoLabel);
     }

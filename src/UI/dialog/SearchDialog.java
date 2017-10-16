@@ -1,22 +1,19 @@
 package ui.dialog;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
-import data.LevenshteinDistance;
 import data.game.entry.GameEntry;
+import data.game.entry.Platform;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.OnDLDoneHandler;
 import data.http.SimpleImageInfo;
 import data.http.images.ImageUtils;
-import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -28,12 +25,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.util.StringConverter;
-import org.apache.http.conn.ConnectTimeoutException;
 import org.controlsfx.control.CheckComboBox;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import system.application.settings.PredefinedSetting;
 import ui.Main;
 import ui.control.button.ImageButton;
 import ui.control.button.gamebutton.GameButton;
@@ -42,15 +37,15 @@ import ui.pane.SelectListPane;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 import static system.application.settings.GeneralSettings.settings;
 import static ui.Main.LOGGER;
 import static ui.Main.SCREEN_WIDTH;
+import static ui.Main.SUPPORTER_MODE;
 
 /**
  * Created by LM on 12/07/2016.
@@ -61,19 +56,13 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
     private Label statusLabel;
     private GameEntry selectedEntry;
 
-    private JSONArray gamesDataArray;
-
     private SearchList searchListPane;
 
-    private HashMap<String, Boolean> doNotUpdateFieldsMap;
+    private BooleanProperty allowDLCs = new SimpleBooleanProperty(false);
+    private IntegerProperty platformIdToSearch = new SimpleIntegerProperty(-1);
 
-    public SearchDialog(HashMap<String, Boolean> doNotUpdateFieldsMap) {
-        this(doNotUpdateFieldsMap, null);
-    }
-
-    public SearchDialog(HashMap<String, Boolean> doNotUpdateFieldsMap, String gameName) {
+    public SearchDialog(String gameName) {
         super();
-        this.doNotUpdateFieldsMap = doNotUpdateFieldsMap;
         getDialogPane().getStyleClass().add("search-dialog");
 
         statusLabel = new Label(Main.getString("search_a_game"));
@@ -88,16 +77,11 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             searchField.setText(gameName);
         }
 
-        showingProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                if (newValue)
-                    searchField.requestFocus();
-            }
+        showingProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue)
+                searchField.requestFocus();
         });
-        //Image searchImage = new Image("res/ui/searchButton.png", SCREEN_WIDTH / 28, SCREEN_WIDTH / 28, true, true);
-        //ImageButton searchButton = new ImageButton(searchImage);
-        double imgSize = SCREEN_WIDTH / 28;
+        double imgSize = 40 * SCREEN_WIDTH / 1920;
         ImageButton searchButton = new ImageButton("search-button", imgSize, imgSize);
 
         mainPane.getStyleClass().add("container");
@@ -113,83 +97,12 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
 
         searchListPane = new SearchList(topBox.widthProperty());
 
-        searchButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                searchListPane.clearItems();
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        statusLabel.setText(Main.getString("searching") + "...");
-                    }
-                });
-                try {
-                    JSONArray resultArray = IGDBScraper.searchGame(searchField.getText());
-                    if (resultArray == null) {
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                statusLabel.setText(Main.getString("no_result") + "/" + Main.getString("no_internet"));
-                            }
-                        });
-                    } else {
-                        try {
-                            List<Integer> ids = LevenshteinDistance.getSortedIds(gameName, resultArray);
-                            if (ids.size() == 0) {
-                                Platform.runLater(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        statusLabel.setText(Main.getString("no_result"));
-                                    }
-                                });
-                            } else {
-                                Platform.runLater(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        statusLabel.setText(Main.getString("loading") + "...");
-                                    }
-                                });
-                                Task<String> scrapping = new Task<String>() {
-                                    @Override
-                                    protected String call() throws Exception {
-                                        gamesDataArray = IGDBScraper.getGamesData(ids);
-                                        if (gamesDataArray == null) {
-                                            GameRoomAlert.errorIGDB();
-                                            return null;
-                                        }
-                                        String gameList = "SearchResult : ";
-                                        searchListPane.setGamesDataArray(gamesDataArray);
-                                        Platform.runLater(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                statusLabel.setText("");
-                                            }
-                                        });
-                                        Platform.runLater(() -> searchListPane.addItems(gamesDataArray.iterator()));
+        searchButton.setOnAction(event -> startResearch());
 
-                                        Main.LOGGER.debug(gameList.substring(0, gameList.length() - 3));
-                                        return null;
-                                    }
-                                };
-                                Thread th = new Thread(scrapping);
-                                th.setDaemon(true);
-                                th.start();
-                            }
-                        } catch (JSONException e) {
-                            GameRoomAlert.errorIGDB();
-                        }
-                    }
-                } catch (UnirestException e) {
-                    LOGGER.error(e.getMessage());
-                    GameRoomAlert.errorIGDB();
-                    close();
-                }
-            }
-        });
         searchListPane.setPadding(new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
         try {
-            remapEnterKey(getDialogPane(), searchButton, searchField);
+            remapEnterKey(getDialogPane(), searchField);
         } catch (AWTException e) {
             e.printStackTrace();
         }
@@ -200,60 +113,86 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
 
         centerPane.getChildren().addAll(searchListPane, statusLabel);
 
-        ObservableList<String> fields = FXCollections.observableArrayList();
-        for (String key : doNotUpdateFieldsMap.keySet()) {
-            fields.add(key);
+        try {
+            Platform.initWithDb();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        fields.sort(new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
-                return o1.compareTo(o2);
-            }
-        });
+
+        final ObservableList<Platform> platforms = FXCollections.observableArrayList(Platform.getEmulablePlatforms());
+        platforms.add(0, Platform.ALL_PLATFORMS);
+        platforms.add(1, Platform.PC);
+
+        Label restrictPlatformLabel = new Label(Main.getString("platform") + ":");
+        restrictPlatformLabel.setFocusTraversable(false);
+
         // Create the CheckComboBox with the data
-        final CheckComboBox<String> fieldsComboBox = new CheckComboBox<String>(fields);
-        fieldsComboBox.setConverter(new StringConverter<String>() {
-            @Override
-            public String toString(String object) {
-                return Main.getString(object);
-            }
+        final ComboBox<Platform> platformComboBox = new ComboBox<>(platforms);
+
+        platformComboBox.setCellFactory(param -> new ListCell<Platform>() {
+            private ImageView imageView = new ImageView();
 
             @Override
-            public String fromString(String string) {
-                return null;
-            }
-        });
-        for (String key : doNotUpdateFieldsMap.keySet()) {
-            if (doNotUpdateFieldsMap.get(key))
-                fieldsComboBox.getCheckModel().check(key);
-        }
-        fieldsComboBox.setPrefWidth(250 * Main.SCREEN_WIDTH / 1920);
-        fieldsComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
-            @Override
-            public void onChanged(Change<? extends String> c) {
-                while (c.next()) {
-                    for (String s : c.getAddedSubList()) {
-                        SearchDialog.this.doNotUpdateFieldsMap.put(s, true);
-                    }
-                    for (String s : c.getRemoved()) {
-                        SearchDialog.this.doNotUpdateFieldsMap.put(s, false);
-                    }
+            public void updateItem(Platform platform, boolean empty) {
+                super.updateItem(platform, empty);
+                if (empty || platform == null) {
+                    //Corresponds to the "all" choice !
+                    imageView.setId("");
+                    setText(Main.getString("all_platforms"));
+                    setGraphic(null);
+                } else {
+                    double width = 25 * Main.SCREEN_WIDTH / 1920;
+                    double height = 25 * Main.SCREEN_HEIGHT / 1080;
+
+                    platform.setCSSIcon(imageView, settings().getTheme().useDarkPlatformIconsInList());
+                    imageView.setFitWidth(width);
+                    imageView.setFitHeight(height);
+                    imageView.setSmooth(true);
+
+                    setText(platform.getName());
+                    setGraphic(imageView);
                 }
             }
         });
-        Label doNotUpdateLabel = new Label(Main.getString("do_not_update") + ":");
-        doNotUpdateLabel.setFocusTraversable(false);
-        HBox notUpdateHbox = new HBox();
-        notUpdateHbox.setAlignment(Pos.CENTER);
-        notUpdateHbox.setSpacing(10 * Main.SCREEN_WIDTH / 1920);
-        notUpdateHbox.getChildren().addAll(doNotUpdateLabel, fieldsComboBox);
+        platformComboBox.setId("platform");
+        platformComboBox.getSelectionModel().select(0);
+        platformComboBox.maxWidthProperty().bind(searchField.widthProperty().subtract(restrictPlatformLabel.widthProperty()));
+
+        platformComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            platformIdToSearch.setValue(newValue.getIGDBId());
+            startResearch();
+        });
+
+        HBox restrictPlatformHbox = new HBox();
+        restrictPlatformHbox.setAlignment(Pos.CENTER_LEFT);
+        restrictPlatformHbox.setSpacing(10 * Main.SCREEN_WIDTH / 1920);
+        restrictPlatformHbox.getChildren().addAll(restrictPlatformLabel, platformComboBox);
+
+        CheckBox searchDLCCheckBox = new CheckBox();
+        searchDLCCheckBox.setSelected(false);
+        allowDLCs.bind(searchDLCCheckBox.selectedProperty());
+        searchDLCCheckBox.selectedProperty().addListener(observable -> startResearch());
+        Label searchDLCLabel = new Label(Main.getString("search_also_DLCs") + ":");
+        searchDLCLabel.setFocusTraversable(false);
+        HBox searchDLCHbox = new HBox();
+        searchDLCHbox.setAlignment(Pos.CENTER_LEFT);
+        searchDLCHbox.setSpacing(10 * Main.SCREEN_WIDTH / 1920);
+        searchDLCHbox.getChildren().addAll(searchDLCLabel, searchDLCCheckBox);
+
+        VBox bottomVbox = new VBox();
+        bottomVbox.setAlignment(Pos.BASELINE_LEFT);
+        bottomVbox.setSpacing(5 * Main.SCREEN_WIDTH / 1920);
+        bottomVbox.getChildren().add(searchDLCHbox);
+        if(SUPPORTER_MODE){
+            bottomVbox.getChildren().add(restrictPlatformHbox);
+        }
 
         mainPane.setTop(topBox);
         mainPane.setCenter(centerPane);
-        mainPane.setBottom(notUpdateHbox);
+        mainPane.setBottom(bottomVbox);
 
-        BorderPane.setMargin(topBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
-        BorderPane.setMargin(notUpdateHbox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 0 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
+        BorderPane.setMargin(topBox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 20 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920));
+        BorderPane.setMargin(bottomVbox, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920, 0 * Main.SCREEN_HEIGHT / 1080, 20 * Main.SCREEN_WIDTH / 1920));
 
         ButtonType cancelButtonType = new ButtonType(ui.Main.getString("cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType nextButtonType = new ButtonType(Main.getString("next"), ButtonBar.ButtonData.OK_DONE);
@@ -269,11 +208,45 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         setOnHiding(event -> {
             if (searchListPane.getSelectedValue() != null) {
                 selectedEntry = IGDBScraper.getEntry(searchListPane.getSelectedValue());
-                String coverHash = IGDBScraper.getEntry(searchListPane.getSelectedValue()).getIgdb_imageHash(0);
+                selectedEntry.setPlatform(Platform.getFromIGDBId(platformIdToSearch.get()));
             }
         });
         if (gameName != null) {
-            searchButton.fireEvent(new ActionEvent());
+            startResearch();
+        }
+    }
+
+    private void startResearch(){
+        searchListPane.clearItems();
+        javafx.application.Platform.runLater(() -> statusLabel.setText(Main.getString("searching") + "..."));
+        try {
+            JSONArray resultArray = IGDBScraper.searchGame(searchField.getText(), allowDLCs.get(), platformIdToSearch.get());
+            if (resultArray == null) {
+                javafx.application.Platform.runLater(() -> statusLabel.setText(Main.getString("no_result") + "/" + Main.getString("no_internet")));
+            } else {
+                try {
+                    if (resultArray.length() == 0) {
+                        javafx.application.Platform.runLater(() -> statusLabel.setText(Main.getString("no_result")));
+                    } else {
+                        javafx.application.Platform.runLater(() -> statusLabel.setText(Main.getString("loading") + "..."));
+                        Task scrapping = new Task() {
+                            @Override
+                            protected String call() throws Exception {
+                                javafx.application.Platform.runLater(() -> statusLabel.setText(""));
+                                javafx.application.Platform.runLater(() -> searchListPane.addItems(resultArray.iterator()));
+                                return null;
+                            }
+                        };
+                        Main.getExecutorService().submit(scrapping);
+                    }
+                } catch (JSONException e) {
+                    GameRoomAlert.errorGameRoomAPI();
+                }
+            }
+        } catch (UnirestException e) {
+            LOGGER.error(e.getMessage());
+            GameRoomAlert.errorGameRoomAPI();
+            close();
         }
     }
 
@@ -281,67 +254,60 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         return selectedEntry;
     }
 
-    public HashMap<String, Boolean> getDoNotUpdateFieldsMap() {
-        if (doNotUpdateFieldsMap == null) {
-            return new HashMap<>();
-        }
-        return doNotUpdateFieldsMap;
-    }
-
     private static class SearchList extends SelectListPane<JSONObject> {
-        private JSONArray gamesDataArray;
         private ReadOnlyDoubleProperty prefRowWidth;
 
-        public SearchList(ReadOnlyDoubleProperty prefRowWidth) {
+        SearchList(ReadOnlyDoubleProperty prefRowWidth) {
             super();
             this.prefRowWidth = prefRowWidth;
         }
 
-        public void setGamesDataArray(JSONArray gamesDataArray) {
-            this.gamesDataArray = gamesDataArray;
-        }
-
         @Override
-        protected ListItem<JSONObject> createListItem(JSONObject value) {
+        protected ListItem createListItem(JSONObject value) {
             String coverHash = null;
             try {
-                coverHash = IGDBScraper.getCoverImageHash(value);
+                coverHash = IGDBScraper.extractCoverImageHash(value);
             } catch (JSONException je) {
                 Main.LOGGER.debug("No cover for game " + value.getString("name"));
                 if (!je.toString().contains("cover")) {
                     je.printStackTrace();
                 }
             }
-            SearchItem row = new SearchItem(value, this, value.getString("name")
-                    , IGDBScraper.getReleaseDate(value.getInt("id"), gamesDataArray)
-                    , value.getInt("id")
-                    , coverHash
-                    , prefRowWidth
-                    , IGDBScraper.getPlatformIds(value)
+            Date release_date = null;
+            if (!value.has("release_date") && !value.isNull("release_date")) {
+                release_date = new Date(value.getLong("release_date"));
+            }
+
+            SearchItem row = new SearchItem(
+                    value,
+                    this,
+                    value.getString("name"),
+                    release_date,
+                    value.getInt("id"),
+                    coverHash,
+                    prefRowWidth,
+                    IGDBScraper.extractPlatformIds(value)
             );
             row.prefWidthProperty().bind(prefRowWidth);
             return row;
         }
     }
 
-    private void remapEnterKey(Pane pane, Button searchButton, TextField searchField) throws AWTException {
-        pane.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                if (!event.isShiftDown()) {
-                    switch (event.getCode()) {
-                        case ENTER:
-                            if (searchField.isFocused() && !searchField.getText().equals("")) {
-                                searchButton.fireEvent(new ActionEvent());
-                            }
-                            break;
-                    }
+    private void remapEnterKey(Pane pane, TextField searchField) throws AWTException {
+        pane.addEventFilter(KeyEvent.ANY, event -> {
+            if (!event.isShiftDown()) {
+                switch (event.getCode()) {
+                    case ENTER:
+                        if (searchField.isFocused() && !searchField.getText().equals("")) {
+                            startResearch();
+                        }
+                        break;
                 }
             }
         });
     }
 
-    private static class SearchItem<JSONObject> extends SelectListPane.ListItem {
+    private static class SearchItem extends SelectListPane.ListItem {
         private final static int COVER_WIDTH = 70;
         private StackPane coverPane = new StackPane();
         private ImageView coverView = new ImageView();
@@ -371,15 +337,8 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 ImageUtils.downloadIGDBImageToCache(id, coverHash, ImageUtils.IGDB_TYPE_COVER, ImageUtils.IGDB_SIZE_SMALL, new OnDLDoneHandler() {
                     @Override
                     public void run(File outputFile) {
-                        boolean keepRatio = true;
-                        try {
-                            SimpleImageInfo imageInfo = new SimpleImageInfo(outputFile);
-                            keepRatio = Math.abs(((double) imageInfo.getHeight() / imageInfo.getWidth()) - GameButton.COVER_HEIGHT_WIDTH_RATIO) > 0.2;
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        boolean finalKeepRatio = keepRatio;
-                        Platform.runLater(() -> {
+                        boolean finalKeepRatio = ImageUtils.shouldKeepImageRatio(outputFile);
+                        javafx.application.Platform.runLater(() -> {
                             ImageUtils.transitionToImage(new Image("file:" + File.separator + File.separator + File.separator + outputFile.getAbsolutePath(), COVER_WIDTH, COVER_WIDTH * GameButton.COVER_HEIGHT_WIDTH_RATIO, finalKeepRatio, true), coverView);
                         });
                     }
@@ -404,21 +363,21 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                     "    -fx-font-style: italic;");*/
             yearLabel.setId("search-result-year-label");
 
-            HBox logoBox = new HBox(5*Main.SCREEN_WIDTH / 1920);
+            HBox logoBox = new HBox(5 * Main.SCREEN_WIDTH / 1920);
             logoBox.prefWidthProperty().bind(prefRowWidth);
             double logoWidth = 25 * Main.SCREEN_WIDTH / 1920;
             double logoHeight = 25 * Main.SCREEN_HEIGHT / 1080;
 
 
-            for (int i = 0; i < platformIds.length; i++) {
-                data.game.entry.Platform p = data.game.entry.Platform.getFromIGDBId(platformIds[i]);
+            for (int platformId : platformIds) {
+                Platform p = Platform.getFromIGDBId(platformId);
                 if (p != null) {
                     ImageView temp = new ImageView();
                     temp.setSmooth(false);
                     temp.setPreserveRatio(true);
                     temp.setFitWidth(logoWidth);
                     temp.setFitHeight(logoHeight);
-                    p.setCSSIcon(temp,false);
+                    p.setCSSIcon(temp, false);
                     logoBox.getChildren().add(temp);
                 }
             }
