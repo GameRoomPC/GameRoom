@@ -375,51 +375,12 @@ public abstract class GameButton extends BorderPane {
 
         setFocusTraversable(true);
         focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                playButton.setMouseTransparent(false);
-                infoButton.setMouseTransparent(false);
+            javafx.application.Platform.runLater(() -> {
+                if (newValue) {
+                    playButton.setMouseTransparent(false);
+                    infoButton.setMouseTransparent(false);
 
-                Timeline fadeInTimeline = new Timeline(
-                        new KeyFrame(Duration.seconds(0),
-                                new KeyValue(dropShadowBG.offsetXProperty(), dropShadowBG.offsetXProperty().getValue(), Interpolator.LINEAR),
-                                new KeyValue(dropShadowBG.offsetYProperty(), dropShadowBG.offsetYProperty().getValue(), Interpolator.LINEAR),
-                                new KeyValue(blurBG.radiusProperty(), blurBG.radiusProperty().getValue(), Interpolator.LINEAR),
-                                new KeyValue(blurIMG.radiusProperty(), blurIMG.radiusProperty().getValue(), Interpolator.LINEAR),
-                                new KeyValue(scaleXProperty(), scaleXProperty().getValue(), Interpolator.LINEAR),
-                                new KeyValue(playButton.opacityProperty(), playButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
-                                new KeyValue(infoButton.opacityProperty(), infoButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
-                                new KeyValue(scaleYProperty(), scaleYProperty().getValue(), Interpolator.LINEAR),
-                                new KeyValue(colorAdjustIMG.brightnessProperty(), colorAdjustIMG.brightnessProperty().getValue(), Interpolator.LINEAR),
-                                new KeyValue(colorAdjustBG.brightnessProperty(), colorAdjustBG.brightnessProperty().getValue(), Interpolator.LINEAR)),
-                        new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                new KeyValue(dropShadowBG.offsetXProperty(), dropShadowBG.offsetXProperty().getValue() / COVER_SCALE_EFFECT_FACTOR, Interpolator.LINEAR),
-                                new KeyValue(dropShadowBG.offsetYProperty(), dropShadowBG.offsetYProperty().getValue() / COVER_SCALE_EFFECT_FACTOR, Interpolator.LINEAR),
-                                new KeyValue(blurBG.radiusProperty(), COVER_BLUR_EFFECT_RADIUS, Interpolator.LINEAR),
-                                new KeyValue(blurIMG.radiusProperty(), COVER_BLUR_EFFECT_RADIUS, Interpolator.LINEAR),
-                                new KeyValue(scaleXProperty(), COVER_SCALE_EFFECT_FACTOR, Interpolator.LINEAR),
-                                new KeyValue(playButton.opacityProperty(), 1, Interpolator.EASE_OUT),
-                                new KeyValue(infoButton.opacityProperty(), 1, Interpolator.EASE_OUT),
-                                new KeyValue(scaleYProperty(), COVER_SCALE_EFFECT_FACTOR, Interpolator.LINEAR),
-                                new KeyValue(colorAdjustIMG.brightnessProperty(), -COVER_BRIGHTNESS_EFFECT_FACTOR, Interpolator.LINEAR),
-                                new KeyValue(colorAdjustBG.brightnessProperty(), -COVER_BRIGHTNESS_EFFECT_FACTOR, Interpolator.LINEAR)
-                        ));
-                fadeInTimeline.setCycleCount(1);
-                fadeInTimeline.setAutoReverse(false);
-
-                fadeInTimeline.play();
-
-                //coverPane.fireEvent(new MouseEvent(MOUSE_ENTERED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
-                if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
-                    playButton.fireEvent(new MouseEvent(MOUSE_ENTERED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
-                }
-                ImageUtils.getExecutorService().submit(() -> MAIN_SCENE.setImageBackground(entry.getImagePath(1)));
-
-            } else {
-                if (!inContextMenu) {
-                    playButton.setMouseTransparent(true);
-                    infoButton.setMouseTransparent(true);
-
-                    Timeline fadeOutTimeline = new Timeline(
+                    Timeline fadeInTimeline = new Timeline(
                             new KeyFrame(Duration.seconds(0),
                                     new KeyValue(dropShadowBG.offsetXProperty(), dropShadowBG.offsetXProperty().getValue(), Interpolator.LINEAR),
                                     new KeyValue(dropShadowBG.offsetYProperty(), dropShadowBG.offsetYProperty().getValue(), Interpolator.LINEAR),
@@ -428,33 +389,74 @@ public abstract class GameButton extends BorderPane {
                                     new KeyValue(scaleXProperty(), scaleXProperty().getValue(), Interpolator.LINEAR),
                                     new KeyValue(playButton.opacityProperty(), playButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
                                     new KeyValue(infoButton.opacityProperty(), infoButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
-                                    new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT),
                                     new KeyValue(scaleYProperty(), scaleYProperty().getValue(), Interpolator.LINEAR),
                                     new KeyValue(colorAdjustIMG.brightnessProperty(), colorAdjustIMG.brightnessProperty().getValue(), Interpolator.LINEAR),
                                     new KeyValue(colorAdjustBG.brightnessProperty(), colorAdjustBG.brightnessProperty().getValue(), Interpolator.LINEAR)),
                             new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                    new KeyValue(dropShadowBG.offsetXProperty(), 6.0 * SCREEN_WIDTH / 1920, Interpolator.LINEAR),
-                                    new KeyValue(dropShadowBG.offsetYProperty(), 4.0 * SCREEN_WIDTH / 1080, Interpolator.LINEAR),
-                                    new KeyValue(blurBG.radiusProperty(), 0, Interpolator.LINEAR),
-                                    new KeyValue(blurIMG.radiusProperty(), 0, Interpolator.LINEAR),
-                                    new KeyValue(scaleXProperty(), 1, Interpolator.LINEAR),
-                                    new KeyValue(playButton.opacityProperty(), 0, Interpolator.EASE_OUT),
-                                    new KeyValue(infoButton.opacityProperty(), 0, Interpolator.EASE_OUT),
-                                    new KeyValue(playTimeLabel.opacityProperty(), keepTimeLabelVisible ? 1 : 0, Interpolator.EASE_OUT),
-                                    new KeyValue(scaleYProperty(), 1, Interpolator.LINEAR),
-                                    new KeyValue(colorAdjustBG.brightnessProperty(), 0, Interpolator.LINEAR),
-                                    new KeyValue(colorAdjustIMG.brightnessProperty(), 0, Interpolator.LINEAR)
+                                    new KeyValue(dropShadowBG.offsetXProperty(), dropShadowBG.offsetXProperty().getValue() / COVER_SCALE_EFFECT_FACTOR, Interpolator.LINEAR),
+                                    new KeyValue(dropShadowBG.offsetYProperty(), dropShadowBG.offsetYProperty().getValue() / COVER_SCALE_EFFECT_FACTOR, Interpolator.LINEAR),
+                                    new KeyValue(blurBG.radiusProperty(), COVER_BLUR_EFFECT_RADIUS, Interpolator.LINEAR),
+                                    new KeyValue(blurIMG.radiusProperty(), COVER_BLUR_EFFECT_RADIUS, Interpolator.LINEAR),
+                                    new KeyValue(scaleXProperty(), COVER_SCALE_EFFECT_FACTOR, Interpolator.LINEAR),
+                                    new KeyValue(playButton.opacityProperty(), 1, Interpolator.EASE_OUT),
+                                    new KeyValue(infoButton.opacityProperty(), 1, Interpolator.EASE_OUT),
+                                    new KeyValue(scaleYProperty(), COVER_SCALE_EFFECT_FACTOR, Interpolator.LINEAR),
+                                    new KeyValue(colorAdjustIMG.brightnessProperty(), -COVER_BRIGHTNESS_EFFECT_FACTOR, Interpolator.LINEAR),
+                                    new KeyValue(colorAdjustBG.brightnessProperty(), -COVER_BRIGHTNESS_EFFECT_FACTOR, Interpolator.LINEAR)
                             ));
-                    fadeOutTimeline.setCycleCount(1);
-                    fadeOutTimeline.setAutoReverse(false);
+                    fadeInTimeline.setCycleCount(1);
+                    fadeInTimeline.setAutoReverse(false);
 
-                    fadeOutTimeline.play();
+                    fadeInTimeline.play();
+
+                    //coverPane.fireEvent(new MouseEvent(MOUSE_ENTERED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
+                    if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
+                        playButton.fireEvent(new MouseEvent(MOUSE_ENTERED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
+                    }
+                    ImageUtils.getExecutorService().submit(() -> MAIN_SCENE.setImageBackground(entry.getImagePath(1)));
+
+                } else {
+                    if (!inContextMenu) {
+                        playButton.setMouseTransparent(true);
+                        infoButton.setMouseTransparent(true);
+
+                        Timeline fadeOutTimeline = new Timeline(
+                                new KeyFrame(Duration.seconds(0),
+                                        new KeyValue(dropShadowBG.offsetXProperty(), dropShadowBG.offsetXProperty().getValue(), Interpolator.LINEAR),
+                                        new KeyValue(dropShadowBG.offsetYProperty(), dropShadowBG.offsetYProperty().getValue(), Interpolator.LINEAR),
+                                        new KeyValue(blurBG.radiusProperty(), blurBG.radiusProperty().getValue(), Interpolator.LINEAR),
+                                        new KeyValue(blurIMG.radiusProperty(), blurIMG.radiusProperty().getValue(), Interpolator.LINEAR),
+                                        new KeyValue(scaleXProperty(), scaleXProperty().getValue(), Interpolator.LINEAR),
+                                        new KeyValue(playButton.opacityProperty(), playButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
+                                        new KeyValue(infoButton.opacityProperty(), infoButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
+                                        new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT),
+                                        new KeyValue(scaleYProperty(), scaleYProperty().getValue(), Interpolator.LINEAR),
+                                        new KeyValue(colorAdjustIMG.brightnessProperty(), colorAdjustIMG.brightnessProperty().getValue(), Interpolator.LINEAR),
+                                        new KeyValue(colorAdjustBG.brightnessProperty(), colorAdjustBG.brightnessProperty().getValue(), Interpolator.LINEAR)),
+                                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                        new KeyValue(dropShadowBG.offsetXProperty(), 6.0 * SCREEN_WIDTH / 1920, Interpolator.LINEAR),
+                                        new KeyValue(dropShadowBG.offsetYProperty(), 4.0 * SCREEN_WIDTH / 1080, Interpolator.LINEAR),
+                                        new KeyValue(blurBG.radiusProperty(), 0, Interpolator.LINEAR),
+                                        new KeyValue(blurIMG.radiusProperty(), 0, Interpolator.LINEAR),
+                                        new KeyValue(scaleXProperty(), 1, Interpolator.LINEAR),
+                                        new KeyValue(playButton.opacityProperty(), 0, Interpolator.EASE_OUT),
+                                        new KeyValue(infoButton.opacityProperty(), 0, Interpolator.EASE_OUT),
+                                        new KeyValue(playTimeLabel.opacityProperty(), keepTimeLabelVisible ? 1 : 0, Interpolator.EASE_OUT),
+                                        new KeyValue(scaleYProperty(), 1, Interpolator.LINEAR),
+                                        new KeyValue(colorAdjustBG.brightnessProperty(), 0, Interpolator.LINEAR),
+                                        new KeyValue(colorAdjustIMG.brightnessProperty(), 0, Interpolator.LINEAR)
+                                ));
+                        fadeOutTimeline.setCycleCount(1);
+                        fadeOutTimeline.setAutoReverse(false);
+
+                        fadeOutTimeline.play();
+                    }
+                    //coverPane.fireEvent(new MouseEvent(MOUSE_EXITED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
+                    if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
+                        playButton.fireEvent(new MouseEvent(MOUSE_EXITED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
+                    }
                 }
-                //coverPane.fireEvent(new MouseEvent(MOUSE_EXITED,0,0,0,0, MouseButton.PRIMARY,0,false, false, false, false, false, false, false, false, false, false, null));
-                if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_KEYBOARD) {
-                    playButton.fireEvent(new MouseEvent(MOUSE_EXITED, 0, 0, 0, 0, MouseButton.PRIMARY, 0, false, false, false, false, false, false, false, false, false, false, null));
-                }
-            }
+            });
         });
         coverPane.setOnMouseMoved(e -> {
             if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_MOUSE) {

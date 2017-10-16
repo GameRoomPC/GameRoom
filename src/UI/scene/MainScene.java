@@ -188,6 +188,16 @@ public class MainScene extends BaseScene {
         getRootStackPane().getChildren().add(statusLabel);
     }
 
+    @Override
+    public void onPaused(){
+        scrollPane.maxHeightProperty().unbind();
+    }
+
+    @Override
+    public void onResumed(){
+        scrollPane.maxHeightProperty().bind(heightProperty());
+    }
+
     private void initCenter() {
         scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(true);

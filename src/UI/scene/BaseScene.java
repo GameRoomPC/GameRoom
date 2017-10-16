@@ -87,6 +87,20 @@ public abstract class BaseScene extends Scene {
         this(stackPane,parentStage,parentStage.getScene().getWidth(),parentStage.getScene().getHeight());
     }
 
+    /**
+     * Called whenever we transition back to this {@link BaseScene}
+     */
+    public void onResumed(){
+
+    }
+
+    /**
+     * Called whenever we transition to an other {@link BaseScene}
+     */
+    public void onPaused(){
+
+    }
+
     public StackPane getRootStackPane() {
         return rootStackPane;
     }
@@ -116,7 +130,9 @@ public abstract class BaseScene extends Scene {
             }
             scene2.getWrappingPane().setOpacity(0);
             scene2.getWrappingPane().setPrefHeight(getWrappingPane().getHeight());
+            onPaused();
             stage.setScene(scene2);
+            scene2.onResumed();
             stage.setFullScreen(settings().getBoolean(PredefinedSetting.FULL_SCREEN));
             Timeline fadeInTimeline = new Timeline(
                     new KeyFrame(Duration.seconds(0),
