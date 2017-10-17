@@ -3,7 +3,6 @@ package ui.scene;
 import data.game.GameWatcher;
 import data.game.entry.GameEntry;
 import data.game.entry.GameEntryUtils;
-import data.game.scanner.FolderGameScanner;
 import data.game.scanner.OnScannerResultHandler;
 import data.http.images.ImageUtils;
 import javafx.animation.Interpolator;
@@ -15,12 +14,14 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -30,6 +31,7 @@ import javafx.util.Duration;
 import system.application.SupportService;
 import system.application.settings.PredefinedSetting;
 import ui.Main;
+import ui.UIValues;
 import ui.control.button.gamebutton.GameButton;
 import ui.control.drawer.DrawerMenu;
 import ui.control.drawer.GroupType;
@@ -67,6 +69,7 @@ public class MainScene extends BaseScene {
     private VBox tilesPaneWrapper = new VBox();
     private ScrollPane scrollPane;
     private BorderPane wrappingPane;
+    private Pane emptyMessagePane;
 
     private DrawerMenu drawerMenu;
 
@@ -189,12 +192,12 @@ public class MainScene extends BaseScene {
     }
 
     @Override
-    public void onPaused(){
+    public void onPaused() {
         scrollPane.maxHeightProperty().unbind();
     }
 
     @Override
-    public void onResumed(){
+    public void onResumed() {
         scrollPane.maxHeightProperty().bind(heightProperty());
     }
 
@@ -285,6 +288,11 @@ public class MainScene extends BaseScene {
         wrappingPane.setLeft(drawerMenu);
         wrappingPane.setStyle("-fx-background-color: transparent;");
 
+        emptyMessagePane = getEmptyMessagePane();
+        emptyMessagePane.setVisible(false);
+
+        getRootStackPane().getChildren().add(emptyMessagePane);
+
     }
 
     private void loadGames() {
@@ -322,6 +330,7 @@ public class MainScene extends BaseScene {
                     updateProgress(finalI, GameEntryUtils.ENTRIES_LIST.size() - 1);
                     i++;
                 }
+                Platform.runLater(() -> checkDisplayEmptyMessagePane());
                 return null;
             }
         };
@@ -538,6 +547,8 @@ public class MainScene extends BaseScene {
 
         GameEntryUtils.removeGame(entry);
         refreshTrayMenu();
+
+        checkDisplayEmptyMessagePane();
     }
 
     public void updateGame(GameEntry entry) {
@@ -550,6 +561,8 @@ public class MainScene extends BaseScene {
 
         GameEntryUtils.updateGame(entry);
         refreshTrayMenu();
+
+        checkDisplayEmptyMessagePane();
     }
 
     public void addGame(GameEntry entry) {
@@ -563,6 +576,8 @@ public class MainScene extends BaseScene {
 
         GameEntryUtils.addGame(entry);
         refreshTrayMenu();
+
+        checkDisplayEmptyMessagePane();
     }
 
     private ExitAction batchAddGameEntries(ArrayList<GameEntry> entries, int entriesCount) {
@@ -876,5 +891,41 @@ public class MainScene extends BaseScene {
         lastPlayedTilePane.getGameButtons().forEach(GameButton::setLauncherLogo);
         groupRowList.forEach(groupRowTilePane -> groupRowTilePane.getGameButtons().forEach(GameButton::setLauncherLogo));
 
+    }
+
+    private void checkDisplayEmptyMessagePane() {
+        emptyMessagePane.setVisible(tilePane.getGameButtons().isEmpty() && toAddTilePane.getGameButtons().isEmpty());
+    }
+
+    private Pane getEmptyMessagePane() {
+        VBox vbox = new VBox();
+        Label noGamesLabel = new Label(getString("no_games_to_display"));
+
+        HBox addBox = new HBox(UIValues.Constants.offsetSmall());
+        Label addLabel = new Label(getString("click_to_add_game"));
+        ImageView addImage = new ImageView();
+        addImage.setStyle("-fx-background-color: transparent;");
+        addImage.setId("main-add-button");
+        addImage.setFitWidth(UIValues.Constants.offsetHuge());
+        addImage.setFitHeight(UIValues.Constants.offsetHuge());
+        addBox.setAlignment(Pos.CENTER);
+        addBox.getChildren().addAll(addLabel, addImage);
+
+        HBox scanBox = new HBox(UIValues.Constants.offsetSmall());
+        Label scanLabel = new Label(getString("click_to_scan_games"));
+        ImageView scanImage = new ImageView();
+        scanImage.setStyle("-fx-background-color: transparent;");
+        scanImage.setId("scan-button");
+        scanImage.setFitWidth(UIValues.Constants.offsetHuge());
+        scanImage.setFitHeight(UIValues.Constants.offsetHuge());
+        scanBox.setAlignment(Pos.CENTER);
+        scanBox.getChildren().addAll(scanLabel, scanImage);
+
+        vbox.setAlignment(Pos.CENTER);
+        vbox.getChildren().addAll(noGamesLabel, addBox, scanBox);
+        vbox.setFocusTraversable(false);
+        vbox.setPickOnBounds(false);
+
+        return vbox;
     }
 }

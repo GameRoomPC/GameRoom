@@ -48,7 +48,7 @@ public enum UIValues {
             return OFFSET_SMALL * getScreenFactor();
         }
 
-        public static double getOffsetMedium() {
+        public static double offsetMedium() {
             return OFFSET_MEDIUM * getScreenFactor();
         }
 

@@ -1,7 +1,6 @@
 package data.game.entry;
 
 import data.io.DataBase;
-import data.migration.OldGameEntry;
 import ui.Main;
 
 import java.io.File;
