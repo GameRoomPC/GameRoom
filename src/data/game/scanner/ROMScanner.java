@@ -65,7 +65,7 @@ public class ROMScanner extends FolderGameScanner {
     @Override
     protected void displayStartToast() {
         if (MAIN_SCENE != null) {
-            GeneralToast.displayToast(Main.getString("scanning") + " " + Main.getString("rom_folders"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
+            GeneralToast.displayToast(Main.getString("scanning") + " " + Main.getString("rom_folders"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
         }
     }
 
