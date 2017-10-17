@@ -205,7 +205,7 @@ public class GameWatcher {
         HashSet<Callable<Object>> tasks = new HashSet<>();
 
         if (MAIN_SCENE != null) {
-            GeneralToast.displayToast(Main.getString("fetching_data_igdb"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
+            GeneralToast.displayToast(Main.getString("fetching_data_igdb"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
         }
         LOGGER.info("Now scraping found games");
 
@@ -281,7 +281,7 @@ public class GameWatcher {
                             int i = 0;
 
                             if (MAIN_SCENE != null) {
-                                GeneralToast.displayToast(Main.getString("downloading_images"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
+                                GeneralToast.displayToast(Main.getString("downloading_images"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
                             }
                             for (GameEntry scrappedEntry : scrappedEntries) {
                                 GameEntry toScrapEntry = getGameWithIGDBId(scrappedEntry.getIgdb_id(), toScrapEntries);

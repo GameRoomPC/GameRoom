@@ -19,12 +19,10 @@ public class GeneralToast extends Tooltip {
     private static volatile boolean ENABLED = false;
     private static volatile boolean WAITING_FOR_TOASTS = false;
 
-    private final static LinkedBlockingQueue<GeneralToast> TOAST_QUEUE = new LinkedBlockingQueue<>();
+    private static volatile LinkedBlockingQueue<GeneralToast> TOAST_QUEUE = new LinkedBlockingQueue<>();
     private static Thread DISPLAY_THREAD;
-    private static volatile boolean CAN_INTERRUPT_TOAST = false;
 
     private int duration;
-    private boolean interruptible = false;
 
     private GeneralToast(String text, int duration, Window window) {
         super(text);
@@ -48,13 +46,9 @@ public class GeneralToast extends Tooltip {
         displayToast(text, window, DURATION_LONG);
     }
 
-    public static void displayToast(String text, Stage window, int duration) {
-        displayToast(text, window, duration, false);
-    }
 
-    public static void displayToast(String text, Stage window, int duration, boolean interruptible) {
+    public static void displayToast(String text, Stage window, int duration) {
         GeneralToast toast = new GeneralToast(text, duration,window);
-        toast.interruptible = interruptible;
         try {
             TOAST_QUEUE.put(toast);
         } catch (InterruptedException ignored) {
@@ -88,7 +82,7 @@ public class GeneralToast extends Tooltip {
             DISPLAY_THREAD.setPriority(Thread.MIN_PRIORITY);
             DISPLAY_THREAD.start();
         }
-        if (DISPLAY_THREAD.getState().equals(Thread.State.TIMED_WAITING) && CAN_INTERRUPT_TOAST) {
+        if (DISPLAY_THREAD.getState().equals(Thread.State.TIMED_WAITING) ) {
             DISPLAY_THREAD.interrupt();
         }
     }
@@ -98,7 +92,6 @@ public class GeneralToast extends Tooltip {
             return;
         }
         if (ENABLED && !settings().getBoolean(PredefinedSetting.NO_TOASTS)) {
-            CAN_INTERRUPT_TOAST = interruptible;
             Main.runAndWait(() -> {
                 show(window);
             });
@@ -108,7 +101,6 @@ public class GeneralToast extends Tooltip {
 
             }
             Main.runAndWait(this::hide);
-            CAN_INTERRUPT_TOAST = true;
         }
     }
 

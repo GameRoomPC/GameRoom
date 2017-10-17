@@ -211,9 +211,11 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 selectedEntry.setPlatform(Platform.getFromIGDBId(platformIdToSearch.get()));
             }
         });
-        if (gameName != null) {
-            startResearch();
-        }
+        Main.getExecutorService().submit(() -> {
+            if (gameName != null) {
+                startResearch();
+            }
+        });
     }
 
     private void startResearch(){

@@ -140,7 +140,7 @@ public class SupportService {
             try {
                 ArrayList<GameEntry> ownedSteamApps = SteamOnlineScraper.getOwnedSteamGames();
                 if (MAIN_SCENE != null) {
-                    GeneralToast.displayToast(Main.getString("scanning_steam_play_time"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT, true);
+                    GeneralToast.displayToast(Main.getString("scanning_steam_play_time"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
                 }
                 LOGGER.info("Scanning Steam playtimes online");
                 for (GameEntry ownedEntry : ownedSteamApps) {
