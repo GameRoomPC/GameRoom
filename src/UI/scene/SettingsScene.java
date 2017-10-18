@@ -356,7 +356,6 @@ public class SettingsScene extends BaseScene {
 
 
         /***********************SUPPORTER KEY****************************/
-        //TODO see if possible to have 2 IGDB keys, for supporters
 
         String keyStatus = Main.SUPPORTER_MODE ? settings().getString(PredefinedSetting.SUPPORTER_KEY) : Main.getString("none");
         String buttonText = Main.SUPPORTER_MODE ? Main.getString("deactivate") : Main.getString("activate");
