@@ -276,7 +276,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 }
             }
             Date release_date = null;
-            if (!value.has("release_date") && !value.isNull("release_date")) {
+            if (value.has("release_date") && !value.isNull("release_date")) {
                 release_date = new Date(value.getLong("release_date"));
             }
 

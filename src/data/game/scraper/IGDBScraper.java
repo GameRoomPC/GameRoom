@@ -213,7 +213,7 @@ public class IGDBScraper {
 
         entry.setDescription(game_data.optString("description"));
 
-        if (!game_data.has("release_date") && !game_data.isNull("release_date")) {
+        if (game_data.has("release_date") && !game_data.isNull("release_date")) {
             Date release_date = new Date(game_data.getLong("release_date"));
             LocalDateTime date = release_date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             entry.setReleaseDate(date);
