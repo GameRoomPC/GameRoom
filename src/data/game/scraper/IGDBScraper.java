@@ -36,7 +36,8 @@ import static ui.Main.LOGGER;
  */
 
 public class IGDBScraper {
-    private static final String API_URL = "http://62.210.219.110/api/v1";
+    private static final boolean DEV_MODE = false;
+    private static final String API_URL = "http://62.210.219.110/api/v1" + (DEV_MODE ? "/dev" : "");
 
     public static int REQUEST_COUNTER = 0;
 
@@ -67,7 +68,7 @@ public class IGDBScraper {
      * Inits all whats needed for the IGDBScraper
      */
     public static void init(){
-        Unirest.setTimeouts(6000,10000);
+        Unirest.setTimeouts(8000,15000);
     }
 
     /**

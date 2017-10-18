@@ -375,7 +375,6 @@ public class GameEntry {
     }
 
     public int getAggregated_rating() {
-        //TODO fix in MainScene sorting by aggregated_rating returns only zeros
         return aggregated_rating;
     }
 
@@ -977,6 +976,7 @@ public class GameEntry {
         setIgdb_imageHash(0, set.getString("cover_hash"));
         setIgdb_imageHash(1, set.getString("wp_hash"));
         setIgdb_id(set.getInt("igdb_id"));
+        setAggregated_rating(set.getInt("aggregated_rating"));
         //this was an error design from beginning, waiting_to_be_scraped should not be saved in DB
         setWaitingToBeScrapped(false);
         setToAdd(set.getBoolean("toAdd"));

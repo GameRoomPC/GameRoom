@@ -71,10 +71,10 @@ public class EmulatorSettingsPane extends BorderPane {
         contentPane.setVgap(20 * SCREEN_WIDTH / 1920);
         contentPane.setHgap(10 * SCREEN_WIDTH / 1920);
         ColumnConstraints cc1 = new ColumnConstraints();
-        cc1.setPercentWidth(30);
+        cc1.setPercentWidth(20);
         contentPane.getColumnConstraints().add(cc1);
         ColumnConstraints cc2 = new ColumnConstraints();
-        cc2.setPercentWidth(70);
+        cc2.setPercentWidth(80);
         contentPane.getColumnConstraints().add(cc2);
 
         /********PROGRAM PATH **************/
