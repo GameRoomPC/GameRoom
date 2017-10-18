@@ -55,6 +55,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
     private TextField searchField;
     private Label statusLabel;
     private GameEntry selectedEntry;
+    private boolean updatePlatform = false; //if we should update the platform after this dialog is closed
 
     private SearchList searchListPane;
 
@@ -209,6 +210,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
             if (searchListPane.getSelectedValue() != null) {
                 selectedEntry = IGDBScraper.getEntry(searchListPane.getSelectedValue());
                 selectedEntry.setPlatform(Platform.getFromIGDBId(platformIdToSearch.get()));
+                updatePlatform = platformIdToSearch.get() != Platform.ALL_PLATFORMS.getIGDBId();
             }
         });
         Main.getExecutorService().submit(() -> {
@@ -216,6 +218,10 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
                 startResearch();
             }
         });
+    }
+
+    public boolean updatePlatformOnClose(){
+        return updatePlatform;
     }
 
     private void startResearch(){
