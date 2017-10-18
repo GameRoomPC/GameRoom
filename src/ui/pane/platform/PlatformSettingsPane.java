@@ -104,9 +104,12 @@ public class PlatformSettingsPane extends BorderPane {
                 platform.setROMFolder(newValue);
             }
         });
-        Label pathLabel = new Label(Main.getString("rom_folder") + " :");
-        pathLabel.setTooltip(new Tooltip(Main.getString("rom_folder")));
-        contentPane.add(pathLabel, 0, rowCount);
+        HBox romHBox = new HBox();
+        romHBox.setAlignment(Pos.CENTER_LEFT);
+        romHBox.setSpacing(5 * SCREEN_WIDTH / 1920);
+        romHBox.getChildren().addAll(new Label(Main.getString("rom_folder") + " :")
+                , new HelpButton(Main.getString("rom_folders_tooltip")));
+        contentPane.add(romHBox, 0, rowCount);
         contentPane.add(pathField, 1, rowCount);
         rowCount++;
 
