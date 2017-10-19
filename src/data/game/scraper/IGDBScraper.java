@@ -36,7 +36,7 @@ import static ui.Main.LOGGER;
  */
 
 public class IGDBScraper {
-    private static final boolean DEV_MODE = false;
+    private static final boolean DEV_MODE = Main.DEV_MODE;
     private static final String API_URL = "http://62.210.219.110/api/v1" + (DEV_MODE ? "/dev" : "");
 
     public static int REQUEST_COUNTER = 0;
@@ -414,6 +414,9 @@ public class IGDBScraper {
      * @return a {@link JSONArray} containing data about our series, null if no data was found
      */
     private static JSONArray getSeriesData(Collection<Integer> ids) {
+        if(ids.isEmpty()){
+            return null;
+        }
         String idsString = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
 
         try {
@@ -455,6 +458,9 @@ public class IGDBScraper {
      * @return a {@link JSONArray} containing data about our companies, null if no data was found
      */
     private static JSONArray getCompaniesData(Collection<Integer> ids) {
+        if (ids.isEmpty()){
+            return null;
+        }
         String idsString = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
 
         try {
