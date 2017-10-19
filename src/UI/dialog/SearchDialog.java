@@ -184,7 +184,7 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         bottomVbox.setAlignment(Pos.BASELINE_LEFT);
         bottomVbox.setSpacing(5 * Main.SCREEN_WIDTH / 1920);
         bottomVbox.getChildren().add(searchDLCHbox);
-        if(SUPPORTER_MODE){
+        if (SUPPORTER_MODE) {
             bottomVbox.getChildren().add(restrictPlatformHbox);
         }
 
@@ -220,11 +220,11 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
         });
     }
 
-    public boolean updatePlatformOnClose(){
+    public boolean updatePlatformOnClose() {
         return updatePlatform;
     }
 
-    private void startResearch(){
+    private void startResearch() {
         searchListPane.clearItems();
         javafx.application.Platform.runLater(() -> statusLabel.setText(Main.getString("searching") + "..."));
         try {
@@ -302,12 +302,13 @@ public class SearchDialog extends GameRoomDialog<ButtonType> {
     }
 
     private void remapEnterKey(Pane pane, TextField searchField) throws AWTException {
-        pane.addEventFilter(KeyEvent.ANY, event -> {
+        pane.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
             if (!event.isShiftDown()) {
                 switch (event.getCode()) {
                     case ENTER:
                         if (searchField.isFocused() && !searchField.getText().equals("")) {
                             startResearch();
+                            event.consume();
                         }
                         break;
                 }
