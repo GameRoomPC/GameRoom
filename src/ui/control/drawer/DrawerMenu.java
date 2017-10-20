@@ -1,6 +1,5 @@
 package ui.control.drawer;
 
-import data.game.entry.Platform;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -8,7 +7,6 @@ import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
@@ -28,7 +26,8 @@ import ui.scene.SettingsScene;
 import java.util.HashMap;
 
 import static system.application.settings.GeneralSettings.settings;
-import static ui.Main.*;
+import static ui.Main.LOGGER;
+import static ui.Main.SCREEN_WIDTH;
 import static ui.control.drawer.submenu.SubMenuFactory.*;
 
 /**
@@ -52,6 +51,8 @@ public class DrawerMenu extends BorderPane {
     private SubMenu currentSubMenu;
 
     private HashMap<String, SubMenu> subMenus = new HashMap<>();
+
+    private volatile boolean monitoringMenuWidth = false;
 
     public DrawerMenu(MainScene mainScene) {
         super();
@@ -99,7 +100,17 @@ public class DrawerMenu extends BorderPane {
                 if (newRatio >= MIN_WIDTH_RATIO && newRatio <= MAX_WIDTH_RATIO) {
                     setPrefWidth(newWidth);
                     setMaxWidth(newWidth);
-                    settings().setSettingValue(PredefinedSetting.DRAWER_MENU_WIDTH, newWidth);
+                    if (!monitoringMenuWidth) {
+                        monitoringMenuWidth = true;
+                        Main.getExecutorService().submit(() -> {
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException ignored) {
+                            }
+                            settings().setSettingValue(PredefinedSetting.DRAWER_MENU_WIDTH, getPrefWidth());
+                            monitoringMenuWidth = false;
+                        });
+                    }
                 }
             }
         });
@@ -302,7 +313,7 @@ public class DrawerMenu extends BorderPane {
         resizePane.setManaged(true);
     }
 
-    public boolean isSubMenuOpened(){
+    public boolean isSubMenuOpened() {
         return currentSubMenu != null && currentSubMenu.isActive();
     }
 
@@ -444,7 +455,7 @@ public class DrawerMenu extends BorderPane {
         return topMenuPane.getWidth();
     }
 
-    public void quitGameRoom(){
+    public void quitGameRoom() {
         ButtonType buttonType = GameRoomAlert.confirmation(Main.getString("sure_to_quit"));
         if (buttonType.equals(ButtonType.OK)) {
             javafx.application.Platform.setImplicitExit(true);
