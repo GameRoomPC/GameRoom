@@ -327,17 +327,16 @@ public class SupportService {
         Terminal t = new Terminal();
         try {
             String[] output = t.execute("wmic", "memorychip", "get", "capacity");
-
+            long total = 0;
             for (int i = 0; i < output.length; i++) {
                 if (i > 1) {
                     try {
-                        return Long.parseLong(output[i].trim()) / (1024 * 1024);
-
-                    } catch (NumberFormatException e) {
-
+                        total += Long.parseLong(output[i].trim()) / (1024 * 1024);
+                    } catch (NumberFormatException ignored) {
                     }
                 }
             }
+            return total;
 
         } catch (IOException e) {
             e.printStackTrace();
