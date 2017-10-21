@@ -67,7 +67,6 @@ public abstract class GameScanner {
             LOGGER.debug(getScannerName() + ": " + size[0] + " latchs");
             tasksLatchs.forEach(latch -> {
                 try {
-                    int sec = 20;
                     boolean completed = latch.await(MAX_LATCH_AWAIT_SECONDS, TimeUnit.SECONDS);
                     if (!completed) {
                         LOGGER.debug(getScannerName() + ": skeeping latch" + (size[0]) + " after " + MAX_LATCH_AWAIT_SECONDS + "s");
@@ -75,7 +74,7 @@ public abstract class GameScanner {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                LOGGER.debug(getScannerName() + " : " + (--size[0]) + " latchs remaining");
+                //LOGGER.debug(getScannerName() + " : " + (--size[0]) + " latchs remaining");
             });
             LOGGER.info(getScannerName() + " finished");
         }

@@ -232,7 +232,7 @@ public class GameEditScene extends BaseScene {
                         if (!val.getButtonData().isCancelButton()) {
                             GameEntry gameEntry = dialog.getSelectedEntry();
                             if (gameEntry != null) {
-                                onNewEntryData(gameEntry);
+                                onNewEntryData(gameEntry,dialog.updatePlatformOnClose());
                             }
                         }
                     });
@@ -991,7 +991,7 @@ public class GameEditScene extends BaseScene {
     }
 
     //called when user selected a igdb game or when a steam game is added
-    private void onNewEntryData(GameEntry gameEntry) {
+    private void onNewEntryData(GameEntry gameEntry, boolean updatePlatform) {
         updateLineProperty("game_name", gameEntry.getName());
         updateLineProperty("serie", gameEntry.getSerie());
         updateLineProperty("release_date", gameEntry.getReleaseDate());
@@ -1000,7 +1000,9 @@ public class GameEditScene extends BaseScene {
         updateLineProperty("game_description", StringEscapeUtils.unescapeHtml(gameEntry.getDescription()));
         updateLineProperty("genre", gameEntry.getGenres());
         updateLineProperty("theme", gameEntry.getThemes());
-        updateLineProperty("platform", gameEntry.getPlatform());
+        if(updatePlatform) {
+            updateLineProperty("platform", gameEntry.getPlatform());
+        }
         entry.setIgdb_id(gameEntry.getIgdb_id());
         entry.setAggregated_rating(gameEntry.getAggregated_rating());
 

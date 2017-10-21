@@ -341,6 +341,7 @@ public class GeneralSettings {
         }
 
         settingsMap.put(key.getKey(), settingValue);
+        //Main.LOGGER.debug("Saved setting "+key.getKey()+"="+settingValue.getSettingValue());
         try {
             save();
         } catch (SQLException e) {

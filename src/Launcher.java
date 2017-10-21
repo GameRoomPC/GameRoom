@@ -57,8 +57,7 @@ public class Launcher extends Application {
     private static ChangeListener<Boolean> maximizedListener;
     private static ChangeListener<Boolean> fullScreenListener;
 
-    private volatile boolean monitoringXPosition = false;
-    private volatile boolean monitoringYPosition = false;
+    private volatile boolean monitoringStageProps = false;
 
     private static String DATA_PATH;
 
@@ -81,7 +80,7 @@ public class Launcher extends Application {
         System.setProperty("data.dir", DATA_PATH);
         Main.LOGGER = LogManager.getLogger(Main.class);
 
-        /*System.setErr(new PrintStream(System.err) {
+        System.setErr(new PrintStream(System.err) {
             public void print(final String string) {
                 LOGGER.error(string);
                 if (DEV_MODE || settings().getBoolean(PredefinedSetting.DEBUG_MODE)) {
@@ -105,7 +104,7 @@ public class Launcher extends Application {
                 //System.out.print(string);
                 LOGGER.debug(string);
             }
-        });*/
+        });
 
         System.out.println("\n\n==========================================NEW START============================================");
 
@@ -211,6 +210,11 @@ public class Launcher extends Application {
     public void start(Stage primaryStage) throws Exception {
         setSplashscreenText("Configuring window...");
 
+        primaryStage.setWidth(settings().getWindowWidth());
+        primaryStage.setHeight(settings().getWindowHeight());
+        primaryStage.setX(settings().getDouble(PredefinedSetting.WINDOW_X));
+        primaryStage.setY(settings().getDouble(PredefinedSetting.WINDOW_Y));
+
         MAIN_SCENE = new MainScene(primaryStage);
         initPrimaryStage(primaryStage, MAIN_SCENE);
         initTrayIcon();
@@ -228,10 +232,6 @@ public class Launcher extends Application {
     }
 
     private void openStage(Stage primaryStage, boolean appStart) {
-        if (!settings().getBoolean(PredefinedSetting.WINDOW_MAXIMIZED)) {
-            primaryStage.setX(settings().getDouble(PredefinedSetting.WINDOW_X));
-            primaryStage.setY(settings().getDouble(PredefinedSetting.WINDOW_Y));
-        }
         /*strangely the two following lines will fix some scaling issues that occurs when not in maximized mode and switching
         between to scenes, the main scene would scale in height too much otherwise.
          */
@@ -299,44 +299,33 @@ public class Launcher extends Application {
         };
         primaryStage.maximizedProperty().addListener(maximizedListener);
 
-        primaryStage.xProperty().addListener((observable, oldValue, newValue) -> {
-            if (!monitoringXPosition && !primaryStage.isIconified()) {
-                monitoringXPosition = true;
-                Main.getExecutorService().submit(() -> {
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException ignored) {
-                    }
-                    settings().setSettingValue(PredefinedSetting.WINDOW_X, primaryStage.getX());
-                    monitoringXPosition = false;
-                });
-            }
-        });
+        primaryStage.xProperty().addListener((observable, oldValue, newValue) -> monitorStageProps(primaryStage));
+        primaryStage.yProperty().addListener((observable, oldValue, newValue) -> monitorStageProps(primaryStage));
+        primaryStage.widthProperty().addListener((observableValue, oldSceneWidth, newSceneWidth) -> monitorStageProps(primaryStage));
+        primaryStage.heightProperty().addListener((observableValue, oldSceneHeight, newSceneHeight) -> monitorStageProps(primaryStage));
+    }
 
-        primaryStage.yProperty().addListener((observable, oldValue, newValue) -> {
-            if (!monitoringYPosition && !primaryStage.isIconified()) {
-                monitoringYPosition = true;
-                Main.getExecutorService().submit(() -> {
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException ignored) {
-                    }
-                    settings().setSettingValue(PredefinedSetting.WINDOW_Y, primaryStage.getY());
-                    monitoringYPosition = false;
-                });
-            }
-        });
+    private void monitorStageProps(Stage stage){
+        if (!monitoringStageProps && isStagePropsSavable(stage)) {
+            monitoringStageProps = true;
+            Main.getExecutorService().submit(() -> {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ignored) {
+                }
+                if (isStagePropsSavable(stage)) {
+                    settings().setSettingValue(PredefinedSetting.WINDOW_WIDTH, (int) stage.getWidth());
+                    settings().setSettingValue(PredefinedSetting.WINDOW_HEIGHT, (int) stage.getHeight());
+                    settings().setSettingValue(PredefinedSetting.WINDOW_X, stage.getX());
+                    settings().setSettingValue(PredefinedSetting.WINDOW_Y, stage.getY());
+                    monitoringStageProps = false;
+                }
+            });
+        }
+    }
 
-        primaryStage.widthProperty().addListener((observableValue, oldSceneWidth, newSceneWidth) -> {
-            if (!primaryStage.isIconified()) {
-                settings().setSettingValue(PredefinedSetting.WINDOW_WIDTH, newSceneWidth.intValue());
-            }
-        });
-        primaryStage.heightProperty().addListener((observableValue, oldSceneHeight, newSceneHeight) -> {
-            if (!primaryStage.isIconified()) {
-                settings().setSettingValue(PredefinedSetting.WINDOW_HEIGHT, newSceneHeight.intValue());
-            }
-        });
+    private boolean isStagePropsSavable(Stage stage){
+        return !stage.isIconified() && !stage.isMaximized() && !stage.isFullScreen();
     }
 
     private void setFullScreen(Stage primaryStage, boolean fullScreen) {

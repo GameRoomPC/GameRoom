@@ -3,26 +3,26 @@ package system.application;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import data.game.entry.GameEntryUtils;
 import data.game.entry.GameEntry;
 import data.game.scraper.IGDBScraper;
 import data.game.scraper.SteamOnlineScraper;
 import data.http.key.KeyChecker;
+import data.http.key.CipherUtils;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import org.json.JSONException;
+import org.json.JSONObject;
 import system.application.settings.PredefinedSetting;
 import system.os.Terminal;
 import ui.Main;
 import ui.GeneralToast;
 import ui.dialog.GameRoomAlert;
 import ui.dialog.WebBrowser;
-import ui.theme.Theme;
-import ui.theme.ThemeUtils;
 
+import javax.crypto.SecretKey;
 import java.io.IOException;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
@@ -44,7 +44,7 @@ public class SupportService {
     private final static long MIN_INSTALL_PING_TIME = TimeUnit.DAYS.toMillis(3);
     private final static long PING_FREQ = TimeUnit.DAYS.toMillis(1);
 
-    private final static String GAMEROOM_API_URL = "http://62.210.219.110/api/v1";
+    private final static String GAMEROOM_API_URL = IGDBScraper.API_URL;
 
     private Thread thread;
     private static volatile boolean DISPLAYING_SUPPORT_ALERT = false;
@@ -207,16 +207,24 @@ public class SupportService {
                 HttpResponse<JsonNode> response = null;
                 try {
                     if (settings().getBoolean(PredefinedSetting.ALLOW_COLLECT_SYSTEM_INFO)) {
+
+                        SecretKey keyAES = CipherUtils.generateAES128Key();
+                        PublicKey keyRSA = CipherUtils.loadPublicKey();
+
+                        JSONObject obj = new JSONObject();
+                        obj.put("NbGames", GameEntryUtils.ENTRIES_LIST.size())
+                                .put("TotalPlaytime", getTotalPlaytime())
+                                .put("IsSupporter", KeyChecker.assumeSupporterMode() ? 1 : 0)
+                                .put("ThemeUsed", settings().getTheme().getName())
+                                .put("GPUs", getGPUNames())
+                                .put("CPUs", getCPUNames())
+                                .put("RAMAmount", getRAMAmount())
+                                .put("OSInfo", getOSInfo());
+
                         response = Unirest.post(GAMEROOM_API_URL + "/Stats/DailyPing")
                                 .header("Accept", "application/json")
-                                .field("NbGames", GameEntryUtils.ENTRIES_LIST.size())
-                                .field("TotalPlaytime", getTotalPlaytime())
-                                .field("IsSupporter", KeyChecker.assumeSupporterMode() ? 1 : 0)
-                                .field("ThemeUsed", settings().getTheme().getName())
-                                .field("GPUs", getGPUNames())
-                                .field("CPUs", getCPUNames())
-                                .field("RAMAmount", getRAMAmount())
-                                .field("OSInfo", getOSInfo())
+                                .field("aes",CipherUtils.cipherAESKeyWithRSA(keyAES,keyRSA))
+                                .field("ping_data", CipherUtils.cipherAES(obj, keyAES))
                                 .asJson();
                     } else {
                         response = Unirest.post(GAMEROOM_API_URL + "/Stats/DailyPing")
@@ -227,7 +235,7 @@ public class SupportService {
                     if (response != null && response.getBody().getObject().getJSONObject("status").getInt("code") == 200) {
                         settings().setSettingValue(PredefinedSetting.LAST_PING_DATE, new Date());
                     }
-                } catch (UnirestException | JSONException e) {
+                } catch (Exception e) {
                     if (DEV_MODE) {
                         e.printStackTrace();
                         if(response!=null){
@@ -319,17 +327,16 @@ public class SupportService {
         Terminal t = new Terminal();
         try {
             String[] output = t.execute("wmic", "memorychip", "get", "capacity");
-
+            long total = 0;
             for (int i = 0; i < output.length; i++) {
                 if (i > 1) {
                     try {
-                        return Long.parseLong(output[i].trim()) / (1024 * 1024);
-
-                    } catch (NumberFormatException e) {
-
+                        total += Long.parseLong(output[i].trim()) / (1024 * 1024);
+                    } catch (NumberFormatException ignored) {
                     }
                 }
             }
+            return total;
 
         } catch (IOException e) {
             e.printStackTrace();
