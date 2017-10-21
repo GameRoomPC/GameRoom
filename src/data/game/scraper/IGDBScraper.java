@@ -37,7 +37,7 @@ import static ui.Main.LOGGER;
 
 public class IGDBScraper {
     private static final boolean DEV_MODE = Main.DEV_MODE;
-    private static final String API_URL = "http://62.210.219.110/api/v1" + (DEV_MODE ? "/dev" : "");
+    public static final String API_URL = "http://62.210.219.110/api/v1" + (DEV_MODE ? "/dev" : "");
 
     public static int REQUEST_COUNTER = 0;
 
