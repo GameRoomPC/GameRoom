@@ -171,7 +171,7 @@ public class GameEntry {
         statement.setString(14, igdb_imageHash[0]);
         statement.setString(15, igdb_imageHash[1]);
         statement.setInt(16, igdb_id);
-        statement.setBoolean(17, false); //this was an error design from beginning, waiting_to_be_scraped should not be saved in DB
+        statement.setBoolean(17, waitingToBeScrapped);
         statement.setBoolean(18, toAdd);
         statement.setBoolean(19, ignored);
         statement.setBoolean(20, runAsAdmin);
@@ -775,8 +775,6 @@ public class GameEntry {
 
     public void setWaitingToBeScrapped(boolean waitingToBeScrapped) {
         this.waitingToBeScrapped = waitingToBeScrapped;
-        //this was an error design from beginning, waiting_to_be_scraped should not be saved in DB
-        /*
         try {
             if (savedLocally && !deleted) {
                 PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set waiting_scrap = ? where id = ?");
@@ -788,7 +786,7 @@ public class GameEntry {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        }*/
+        }
     }
 
     public void setIgdb_imageHash(int index, String hash) {
@@ -977,8 +975,7 @@ public class GameEntry {
         setIgdb_imageHash(1, set.getString("wp_hash"));
         setIgdb_id(set.getInt("igdb_id"));
         setAggregated_rating(set.getInt("aggregated_rating"));
-        //this was an error design from beginning, waiting_to_be_scraped should not be saved in DB
-        setWaitingToBeScrapped(false);
+        setWaitingToBeScrapped(set.getBoolean("waiting_scrap"));
         setToAdd(set.getBoolean("toAdd"));
         setIgnored(set.getBoolean("ignored"));
         setRunAsAdmin(set.getBoolean("runAsAdmin"));

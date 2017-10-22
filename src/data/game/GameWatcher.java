@@ -52,6 +52,9 @@ public class GameWatcher {
     private Runnable scanningTask;
     private Future scanningFuture;
 
+    private volatile boolean alreadyDisplayedIGDBError = false;
+
+
 
     public static GameWatcher getInstance() {
         if (WATCHER == null) {
@@ -209,7 +212,7 @@ public class GameWatcher {
         }
         LOGGER.info("Now scraping found games");
 
-        final boolean[] alreadyDisplayedIGDBError = {false};
+        alreadyDisplayedIGDBError = false;
         for (GameEntry entry : entriesToAdd) {
             if (entry.isWaitingToBeScrapped() && !entry.isBeingScraped() && !GameEntryUtils.isGameIgnored(entry)) {
                 Callable task = () -> {
@@ -230,16 +233,19 @@ public class GameWatcher {
                         }
 
                     } catch (Exception e) {
+                        entry.setSavedLocally(true);
                         if (e instanceof IOException) {
                             Main.LOGGER.error(entry.getName() + " not found on igdb first guess");
+                            entry.setWaitingToBeScrapped(false);
                         } else if (e instanceof UnirestException) {
-                            if (!alreadyDisplayedIGDBError[0]) {
+                            entry.setWaitingToBeScrapped(true);
+                            if (!alreadyDisplayedIGDBError) {
+                                alreadyDisplayedIGDBError = true;
                                 GameRoomAlert.errorGameRoomAPI();
-                                alreadyDisplayedIGDBError[0] = true;
                             }
+                        } else{
+                            LOGGER.error("Error for game \"" + entry.getName()+ "\": " + e.getMessage());
                         }
-                        entry.setSavedLocally(true);
-                        entry.setWaitingToBeScrapped(false);
                         entry.setBeingScraped(false);
                         entry.setSavedLocally(false);
                         Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
@@ -268,7 +274,7 @@ public class GameWatcher {
             searchIDsCollection.get(listCounter).add(searchIGDBIDs.get(i));
         }
 
-        boolean anErrorOccured = false;
+        boolean anErrorOccurred = false;
 
         if (searchIDsCollection.size() > 0) {
             for (CopyOnWriteArrayList<Integer> ids : searchIDsCollection) {
@@ -353,9 +359,12 @@ public class GameWatcher {
                             }
                         }
                     } catch (UnirestException e) {
-                        LOGGER.error(e.getMessage());
-                        GameRoomAlert.errorGameRoomAPI();
-                        anErrorOccured = true;
+                        LOGGER.error("GameWatcher: error querying server API, "+e.getMessage());
+                        if (!alreadyDisplayedIGDBError) {
+                            alreadyDisplayedIGDBError = true;
+                            anErrorOccurred = true;
+                            GameRoomAlert.errorGameRoomAPI();
+                        }
                     }
                 }
             }
@@ -364,7 +373,7 @@ public class GameWatcher {
                     //here we set it to false as IGDB was not able to find our game
                     ge.setSavedLocally(true);
                     ge.setBeingScraped(false);
-                    ge.setWaitingToBeScrapped(ge.isWaitingToBeScrapped() && anErrorOccured);
+                    ge.setWaitingToBeScrapped(ge.isWaitingToBeScrapped() && anErrorOccurred);
                     ge.setSavedLocally(false);
                     Main.runAndWait(() -> {
                         Main.MAIN_SCENE.updateGame(ge);

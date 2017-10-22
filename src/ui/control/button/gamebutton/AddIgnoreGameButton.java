@@ -137,10 +137,8 @@ public class AddIgnoreGameButton extends GameButton {
     }
 
     private void initScrapingGraphics(GameEntry entry) {
-        boolean scraping = entry.isWaitingToBeScrapped() || entry.isBeingScraped();
-
-        addButton.setVisible(!scraping);
-        addButton.setMouseTransparent(scraping);
+        addButton.setVisible(!entry.isBeingScraped());
+        addButton.setMouseTransparent(entry.isBeingScraped());
 
         scrapingButton.setVisible(entry.isBeingScraped());
         scrapingButton.setMouseTransparent(!entry.isBeingScraped());
