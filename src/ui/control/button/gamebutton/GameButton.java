@@ -129,13 +129,13 @@ public abstract class GameButton extends BorderPane {
         double width = 20 * Main.SCREEN_WIDTH / 1920;
         double height = 20 * Main.SCREEN_HEIGHT / 1080;
 
-        if(!entry.getPlatform().isPC() || (entry.getPlatform().isPC() && settings().getBoolean(PredefinedSetting.SHOW_PC_ICON))) {
+        if (!entry.getPlatform().isPC() || (entry.getPlatform().isPC() && settings().getBoolean(PredefinedSetting.SHOW_PC_ICON))) {
             titleLogoView.setSmooth(false);
             titleLogoView.setPreserveRatio(true);
             titleLogoView.setFitWidth(width);
             titleLogoView.setFitHeight(height);
-            entry.getPlatform().setCSSIcon(titleLogoView,false);
-        }else{
+            entry.getPlatform().setCSSIcon(titleLogoView, false);
+        } else {
             titleLogoView.setStyle("");
         }
     }
@@ -475,16 +475,18 @@ public abstract class GameButton extends BorderPane {
             if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_MOUSE) {
                 //requestFocus();
                 if (!keepTimeLabelVisible) {
-                    Timeline fadeOutTimeline = new Timeline(
-                            new KeyFrame(Duration.seconds(0),
-                                    new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT)),
-                            new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                    new KeyValue(playTimeLabel.opacityProperty(), keepTimeLabelVisible ? 1 : 0, Interpolator.EASE_OUT)
-                            ));
-                    fadeOutTimeline.setCycleCount(1);
-                    fadeOutTimeline.setAutoReverse(false);
+                    javafx.application.Platform.runLater(() -> {
+                        Timeline fadeOutTimeline = new Timeline(
+                                new KeyFrame(Duration.seconds(0),
+                                        new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT)),
+                                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                        new KeyValue(playTimeLabel.opacityProperty(), keepTimeLabelVisible ? 1 : 0, Interpolator.EASE_OUT)
+                                ));
+                        fadeOutTimeline.setCycleCount(1);
+                        fadeOutTimeline.setAutoReverse(false);
 
-                    fadeOutTimeline.play();
+                        fadeOutTimeline.play();
+                    });
                 }
             }
         });
@@ -513,18 +515,20 @@ public abstract class GameButton extends BorderPane {
         infoButton.addMouseExitedHandler(e -> {
             if (MAIN_SCENE.getInputMode() == MainScene.INPUT_MODE_MOUSE) {
                 if (!keepTimeLabelVisible) {
-                    Timeline fadeOutTimeline = new Timeline(
-                            new KeyFrame(Duration.seconds(0),
-                                    new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT)),
-                            new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                    new KeyValue(playTimeLabel.opacityProperty(), keepTimeLabelVisible ? 1 : 0, Interpolator.EASE_OUT)
-                            ));
-                    fadeOutTimeline.setCycleCount(1);
-                    fadeOutTimeline.setAutoReverse(false);
+                    javafx.application.Platform.runLater(() -> {
+                        Timeline fadeOutTimeline = new Timeline(
+                                new KeyFrame(Duration.seconds(0),
+                                        new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT)),
+                                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                        new KeyValue(playTimeLabel.opacityProperty(), keepTimeLabelVisible ? 1 : 0, Interpolator.EASE_OUT)
+                                ));
+                        fadeOutTimeline.setCycleCount(1);
+                        fadeOutTimeline.setAutoReverse(false);
 
-                    fadeOutTimeline.play();
+                        fadeOutTimeline.play();
 
-                    playTimeLabel.setOpacity(0);
+                        playTimeLabel.setOpacity(0);
+                    });
                 }
             }
         });
