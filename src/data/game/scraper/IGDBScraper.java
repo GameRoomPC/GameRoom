@@ -122,7 +122,7 @@ public class IGDBScraper {
      * @return a {@link String} containing hash if found, null otherwise
      */
     public static String extractCoverImageHash(JSONObject jsob) {
-        if(jsob == null){
+        if (jsob == null) {
             return null;
         }
         return jsob.optString("cover_hash", null);
@@ -136,7 +136,7 @@ public class IGDBScraper {
      * array, as any already present id in this array is replaced by -1
      */
     public static int[] extractPlatformIds(JSONObject jsob) {
-        if(jsob == null){
+        if (jsob == null) {
             return new int[0];
         }
         try {
@@ -173,7 +173,7 @@ public class IGDBScraper {
      */
     public static ArrayList<GameEntry> getGameEntries(JSONArray gamesData) throws UnirestException {
         ArrayList<GameEntry> entries = new ArrayList<>();
-        if(gamesData == null){
+        if (gamesData == null) {
             return entries;
         }
 
@@ -184,12 +184,10 @@ public class IGDBScraper {
         for (int i = 0; i < gamesData.length(); i++) {
             JSONObject gameData = gamesData.getJSONObject(i);
             GameEntry entry = getEntry(gameData, false);
-            if (companiesData != null) {
-                setGameCompanies(entry, gameData, companiesData);
-            }
-            if (seriesData != null) {
-                setGameSerie(entry, gameData, seriesData);
-            }
+
+            setGameCompanies(entry, gameData, companiesData);
+            setGameSerie(entry, gameData, seriesData);
+
 
             entries.add(entry);
             try {
@@ -221,7 +219,7 @@ public class IGDBScraper {
      * @return a {@link GameEntry} based on the {@link JSONObject} given
      */
     private static GameEntry getEntry(JSONObject game_data, boolean allowUseMoreRequest) {
-        if(game_data == null){
+        if (game_data == null) {
             throw new IllegalArgumentException("game_data cannot be null!");
         }
         GameEntry entry = new GameEntry(game_data.getString("name"));
@@ -240,12 +238,10 @@ public class IGDBScraper {
         if (allowUseMoreRequest) {
             JSONArray companiesData = getCompaniesData(extractUnknownCompaniesIDs(game_data));
             JSONArray seriesData = getSeriesData(extractUnknownSeriesIDs(game_data));
-            if (companiesData != null) {
-                setGameCompanies(entry, game_data, companiesData);
-            }
-            if (seriesData != null) {
-                setGameSerie(entry, game_data, seriesData);
-            }
+
+            setGameCompanies(entry, game_data, companiesData);
+            setGameSerie(entry, game_data, seriesData);
+
         }
         try {
             entry.setGenres(extractGenres(game_data));
@@ -358,7 +354,7 @@ public class IGDBScraper {
      * @return an {@link ArrayList} of {@link GameGenre}s if some are found, null otherwise
      */
     private static ArrayList<GameGenre> extractGenres(JSONObject gameData) {
-        if(gameData == null){
+        if (gameData == null) {
             return null;
         }
         try {
@@ -389,7 +385,7 @@ public class IGDBScraper {
      * @return an {@link ArrayList} of {@link GameTheme}s if some are found, null otherwise
      */
     private static ArrayList<GameTheme> extractThemes(JSONObject gameData) {
-        if(gameData == null){
+        if (gameData == null) {
             return null;
         }
         try {
@@ -421,11 +417,11 @@ public class IGDBScraper {
      * @return a {@link Serie} if found, {@link Serie#NONE} otherwise
      */
     private static Serie extractSerie(int id, JSONArray serieData) {
-        if(serieData == null){
+        Serie s = Serie.getFromIGDBId(id);
+        if (serieData == null && s == null) {
             return null;
         }
 
-        Serie s = Serie.getFromIGDBId(id);
         try {
             if (s == null && serieData != null) {
                 String name = serieData.getJSONObject(indexOf(id, serieData)).getString("name");
@@ -469,10 +465,10 @@ public class IGDBScraper {
      * @return a {@link Serie} if found, null otherwise
      */
     private static Company extractCompany(int id, JSONArray companiesData) {
-        if(companiesData == null){
+        Company c = Company.getFromIGDBId(id);
+        if (companiesData == null && c == null) {
             return null;
         }
-        Company c = Company.getFromIGDBId(id);
         try {
             if (c == null) {
                 String name = companiesData.getJSONObject(indexOf(id, companiesData)).getString("name");
@@ -518,7 +514,7 @@ public class IGDBScraper {
      */
     private static HashSet<Integer> extractUnknownCompaniesIDs(JSONObject searchData) {
         HashSet<Integer> companiesIDs = new HashSet<>();
-        if(searchData == null){
+        if (searchData == null) {
             return companiesIDs;
         }
 
@@ -570,7 +566,7 @@ public class IGDBScraper {
      */
     private static HashSet<Integer> extractUnknownCompaniesIDs(JSONArray searchData) {
         HashSet<Integer> companiesIDs = new HashSet<>();
-        if (searchData == null){
+        if (searchData == null) {
             return companiesIDs;
         }
         for (int i = 0; i < searchData.length(); i++) {
@@ -580,13 +576,14 @@ public class IGDBScraper {
     }
 
     /**
-     * Given searchData on a game and companiesData, update it with companies
+     * Given searchData on a game and companiesData, update it with companies from this companiesData (supposed previously
+     * unknown) and with companies already known
      *
      * @param searchData    data fetched about a game
      * @param companiesData data fetched about companies
      */
     private static void setGameCompanies(GameEntry entryToSet, JSONObject searchData, JSONArray companiesData) {
-        if(searchData == null){
+        if (searchData == null) {
             return;
         }
 
@@ -639,7 +636,7 @@ public class IGDBScraper {
      */
     private static HashSet<Integer> extractUnknownSeriesIDs(JSONObject searchData) {
         HashSet<Integer> seriesIDs = new HashSet<>();
-        if(searchData == null){
+        if (searchData == null) {
             return seriesIDs;
         }
         try {
@@ -668,7 +665,7 @@ public class IGDBScraper {
      */
     private static HashSet<Integer> extractUnknownSeriesIDs(JSONArray searchData) {
         HashSet<Integer> seriesIDs = new HashSet<>();
-        if(searchData == null){
+        if (searchData == null) {
             return seriesIDs;
         }
         for (int i = 0; i < searchData.length(); i++) {
@@ -684,7 +681,7 @@ public class IGDBScraper {
      * @param seriesData data fetched about series
      */
     private static void setGameSerie(GameEntry entryToSet, JSONObject searchData, JSONArray seriesData) {
-        if(searchData == null){
+        if (searchData == null) {
             return;
         }
         try {
