@@ -18,6 +18,10 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static ui.Main.LOGGER;
@@ -41,7 +45,7 @@ public class IGDBScraper {
 
     public static int REQUEST_COUNTER = 0;
 
-    public static void main(String[] args) throws IOException, UnirestException {
+    public static void main(String[] args) throws IOException, UnirestException, InterruptedException {
         String appdataFolder = System.getenv("APPDATA");
         String dataPath = appdataFolder + File.separator + "GameRoom_dev";
         System.out.println("Datapath :" + dataPath);
@@ -50,25 +54,50 @@ public class IGDBScraper {
         Main.FILES_MAP.put("db", new File("D:\\Documents\\GameRoom\\library.db"));
         DataBase.initDB();
 
-        String gameName = "Battlefield 1";
-        JSONArray bf4_results = searchGame(gameName, true, Platform.PC.getId());
-        //System.out.println(bf4_results.toString(4));
-        if (bf4_results != null) {
-            ArrayList list = new ArrayList();
-            ArrayList<GameEntry> entries = getGameEntries(bf4_results);
-            for (GameEntry ge : entries) {
-                System.out.println(ge);
+        ExecutorService service = Executors.newCachedThreadPool();
+        final CountDownLatch latch = new CountDownLatch(50);
+
+        for (int i = 0; i < 50; i++) {
+            int finalI = i;
+            service.submit(() -> {
+                long start = System.currentTimeMillis();
+                String gameName = "Battlefield 1";
+                try {
+                    JSONArray bf4_results = searchGame(gameName, true, Platform.PC.getId());
+                    //System.out.println(bf4_results.toString(4));
+                    if (bf4_results != null) {
+                        ArrayList<GameEntry> entries = getGameEntries(bf4_results);
+                        for (GameEntry ge : entries) {
+                            System.out.println(ge);
+                        }
+                    } else {
+                        System.out.println("Found no matching game for " + gameName);
+                    }
+                    long elapsed = System.currentTimeMillis() - start;
+
+                    System.out.println("Thread " + finalI + " : " + elapsed + "ms");
+
+                } catch (UnirestException e) {
+                    e.printStackTrace();
+                }
+            });
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } else {
-            System.out.println("Found no matching game for " + gameName);
         }
+
+        latch.await();
+        System.out.println("Finished.");
+
     }
 
     /**
      * Inits all whats needed for the IGDBScraper
      */
     public static void init() {
-        Unirest.setTimeouts(8000, 15000);
+        Unirest.setTimeouts(10000, 40000);
     }
 
     /**
