@@ -11,6 +11,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.effect.BlurType;
@@ -551,6 +552,7 @@ public abstract class GameButton extends BorderPane {
         StackPane.setAlignment(notInstalledImage, Pos.TOP_RIGHT);
         initNotInstalled();
         setCache(true);
+        setCacheHint(CacheHint.SPEED);
     }
 
     protected abstract int getCoverHeight();

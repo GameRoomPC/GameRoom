@@ -19,6 +19,7 @@ import ui.scene.BaseScene;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
 
 import static system.application.settings.GeneralSettings.settings;
@@ -172,6 +173,20 @@ public class ImageUtils {
     }
 
     /**
+     * Basically does the same as {@link #transitionToImage(Image, ImageView, double)}, but with the predefined opacity
+     * of {@link BaseScene#BACKGROUND_IMAGE_MAX_OPACITY}.
+     *
+     * @param imgRef {@link WeakReference<Image>} to the the background image to load
+     * @param imageView and where to place it
+     */
+    public static void transitionToWindowBackground(WeakReference<Image> imgRef, ImageView imageView) {
+        GaussianBlur blur = new GaussianBlur(BACKGROUND_IMAGE_BLUR);
+        imageView.setEffect(blur);
+        ImageUtils.transitionToImage(imgRef.get(), imageView, BaseScene.BACKGROUND_IMAGE_MAX_OPACITY);
+        imgRef.clear();
+    }
+
+    /**
      * Basically does the same as {@link #transitionToWindowBackground(Image, ImageView)}, but creates the new Image
      * with the Window's size and stretched ratio.
      *
@@ -182,11 +197,11 @@ public class ImageUtils {
         if (imgFile == null) {
             ImageUtils.transitionToWindowBackground((Image) null, imageView);
         } else {
-            ImageUtils.transitionToWindowBackground(new Image("file:" + File.separator + File.separator + File.separator + imgFile.getAbsolutePath(),
+            ImageUtils.transitionToWindowBackground(new WeakReference<>(new Image("file:" + File.separator + File.separator + File.separator + imgFile.getAbsolutePath(),
                             settings().getWindowWidth() * BACKGROUND_IMAGE_LOAD_RATIO,
                             settings().getWindowHeight() * BACKGROUND_IMAGE_LOAD_RATIO,
                             false,
-                            true),
+                            true)),
                     imageView);
         }
     }
