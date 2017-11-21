@@ -272,8 +272,8 @@ public class Monitor {
         //TODO fix incorrect timezone in uppper script
         //Main.LOGGER.debug("\tOriginal date : "+ DATE_FORMAT.format(creationDate.getTime()));
         //Main.LOGGER.debug("\tCorrected date : "+ DATE_FORMAT.format(creationDate.getTime()-3600000*2));
-
-        File standbyWatcher = File.createTempFile("event_watcher", ".vbs");
+        String tempFileName = processName+"_counter.vbs";
+        File standbyWatcher = FileUtils.newTempFile(tempFileName);
         standbyWatcher.deleteOnExit();
         FileWriter fw = new java.io.FileWriter(standbyWatcher);
         fw.write(request);

@@ -1,6 +1,7 @@
 package data.io;
 
 import data.game.entry.Platform;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import system.os.WindowsShortcut;
 import ui.Main;
 
@@ -16,18 +17,21 @@ import java.util.regex.Pattern;
  */
 public class FileUtils {
 
-    public static File initOrCreateFolder(File f) {
+    @NonNull
+    public static File initOrCreateFolder(@NonNull File f) {
         if (!f.exists()) {
             f.mkdirs();
         }
         return f;
     }
 
-    public static File initOrCreateFolder(String f) {
+    @NonNull
+    public static File initOrCreateFolder(@NonNull String f) {
         return initOrCreateFolder(new File(f));
     }
 
-    private static File initOrCreateFile(File f) {
+    @NonNull
+    private static File initOrCreateFile(@NonNull File f) {
         if (!f.exists()) {
             f.getParentFile().mkdirs();
             try {
@@ -39,7 +43,33 @@ public class FileUtils {
         return f;
     }
 
-    public static File newTempFile(String fileName) {
+    /**
+     * Checks whether GameRoom's temp folder exists, and returns the temp file wanter
+     * @param filename the name of the file to fetch, with extension and not, and can include subdirs of the temp folder
+     * @return the temp file, whether it exists or not
+     */
+    public static File getTempFile(@NonNull String filename) {
+        if (Main.FILES_MAP == null || Main.FILES_MAP.isEmpty()) {
+            throw new IllegalStateException("Cannot get tempfile : FILE_MAP is not initialized");
+        }
+        File tempFolder = Main.FILES_MAP.get("temp");
+        if (tempFolder == null || !tempFolder.exists()) {
+            throw new IllegalStateException("Temp folder does not exist");
+        }
+        return new File(tempFolder.getAbsolutePath() + File.separator + filename);
+    }
+
+    /**
+     * Initialize (and creates if necessary) a temp file in GameRoom's temp folder. It does not create into the OS' temp
+     * folder as temp files as supposed to be deleted at the app's end and {@link File#deleteOnExit()} seems to be not
+     * reliable. Hence we create the file (and necessary directories) in GameRoom's temp folder that is cleaned when the
+     * app exits properly
+     * @param fileName the name of the file to create, including its extension. Can also include subdirs that will be
+     *                 created !
+     * @return the initialized file, created if possible and non already existing
+     */
+    @NonNull
+    public static File newTempFile(@NonNull String fileName) {
         if (Main.FILES_MAP == null || Main.FILES_MAP.isEmpty()) {
             throw new IllegalStateException("Cannot create tempfile : FILE_MAP is not initialized");
         }
@@ -51,8 +81,8 @@ public class FileUtils {
         return initOrCreateFile(tempFolder.getAbsolutePath() + File.separator + fileName);
     }
 
-
-    public static File initOrCreateFile(String f) {
+    @NonNull
+    public static File initOrCreateFile(@NonNull String f) {
         return initOrCreateFile(new File(f));
     }
 
