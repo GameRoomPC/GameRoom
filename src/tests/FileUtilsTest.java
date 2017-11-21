@@ -1,6 +1,6 @@
 package tests;
 
-import data.io.FileUtils;
+import com.gameroom.data.io.FileUtils;
 import org.junit.Test;
 
 import java.io.File;
