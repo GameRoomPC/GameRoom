@@ -12,9 +12,12 @@ import data.http.key.CipherUtils;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import org.apache.commons.lang.ArrayUtils;
 import org.json.JSONObject;
 import system.application.settings.PredefinedSetting;
+import system.device.StatsUtils;
 import system.os.Terminal;
+import system.os.WinReg;
 import ui.Main;
 import ui.GeneralToast;
 import ui.dialog.GameRoomAlert;
@@ -213,13 +216,14 @@ public class SupportService {
 
                         JSONObject obj = new JSONObject();
                         obj.put("NbGames", GameEntryUtils.ENTRIES_LIST.size())
-                                .put("TotalPlaytime", getTotalPlaytime())
+                                .put("TotalPlaytime", StatsUtils.getTotalPlaytime())
                                 .put("IsSupporter", KeyChecker.assumeSupporterMode() ? 1 : 0)
                                 .put("ThemeUsed", settings().getTheme().getName())
-                                .put("GPUs", getGPUNames())
-                                .put("CPUs", getCPUNames())
-                                .put("RAMAmount", getRAMAmount())
-                                .put("OSInfo", getOSInfo());
+                                .put("GPUs", StatsUtils.getGPUNames())
+                                .put("CPUs", StatsUtils.getCPUNames())
+                                .put("RAMAmount", StatsUtils.getRAMAmount())
+                                .put("WinKey", WinReg.readHWGUID())
+                                .put("OSInfo", StatsUtils.getOSInfo());
 
                         response = Unirest.post(GAMEROOM_API_URL + "/Stats/DailyPing")
                                 .header("Accept", "application/json")
@@ -249,109 +253,6 @@ public class SupportService {
             if (DEV_MODE) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    /**
-     * Queries Windows to fetch the different GPU names
-     *
-     * @return a comma separated list of GPUs
-     */
-    public static String getGPUNames() {
-        Terminal t = new Terminal();
-        StringJoiner joiner = new StringJoiner(",");
-
-        try {
-            String[] output = t.execute("wmic", "path", "win32_VideoController", "get", "name");
-            for (int i = 0; i < output.length; i++) {
-                if (i > 1) {
-                    if (output[i] != null && !output[i].isEmpty() && !output[i].startsWith("Name")) {
-                        joiner.add(output[i].trim());
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return joiner.toString();
-    }
-
-    /**
-     * Queries Windows to fetch the different CPU names
-     *
-     * @return a comma separated list of CPUs
-     */
-    public static String getCPUNames() {
-        Terminal t = new Terminal();
-        StringJoiner joiner = new StringJoiner(",");
-
-        try {
-            String[] output = t.execute("wmic", "cpu", "get", "name");
-            for (int i = 0; i < output.length; i++) {
-                if (i > 1) {
-                    if (output[i] != null && !output[i].isEmpty() && !output[i].startsWith("Name")) {
-                        joiner.add(output[i].trim());
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return joiner.toString();
-    }
-
-    /**
-     * @return a comma separated list of infos about the OS
-     */
-    public static String getOSInfo() {
-        return System.getProperty("os.name") + ","
-                + System.getProperty("os.version") + ","
-                + System.getProperty("os.arch");
-    }
-
-    /**
-     * @return the total playtime on every games
-     */
-    public static long getTotalPlaytime() {
-        final long[] totalPlaytime = {0};
-        GameEntryUtils.ENTRIES_LIST.forEach(gameEntry -> totalPlaytime[0] += gameEntry.getPlayTimeSeconds());
-        return totalPlaytime[0];
-    }
-
-    /**
-     * @return the RAM amount of the memorychip of the device, -1 if there was an error
-     */
-    public static long getRAMAmount() {
-        Terminal t = new Terminal();
-        try {
-            String[] output = t.execute("wmic", "memorychip", "get", "capacity");
-            long total = 0;
-            for (int i = 0; i < output.length; i++) {
-                if (i > 1) {
-                    try {
-                        total += Long.parseLong(output[i].trim()) / (1024 * 1024);
-                    } catch (NumberFormatException ignored) {
-                    }
-                }
-            }
-            return total;
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return -1;
-    }
-
-    public static void printSystemInfo() {
-        if (LOGGER != null) {
-            LOGGER.info("System info :");
-            LOGGER.info("\tOS : " + getOSInfo());
-            LOGGER.info("\tGPU : " + getGPUNames());
-            LOGGER.info("\tCPU : " + getCPUNames());
-            LOGGER.info("\tRAM amount : " + getRAMAmount() + "Mb");
         }
     }
 }

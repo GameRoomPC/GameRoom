@@ -10,6 +10,7 @@ import system.application.SupportService;
 import system.application.settings.PredefinedSetting;
 import system.application.settings.SettingValue;
 import system.device.GameController;
+import system.device.StatsUtils;
 import ui.dialog.GameRoomAlert;
 import ui.scene.MainScene;
 
@@ -93,7 +94,7 @@ public class Main {
         PredefinedSetting.WINDOW_WIDTH.setDefaultValue(new SettingValue((int) TRUE_SCREEN_WIDTH, Integer.class, PredefinedSetting.WINDOW_WIDTH.getDefaultValue().getCategory()));
         PredefinedSetting.WINDOW_HEIGHT.setDefaultValue(new SettingValue((int) TRUE_SCREEN_HEIGHT, Integer.class, PredefinedSetting.WINDOW_HEIGHT.getDefaultValue().getCategory()));
 
-        SupportService.printSystemInfo();
+        StatsUtils.printSystemInfo();
         LOGGER.info("Started app with screen true resolution : " + (int) TRUE_SCREEN_WIDTH + "x" + (int) TRUE_SCREEN_HEIGHT);
 
         settings(); //ensures settings are loaded
