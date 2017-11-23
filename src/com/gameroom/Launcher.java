@@ -79,7 +79,7 @@ public class Launcher extends Application {
             setSplashscreenText("Opening GameRoom");
         }
 
-        System.setProperty("com.gameroom.data.dir", DATA_PATH);
+        System.setProperty("data.dir", DATA_PATH);
         Main.LOGGER = LogManager.getLogger(Main.class);
 
         System.setErr(new PrintStream(System.err) {
