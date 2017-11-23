@@ -193,7 +193,7 @@ public class SteamOnlineScraper {
             JSONObject idObject = new JSONObject(tokener).getJSONObject("" + steam_id);
             boolean success = idObject.getBoolean("success");
 
-            return success ? idObject.getJSONObject("com/gameroom/data") : null;
+            return success ? idObject.getJSONObject("/data") : null;
         } catch (JSONException e) {
             if (e.toString().contains("not found")) {
                 System.err.println("Data not found");
