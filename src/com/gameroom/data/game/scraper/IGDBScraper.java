@@ -27,12 +27,12 @@ import static com.gameroom.ui.Main.LOGGER;
 
 /**
  * This class is responsible for querying the API server containing all information provided by IGDB, as well as extracting
- * com.gameroom.data from JSON response and building {@link GameEntry}s, {@link Company}s or {@link Serie}s out of it!
+ * data from JSON response and building {@link GameEntry}s, {@link Company}s or {@link Serie}s out of it!
  * <p>
  * There is a naming convention for methods :
- * - methods starting with "extract" will just parse JSON com.gameroom.data and will not cause more queries
+ * - methods starting with "extract" will just parse JSON data and will not cause more queries
  * - methods starting with "get" will usually query the API server ({@link IGDBScraper#getEntry(JSONObject, boolean)}
- * extracts com.gameroom.data and queries, thus is named with a starting "get"
+ * extracts data and queries, thus is named with a starting "get"
  *
  * @author LM. Garret (admin@gameroom.me)
  * @date 03/07/2016.
@@ -48,7 +48,7 @@ public class IGDBScraper {
         String appdataFolder = System.getenv("APPDATA");
         String dataPath = appdataFolder + File.separator + "GameRoom_dev";
         System.out.println("Datapath :" + dataPath);
-        System.setProperty("com.gameroom.data.dir", dataPath);
+        System.setProperty("data.dir", dataPath);
         Main.LOGGER = LogManager.getLogger(IGDBScraper.class);
         Main.FILES_MAP.put("db", new File("D:\\Documents\\GameRoom\\library.db"));
         DataBase.initDB();
@@ -187,14 +187,14 @@ public class IGDBScraper {
      * Typically to be used when we have just searched for a game, and we want to build all possible {@link GameEntry}s
      * from this search
      * <p>
-     * This will first query the API server to get com.gameroom.data about unknown {@link Company} and {@link Serie} for all those games,
+     * This will first query the API server to get data about unknown {@link Company} and {@link Serie} for all those games,
      * looking into the given {@link JSONArray} for ids to compare against the one stored in the {@link DataBase} (see
      * {@link IGDBScraper#extractUnknownCompaniesIDs(JSONArray)} and {@link IGDBScraper#extractUnknownSeriesIDs(JSONArray)}.
      * <p>
      * Then it will extract {@link GameEntry}s out of the given {@link JSONArray}, set companies and series from the
-     * com.gameroom.data that the API server returned for each of them, and return those entries into an {@link ArrayList}.
+     * data that the API server returned for each of them, and return those entries into an {@link ArrayList}.
      *
-     * @param gamesData a {@link JSONArray} containing com.gameroom.data about some {@link GameEntry}s
+     * @param gamesData a {@link JSONArray} containing data about some {@link GameEntry}s
      * @return an {@link ArrayList} of ready to use {@link GameEntry}s, with {@link Company}s and {@link Serie} queried if
      * needed and set for each of them.
      * @throws UnirestException in case an error occurred while contacting the API server
@@ -237,9 +237,9 @@ public class IGDBScraper {
 
     /**
      * Builds a {@link GameEntry} instance out of the given {@link JSONObject}. Will contact server (@param allowUseMoreRequest)
-     * if allowed to fetch com.gameroom.data about {@link Company}s and {@link Serie} in order to complete the {@link GameEntry}
+     * if allowed to fetch data about {@link Company}s and {@link Serie} in order to complete the {@link GameEntry}
      *
-     * @param game_data           the {@link JSONObject} containing com.gameroom.data to build the {@link GameEntry}
+     * @param game_data           the {@link JSONObject} containing data to build the {@link GameEntry}
      * @param allowUseMoreRequest true if the method is allowed to contact the API server about {@link Company}s and
      *                            {@link Serie} in order to complete the {@link GameEntry}, false otherwise. This false
      *                            case is typically when we have already queried the API server about those {@link Company}s
@@ -324,7 +324,7 @@ public class IGDBScraper {
      * @param allowDLCs  if we want DLCs to appear in our search results
      * @param platformId IGDB id of a {@link Platform}. Will restrict the search for games only on this platform, or search for
      *                   games on all {@link Platform}s if is -1.
-     * @return a {@link JSONArray} containing com.gameroom.data about games matching the given name, or null if there was a parsing issue
+     * @return a {@link JSONArray} containing data about games matching the given name, or null if there was a parsing issue
      * @throws UnirestException in case an error occurred while querying the API server
      */
     public static JSONArray searchGame(String gameName, boolean allowDLCs, int platformId) throws UnirestException {
@@ -342,10 +342,10 @@ public class IGDBScraper {
     }
 
     /**
-     * Queries the API server and gets com.gameroom.data about a single game
+     * Queries the API server and gets data about a single game
      *
      * @param id IGDB id of the game we're interested in
-     * @return a {@link JSONObject} containing com.gameroom.data about our game, null if no com.gameroom.data was found
+     * @return a {@link JSONObject} containing data about our game, null if no data was found
      * @throws UnirestException if there was an error while querying the API server
      */
     public static JSONObject getGameData(int id) throws UnirestException {
@@ -359,10 +359,10 @@ public class IGDBScraper {
     }
 
     /**
-     * Queries the API server to get com.gameroom.data about a collection of games
+     * Queries the API server to get data about a collection of games
      *
      * @param ids a {@link Collection} of IGDB ids of the games we're interested in
-     * @return a {@link JSONArray} containing com.gameroom.data about our games, null if no com.gameroom.data was found
+     * @return a {@link JSONArray} containing data about our games, null if no data was found
      * @throws UnirestException if there was an error while querying the API server
      */
     public static JSONArray getGamesData(Collection<Integer> ids) throws UnirestException {
@@ -462,10 +462,10 @@ public class IGDBScraper {
     }
 
     /**
-     * Queries the API server to get com.gameroom.data about a collection of {@link Serie}
+     * Queries the API server to get data about a collection of {@link Serie}
      *
      * @param ids a {@link Collection} of IGDB ids of the series we're interested in
-     * @return a {@link JSONArray} containing com.gameroom.data about our series, null if no com.gameroom.data was found
+     * @return a {@link JSONArray} containing data about our series, null if no data was found
      */
     private static JSONArray getSeriesData(Collection<Integer> ids) {
         if (ids.isEmpty()) {
@@ -509,10 +509,10 @@ public class IGDBScraper {
     }
 
     /**
-     * Queries the API server to get com.gameroom.data about a collection of {@link Company}
+     * Queries the API server to get data about a collection of {@link Company}
      *
      * @param ids a {@link Collection} of IGDB ids of the companies we're interested in
-     * @return a {@link JSONArray} containing com.gameroom.data about our companies, null if no com.gameroom.data was found
+     * @return a {@link JSONArray} containing data about our companies, null if no data was found
      */
     private static JSONArray getCompaniesData(Collection<Integer> ids) {
         if (ids.isEmpty()) {
@@ -607,8 +607,8 @@ public class IGDBScraper {
      * Given searchData on a game and companiesData, update it with companies from this companiesData (supposed previously
      * unknown) and with companies already known
      *
-     * @param searchData    com.gameroom.data fetched about a game
-     * @param companiesData com.gameroom.data fetched about companies
+     * @param searchData    data fetched about a game
+     * @param companiesData data fetched about companies
      */
     private static void setGameCompanies(GameEntry entryToSet, JSONObject searchData, JSONArray companiesData) {
         if (searchData == null) {
@@ -705,8 +705,8 @@ public class IGDBScraper {
     /**
      * Given searchData on a game and serieData, update it with corresponding serie
      *
-     * @param searchData com.gameroom.data fetched about a game
-     * @param seriesData com.gameroom.data fetched about series
+     * @param searchData data fetched about a game
+     * @param seriesData data fetched about series
      */
     private static void setGameSerie(GameEntry entryToSet, JSONObject searchData, JSONArray seriesData) {
         if (searchData == null) {
@@ -746,22 +746,22 @@ public class IGDBScraper {
      * "code": 200,
      * "process_time": 257.42197036743
      * },
-     * "com.gameroom.data": {
+     * "data": {
      * <key> : [..]
      * }
      * }
-     * This method will extract the com.gameroom.data given by the server at the key position.
+     * This method will extract the data given by the server at the key position.
      *
      * @param response the response from the server
-     * @param key      the key at which the wanted com.gameroom.data is located in the response
-     * @return a JSONArray if the response follows the convention and if there is com.gameroom.data, null otherwise
+     * @param key      the key at which the wanted data is located in the response
+     * @return a JSONArray if the response follows the convention and if there is data, null otherwise
      */
     private static JSONArray extractData(HttpResponse<JsonNode> response, String key) {
         if (response != null
                 && response.getBody() != null
                 && response.getBody().getObject() != null
-                && response.getBody().getObject().optJSONObject("com/gameroom/data") != null) {
-            return response.getBody().getObject().optJSONObject("com/gameroom/data").optJSONArray(key);
+                && response.getBody().getObject().optJSONObject("data") != null) {
+            return response.getBody().getObject().optJSONObject("data").optJSONArray(key);
         }
         return null;
     }
