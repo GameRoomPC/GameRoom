@@ -86,6 +86,8 @@ public class Main {
 
         Main.TRUE_SCREEN_WIDTH = (int) screenSize.getWidth();
         Main.TRUE_SCREEN_HEIGHT = (int) screenSize.getHeight();
+
+        //here we bind min dimensions to 1920*1080 so that the UI is scaled correctly for lower resolution
         Main.SCREEN_WIDTH = TRUE_SCREEN_WIDTH <= 1920 ? TRUE_SCREEN_WIDTH : 1920;
         Main.SCREEN_HEIGHT = TRUE_SCREEN_HEIGHT <= 1080 ? TRUE_SCREEN_HEIGHT : 1080;
 

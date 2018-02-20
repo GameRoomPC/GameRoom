@@ -52,6 +52,12 @@ import static com.gameroom.ui.Main.*;
  * Created by LM on 15/07/2016.
  */
 public class Launcher extends Application {
+    private final static double MIN_WINDOW_WIDTH = 640;
+    private final static double MIN_WINDOW_HEIGHT = 480;
+
+    private final static double MIN_WINDOW_X = 0;
+    private final static double MIN_WINDOW_Y = 0;
+
     private int trayMessageCount = 0;
     private static ConsoleOutputDialog[] console = new ConsoleOutputDialog[1];
     private static boolean START_MINIMIZED = false;
@@ -59,11 +65,20 @@ public class Launcher extends Application {
     private static ChangeListener<Boolean> maximizedListener;
     private static ChangeListener<Boolean> fullScreenListener;
 
+    private static double TRUE_SCREEN_WIDTH;
+    private static double TRUE_SCREEN_HEIGHT;
+
     private volatile boolean monitoringStageProps = false;
 
     private static String DATA_PATH;
 
     public static void main(String[] args) throws URISyntaxException {
+
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+        TRUE_SCREEN_WIDTH = (int) screenSize.getWidth();
+        TRUE_SCREEN_HEIGHT = (int) screenSize.getHeight();
+
         Main.DEV_MODE = getArg(ARGS_FLAG_DEV, args, false) != null;
 
         if (DEV_MODE) {
@@ -301,21 +316,26 @@ public class Launcher extends Application {
         };
         primaryStage.maximizedProperty().addListener(maximizedListener);
 
-        primaryStage.xProperty().addListener((observable, oldValue, newValue) -> monitorStageProps(primaryStage));
-        primaryStage.yProperty().addListener((observable, oldValue, newValue) -> monitorStageProps(primaryStage));
-        primaryStage.widthProperty().addListener((observableValue, oldSceneWidth, newSceneWidth) -> monitorStageProps(primaryStage));
-        primaryStage.heightProperty().addListener((observableValue, oldSceneHeight, newSceneHeight) -> monitorStageProps(primaryStage));
+        primaryStage.xProperty().addListener((observable, oldValue, newValue) -> monitorStageProperties(primaryStage));
+        primaryStage.yProperty().addListener((observable, oldValue, newValue) -> monitorStageProperties(primaryStage));
+        primaryStage.widthProperty().addListener((observableValue, oldSceneWidth, newSceneWidth) -> monitorStageProperties(primaryStage));
+        primaryStage.heightProperty().addListener((observableValue, oldSceneHeight, newSceneHeight) -> monitorStageProperties(primaryStage));
     }
 
-    private void monitorStageProps(Stage stage){
-        if (!monitoringStageProps && isStagePropsSavable(stage)) {
+    /**
+     * Starts a task on the {@link Main#getExecutorService()} instance to monitor and save properties (dimension and coordinates)
+     * of the stage to the database.
+     * @param stage stage to monitor properties from
+     */
+    private void monitorStageProperties(Stage stage){
+        if (!monitoringStageProps && isStagePropertiesSavable(stage)) {
             monitoringStageProps = true;
             Main.getExecutorService().submit(() -> {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ignored) {
                 }
-                if (isStagePropsSavable(stage)) {
+                if (isStagePropertiesSavable(stage)) {
                     settings().setSettingValue(PredefinedSetting.WINDOW_WIDTH, (int) stage.getWidth());
                     settings().setSettingValue(PredefinedSetting.WINDOW_HEIGHT, (int) stage.getHeight());
                     settings().setSettingValue(PredefinedSetting.WINDOW_X, stage.getX());
@@ -326,8 +346,31 @@ public class Launcher extends Application {
         }
     }
 
-    private boolean isStagePropsSavable(Stage stage){
-        return !stage.isIconified() && !stage.isMaximized() && !stage.isFullScreen();
+    /**
+     * Computes whether the properties (coordinates and dimensions) of the stage displayed should be saved. They should
+     * not be saved when the stage is either iconified, maximized or in fullscreen mode.
+     * It also checks that coordinates and dimensions are within plausible ranges, checking against
+     *
+     * @param stage the stage displayed which properties are monitored
+     * @return true if the program should save the stage's dimensions and location, false otherwise
+     */
+    private boolean isStagePropertiesSavable(Stage stage){
+        boolean stateCorrect = !stage.isIconified() && !stage.isMaximized() && !stage.isFullScreen();
+
+        boolean correctCoordinates = stage.getX() >= MIN_WINDOW_X
+                && stage.getX() < TRUE_SCREEN_WIDTH
+                && stage.getY() >= MIN_WINDOW_Y
+                && stage.getY() < TRUE_SCREEN_HEIGHT;
+
+        boolean correctDimension = stage.getWidth() >= MIN_WINDOW_WIDTH
+                && stage.getWidth() <= TRUE_SCREEN_WIDTH
+                && stage.getHeight() >= MIN_WINDOW_HEIGHT
+                && stage.getHeight() <= TRUE_SCREEN_HEIGHT;
+        LOGGER.debug("Window event detected, monitoring...");
+        LOGGER.debug("True dims: width="+TRUE_SCREEN_WIDTH+", height="+TRUE_SCREEN_HEIGHT);
+        LOGGER.debug("stateCorrect=" + stateCorrect +", correctCoord="+correctCoordinates+", correctDims="+correctDimension);
+        LOGGER.debug("Coord: x="+stage.getX()+",y="+stage.getY()+"; Dim: width="+stage.getWidth()+", height="+stage.getHeight());
+        return stateCorrect && correctCoordinates && correctDimension;
     }
 
     private void setFullScreen(Stage primaryStage, boolean fullScreen) {
