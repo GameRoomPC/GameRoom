@@ -73,6 +73,7 @@ public class Launcher extends Application {
     private static String DATA_PATH;
 
     public static void main(String[] args) throws URISyntaxException {
+        com.sun.javafx.application.PlatformImpl.startup(()->{});
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
