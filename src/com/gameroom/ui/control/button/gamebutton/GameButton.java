@@ -51,6 +51,7 @@ public abstract class GameButton extends BorderPane {
     private static Image DEFAULT_PLAY_IMAGE;
     private static Image DEFAULT_INFO_IMAGE;
 
+    private final static long SECOND_START_DELAY = 2000;
 
     private final static double RATIO_NOTINSTALLEDIMAGE_COVER = 1 / 3.0;
     private final static double RATIO_PLAYBUTTON_COVER = 2 / 3.0;
@@ -88,6 +89,8 @@ public abstract class GameButton extends BorderPane {
     private boolean inContextMenu = false;
 
     private ChangeListener<Boolean> monitoredChangeListener;
+
+    private long lastGameStart = 0;
 
 
     GameButton(GameEntry entry, BaseScene scene, Pane parent) {
@@ -322,35 +325,47 @@ public abstract class GameButton extends BorderPane {
         ImageUtils.getExecutorService().submit(this::showCover);
 
         playButton.setOnMouseClicked(mc -> {
-            if (!entry.isSteamGame()) {
-                File gamePath = new File(entry.getPath());
-                if (gamePath.isDirectory()) {
+            if(System.currentTimeMillis() - lastGameStart > SECOND_START_DELAY ){
+                lastGameStart = System.currentTimeMillis();
+                playButton.setMouseTransparent(true);
+                Main.getExecutorService().submit(() -> {
                     try {
-                        if (MAIN_SCENE != null) {
-                            GeneralToast.displayToast(Main.getString("looking_for_game_exe"), MAIN_SCENE.getParentStage());
-                        }
-                        AppSelectorDialog selector = new AppSelectorDialog(gamePath, entry.getPlatform().getSupportedExtensions());
-                        selector.searchApps();
+                        Thread.sleep(SECOND_START_DELAY);
+                    } catch (InterruptedException ignored) {
+                    }
+                    playButton.setMouseTransparent(false);
+                });
 
-                        Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
-                        ignoredOptionnal.ifPresent(pairs -> {
-                            if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                                entry.setPath(selector.getSelectedFile().getAbsolutePath());
-                                setFocused(false);
-                                entry.startGame();
+                if (!entry.isSteamGame()) {
+                    File gamePath = new File(entry.getPath());
+                    if (gamePath.isDirectory()) {
+                        try {
+                            if (MAIN_SCENE != null) {
+                                GeneralToast.displayToast(Main.getString("looking_for_game_exe"), MAIN_SCENE.getParentStage());
                             }
-                        });
+                            AppSelectorDialog selector = new AppSelectorDialog(gamePath, entry.getPlatform().getSupportedExtensions());
+                            selector.searchApps();
 
-                    } catch (IllegalArgumentException e) {
-                        GameRoomAlert.error(Main.getString("invalid_path_not_file"));
+                            Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
+                            ignoredOptionnal.ifPresent(pairs -> {
+                                if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                                    entry.setPath(selector.getSelectedFile().getAbsolutePath());
+                                    setFocused(false);
+                                    entry.startGame();
+                                }
+                            });
+
+                        } catch (IllegalArgumentException e) {
+                            GameRoomAlert.error(Main.getString("invalid_path_not_file"));
+                        }
+                    } else {
+                        setFocused(false);
+                        entry.startGame();
                     }
                 } else {
                     setFocused(false);
                     entry.startGame();
                 }
-            } else {
-                setFocused(false);
-                entry.startGame();
             }
         });
         infoButton.setOnMouseClicked(event -> parentScene.fadeTransitionTo(new GameInfoScene(new StackPane(), parentScene.getParentStage(), parentScene, entry), parentScene.getParentStage()));
