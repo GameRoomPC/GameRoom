@@ -33,7 +33,9 @@ public class GameRoomAlert extends Alert {
         ThemeUtils.applyCurrentTheme(this);
         getDialogPane().setStyle("-fx-font-size: " + Double.toString(settings().getUIScale().getFontSize()) + "px;");
 
-        initOwner(MAIN_SCENE.getParentStage());
+        if(MAIN_SCENE != null) {
+            initOwner(MAIN_SCENE.getParentStage());
+        }
         initModality(Modality.WINDOW_MODAL);
 
         getButtonTypes().forEach(buttonType -> {

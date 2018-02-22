@@ -2,6 +2,7 @@ package com.gameroom.data.io;
 
 import com.gameroom.ui.Main;
 import com.gameroom.ui.dialog.GameRoomAlert;
+import org.sqlite.SQLiteErrorCode;
 
 import java.io.*;
 import java.sql.*;
@@ -22,13 +23,43 @@ public class DataBase {
         super();
     }
 
-    public static void initDB() {
+    public static ErrorReport initDB() {
+        DataBase.ErrorReport report;
+
         try {
             connect();
-            INSTANCE.readAndExecSQLInit();
+
+            /********* INIT DATABASE **********/
+            LOGGER.info("Initializing database...");
+            int code = INSTANCE.executeSQLFile("init.sql");
+
+            report = new ErrorReport(code, "Error initializing database");
+            if (report.failed) {
+                return report;
+            }
+
+            /********* UPDATE DATABASE **********/
+            //update 1.1.0.1
+            LOGGER.info("Applying update 1.1.0.1 to DB...");
+            code = INSTANCE.executeSQLFile("update_1.1.0.1.sql");
+
+            report = new ErrorReport(code, "Error applying update 1.1.0.1 to DB");
+            if (report.failed) {
+                return report;
+            }
+
         } catch (IOException e) {
-            GameRoomAlert.error(Main.getString("error_initializing_db")+" : " + e.getMessage());
+            LOGGER.error("Error reading SQL File");
+            LOGGER.error(e);
+
+            report = new ErrorReport(1,"File error access");
+            report.failed = true;
+            report.errorDetail = e.getMessage();
+            return report;
         }
+
+
+        return report;
     }
 
     private static String getDBUrl() {
@@ -58,16 +89,16 @@ public class DataBase {
         }
     }
 
-    private void readAndExecSQLInit() throws IOException {
+    private int executeSQLFile(String filename) throws IOException {
         String url = getDBUrl();
 
         ClassLoader classLoader = getClass().getClassLoader();
-        InputStream stream = classLoader.getResourceAsStream("sql/init.sql");
+        InputStream stream = classLoader.getResourceAsStream("sql/" + filename);
         BufferedReader r = new BufferedReader(new InputStreamReader(stream));
 
         List<String> lines = new ArrayList<>();
         String line;
-        while ((line=r.readLine()) != null) {
+        while ((line = r.readLine()) != null) {
             lines.add(line);
         }
         r.close();
@@ -91,7 +122,10 @@ public class DataBase {
 
         } catch (SQLException e) {
             LOGGER.error(e);
+
+            return e.getErrorCode();
         }
+        return 0;
     }
 
     public static void execute(String sql) {
@@ -110,7 +144,7 @@ public class DataBase {
     }
 
     public static Connection getUserConnection() throws SQLException {
-        if(USER_CONNECTION == null){
+        if (USER_CONNECTION == null) {
             connect();
         }
         return USER_CONNECTION;
@@ -143,5 +177,39 @@ public class DataBase {
 
     public static void rollback() throws SQLException {
         USER_CONNECTION.rollback();
+    }
+
+    public static class ErrorReport {
+        //flag indicating whether the access to DB failed
+        private boolean failed = false;
+
+        //put here what was attempted (init DB, updating DB)
+        private String errorTitle;
+
+        //put here what happened (access error, DB locked...)
+        private String errorDetail;
+
+        public ErrorReport(int errorCode, String errorTitle) {
+            this.errorTitle = errorTitle;
+
+            switch (errorCode) {
+                case 0:
+                    break;
+                default:
+                    LOGGER.error("SQL Error Code: " + errorCode);
+                    LOGGER.error("SQL Error Message: " + SQLiteErrorCode.getErrorCode(errorCode).message);
+
+                    failed = true;
+                    errorDetail = SQLiteErrorCode.getErrorCode(errorCode).message;
+            }
+        }
+
+        public String toString() {
+            return errorTitle + ": " + errorDetail;
+        }
+
+        public boolean hasFailed() {
+            return failed;
+        }
     }
 }

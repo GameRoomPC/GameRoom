@@ -7,6 +7,7 @@ import com.gameroom.data.io.DataBase;
 import com.gameroom.data.io.FileUtils;
 import com.gameroom.data.migration.OldGameEntry;
 import com.gameroom.data.migration.OldSettings;
+import com.gameroom.ui.dialog.GameRoomAlert;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -141,7 +142,14 @@ public class Launcher extends Application {
         setSplashscreenText("Checking files...");
         initFiles();
         setSplashscreenText("Initializing DB connection...");
-        DataBase.initDB();
+        DataBase.ErrorReport report = DataBase.initDB();
+        if (report.hasFailed()){
+            //TODO display localized error message
+            GameRoomAlert.error(report.toString());
+            LOGGER.info("Closing GameRoom because of an SQL Error.");
+            System.exit(0);
+            return;
+        }
         setSplashscreenText("Migrating settings...");
         OldSettings.transferOldSettings();
         setSplashscreenText("Loading settings...");
