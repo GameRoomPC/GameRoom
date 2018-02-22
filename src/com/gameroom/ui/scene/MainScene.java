@@ -5,6 +5,22 @@ import com.gameroom.data.game.entry.GameEntry;
 import com.gameroom.data.game.entry.GameEntryUtils;
 import com.gameroom.data.game.scanner.OnScannerResultHandler;
 import com.gameroom.data.http.images.ImageUtils;
+import com.gameroom.system.application.SupportService;
+import com.gameroom.system.application.settings.PredefinedSetting;
+import com.gameroom.ui.Main;
+import com.gameroom.ui.UIValues;
+import com.gameroom.ui.control.button.gamebutton.GameButton;
+import com.gameroom.ui.control.drawer.DrawerMenu;
+import com.gameroom.ui.control.drawer.GroupType;
+import com.gameroom.ui.control.drawer.SortType;
+import com.gameroom.ui.control.specific.FloatingSearchBar;
+import com.gameroom.ui.dialog.GameRoomAlert;
+import com.gameroom.ui.dialog.GamesFoldersDialog;
+import com.gameroom.ui.dialog.selector.GameScannerSelector;
+import com.gameroom.ui.pane.gamestilepane.*;
+import com.gameroom.ui.scene.exitaction.ClassicExitAction;
+import com.gameroom.ui.scene.exitaction.ExitAction;
+import com.gameroom.ui.scene.exitaction.MultiAddExitAction;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -28,22 +44,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import com.gameroom.system.application.SupportService;
-import com.gameroom.system.application.settings.PredefinedSetting;
-import com.gameroom.ui.Main;
-import com.gameroom.ui.UIValues;
-import com.gameroom.ui.control.button.gamebutton.GameButton;
-import com.gameroom.ui.control.drawer.DrawerMenu;
-import com.gameroom.ui.control.drawer.GroupType;
-import com.gameroom.ui.control.drawer.SortType;
-import com.gameroom.ui.control.specific.FloatingSearchBar;
-import com.gameroom.ui.dialog.GamesFoldersDialog;
-import com.gameroom.ui.dialog.GameRoomAlert;
-import com.gameroom.ui.dialog.selector.GameScannerSelector;
-import com.gameroom.ui.pane.gamestilepane.*;
-import com.gameroom.ui.scene.exitaction.ClassicExitAction;
-import com.gameroom.ui.scene.exitaction.ExitAction;
-import com.gameroom.ui.scene.exitaction.MultiAddExitAction;
 
 import java.awt.*;
 import java.io.File;
@@ -378,7 +378,7 @@ public class MainScene extends BaseScene {
 
             //will also sort by sortType so no double call here.
             groupBy(groupType);
-            
+
             /*ObjectBinding<Bounds> visibleBounds = Bindings.createObjectBinding(() -> {
                 Bounds viewportBounds = scrollPane.getViewportBounds();
                 Bounds viewportBoundsInScene = scrollPane.localToScene(viewportBounds);
@@ -397,11 +397,12 @@ public class MainScene extends BaseScene {
                 if(c.next()){
                     c.getAddedSubList().forEach(o -> {
                         o.clearCover();
-                        Main.LOGGER.debug("clearedCover: "+o.getEntryOld().getName());
+                        o.setCache(false);
+                        Main.LOGGER.debug("clearedCover: "+o.getEntry().getName());
                     });
                     c.getRemoved().forEach(o -> {
                         o.showCover();
-                        Main.LOGGER.debug("showedCover: "+o.getEntryOld().getName());
+                        Main.LOGGER.debug("showedCover: "+o.getEntry().getName());
                     });
                     System.out.println();
                 }
@@ -794,7 +795,7 @@ public class MainScene extends BaseScene {
         groupRowList.clear();
 
         this.groupType = groupType;
-        settings().setSettingValue(PredefinedSetting.GROUP_BY,groupType.getId());
+        settings().setSettingValue(PredefinedSetting.GROUP_BY, groupType.getId());
 
         switch (groupType) {
             case DEFAULT:
@@ -822,7 +823,7 @@ public class MainScene extends BaseScene {
     public void sortBy(SortType sortType) {
         showTilesPaneAgainAfterCancelSearch = false;
         this.sortType = sortType;
-        settings().setSettingValue(PredefinedSetting.SORT_BY,sortType.getId());
+        settings().setSettingValue(PredefinedSetting.SORT_BY, sortType.getId());
 
         switch (sortType) {
             case NAME:

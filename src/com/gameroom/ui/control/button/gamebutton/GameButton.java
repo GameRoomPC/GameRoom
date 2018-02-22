@@ -2,6 +2,15 @@ package com.gameroom.ui.control.button.gamebutton;
 
 import com.gameroom.data.game.entry.GameEntry;
 import com.gameroom.data.http.images.ImageUtils;
+import com.gameroom.system.application.settings.PredefinedSetting;
+import com.gameroom.ui.GeneralToast;
+import com.gameroom.ui.Main;
+import com.gameroom.ui.control.button.ImageButton;
+import com.gameroom.ui.dialog.GameRoomAlert;
+import com.gameroom.ui.dialog.selector.AppSelectorDialog;
+import com.gameroom.ui.scene.BaseScene;
+import com.gameroom.ui.scene.GameInfoScene;
+import com.gameroom.ui.scene.MainScene;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -24,24 +33,15 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
-import com.gameroom.system.application.settings.PredefinedSetting;
-import com.gameroom.ui.GeneralToast;
-import com.gameroom.ui.Main;
-import com.gameroom.ui.control.button.ImageButton;
-import com.gameroom.ui.dialog.GameRoomAlert;
-import com.gameroom.ui.dialog.selector.AppSelectorDialog;
-import com.gameroom.ui.scene.BaseScene;
-import com.gameroom.ui.scene.GameInfoScene;
-import com.gameroom.ui.scene.MainScene;
 
 import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Optional;
 
-import static javafx.scene.input.MouseEvent.*;
 import static com.gameroom.system.application.settings.GeneralSettings.settings;
 import static com.gameroom.ui.Main.*;
+import static javafx.scene.input.MouseEvent.*;
 
 /**
  * Created by LM on 12/07/2016.
@@ -325,7 +325,7 @@ public abstract class GameButton extends BorderPane {
         ImageUtils.getExecutorService().submit(this::showCover);
 
         playButton.setOnMouseClicked(mc -> {
-            if(System.currentTimeMillis() - lastGameStart > SECOND_START_DELAY ){
+            if (System.currentTimeMillis() - lastGameStart > SECOND_START_DELAY) {
                 lastGameStart = System.currentTimeMillis();
                 playButton.setMouseTransparent(true);
                 Main.getExecutorService().submit(() -> {
