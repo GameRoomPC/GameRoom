@@ -8,6 +8,7 @@ import com.gameroom.ui.Main;
 import com.gameroom.ui.control.button.gamebutton.GameButton;
 import com.gameroom.ui.dialog.GameRoomDialog;
 import com.gameroom.ui.pane.SelectListPane;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ButtonBar;
@@ -74,6 +75,9 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
     private List<MSStoreScraper.MSStoreEntry> loadMSStoreEntriesToDisplay() {
         List<MSStoreScraper.MSStoreEntry> msStoreEntries = MSStoreScraper.getApps();
         msStoreEntries.removeIf(msStoreEntry -> {
+            if(msStoreEntry == null){
+                return true;
+            }
             for (GameEntry entry : GameEntryUtils.ENTRIES_LIST) {
                 if (entry.getPath().equals(msStoreEntry.getStartCommand())) {
                     return true;
@@ -107,7 +111,7 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
         private final static int IMAGE_HEIGHT = 45;
         private StackPane coverPane = new StackPane();
 
-        public GameFolderItem(Object value, SelectListPane parentList) {
+        public GameFolderItem(@NonNull Object value, SelectListPane parentList) {
             super(value, parentList);
             entry = ((MSStoreScraper.MSStoreEntry) value);
             addContent();
@@ -120,10 +124,12 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
             iconView.setFitHeight(64 * scale);
             iconView.setFitWidth(64 * scale);
 
-            File iconPath = new File(entry.getIconPath());
-            if (iconPath.exists()) {
-                ImageUtils.transitionToCover(iconPath, 64, 64, iconView);
-                iconView.setFitHeight(64 * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO);
+            if(entry.getIconPath() != null) {
+                File iconPath = new File(entry.getIconPath());
+                if (iconPath.exists()) {
+                    ImageUtils.transitionToCover(iconPath, 64, 64, iconView);
+                    iconView.setFitHeight(64 * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO);
+                }
             }
 
             coverPane.getChildren().add(iconView);
@@ -132,7 +138,7 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
             add(coverPane, columnCount++, 0);
 
             Label titleLabel = new Label(entry.getName());
-            titleLabel.setTooltip(new Tooltip(iconPath.getAbsolutePath()));
+            titleLabel.setTooltip(new Tooltip(entry.getName()));
 
             GridPane.setMargin(titleLabel, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
             add(titleLabel, columnCount++, 0);

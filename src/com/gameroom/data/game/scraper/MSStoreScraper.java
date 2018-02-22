@@ -86,7 +86,10 @@ public class MSStoreScraper {
      * @param packageFamilyName the PackageFamilyName of the app to test
      * @return true if it is excluded, false otherwise
      */
-    private static boolean isPackageFamilyNameExcluded(@NonNull String packageFamilyName) {
+    private static boolean isPackageFamilyNameExcluded(String packageFamilyName) {
+        if(packageFamilyName == null ||packageFamilyName.isEmpty()){
+            return true;
+        }
         boolean toFilter = false;
         for (int i = 0; i < EXCLUDED_PACKAGE_PREFIX.length && !toFilter; i++) {
             toFilter = packageFamilyName.startsWith(EXCLUDED_PACKAGE_PREFIX[i]);
@@ -100,7 +103,10 @@ public class MSStoreScraper {
      * @param displayName the DisplayName of the app to test
      * @return true if it is excluded, false otherwise
      */
-    private static boolean isDisplayNameExcluded(@NonNull String displayName) {
+    private static boolean isDisplayNameExcluded(String displayName) {
+        if(displayName == null ||displayName.isEmpty()){
+            return true;
+        }
         boolean toFilter = false;
         for (int i = 0; i < EXCLUDED_DISPLAY_NAME_PREFIX.length && !toFilter; i++) {
             toFilter = displayName.startsWith(EXCLUDED_DISPLAY_NAME_PREFIX[i]);

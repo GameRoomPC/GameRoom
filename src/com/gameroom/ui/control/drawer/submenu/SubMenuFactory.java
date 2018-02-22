@@ -92,10 +92,13 @@ public final class SubMenuFactory {
                             gameEntry.setToAdd(true);
                             gameEntry.setPath(msStoreEntry.getStartCommand());
                             gameEntry.setPlatform(Platform.MICROSOFT_STORE_ID);
-                            try {
-                                gameEntry.updateImage(0, new File(msStoreEntry.getIconPath()));
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                            gameEntry.saveEntry();
+                            if(msStoreEntry.getIconPath() != null) {
+                                try {
+                                    gameEntry.updateImage(0, new File(msStoreEntry.getIconPath()));
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
 
                             entries.add(gameEntry);
