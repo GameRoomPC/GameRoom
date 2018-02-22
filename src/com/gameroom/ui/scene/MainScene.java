@@ -88,6 +88,7 @@ public class MainScene extends BaseScene {
     private boolean changeBackgroundNextTime = false;
 
     private SortType sortType = SortType.NAME;
+    private GroupType groupType = GroupType.DEFAULT;
 
     public MainScene(Stage parentStage) {
         super(new StackPane(), parentStage, parentStage.getWidth(), parentStage.getHeight());
@@ -779,17 +780,14 @@ public class MainScene extends BaseScene {
 
     public void groupBy(GroupType groupType) {
         showTilesPaneAgainAfterCancelSearch = false;
-
-        tilePane.setForcedHidden(true);
-        lastPlayedTilePane.setForcedHidden(true);
-        recentlyAddedTilePane.setForcedHidden(true);
-        toAddTilePane.setForcedHidden(true);
-
         tilesPaneWrapper.getChildren().removeAll(groupRowList);
+        tilePane.setForcedHidden(true);
         groupRowList.clear();
 
+        this.groupType = groupType;
+
         switch (groupType) {
-            case ALL:
+            case DEFAULT:
                 tilePane.setForcedHidden(false);
                 break;
             case THEME:
@@ -806,28 +804,17 @@ public class MainScene extends BaseScene {
                 break;
         }
         tilesPaneWrapper.getChildren().addAll(groupRowList);
-
         scrollPane.setVvalue(scrollPane.getVmin());
+
+        sortBy(sortType);
     }
 
     public void sortBy(SortType sortType) {
         showTilesPaneAgainAfterCancelSearch = false;
-
-
-        lastPlayedTilePane.setForcedHidden(true);
-        recentlyAddedTilePane.setForcedHidden(true);
-        toAddTilePane.setForcedHidden(true);
-
-        tilesPaneWrapper.getChildren().removeAll(groupRowList);
-        groupRowList.clear();
-
         this.sortType = sortType;
 
         switch (sortType) {
             case NAME:
-                lastPlayedTilePane.setForcedHidden(false);
-                recentlyAddedTilePane.setForcedHidden(false);
-                toAddTilePane.setForcedHidden(false);
                 tilePane.sortByName();
                 groupRowList.forEach(CoverTilePane::sortByName);
                 break;
@@ -845,8 +832,6 @@ public class MainScene extends BaseScene {
                 break;
 
         }
-
-        tilePane.setForcedHidden(false);
         scrollPane.setVvalue(scrollPane.getVmin());
     }
 

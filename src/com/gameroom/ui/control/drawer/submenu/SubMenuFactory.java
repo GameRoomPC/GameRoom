@@ -128,14 +128,6 @@ public final class SubMenuFactory {
 
     public static SubMenu createGroupBySubMenu(MainScene mainScene, DrawerMenu drawerMenu) {
         SubMenu groupMenu = new SubMenu("groupBy", mainScene, drawerMenu);
-        TextItem defaultItem = new TextItem("default");
-        defaultItem.setOnAction(event -> {
-            mainScene.home();
-            groupMenu.unselectAllItems();
-            defaultItem.setSelected(true);
-        });
-        defaultItem.setSelected(true);
-        groupMenu.addItem(defaultItem);
 
         for (GroupType g : GroupType.values()) {
             TextItem item = new TextItem(g.getId());
@@ -153,14 +145,6 @@ public final class SubMenuFactory {
     public static SubMenu createSortBySubMenu(MainScene mainScene, DrawerMenu drawerMenu) {
         SubMenu sortMenu = new SubMenu("sortBy", mainScene, drawerMenu);
 
-        TextItem defaultItem = new TextItem("default");
-        defaultItem.setOnAction(event -> {
-            mainScene.home();
-            sortMenu.unselectAllItems();
-            defaultItem.setSelected(true);
-        });
-        defaultItem.setSelected(true);
-        sortMenu.addItem(defaultItem);
         for (SortType s : SortType.values()) {
             TextItem item = new TextItem(s.getId());
             item.setOnAction(event -> {

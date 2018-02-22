@@ -69,6 +69,7 @@ public abstract class GamesTilePane extends BorderPane {
 
     private boolean displayGamesCount = true;
     HBox topBox;
+    private boolean forceHidden;
 
 
     public boolean isQuickSearchEnabled() {
@@ -661,5 +662,9 @@ public abstract class GamesTilePane extends BorderPane {
 
     public void setDisplayGamesCount(boolean displayGamesCount) {
         this.displayGamesCount = displayGamesCount;
+    }
+
+    public boolean isForceHidden() {
+        return forceHidden;
     }
 }

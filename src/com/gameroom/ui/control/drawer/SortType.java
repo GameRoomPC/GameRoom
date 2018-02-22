@@ -24,4 +24,13 @@ public enum SortType {
     public String getId() {
         return id;
     }
+
+    public static SortType fromId(String id){
+        for(SortType s : SortType.values()){
+            if (s.id.equals(id)){
+                return s;
+            }
+        }
+        return NAME;
+    }
 }

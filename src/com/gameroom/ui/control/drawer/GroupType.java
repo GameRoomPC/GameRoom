@@ -6,7 +6,7 @@ import com.gameroom.ui.Main;
  * Created by LM on 09/02/2017.
  */
 public enum GroupType {
-    ALL("groupBy_all"),
+    DEFAULT("groupBy_default"),
     THEME("groupBy_theme"),
     GENRE("groupBy_genre"),
     SERIE("groupBy_serie"),
@@ -24,5 +24,14 @@ public enum GroupType {
 
     public String getId() {
         return id;
+    }
+
+    public static GroupType fromId(String id){
+        for(GroupType s : GroupType.values()){
+            if (s.id.equals(id)){
+                return s;
+            }
+        }
+        return DEFAULT;
     }
 }
