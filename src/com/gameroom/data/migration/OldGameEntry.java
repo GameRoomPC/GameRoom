@@ -218,7 +218,10 @@ public class OldGameEntry {
         statement.setBoolean(17, false);
         statement.setBoolean(18, toAdd);
         statement.setBoolean(19, ignored);
-        statement.setBoolean(19, false);
+        statement.setBoolean(20, false);
+        statement.setString(21, "");
+        statement.setString(22, "");
+
         statement.execute();
         statement.close();
         //connection.commit();

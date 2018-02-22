@@ -281,6 +281,10 @@ public class GameEditScene extends BaseScene {
                 setLineInvalid("game_name");
             }
         });
+
+        /**************************SORTING NAME*********************************************/
+        createLineForProperty("game_sorting_name", entry.getSortingName(), (observable, oldValue, newValue) -> entry.setSortingName(newValue));
+
         /**************************SERIE*********************************************/
 
         // create the com.gameroom.data to show in the CheckComboBox

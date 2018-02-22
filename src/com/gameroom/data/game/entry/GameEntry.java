@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.image.Image;
 import com.gameroom.system.application.GameStarter;
 import com.gameroom.ui.Main;
+import org.apache.commons.lang.StringEscapeUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,10 +14,7 @@ import java.nio.file.StandardCopyOption;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.gameroom.data.io.FileUtils.getExtension;
 
@@ -43,6 +41,10 @@ public class GameEntry {
     private String name = "";
     private LocalDateTime releaseDate;
     private String description = "";
+
+    private String sorting_name = "";
+    private String[] alternative_names = new String[0];
+
 
     private Serie serie = Serie.NONE;
     private ArrayList<Company> developers = new ArrayList<>();
@@ -105,7 +107,9 @@ public class GameEntry {
             "waiting_scrap",
             "toAdd",
             "ignored",
-            "runAsAdmin"
+            "runAsAdmin",
+            "sorting_name",
+            "alternative_names"
     };
 
     public GameEntry(String name) {
@@ -175,9 +179,16 @@ public class GameEntry {
         statement.setBoolean(18, toAdd);
         statement.setBoolean(19, ignored);
         statement.setBoolean(20, runAsAdmin);
+        statement.setString(21, sorting_name);
+
+        StringJoiner joiner = new StringJoiner(",");
+        for (int i = 0; i < alternative_names.length; i++) {
+            joiner.add(StringEscapeUtils.escapeCsv(alternative_names[i]));
+        }
+        statement.setString(22, joiner.toString());
 
         if (inDb) {
-            statement.setInt(21, id);
+            statement.setInt(23, id);
         }
 
         statement.execute();
@@ -364,6 +375,50 @@ public class GameEntry {
             if (savedLocally && !deleted) {
                 PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set description = ? where id = ?");
                 statement.setString(1, description);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getSortingName() {
+        return sorting_name;
+    }
+
+    public void setSortingName(String sorting_name) {
+        this.sorting_name = sorting_name;
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set sorting_name = ? where id = ?");
+                statement.setString(1, sorting_name);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String[] getAlternativeNames() {
+        return alternative_names;
+    }
+
+    public void setAlternativeNames(String[] alternative_names) {
+        this.alternative_names = alternative_names;
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set alternative_names = ? where id = ?");
+                StringJoiner joiner = new StringJoiner(",");
+                for (int i = 0; i < alternative_names.length; i++) {
+                    joiner.add(StringEscapeUtils.escapeCsv(alternative_names[i]));
+                }
+                statement.setString(1, joiner.toString());
                 statement.setInt(2, id);
                 statement.execute();
 
@@ -660,7 +715,7 @@ public class GameEntry {
     public void setPlatform(Platform platform) {
         if (platform == null) {
             this.platform = Platform.PC;
-        }else{
+        } else {
             this.platform = platform;
 
             if (platform.getId() == Platform.STEAM_ID || platform.getId() == Platform.STEAM_ONLINE_ID) {
@@ -979,6 +1034,16 @@ public class GameEntry {
         setToAdd(set.getBoolean("toAdd"));
         setIgnored(set.getBoolean("ignored"));
         setRunAsAdmin(set.getBoolean("runAsAdmin"));
+        setSortingName(set.getString("sorting_name"));
+
+        String alternativeNamesCSV = set.getString("alternative_names");
+        if (alternativeNamesCSV != null) {
+            String[] alternativeNames = alternativeNamesCSV.split(",");
+            for (int i = 0; i < alternativeNames.length; i++) {
+                alternativeNames[i] = StringEscapeUtils.unescapeCsv(alternativeNames[i]);
+            }
+            setAlternativeNames(alternativeNames);
+        }
 
         //LOAD GENRES FROM DB
         try {
@@ -1325,10 +1390,10 @@ public class GameEntry {
             //detect file extension
             File localFile = new File(path + ".png");
 
-            if(!localFile.exists()){
+            if (!localFile.exists()) {
                 localFile = new File(path + ".bmp");
             }
-            if(!localFile.exists()){
+            if (!localFile.exists()) {
                 localFile = new File(path + ".jpg");
             }
 

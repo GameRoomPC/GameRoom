@@ -322,13 +322,19 @@ public abstract class GamesTilePane extends BorderPane {
     static ObservableList<Node> sortByName(ObservableList<Node> nodes) {
         SORT_MODE = SORT_MODE_NAME;
 
-        nodes.sort(new Comparator<Node>() {
-            @Override
-            public int compare(Node o1, Node o2) {
-                String name1 = ((GameButton) o1).getEntry().getName();
-                String name2 = ((GameButton) o2).getEntry().getName();
-                return name1.compareToIgnoreCase(name2);
+        nodes.sort((o1, o2) -> {
+            String sortingName1 =  ((GameButton) o1).getEntry().getSortingName();
+            String sortingName2 =  ((GameButton) o2).getEntry().getSortingName();
+
+            if (sortingName1 == null || sortingName1.isEmpty()){
+                sortingName1 = ((GameButton) o1).getEntry().getName();
             }
+
+            if (sortingName2 == null || sortingName2.isEmpty()){
+                sortingName2 = ((GameButton) o2).getEntry().getName();
+            }
+
+            return sortingName1.compareToIgnoreCase(sortingName2);
         });
         return nodes;
     }

@@ -87,6 +87,8 @@ public class MainScene extends BaseScene {
 
     private boolean changeBackgroundNextTime = false;
 
+    private SortType sortType = SortType.NAME;
+
     public MainScene(Stage parentStage) {
         super(new StackPane(), parentStage, parentStage.getWidth(), parentStage.getHeight());
         setCursor(Cursor.DEFAULT);
@@ -562,6 +564,8 @@ public class MainScene extends BaseScene {
         GameEntryUtils.updateGame(entry);
         refreshTrayMenu();
 
+        sortBy(sortType);
+
         checkDisplayEmptyMessagePane();
     }
 
@@ -817,8 +821,13 @@ public class MainScene extends BaseScene {
         tilesPaneWrapper.getChildren().removeAll(groupRowList);
         groupRowList.clear();
 
+        this.sortType = sortType;
+
         switch (sortType) {
             case NAME:
+                lastPlayedTilePane.setForcedHidden(false);
+                recentlyAddedTilePane.setForcedHidden(false);
+                toAddTilePane.setForcedHidden(false);
                 tilePane.sortByName();
                 groupRowList.forEach(CoverTilePane::sortByName);
                 break;
