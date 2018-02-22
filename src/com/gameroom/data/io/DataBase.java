@@ -19,31 +19,45 @@ public class DataBase {
     private final static DataBase INSTANCE = new DataBase();
     private static Connection USER_CONNECTION;
 
+    //used to check whether some update script should be applied
+    private int dbVersion = 0;
+
     private DataBase() {
         super();
     }
 
+    /**
+     * Initializes the connection to the Database (see {@link #connect()} and then apply updates SQL scripts if necessary
+     * @return an {@link ErrorReport}  that indicates whether there was an error during the SQL operations and info about it
+     */
     public static ErrorReport initDB() {
         DataBase.ErrorReport report;
 
         try {
-            connect();
+            int code = connect();
+            report = new ErrorReport(code, "Error connecting to database");
+            if (report.failed) {
+                return report;
+            }
 
-            /********* INIT DATABASE **********/
+            /**********************************/
+            /*         INIT DATABASE          */
+            /**********************************/
             LOGGER.info("Initializing database...");
-            int code = INSTANCE.executeSQLFile("init.sql");
+            code = INSTANCE.executeSQLFile("init.sql");
 
             report = new ErrorReport(code, "Error initializing database");
             if (report.failed) {
                 return report;
             }
 
-            /********* UPDATE DATABASE **********/
-            //update 1.1.0.1
-            LOGGER.info("Applying update 1.1.0.1 to DB...");
-            code = INSTANCE.executeSQLFile("update_1.1.0.1.sql");
+            /**********************************/
+            /*        UPDATE DATABASE         */
+            /**********************************/
 
-            report = new ErrorReport(code, "Error applying update 1.1.0.1 to DB");
+            /***** UPDATE 1.1.0.1 *****/
+            UpdateProcedure update1101 = new UpdateProcedure(1101);
+            report = update1101.applyDBUpdate();
             if (report.failed) {
                 return report;
             }
@@ -52,7 +66,7 @@ public class DataBase {
             LOGGER.error("Error reading SQL File");
             LOGGER.error(e);
 
-            report = new ErrorReport(1,"File error access");
+            report = new ErrorReport(1, "File access error");
             report.failed = true;
             report.errorDetail = e.getMessage();
             return report;
@@ -67,33 +81,50 @@ public class DataBase {
         return "jdbc:sqlite:" + dbFile.getAbsolutePath();
     }
 
-    private static void connect() {
+    private static int connect() {
         String url = getDBUrl();
 
+        //TODO learn about transactions and isolation levels
+        //it should be possible t oestablish an other connection only for Settings, that would auto-commit as we don't want
+        //for example when resizing a window in EditScene have to either commit changes to a game or take the risk to discard
+        //the window's size if user cancel changes
         try {
-            //TODO learn about transactions and isolation levels
-            //it should be possible t oestablish an other connection only for Settings, that would auto-commit as we don't want
-            //for example when resizing a window in EditScene have to either commit changes to a game or take the risk to discard
-            //the window's size if user cancel changes
             USER_CONNECTION = DriverManager.getConnection(url);
             if (USER_CONNECTION != null) {
                 //USER_CONNECTION.setAutoCommit(false);
                 DatabaseMetaData meta = USER_CONNECTION.getMetaData();
-                System.out.println("The driver name is " + meta.getDriverName());
-                System.out.println("DB path is \"" + url + "\"");
+                LOGGER.info("The driver name is " + meta.getDriverName());
+                LOGGER.info("DB path is \"" + url + "\"");
                 //USER_CONNECTION.prepareStatement("PRAGMA foreign_keys = ON");
-            }
 
+                try (Statement statement = USER_CONNECTION.createStatement()) {
+                    try (ResultSet rs = statement.executeQuery("PRAGMA user_version;")) {
+                        INSTANCE.dbVersion = rs.getInt(1);
+                        LOGGER.info("DB Version: " + INSTANCE.dbVersion);
+                    }
+                }
+            }
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            LOGGER.error(e);
+            return e.getErrorCode();
         }
+        return 0;
     }
 
+    /**
+     * Execute SQL commands stored in a specified file, which is used as an update mechanism
+     * @param filename name of the internal file to be applied
+     * @return 0 if it went well, or the SQL error code
+     * @throws IOException in case there was an issue accessing to the file
+     */
     private int executeSQLFile(String filename) throws IOException {
-        String url = getDBUrl();
-
         ClassLoader classLoader = getClass().getClassLoader();
         InputStream stream = classLoader.getResourceAsStream("sql/" + filename);
+
+        if (stream == null) {
+            throw new IOException("File \"" + filename + "\" not found. Please check JAR integrity");
+        }
+
         BufferedReader r = new BufferedReader(new InputStreamReader(stream));
 
         List<String> lines = new ArrayList<>();
@@ -106,23 +137,19 @@ public class DataBase {
 
         String sql = "";
 
-        try (Connection conn = DriverManager.getConnection(url)) {
+        try {
 
             for (String s : lines) {
                 sql += s + "\n";
                 if (s.contains(";")) {
-                    Statement stmt = conn.createStatement();
+                    Statement stmt = USER_CONNECTION.createStatement();
                     stmt.execute(sql);
                     stmt.close();
                     sql = "";
                 }
             }
-
-            conn.close();
-
         } catch (SQLException e) {
             LOGGER.error(e);
-
             return e.getErrorCode();
         }
         return 0;
@@ -179,6 +206,80 @@ public class DataBase {
         USER_CONNECTION.rollback();
     }
 
+    /**
+     * Helper class used to represent an update to be applied to the database.
+     * SQL commands to execute should be stored in a .sql file in the sql folder, following pattern "update_<version>.sql"
+     */
+    private static class UpdateProcedure {
+        public int version;
+        private String fileName;
+
+        /**
+         * Creates an {@link UpdateProcedure} instance determined by the version passed as an argument
+         * @param version version of the update in the int format (e.g. update 1.1.0.0 is 1100)
+         */
+        UpdateProcedure(int version) {
+            this.version = version;
+            fileName = "update_" + version + ".sql";
+        }
+
+        /**
+         * Applies the update file assoc
+         * @return an {@link ErrorReport} indicated whether the process has failed and text messages associated to failures
+         */
+        private ErrorReport applyDBUpdate() {
+            ErrorReport report = new ErrorReport(0, "Update " + version + " applied");
+
+            //checks if we should apply the DB update
+            if (INSTANCE.dbVersion < version) {
+                LOGGER.info("Applying update " + version + " to DB...");
+                int code;
+                try {
+                    //execute the SQL file update
+                    code = INSTANCE.executeSQLFile(fileName);
+                    report = new ErrorReport(code, "Error applying update " + version + " to DB");
+                    if (report.failed) {
+                        return report;
+                    }
+                    report = updateDBVersion();
+                    if (report.failed) {
+                        return report;
+                    }
+
+                } catch (IOException e) {
+                    LOGGER.error("Error reading SQL File");
+                    LOGGER.error(e);
+
+                    report = new ErrorReport(1, "Update " + version + ", file access error");
+                    report.failed = true;
+                    report.errorDetail = e.getMessage();
+                    return report;
+                }
+            }
+
+            return report;
+        }
+
+        /**
+         * Updates the PRAGMA user_version attribute to {@link #version}
+         * @return an {@link ErrorReport} indicated whether the process has failed and text messages associated to failures
+         */
+        private ErrorReport updateDBVersion() {
+            try {
+                try (Statement statement = USER_CONNECTION.createStatement()) {
+                    statement.executeUpdate("PRAGMA user_version = " + version + ";");
+                }
+            } catch (SQLException e) {
+                LOGGER.error(e);
+                return new ErrorReport(e.getErrorCode(), "Error updating DB user_version to " + version);
+            }
+            return new ErrorReport(0, "DB user_version updated to " + version);
+        }
+    }
+
+    /**
+     * An object used to report if there was issues while executing SQL  statements.
+     */
     public static class ErrorReport {
         //flag indicating whether the access to DB failed
         private boolean failed = false;
@@ -189,7 +290,7 @@ public class DataBase {
         //put here what happened (access error, DB locked...)
         private String errorDetail;
 
-        public ErrorReport(int errorCode, String errorTitle) {
+        ErrorReport(int errorCode, String errorTitle) {
             this.errorTitle = errorTitle;
 
             switch (errorCode) {

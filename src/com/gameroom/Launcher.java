@@ -144,7 +144,6 @@ public class Launcher extends Application {
         setSplashscreenText("Initializing DB connection...");
         DataBase.ErrorReport report = DataBase.initDB();
         if (report.hasFailed()){
-            //TODO display localized error message
             GameRoomAlert.error(report.toString());
             LOGGER.info("Closing GameRoom because of an SQL Error.");
             System.exit(0);
