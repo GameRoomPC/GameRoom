@@ -4,6 +4,8 @@ import com.gameroom.data.game.scanner.ScanPeriod;
 import com.gameroom.data.game.scanner.ScannerProfile;
 import com.gameroom.data.game.scraper.SteamPreEntry;
 import com.gameroom.data.game.scraper.SteamProfile;
+import com.gameroom.ui.control.drawer.GroupType;
+import com.gameroom.ui.control.drawer.SortType;
 import javafx.beans.property.SimpleBooleanProperty;
 import com.gameroom.system.application.OnLaunchAction;
 import com.gameroom.system.os.PowerMode;
@@ -81,6 +83,8 @@ public enum PredefinedSetting {
     , INSTALL_DATE("installDate", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     , LAST_PING_DATE("lastPingDate", new SettingValue(new Date(),Date.class,CATEGORY_NONE))
     ,ALLOW_COLLECT_SYSTEM_INFO("allowCollectSystemInfo", new SettingValue(true,Boolean.class,CATEGORY_GENERAL))
+    ,GROUP_BY("group_by", new SettingValue(GroupType.DEFAULT.getId(),String.class,CATEGORY_NONE))
+    ,SORT_BY("sort_by", new SettingValue(SortType.NAME.getId(),String.class,CATEGORY_NONE))
     ;
 
 

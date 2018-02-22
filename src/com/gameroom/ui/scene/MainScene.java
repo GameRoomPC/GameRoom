@@ -370,6 +370,15 @@ public class MainScene extends BaseScene {
                     }
                 }
             }
+            String sortById = settings().getString(PredefinedSetting.SORT_BY);
+            String groupById = settings().getString(PredefinedSetting.GROUP_BY);
+
+            sortType = SortType.fromId(sortById);
+            groupType = GroupType.fromId(groupById);
+
+            //will also sort by sortType so no double call here.
+            groupBy(groupType);
+            
             /*ObjectBinding<Bounds> visibleBounds = Bindings.createObjectBinding(() -> {
                 Bounds viewportBounds = scrollPane.getViewportBounds();
                 Bounds viewportBoundsInScene = scrollPane.localToScene(viewportBounds);
@@ -785,6 +794,7 @@ public class MainScene extends BaseScene {
         groupRowList.clear();
 
         this.groupType = groupType;
+        settings().setSettingValue(PredefinedSetting.GROUP_BY,groupType.getId());
 
         switch (groupType) {
             case DEFAULT:
@@ -812,6 +822,7 @@ public class MainScene extends BaseScene {
     public void sortBy(SortType sortType) {
         showTilesPaneAgainAfterCancelSearch = false;
         this.sortType = sortType;
+        settings().setSettingValue(PredefinedSetting.SORT_BY,sortType.getId());
 
         switch (sortType) {
             case NAME:

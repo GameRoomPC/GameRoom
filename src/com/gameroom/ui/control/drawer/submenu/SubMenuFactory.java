@@ -129,6 +129,8 @@ public final class SubMenuFactory {
     public static SubMenu createGroupBySubMenu(MainScene mainScene, DrawerMenu drawerMenu) {
         SubMenu groupMenu = new SubMenu("groupBy", mainScene, drawerMenu);
 
+        GroupType savedGroup = GroupType.fromId(settings().getString(PredefinedSetting.GROUP_BY));
+
         for (GroupType g : GroupType.values()) {
             TextItem item = new TextItem(g.getId());
             item.setOnAction(event -> {
@@ -136,6 +138,7 @@ public final class SubMenuFactory {
                 groupMenu.unselectAllItems();
                 item.setSelected(true);
             });
+            item.setSelected(g.equals(savedGroup));
             groupMenu.addItem(item);
         }
 
@@ -145,6 +148,8 @@ public final class SubMenuFactory {
     public static SubMenu createSortBySubMenu(MainScene mainScene, DrawerMenu drawerMenu) {
         SubMenu sortMenu = new SubMenu("sortBy", mainScene, drawerMenu);
 
+        SortType savedSort = SortType.fromId(settings().getString(PredefinedSetting.SORT_BY));
+
         for (SortType s : SortType.values()) {
             TextItem item = new TextItem(s.getId());
             item.setOnAction(event -> {
@@ -152,6 +157,7 @@ public final class SubMenuFactory {
                 sortMenu.unselectAllItems();
                 item.setSelected(true);
             });
+            item.setSelected(s.equals(savedSort));
             sortMenu.addItem(item);
         }
         return sortMenu;
