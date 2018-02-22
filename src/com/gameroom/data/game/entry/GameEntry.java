@@ -1321,10 +1321,17 @@ public class GameEntry {
             } else {
                 path = getScreenShotPath();
             }
-            //TODO read here which saved pictures corresponds to this pattern
-            path += ".jpg";
 
-            File localFile = new File(path);
+            //detect file extension
+            File localFile = new File(path + ".png");
+
+            if(!localFile.exists()){
+                localFile = new File(path + ".bmp");
+            }
+            if(!localFile.exists()){
+                localFile = new File(path + ".jpg");
+            }
+
             imagesFiles[i] = localFile;
         }
     }
