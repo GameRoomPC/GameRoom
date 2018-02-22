@@ -1,6 +1,7 @@
 package com.gameroom.ui.control.button.gamebutton;
 
 import com.gameroom.data.game.entry.GameEntry;
+import com.gameroom.ui.Main;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
@@ -32,13 +33,13 @@ public class InfoGameButton extends GameButton {
     }
 
     @Override
-    protected int getCoverHeight() {
-        return settings().getWindowHeight() * 2 / 3;
+    protected int getCoverWidth() {
+        return (int) (Main.SCREEN_HEIGHT * 2.0 / (3 * COVER_HEIGHT_WIDTH_RATIO));
     }
 
     @Override
-    protected int getCoverWidth() {
-        return (int) (settings().getWindowHeight() * 2 / (3 * COVER_HEIGHT_WIDTH_RATIO));
+    protected int getCoverHeight() {
+        return (int) (Main.SCREEN_HEIGHT * 2.0 / 3);
     }
 
     @Override

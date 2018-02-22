@@ -232,7 +232,7 @@ public class GameEditScene extends BaseScene {
                         if (!val.getButtonData().isCancelButton()) {
                             GameEntry gameEntry = dialog.getSelectedEntry();
                             if (gameEntry != null) {
-                                onNewEntryData(gameEntry,dialog.updatePlatformOnClose());
+                                onNewEntryData(gameEntry, dialog.updatePlatformOnClose());
                             }
                         }
                     });
@@ -829,8 +829,8 @@ public class GameEditScene extends BaseScene {
 
     private Pane createLeft(Image coverImage) {
         StackPane pane = new StackPane();
-        double coverWidth = settings().getWindowHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO);
-        double coverHeight = settings().getWindowHeight() * 2 / 3;
+        double coverWidth = Main.SCREEN_HEIGHT * 2.0 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO);
+        double coverHeight = Main.SCREEN_HEIGHT * 2.0 / 3;
 
         coverView = new ImageView();
         coverView.setFitWidth(coverWidth);
@@ -1000,7 +1000,7 @@ public class GameEditScene extends BaseScene {
         updateLineProperty("game_description", StringEscapeUtils.unescapeHtml(gameEntry.getDescription()));
         updateLineProperty("genre", gameEntry.getGenres());
         updateLineProperty("theme", gameEntry.getThemes());
-        if(updatePlatform) {
+        if (updatePlatform) {
             updateLineProperty("platform", gameEntry.getPlatform());
         }
         entry.setIgdb_id(gameEntry.getIgdb_id());

@@ -73,7 +73,8 @@ public class Launcher extends Application {
     private static String DATA_PATH;
 
     public static void main(String[] args) throws URISyntaxException {
-        com.sun.javafx.application.PlatformImpl.startup(()->{});
+        com.sun.javafx.application.PlatformImpl.startup(() -> {
+        });
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -326,10 +327,11 @@ public class Launcher extends Application {
     /**
      * Starts a task on the {@link Main#getExecutorService()} instance to monitor and save properties (dimension and coordinates)
      * of the stage to the database.
+     *
      * @param stage stage to monitor properties from
      */
-    private void monitorStageProperties(Stage stage){
-        if (!monitoringStageProps && isStagePropertiesSavable(stage)) {
+    private void monitorStageProperties(Stage stage) {
+        if (!monitoringStageProps) {
             monitoringStageProps = true;
             Main.getExecutorService().submit(() -> {
                 try {
@@ -341,8 +343,9 @@ public class Launcher extends Application {
                     settings().setSettingValue(PredefinedSetting.WINDOW_HEIGHT, (int) stage.getHeight());
                     settings().setSettingValue(PredefinedSetting.WINDOW_X, stage.getX());
                     settings().setSettingValue(PredefinedSetting.WINDOW_Y, stage.getY());
-                    monitoringStageProps = false;
+                    LOGGER.debug("Saved stage properties!");
                 }
+                monitoringStageProps = false;
             });
         }
     }
@@ -355,7 +358,7 @@ public class Launcher extends Application {
      * @param stage the stage displayed which properties are monitored
      * @return true if the program should save the stage's dimensions and location, false otherwise
      */
-    private boolean isStagePropertiesSavable(Stage stage){
+    private boolean isStagePropertiesSavable(Stage stage) {
         boolean stateCorrect = !stage.isIconified() && !stage.isMaximized() && !stage.isFullScreen();
 
         boolean correctCoordinates = stage.getX() >= MIN_WINDOW_X
@@ -367,10 +370,14 @@ public class Launcher extends Application {
                 && stage.getWidth() <= TRUE_SCREEN_WIDTH
                 && stage.getHeight() >= MIN_WINDOW_HEIGHT
                 && stage.getHeight() <= TRUE_SCREEN_HEIGHT;
-        LOGGER.debug("Window event detected, monitoring...");
-        LOGGER.debug("True dims: width="+TRUE_SCREEN_WIDTH+", height="+TRUE_SCREEN_HEIGHT);
-        LOGGER.debug("stateCorrect=" + stateCorrect +", correctCoord="+correctCoordinates+", correctDims="+correctDimension);
-        LOGGER.debug("Coord: x="+stage.getX()+",y="+stage.getY()+"; Dim: width="+stage.getWidth()+", height="+stage.getHeight());
+        LOGGER.debug("Window event: stageIconified=" + stage.isIconified()
+                + ", stageMaximized=" + stage.isMaximized()
+                + ", stageFullScreen=" + stage.isFullScreen()
+                + ", stageWidth=" + stage.getWidth()
+                + ", stageHeight=" + stage.getHeight()
+                + ", stageX=" + stage.getX()
+                + ", stageY=" + stage.getY()
+        );
         return stateCorrect && correctCoordinates && correctDimension;
     }
 
