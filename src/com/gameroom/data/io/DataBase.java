@@ -228,6 +228,7 @@ public class DataBase {
          * @return an {@link ErrorReport} indicated whether the process has failed and text messages associated to failures
          */
         private ErrorReport applyDBUpdate() {
+            //TODO use transactional connection, to commit or rollback if one step of the update fails
             ErrorReport report = new ErrorReport(0, "Update " + version + " applied");
 
             //checks if we should apply the DB update
