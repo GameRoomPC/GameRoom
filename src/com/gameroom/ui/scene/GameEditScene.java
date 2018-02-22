@@ -318,7 +318,7 @@ public class GameEditScene extends BaseScene {
         /**************************PATH*********************************************/
         contentPane.add(createTitleLabel("game_path", false), 0, row_count);
         Node pathNode;
-        if (!entry.isSteamGame()) {
+        if (!entry.isSteamGame() && !entry.isMSStoreGame()) {
             AppPathField gamePathField = new AppPathField(entry.getPath(), getWindow(), PathTextField.FILE_CHOOSER_APPS, Main.getString("select_a_file"), entry.getPlatform().getSupportedExtensions());
             gamePathField.getTextField().setPrefColumnCount(50);
             gamePathField.setId("game_path");
@@ -337,12 +337,11 @@ public class GameEditScene extends BaseScene {
                     return false;
                 }
                 File file = new File(entry.getPath());
-                Pattern pattern = Pattern.compile("^steam:\\/\\/rungameid\\/\\d*$");
-                boolean isSteamGame = pattern.matcher(entry.getPath().trim()).matches();
-                if (!isSteamGame && !file.exists()) {
+
+                if (!entry.isSteamGame() && !entry.isMSStoreGame() && !file.exists()) {
                     message.replace(0, message.length(), Main.getString("invalid_path_not_file"));
                     return false;
-                } else if (!isSteamGame && file.isDirectory()) {
+                } else if (!entry.isSteamGame() && !entry.isMSStoreGame() && file.isDirectory()) {
                     try {
                         AppSelectorDialog selector = new AppSelectorDialog(new File(entry.getPath()), entry.getPlatform().getSupportedExtensions());
                         selector.searchApps();

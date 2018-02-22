@@ -393,6 +393,7 @@ public class Monitor {
     }
 
     private boolean isSteamGame() {
+        //TODO implement same mechanism to monitor playtime for MS Store games
         return getGameEntry().isSteamGame();
     }
 

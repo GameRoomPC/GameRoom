@@ -595,7 +595,7 @@ public class MainScene extends BaseScene {
         checkDisplayEmptyMessagePane();
     }
 
-    private ExitAction batchAddGameEntries(ArrayList<GameEntry> entries, int entriesCount) {
+    public ExitAction batchAddGameEntries(ArrayList<GameEntry> entries, int entriesCount) {
         if (entriesCount < entries.size()) {
             GameEntry currentEntry = entries.get(entriesCount);
             GameEditScene gameEditScene = new GameEditScene(MainScene.this, currentEntry, GameEditScene.MODE_ADD, null);

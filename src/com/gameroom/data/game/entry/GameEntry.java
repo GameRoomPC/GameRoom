@@ -350,18 +350,20 @@ public class GameEntry {
     }
 
     public void setPath(String path) {
-        this.path = path.trim();
-        try {
-            if (savedLocally && !deleted) {
-                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set path = ? where id = ?");
-                statement.setString(1, path);
-                statement.setInt(2, id);
-                statement.execute();
+        if(path != null) {
+            this.path = path.trim();
+            try {
+                if (savedLocally && !deleted) {
+                    PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set path = ? where id = ?");
+                    statement.setString(1, path);
+                    statement.setInt(2, id);
+                    statement.execute();
 
-                statement.close();
+                    statement.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
@@ -477,6 +479,10 @@ public class GameEntry {
 
     public boolean isSteamGame() {
         return platform.getId() == Platform.STEAM_ID;
+    }
+
+    public boolean isMSStoreGame() {
+        return platform.getId() == Platform.MICROSOFT_STORE_ID;
     }
 
     public long getPlayTimeSeconds() {

@@ -44,6 +44,9 @@ public class LauncherGameScraper {
                 SteamOnlineScraper.checkIfCanScanSteam(false);
                 scanSteamOnlineGames(scanner);
                 break;
+            case MICROSOFT_STORE:
+                //TODO scan for MS Store games
+                break;
             default:
                 break;
         }

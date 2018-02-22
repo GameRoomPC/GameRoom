@@ -22,6 +22,7 @@ public class Platform {
     public final static int UPLAY_ID = 4;
     public final static int BATTLENET_ID = 5;
     public final static int GOG_ID = 6;
+    public final static int MICROSOFT_STORE_ID = 21;
 
     private final static HashMap<Integer, Platform> ID_MAP = new HashMap<>();
 

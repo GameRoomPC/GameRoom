@@ -61,6 +61,17 @@ public class Terminal {
         });
     }
 
+    /**
+     * Executes a given PowerShell command. Can be used to parse result of max 500 char per line (PowerShell line buffer
+     * limitation)
+     * @param command the PowerShell command to execute
+     * @return the output of the command
+     * @throws IOException in case an error occurred.
+     */
+    public String[] executePowerShell(String command) throws IOException{
+        return execute("powershell.exe","-Command","mode con:cols=500 lines=500;" + command);
+    }
+
     public String[] execute(String command, String... args) throws IOException {
         StringBuilder cmdLine = new StringBuilder(command);
         for (String arg : args) {

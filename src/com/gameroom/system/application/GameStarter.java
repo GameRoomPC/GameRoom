@@ -108,6 +108,25 @@ public class GameStarter {
             } catch (IOException | URISyntaxException e) {
                 e.printStackTrace();
             }
+        } else if (entry.isMSStoreGame()){
+            terminal.execute(commandsBefore, preLog);
+
+            File gameLog = new File(LOG_FOLDER + entry.getName() + ".log");
+            List<String> commands = getStartGameCMD();
+            ProcessBuilder gameProcessBuilder = new ProcessBuilder(commands).inheritIO();
+
+            gameProcessBuilder.redirectOutput(gameLog);
+            gameProcessBuilder.redirectError(gameLog);
+
+            if (entry.getOnGameLaunched() != null) {
+                entry.getOnGameLaunched().run();
+            }
+
+            if (MAIN_SCENE != null) {
+                GeneralToast.displayToast(entry.getName() + Main.getString("launched"), MAIN_SCENE.getParentStage());
+            }
+
+            Process gameProcess = gameProcessBuilder.start();
         } else {
             terminal.execute(commandsBefore, preLog, getGameParentFolder());
 
