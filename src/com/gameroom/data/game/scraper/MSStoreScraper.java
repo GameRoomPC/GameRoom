@@ -21,6 +21,7 @@ public class MSStoreScraper {
     private final static Pattern PATH_PATTERN = Pattern.compile("(.*)([a-z|A-Z]\\:\\\\.*)");
     private final static Pattern DISPLAY_NAME_PATTERN = Pattern.compile("<DisplayName>(.*)<\\/DisplayName>");
     private final static Pattern LOGO_PATTERN = Pattern.compile("<Logo>(.*)<\\/Logo>");
+    private final static Pattern APPLICATION_ID_PATTERN = Pattern.compile("<Application Id=\\\"([a-z|A-Z|0-9]*)\\\"");
 
     private final static String[] EXCLUDED_PACKAGE_PREFIX = new String[]{
             "Microsoft.NET",
@@ -138,13 +139,15 @@ public class MSStoreScraper {
         //name displayed in the Microsoft Store
         private String displayName;
 
+        //application id, used to start app
+        private String applicationId = "App";
+
         //command to execute to start the app
         private String startCommand;
 
         MSStoreEntry(String packageFamilyName, String path) {
             this.packageFamilyName = packageFamilyName != null ? packageFamilyName : "";
             this.path = path != null ? path : "";
-            startCommand = "shell:AppsFolder\\" + packageFamilyName + "!App";
         }
 
 
@@ -163,10 +166,10 @@ public class MSStoreScraper {
                 return;
             }
 
-            Pattern p = Pattern.compile(noExtName + "(?:.scale[0-9]*)?\\.[a-z|A-Z|0-9]{3}");
+            Pattern p = Pattern.compile(noExtName.toLowerCase() + "(?:.scale[0-9]*)?\\.[a-z|A-Z|0-9]{3}");
 
             for (File f : iconFiles) {
-                Matcher m = p.matcher(f.getName().trim());
+                Matcher m = p.matcher(f.getName().toLowerCase().trim());
                 if (m.find()) {
                     realIconPath = iconsPath + File.separator + f.getName();
                 }
@@ -201,9 +204,16 @@ public class MSStoreScraper {
                     virtualIconPath = path + File.separator + logoMatcher.group(1);
                 }
 
+                Matcher appIdMatcher = APPLICATION_ID_PATTERN.matcher(line);
+                if (appIdMatcher.find()) {
+                    applicationId = appIdMatcher.group(1);
+                }
+
             }
             r.close();
             stream.close();
+
+            startCommand = "shell:AppsFolder\\" + packageFamilyName + "!" + applicationId;
         }
 
         @Override
