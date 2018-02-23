@@ -32,4 +32,17 @@ public class SteamProfile {
     public int hashCode(){
         return accountId.hashCode();
     }
+
+    @Override
+    public boolean equals(Object object){
+        if (object == null){
+            return false;
+        }
+        if(object instanceof SteamProfile){
+            if(object.hashCode() == hashCode()){
+                return true;
+            }
+        }
+        return false;
+    }
 }
