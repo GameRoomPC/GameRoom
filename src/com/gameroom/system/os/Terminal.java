@@ -42,8 +42,10 @@ public class Terminal {
         if (parentFile != null && parentFile.exists()) {
             processBuilder.directory(parentFile);
         }
-        processBuilder.redirectOutput(log);
-        processBuilder.redirectError(log);
+        if(log != null && log.exists()) {
+            processBuilder.redirectOutput(log);
+            processBuilder.redirectError(log);
+        }
         processBuilder.command().addAll(Arrays.asList("cmd.exe", "/c", "chcp", "65001", "&"));
         Arrays.stream(commands).forEach(s -> {
             //ArrayList<String> cmds = splitCMDLine(s);

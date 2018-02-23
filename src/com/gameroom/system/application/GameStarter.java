@@ -93,7 +93,12 @@ public class GameStarter {
     }
 
     private void startGame() throws IOException, IllegalStateException {
-        File preLog = FileUtils.initOrCreateFile(LOG_FOLDER + "pre_" + entry.getName() + ".log");
+        File preLog = null;
+        try {
+            preLog = FileUtils.initOrCreateFile(LOG_FOLDER + "pre_" + entry.getName() + ".log");
+        }catch (Exception e){
+            LOGGER.error(e);
+        }
 
         Terminal terminal = new Terminal();
         String cmdBefore = entry.getCmd(GameEntry.CMD_BEFORE_START);
