@@ -79,40 +79,35 @@ public final class SubMenuFactory {
         MSAppItem.setOnAction(event -> {
             mainScene.getRootStackPane().setMouseTransparent(true);
 
-            try {
-                MSStoreAppSelector selector = new MSStoreAppSelector();
-                Optional<ButtonType> optional = selector.showAndWait();
-                optional.ifPresent(pairs -> {
-                    if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
-                        ArrayList<GameEntry> entries = new ArrayList<GameEntry>();
+            MSStoreAppSelector selector = new MSStoreAppSelector();
+            Optional<ButtonType> optional = selector.showAndWait();
+            optional.ifPresent(pairs -> {
+                if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                    ArrayList<GameEntry> entries = new ArrayList<GameEntry>();
 
-                        selector.getSelectedEntries().forEach(msStoreEntry -> {
-                            GameEntry gameEntry = new GameEntry(msStoreEntry.getName());
-                            gameEntry.setSavedLocally(true);
-                            gameEntry.setToAdd(true);
-                            gameEntry.setPath(msStoreEntry.getStartCommand());
-                            gameEntry.setPlatform(Platform.MICROSOFT_STORE_ID);
-                            gameEntry.saveEntry();
-                            if(msStoreEntry.getIconPath() != null) {
-                                try {
-                                    gameEntry.updateImage(0, new File(msStoreEntry.getIconPath()));
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
+                    selector.getSelectedEntries().forEach(msStoreEntry -> {
+                        GameEntry gameEntry = new GameEntry(msStoreEntry.getName());
+                        gameEntry.setSavedLocally(true);
+                        gameEntry.setToAdd(true);
+                        gameEntry.setPath(msStoreEntry.getStartCommand());
+                        gameEntry.setPlatform(Platform.MICROSOFT_STORE_ID);
+                        gameEntry.saveEntry();
+                        if(msStoreEntry.getIconPath() != null) {
+                            try {
+                                gameEntry.updateImage(0, new File(msStoreEntry.getIconPath()));
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
+                        }
 
-                            entries.add(gameEntry);
+                        entries.add(gameEntry);
 
-                            gameEntry.setAddedDate(LocalDateTime.now());
-                            LOGGER.debug("Chosen MSStoreApp: " + msStoreEntry.getName());
-                        });
-                        MAIN_SCENE.batchAddGameEntries(entries, 0).run();
-                    }
-                });
-            } catch (IOException e) {
-                //TODO localize
-                GameRoomAlert.error("Unable to read MSStoreApps");
-            }
+                        gameEntry.setAddedDate(LocalDateTime.now());
+                        LOGGER.debug("Chosen MSStoreApp: " + msStoreEntry.getName());
+                    });
+                    MAIN_SCENE.batchAddGameEntries(entries, 0).run();
+                }
+            });
             mainScene.getRootStackPane().setMouseTransparent(false);
         });
         addMenu.addItem(MSAppItem);

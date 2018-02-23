@@ -19,7 +19,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,7 +27,8 @@ import java.util.List;
 
 import static com.gameroom.system.application.settings.GeneralSettings.settings;
 
-/**
+/** UI element used to select {@link com.gameroom.data.game.scraper.MSStoreScraper.MSStoreEntry}
+ *
  * @author LM. Garret (admin@gameroom.me)
  * @date 22/02/2018.
  */
@@ -36,7 +36,7 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
     private ArrayList<MSStoreScraper.MSStoreEntry> selectedList = new ArrayList<>();
     private Label statusLabel;
 
-    public MSStoreAppSelector() throws IOException {
+    public MSStoreAppSelector() {
         statusLabel = new Label(Main.getString("loading") + "...");
         rootStackPane.getChildren().add(statusLabel);
         Label titleLabel = new Label(Main.getString("select_MSStore_apps"));
@@ -75,7 +75,7 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
     private List<MSStoreScraper.MSStoreEntry> loadMSStoreEntriesToDisplay() {
         List<MSStoreScraper.MSStoreEntry> msStoreEntries = MSStoreScraper.getApps();
         msStoreEntries.removeIf(msStoreEntry -> {
-            if(msStoreEntry == null){
+            if (msStoreEntry == null) {
                 return true;
             }
             for (GameEntry entry : GameEntryUtils.ENTRIES_LIST) {
@@ -101,17 +101,17 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
 
         @Override
         protected ListItem createListItem(Object value) {
-            return new MSStoreAppSelector.GameFolderItem(value, this);
+            return new MSStoreAppSelector.MSStoreAppItem(value, this);
         }
     }
 
-    private static class GameFolderItem extends SelectListPane.ListItem {
+    private static class MSStoreAppItem extends SelectListPane.ListItem {
         private MSStoreScraper.MSStoreEntry entry;
         private final static int IMAGE_WIDTH = 45;
         private final static int IMAGE_HEIGHT = 45;
         private StackPane coverPane = new StackPane();
 
-        public GameFolderItem(@NonNull Object value, SelectListPane parentList) {
+        public MSStoreAppItem(@NonNull Object value, SelectListPane parentList) {
             super(value, parentList);
             entry = ((MSStoreScraper.MSStoreEntry) value);
             addContent();
@@ -124,12 +124,13 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
             iconView.setFitHeight(64 * scale);
             iconView.setFitWidth(64 * scale);
 
-            if(entry.getIconPath() != null) {
+            if (entry.getIconPath() != null) {
                 File iconPath = new File(entry.getIconPath());
                 if (iconPath.exists()) {
                     ImageUtils.transitionToCover(iconPath, 64, 64, iconView);
                     iconView.setFitHeight(64 * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO);
                 }
+                //iconView.setImage(AppSelectorDialog.getIcon(new File(entry.getStartCommand())));
             }
 
             coverPane.getChildren().add(iconView);

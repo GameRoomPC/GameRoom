@@ -39,7 +39,7 @@ public class Terminal {
 
     public void execute(String[] commands, File log, File parentFile) throws IOException {
         processBuilder.inheritIO();
-        if (parentFile != null) {
+        if (parentFile != null && parentFile.exists()) {
             processBuilder.directory(parentFile);
         }
         processBuilder.redirectOutput(log);
@@ -69,7 +69,7 @@ public class Terminal {
      * @throws IOException in case an error occurred.
      */
     public String[] executePowerShell(String command) throws IOException{
-        return execute("powershell.exe","-Command","mode con:cols=500 lines=500;" + command);
+        return execute("powershell.exe","-Command","mode con:cols=250 lines=50;" + command);
     }
 
     public String[] execute(String command, String... args) throws IOException {

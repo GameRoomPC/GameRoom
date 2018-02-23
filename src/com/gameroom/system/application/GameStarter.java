@@ -136,7 +136,10 @@ public class GameStarter {
 
             gameProcessBuilder.redirectOutput(gameLog);
             gameProcessBuilder.redirectError(gameLog);
-            gameProcessBuilder.directory(new File(new File(entry.getPath()).getParent()));
+            File parentFile = new File(new File(entry.getPath()).getParent());
+            if(parentFile.exists()) {
+                gameProcessBuilder.directory();
+            }
 
             if (entry.getOnGameLaunched() != null) {
                 entry.getOnGameLaunched().run();
@@ -154,6 +157,7 @@ public class GameStarter {
         ArrayList<String> commands = new ArrayList<>();
         commands.add("powershell.exe");
         commands.add("-Command");
+        commands.add("mode con:cols=250 lines=20;");
         if (entry.getPlatform().isPCLauncher()) {
             commands.add(getPowerShellAdminCMD(entry.getPath(), Terminal.splitCMDLine(entry.getArgs()), entry.mustRunAsAdmin()));
         } else {
