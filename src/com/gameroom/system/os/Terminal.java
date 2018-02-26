@@ -1,5 +1,6 @@
 package com.gameroom.system.os;
 
+import com.gameroom.data.game.entry.GameEntry;
 import com.gameroom.ui.Main;
 
 import java.io.BufferedReader;
@@ -17,6 +18,14 @@ import static com.gameroom.ui.Main.LOGGER;
  * Created by LM on 14/07/2016.
  */
 public class Terminal {
+
+    private final static String PATH_VARIABLE = "%p";
+    private final static String ARGS_VARIABLE = "%a";
+    private final static String NAME_VARIABLE = "%n";
+    private final static String PLATFORM_VARIABLE = "%l";
+    private final static String LAST_PLAYTIME_VARIABLE = "%d";
+    private final static String TOTAL_PLAYTIME_VARIABLE = "%t";
+
     private ProcessBuilder processBuilder;
     private boolean redirectErrorStream = true;
     private Process process;
@@ -42,7 +51,7 @@ public class Terminal {
         if (parentFile != null && parentFile.exists()) {
             processBuilder.directory(parentFile);
         }
-        if(log != null && log.exists()) {
+        if (log != null && log.exists()) {
             processBuilder.redirectOutput(log);
             processBuilder.redirectError(log);
         }
@@ -66,12 +75,13 @@ public class Terminal {
     /**
      * Executes a given PowerShell command. Can be used to parse result of max 500 char per line (PowerShell line buffer
      * limitation)
+     *
      * @param command the PowerShell command to execute
      * @return the output of the command
      * @throws IOException in case an error occurred.
      */
-    public String[] executePowerShell(String command) throws IOException{
-        return execute("powershell.exe","-Command","mode con:cols=250 lines=50;" + command);
+    public String[] executePowerShell(String command) throws IOException {
+        return execute("powershell.exe", "-Command", "mode con:cols=150 lines=50;" + command);
     }
 
     public String[] execute(String command, String... args) throws IOException {
@@ -172,6 +182,26 @@ public class Terminal {
             return s.substring(1, s.length() - 1);
         }
         return s;
+    }
+
+    /**
+     * Replaces GameRoom variables with their values in the given command line
+     * @param cmdLine the commandline to edit
+     * @param entry the entry used to edit the commandline
+     * @return an updated commandline with variables updated with their values
+     */
+    public static String replaceGameRoomVariables(String cmdLine, GameEntry entry) {
+        if (entry == null ||cmdLine == null || cmdLine.isEmpty()) {
+            return cmdLine;
+        }
+        String temp = cmdLine;
+        temp = temp.replace(PATH_VARIABLE, entry.getPath() == null ? "" : "\"" + entry.getPath() + "\"")
+            .replace(ARGS_VARIABLE, entry.getArgs() == null ? "" : entry.getArgs())
+            .replace(NAME_VARIABLE, entry.getName() == null ? "" : "\"" + entry.getName() + "\"")
+            .replace(PLATFORM_VARIABLE, entry.getPlatform() == null ? "" : "\"" + entry.getPlatform().getName() + "\"")
+            .replace(LAST_PLAYTIME_VARIABLE, Long.toString(entry.getLastPlayTime()))
+            .replace(TOTAL_PLAYTIME_VARIABLE, Long.toString(entry.getPlayTimeSeconds()));
+        return temp;
     }
 
 }

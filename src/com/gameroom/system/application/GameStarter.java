@@ -103,6 +103,7 @@ public class GameStarter {
         Terminal terminal = new Terminal();
         String cmdBefore = entry.getCmd(GameEntry.CMD_BEFORE_START);
         String commandsBeforeString = settings().getStrings(PredefinedSetting.CMD)[GameEntry.CMD_BEFORE_START] + (cmdBefore != null ? "\n" + cmdBefore : "");
+        commandsBeforeString = Terminal.replaceGameRoomVariables(commandsBeforeString, entry);
         String[] commandsBefore = commandsBeforeString.split("\n");
 
         if (entry.isSteamGame() || entry.getPath().startsWith(STEAM_PREFIX)) {
@@ -242,6 +243,7 @@ public class GameStarter {
 
         String cmdAfter = entry.getCmd(GameEntry.CMD_AFTER_END);
         String commandsAfterString = settings().getStrings(PredefinedSetting.CMD)[GameEntry.CMD_AFTER_END] + (cmdAfter != null ? "\n" + cmdAfter : "");
+        commandsAfterString = Terminal.replaceGameRoomVariables(commandsAfterString, entry);
         LOGGER.debug("commandsAfter : \"" + commandsAfterString + "\"");
         String[] commandsAfter = commandsAfterString.split("\n");
         File postLog = new File(LOG_FOLDER + "post_" + entry.getName() + ".log");

@@ -65,6 +65,7 @@ public class GameEntry {
     private File[] imagesFiles = new File[IMAGES_NUMBER];
 
     private long playTime = 0; //Time in seconds
+    private long lastPlayTime = 0; //Do not save in db, just for a given session
 
     private int igdb_id = -1;
     /*FOR IGDB PURPOSE ONLY, should not be stored*/
@@ -1450,5 +1451,13 @@ public class GameEntry {
 
     public boolean isInDb() {
         return inDb;
+    }
+
+    public long getLastPlayTime() {
+        return lastPlayTime;
+    }
+
+    public void setLastPlayTime(long lastPlayTime) {
+        this.lastPlayTime = lastPlayTime;
     }
 }

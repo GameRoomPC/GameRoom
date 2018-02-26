@@ -24,9 +24,6 @@ import java.util.List;
  */
 public class Emulator {
 
-    private final static String PATH_MARKER = "%p";
-    private final static String ENTRY_ARGS_MARKER = "%a";
-
     private int sqlId;
     private String name;
     private File defaultPath; //should never be modified
@@ -162,23 +159,14 @@ public class Emulator {
     }
 
     /**
-     * Gets the command line arguments associated to this emulator in order to emulate the given {@param entry}. It does
-     * replace the {@link #ENTRY_ARGS_MARKER} with the {@link GameEntry#getArgs() associated, and then replaces the
-     * {@link #PATH_MARKER} with the {@link GameEntry#getPath()}
+     * Gets the command line arguments associated to this emulator in order to emulate the given {@param entry}.
      *
      * @param entry the entry to emulate
      * @return a {@link List<String>} containing the different arguments used to emulate this game.
      */
     public List<String> getCommandArguments(GameEntry entry) {
-        ArrayList<String> cmds = new ArrayList<>();
         String emuArgs = getArgSchema(entry.getPlatform());
-        String entryArgs = entry.getArgs();
-        if (emuArgs != null) {
-            emuArgs = emuArgs.replace(ENTRY_ARGS_MARKER, entryArgs != null ? entryArgs : "");
-            emuArgs = emuArgs.replace(PATH_MARKER, "\"" + entry.getPath() + "\"");
-            cmds = Terminal.splitCMDLine(emuArgs);
-        }
-        return cmds;
+        return Terminal.splitCMDLine(Terminal.replaceGameRoomVariables(emuArgs, entry));
     }
 
     /**
