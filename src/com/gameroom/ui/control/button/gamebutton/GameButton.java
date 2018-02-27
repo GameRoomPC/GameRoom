@@ -336,7 +336,7 @@ public abstract class GameButton extends BorderPane {
                     playButton.setMouseTransparent(false);
                 });
 
-                if (!entry.isSteamGame()) {
+                if (!entry.isSteamGame() && !entry.isMSStoreGame()) {
                     File gamePath = new File(entry.getPath());
                     if (gamePath.isDirectory()) {
                         try {

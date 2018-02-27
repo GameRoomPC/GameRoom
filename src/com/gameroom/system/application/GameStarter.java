@@ -93,11 +93,17 @@ public class GameStarter {
     }
 
     private void startGame() throws IOException, IllegalStateException {
-        File preLog = FileUtils.initOrCreateFile(LOG_FOLDER + "pre_" + entry.getName() + ".log");
+        File preLog = null;
+        try {
+            preLog = FileUtils.initOrCreateFile(LOG_FOLDER + "pre_" + entry.getName() + ".log");
+        }catch (Exception e){
+            LOGGER.error(e);
+        }
 
         Terminal terminal = new Terminal();
         String cmdBefore = entry.getCmd(GameEntry.CMD_BEFORE_START);
         String commandsBeforeString = settings().getStrings(PredefinedSetting.CMD)[GameEntry.CMD_BEFORE_START] + (cmdBefore != null ? "\n" + cmdBefore : "");
+        commandsBeforeString = Terminal.replaceGameRoomVariables(commandsBeforeString, entry);
         String[] commandsBefore = commandsBeforeString.split("\n");
 
         if (entry.isSteamGame() || entry.getPath().startsWith(STEAM_PREFIX)) {
@@ -108,6 +114,25 @@ public class GameStarter {
             } catch (IOException | URISyntaxException e) {
                 e.printStackTrace();
             }
+        } else if (entry.isMSStoreGame()){
+            terminal.execute(commandsBefore, preLog);
+
+            File gameLog = new File(LOG_FOLDER + entry.getName() + ".log");
+            List<String> commands = getStartGameCMD();
+            ProcessBuilder gameProcessBuilder = new ProcessBuilder(commands).inheritIO();
+
+            gameProcessBuilder.redirectOutput(gameLog);
+            gameProcessBuilder.redirectError(gameLog);
+
+            if (entry.getOnGameLaunched() != null) {
+                entry.getOnGameLaunched().run();
+            }
+
+            if (MAIN_SCENE != null) {
+                GeneralToast.displayToast(entry.getName() + Main.getString("launched"), MAIN_SCENE.getParentStage());
+            }
+
+            Process gameProcess = gameProcessBuilder.start();
         } else {
             terminal.execute(commandsBefore, preLog, getGameParentFolder());
 
@@ -117,7 +142,10 @@ public class GameStarter {
 
             gameProcessBuilder.redirectOutput(gameLog);
             gameProcessBuilder.redirectError(gameLog);
-            gameProcessBuilder.directory(new File(new File(entry.getPath()).getParent()));
+            File parentFile = new File(new File(entry.getPath()).getParent());
+            if(parentFile.exists()) {
+                gameProcessBuilder.directory();
+            }
 
             if (entry.getOnGameLaunched() != null) {
                 entry.getOnGameLaunched().run();
@@ -214,6 +242,7 @@ public class GameStarter {
 
         String cmdAfter = entry.getCmd(GameEntry.CMD_AFTER_END);
         String commandsAfterString = settings().getStrings(PredefinedSetting.CMD)[GameEntry.CMD_AFTER_END] + (cmdAfter != null ? "\n" + cmdAfter : "");
+        commandsAfterString = Terminal.replaceGameRoomVariables(commandsAfterString, entry);
         LOGGER.debug("commandsAfter : \"" + commandsAfterString + "\"");
         String[] commandsAfter = commandsAfterString.split("\n");
         File postLog = new File(LOG_FOLDER + "post_" + entry.getName() + ".log");

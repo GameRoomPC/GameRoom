@@ -144,6 +144,7 @@ public class Monitor {
         monitorTask.setOnSucceeded(() -> {
             getGameEntry().setSavedLocally(true);
             getGameEntry().setPlayTimeSeconds(originalPlayTime + Math.round(monitorTask.getValue() / 1000.0));
+            getGameEntry().setLastPlayTime(Math.round(monitorTask.getValue() / 1000.0));
             getGameEntry().setSavedLocally(false);
         });
 
@@ -393,6 +394,7 @@ public class Monitor {
     }
 
     private boolean isSteamGame() {
+        //TODO implement same mechanism to monitor playtime for MS Store games
         return getGameEntry().isSteamGame();
     }
 

@@ -14,7 +14,8 @@ public enum ScannerProfile {
     , GOG(Platform.GOG_ID,"gog_scanner_name")
     , ORIGIN(Platform.ORIGIN_ID,"origin_scanner_name")
     , UPLAY(Platform.UPLAY_ID,"uplay_scanner_name")
-    , BATTLE_NET(Platform.BATTLENET_ID,"battle-net_scanner_name");
+    , BATTLE_NET(Platform.BATTLENET_ID,"battle-net_scanner_name")
+    , MICROSOFT_STORE(Platform.MICROSOFT_STORE_ID,"microsoft_store_scanner_name");
 
     private int platformId;
     private String stringKey;

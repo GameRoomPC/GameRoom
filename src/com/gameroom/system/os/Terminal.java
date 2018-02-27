@@ -1,5 +1,6 @@
 package com.gameroom.system.os;
 
+import com.gameroom.data.game.entry.GameEntry;
 import com.gameroom.ui.Main;
 
 import java.io.BufferedReader;
@@ -17,6 +18,14 @@ import static com.gameroom.ui.Main.LOGGER;
  * Created by LM on 14/07/2016.
  */
 public class Terminal {
+
+    private final static String PATH_VARIABLE = "%p";
+    private final static String ARGS_VARIABLE = "%a";
+    private final static String NAME_VARIABLE = "%n";
+    private final static String PLATFORM_VARIABLE = "%l";
+    private final static String LAST_PLAYTIME_VARIABLE = "%d";
+    private final static String TOTAL_PLAYTIME_VARIABLE = "%t";
+
     private ProcessBuilder processBuilder;
     private boolean redirectErrorStream = true;
     private Process process;
@@ -39,11 +48,13 @@ public class Terminal {
 
     public void execute(String[] commands, File log, File parentFile) throws IOException {
         processBuilder.inheritIO();
-        if (parentFile != null) {
+        if (parentFile != null && parentFile.exists()) {
             processBuilder.directory(parentFile);
         }
-        processBuilder.redirectOutput(log);
-        processBuilder.redirectError(log);
+        if (log != null && log.exists()) {
+            processBuilder.redirectOutput(log);
+            processBuilder.redirectError(log);
+        }
         processBuilder.command().addAll(Arrays.asList("cmd.exe", "/c", "chcp", "65001", "&"));
         Arrays.stream(commands).forEach(s -> {
             //ArrayList<String> cmds = splitCMDLine(s);
@@ -59,6 +70,42 @@ public class Terminal {
             process.destroy();
             LOGGER.debug("Terminal : killed created process");
         });
+    }
+
+    /**
+     * Executes a given PowerShell command. Can be used to parse result of max 500 char per line (PowerShell line buffer
+     * limitation)
+     *
+     * @param command the PowerShell command to execute
+     * @return the output of the command
+     * @throws IOException in case an error occurred.
+     */
+    public String[] executePowerShell(String command) throws IOException {
+        ArrayList<String> commands = new ArrayList<>(Arrays.asList("powershell.exe", "-Command", "mode con:cols=250 lines=50;", command));
+        processBuilder.command(commands);
+
+        process = processBuilder.start();
+
+        BufferedReader stdInput =
+                new BufferedReader(new InputStreamReader(process.getInputStream()));
+        BufferedReader stdError = new BufferedReader(new
+                InputStreamReader(process.getErrorStream()));
+
+        String s = "";
+        // read any errors from the attempted command
+        if (redirectErrorStream) {
+            while ((s = stdError.readLine()) != null) {
+                System.err.println("[pws] " + s);
+            }
+        }
+        String[] result = stdInput.lines().toArray(String[]::new);
+
+        //Arrays.stream(result).forEach(s1 -> LOGGER.debug("[pws] "+s1));
+
+        stdError.close();
+        stdInput.close();
+        process.destroy();
+        return result;
     }
 
     public String[] execute(String command, String... args) throws IOException {
@@ -159,6 +206,26 @@ public class Terminal {
             return s.substring(1, s.length() - 1);
         }
         return s;
+    }
+
+    /**
+     * Replaces GameRoom variables with their values in the given command line
+     * @param cmdLine the commandline to edit
+     * @param entry the entry used to edit the commandline
+     * @return an updated commandline with variables updated with their values
+     */
+    public static String replaceGameRoomVariables(String cmdLine, GameEntry entry) {
+        if (entry == null ||cmdLine == null || cmdLine.isEmpty()) {
+            return cmdLine;
+        }
+        String temp = cmdLine;
+        temp = temp.replace(PATH_VARIABLE, entry.getPath() == null ? "" : "\"" + entry.getPath() + "\"")
+            .replace(ARGS_VARIABLE, entry.getArgs() == null ? "" : entry.getArgs())
+            .replace(NAME_VARIABLE, entry.getName() == null ? "" : "\"" + entry.getName() + "\"")
+            .replace(PLATFORM_VARIABLE, entry.getPlatform() == null ? "" : "\"" + entry.getPlatform().getName() + "\"")
+            .replace(LAST_PLAYTIME_VARIABLE, Long.toString(entry.getLastPlayTime()))
+            .replace(TOTAL_PLAYTIME_VARIABLE, Long.toString(entry.getPlayTimeSeconds()));
+        return temp;
     }
 
 }

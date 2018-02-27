@@ -1,12 +1,8 @@
 package com.gameroom.ui.control.drawer.submenu;
 
+import com.gameroom.data.game.entry.GameEntry;
 import com.gameroom.data.game.entry.Platform;
 import com.gameroom.data.io.FileUtils;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Slider;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.HBox;
-import javafx.stage.FileChooser;
 import com.gameroom.system.application.settings.PredefinedSetting;
 import com.gameroom.ui.Main;
 import com.gameroom.ui.control.drawer.DrawerMenu;
@@ -14,17 +10,24 @@ import com.gameroom.ui.control.drawer.GroupType;
 import com.gameroom.ui.control.drawer.SortType;
 import com.gameroom.ui.dialog.GameRoomAlert;
 import com.gameroom.ui.dialog.GamesFoldersDialog;
+import com.gameroom.ui.dialog.selector.MSStoreAppSelector;
 import com.gameroom.ui.scene.GameEditScene;
 import com.gameroom.ui.scene.MainScene;
 import com.gameroom.ui.scene.SettingsScene;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.gameroom.system.application.settings.GeneralSettings.settings;
+import static com.gameroom.ui.Main.LOGGER;
+import static com.gameroom.ui.Main.MAIN_SCENE;
 
 /**
  * Created by LM on 10/02/2017.
@@ -69,6 +72,47 @@ public final class SubMenuFactory {
         });
         addMenu.addItem(singleAppItem);
 
+        //************ MICROSOFT STORE ****************
+        TextItem MSAppItem = new TextItem("add_MS_apps");
+        //TODO add a true localized tooltip
+        MSAppItem.setTooltip(new Tooltip(Main.getString("add_MS_apps")));
+        MSAppItem.setOnAction(event -> {
+            mainScene.getRootStackPane().setMouseTransparent(true);
+
+            MSStoreAppSelector selector = new MSStoreAppSelector();
+            Optional<ButtonType> optional = selector.showAndWait();
+            optional.ifPresent(pairs -> {
+                if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                    ArrayList<GameEntry> entries = new ArrayList<GameEntry>();
+
+                    selector.getSelectedEntries().forEach(msStoreEntry -> {
+                        GameEntry gameEntry = new GameEntry(msStoreEntry.getName());
+                        gameEntry.setSavedLocally(true);
+                        gameEntry.setToAdd(true);
+                        gameEntry.setPath(msStoreEntry.getStartCommand());
+                        gameEntry.setPlatform(Platform.MICROSOFT_STORE_ID);
+                        gameEntry.saveEntry();
+                        if(msStoreEntry.getIconPath() != null) {
+                            try {
+                                gameEntry.updateImage(0, new File(msStoreEntry.getIconPath()));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        entries.add(gameEntry);
+
+                        gameEntry.setAddedDate(LocalDateTime.now());
+                        LOGGER.debug("Chosen MSStoreApp: " + msStoreEntry.getName());
+                    });
+                    MAIN_SCENE.batchAddGameEntries(entries, 0).run();
+                }
+            });
+            mainScene.getRootStackPane().setMouseTransparent(false);
+        });
+        addMenu.addItem(MSAppItem);
+
+        //************FOLDER****************
         TextItem folderItem = new TextItem("add_folder_app");
         folderItem.setOnAction(event -> {
             new GamesFoldersDialog().showAndWait();
@@ -96,14 +140,14 @@ public final class SubMenuFactory {
 
                 Set<String> allExt = new HashSet<>();
                 Platform.getEmulablePlatforms().forEach(platform -> {
-                    Collections.addAll(allExt,platform.getSupportedExtensions());
+                    Collections.addAll(allExt, platform.getSupportedExtensions());
                     fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(platform.getName(), platform.getSupportedExtensions()));
                 });
                 ArrayList<String> sortedExts = new ArrayList<String>();
                 sortedExts.addAll(allExt);
                 sortedExts.sort(String::compareTo);
 
-                fileChooser.getExtensionFilters().add(0,new FileChooser.ExtensionFilter(Main.getString("all_rom_exts"),sortedExts));
+                fileChooser.getExtensionFilters().add(0, new FileChooser.ExtensionFilter(Main.getString("all_rom_exts"), sortedExts));
                 fileChooser.getExtensionFilters().addAll(
                         new FileChooser.ExtensionFilter(Main.getString("all_files"), "*")
                 );
@@ -275,7 +319,7 @@ public final class SubMenuFactory {
                             , StandardCopyOption.REPLACE_EXISTING);
 
                     mainScene.setChangeBackgroundNextTime(false);
-                    mainScene.setImageBackground(copiedFile,true);
+                    mainScene.setImageBackground(copiedFile, true);
                 }
             } catch (NullPointerException | IOException ne) {
                 ne.printStackTrace();
