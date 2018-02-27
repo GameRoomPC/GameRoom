@@ -81,7 +81,31 @@ public class Terminal {
      * @throws IOException in case an error occurred.
      */
     public String[] executePowerShell(String command) throws IOException {
-        return execute("powershell.exe", "-Command", "mode con:cols=150 lines=50;" + command);
+        ArrayList<String> commands = new ArrayList<>(Arrays.asList("powershell.exe", "-Command", "mode con:cols=250 lines=50;", command));
+        processBuilder.command(commands);
+
+        process = processBuilder.start();
+
+        BufferedReader stdInput =
+                new BufferedReader(new InputStreamReader(process.getInputStream()));
+        BufferedReader stdError = new BufferedReader(new
+                InputStreamReader(process.getErrorStream()));
+
+        String s = "";
+        // read any errors from the attempted command
+        if (redirectErrorStream) {
+            while ((s = stdError.readLine()) != null) {
+                System.err.println("[pws] " + s);
+            }
+        }
+        String[] result = stdInput.lines().toArray(String[]::new);
+
+        //Arrays.stream(result).forEach(s1 -> LOGGER.debug("[pws] "+s1));
+
+        stdError.close();
+        stdInput.close();
+        process.destroy();
+        return result;
     }
 
     public String[] execute(String command, String... args) throws IOException {
