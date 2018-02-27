@@ -150,7 +150,7 @@ public class PlatformSettingsPane extends BorderPane {
         argBox.setAlignment(Pos.CENTER_LEFT);
         argBox.setSpacing(5 * SCREEN_WIDTH / 1920);
         argBox.getChildren().addAll(new Label(Main.getString("emulator_args_schema") + " :")
-                , new HelpButton(Main.getString("emulator_args_schema_tooltip"),true));
+                , new HelpButton(Main.getString("emulator_args_schema_tooltip")));
         argBox.setVisible(chosenEmulator != null);
         argBox.setManaged(chosenEmulator != null);
 
