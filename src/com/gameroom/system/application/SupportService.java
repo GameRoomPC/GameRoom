@@ -124,7 +124,7 @@ public class SupportService {
         DISPLAYING_SUPPORT_ALERT = true;
 
         GameRoomAlert alert = new GameRoomAlert(Alert.AlertType.INFORMATION
-                , Main.getString("support_alert_message"));
+                , Main.getString("support_alert_message",settings().getSupporterKeyPrice()+"€"));
         alert.getButtonTypes().add(new ButtonType(Main.getString("more_infos")));
         Optional<ButtonType> result = alert.showAndWait();
         result.ifPresent(letter -> {
