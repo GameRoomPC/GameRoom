@@ -639,9 +639,13 @@ public class GameEntry {
     }
 
     public String getProcessName() {
+        String monitorPath = path;
+        if(monitorProcess != null && !monitorProcess.isEmpty() && new File(monitorProcess).exists()){
+            monitorPath = monitorProcess;
+        }
         String name = "";
-        for (int i = path.length() - 1; i >= 0; i--) {
-            char c = path.charAt(i);
+        for (int i = monitorPath.length() - 1; i >= 0; i--) {
+            char c = monitorPath.charAt(i);
             if (c == '\\' || c == '/') {
                 break;
             } else {
@@ -1074,7 +1078,7 @@ public class GameEntry {
             }
             setAlternativeNames(alternativeNames);
         }
-        setPath(set.getString("monitor_process"));
+        setMonitorProcess(set.getString("monitor_process"));
 
         //LOAD GENRES FROM DB
         try {
