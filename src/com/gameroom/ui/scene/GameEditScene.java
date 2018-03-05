@@ -376,6 +376,23 @@ public class GameEditScene extends BaseScene {
         contentPane.add(pathNode, 1, row_count);
         row_count++;
 
+        /************************** MONITOR PROCESS *********************************************/
+        contentPane.add(createTitleLabel("monitor_process", false), 0, row_count);
+        Node monitorProcessNode;
+        if (!entry.isSteamGame() && entry.getPlatform().isPCLauncher()) {
+            AppPathField processMonitorField = new AppPathField(entry.getMonitorProcess(), getWindow(), PathTextField.FILE_CHOOSER_APPS, Main.getString("select_a_file"), entry.getPlatform().getSupportedExtensions());
+            processMonitorField.getTextField().setPrefColumnCount(50);
+            processMonitorField.setId("monitor_process");
+            processMonitorField.getTextField().textProperty().addListener((observable, oldValue, newValue) -> entry.setMonitorProcess(newValue));
+            monitorProcessNode = processMonitorField;
+        } else {
+            monitorProcessNode = new Label(entry.getPath());
+            monitorProcessNode.setFocusTraversable(false);
+        }
+
+        contentPane.add(monitorProcessNode, 1, row_count);
+        row_count++;
+
         /**************************RUN AS ADMIN ****************************************/
         contentPane.add(createTitleLabel("run_as_admin", false), 0, row_count);
         CheckBox adminCheckBox = new CheckBox();

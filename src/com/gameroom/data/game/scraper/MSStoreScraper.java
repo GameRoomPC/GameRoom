@@ -67,6 +67,7 @@ public class MSStoreScraper {
                         if (!isPackageFamilyNameExcluded(entry.packageFamilyName)
                                 && !isDisplayNameExcluded(entry.displayName)) {
                             entry.findRealIconPath();
+                            entry.findExecutableFilePath();
                             entries.add(entry);
                         }
                     } catch (IOException e) {
@@ -88,7 +89,7 @@ public class MSStoreScraper {
      * @return true if it is excluded, false otherwise
      */
     private static boolean isPackageFamilyNameExcluded(String packageFamilyName) {
-        if(packageFamilyName == null ||packageFamilyName.isEmpty()){
+        if (packageFamilyName == null || packageFamilyName.isEmpty()) {
             return true;
         }
         boolean toFilter = false;
@@ -105,7 +106,7 @@ public class MSStoreScraper {
      * @return true if it is excluded, false otherwise
      */
     private static boolean isDisplayNameExcluded(String displayName) {
-        if(displayName == null ||displayName.isEmpty()){
+        if (displayName == null || displayName.isEmpty()) {
             return true;
         }
         boolean toFilter = false;
@@ -145,6 +146,9 @@ public class MSStoreScraper {
         //command to execute to start the app
         private String startCommand;
 
+        //path to the executable in the file path
+        private String executableFilePath = "";
+
         MSStoreEntry(String packageFamilyName, String path) {
             this.packageFamilyName = packageFamilyName != null ? packageFamilyName : "";
             this.path = path != null ? path : "";
@@ -172,6 +176,22 @@ public class MSStoreScraper {
                 Matcher m = p.matcher(f.getName().toLowerCase().trim());
                 if (m.find()) {
                     realIconPath = iconsPath + File.separator + f.getName();
+                }
+
+            }
+        }
+
+        private void findExecutableFilePath() {
+            File[] subFiles = new File(path).listFiles();
+            if (subFiles == null) {
+                LOGGER.warn(TAG + ": Empty folder for " + displayName);
+                return;
+            }
+
+            for (File f : subFiles) {
+                if (f.getName().endsWith(".exe")) {
+                    executableFilePath = f.getAbsolutePath();
+                    //LOGGER.debug(TAG + ": Found .exe for " + displayName + ", " + executableFilePath);
                 }
 
             }
@@ -234,6 +254,10 @@ public class MSStoreScraper {
 
         public String getStartCommand() {
             return startCommand;
+        }
+
+        public String getExecutableFilePath() {
+            return executableFilePath;
         }
     }
 }
