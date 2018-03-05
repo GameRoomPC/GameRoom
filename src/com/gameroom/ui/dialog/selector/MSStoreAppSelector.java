@@ -128,7 +128,7 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
                 File iconPath = new File(entry.getIconPath());
                 if (iconPath.exists()) {
                     ImageUtils.transitionToCover(iconPath, 32, 32, iconView);
-                    iconView.setFitHeight(32 * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO);
+                    iconView.setFitHeight(32 * scale);
                 }
                 //iconView.setImage(AppSelectorDialog.getIcon(new File(entry.getStartCommand())));
             }
