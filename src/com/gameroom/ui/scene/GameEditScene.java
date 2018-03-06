@@ -260,7 +260,7 @@ public class GameEditScene extends BaseScene {
         cc1.setPercentWidth(20);
         contentPane.getColumnConstraints().add(cc1);
         ColumnConstraints cc2 = new ColumnConstraints();
-        cc2.setPercentWidth(80);
+        cc2.setPercentWidth(70);
         contentPane.getColumnConstraints().add(cc2);
 
         /**************************NAME*********************************************/
@@ -849,8 +849,8 @@ public class GameEditScene extends BaseScene {
 
     private Pane createLeft(Image coverImage) {
         StackPane pane = new StackPane();
-        double coverWidth = Main.SCREEN_HEIGHT * 2.0 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO);
-        double coverHeight = Main.SCREEN_HEIGHT * 2.0 / 3;
+        double coverWidth = getParentStage().getHeight() * 2 / (3 * GameButton.COVER_HEIGHT_WIDTH_RATIO);
+        double coverHeight = getParentStage().getHeight() * 2 / 3;
 
         coverView = new ImageView();
         coverView.setFitWidth(coverWidth);
