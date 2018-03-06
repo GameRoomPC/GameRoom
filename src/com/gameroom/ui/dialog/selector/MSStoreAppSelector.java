@@ -121,14 +121,14 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
         protected void addContent() {
             ImageView iconView = new ImageView();
             double scale = settings().getUIScale().getScale();
-            iconView.setFitHeight(32 * scale);
-            iconView.setFitWidth(32 * scale);
+            iconView.setFitHeight(64 * scale);
+            iconView.setFitWidth(64 * scale);
 
             if (entry.getIconPath() != null) {
                 File iconPath = new File(entry.getIconPath());
                 if (iconPath.exists()) {
-                    ImageUtils.transitionToCover(iconPath, 32, 32, iconView);
-                    iconView.setFitHeight(32 * scale);
+                    ImageUtils.transitionToCover(iconPath, 64, 64, iconView);
+                    iconView.setFitHeight(64 * scale);
                 }
                 //iconView.setImage(AppSelectorDialog.getIcon(new File(entry.getStartCommand())));
             }
