@@ -88,6 +88,7 @@ public class GameEntry {
 
 
     private transient SimpleBooleanProperty monitored = new SimpleBooleanProperty(false);
+    private String monitorProcess = "";
 
     private final static String[] SQL_PARAMS = new String[]{"name",
             "release_date",
@@ -110,7 +111,8 @@ public class GameEntry {
             "ignored",
             "runAsAdmin",
             "sorting_name",
-            "alternative_names"
+            "alternative_names",
+            "monitor_process"
     };
 
     public GameEntry(String name) {
@@ -187,9 +189,10 @@ public class GameEntry {
             joiner.add(StringEscapeUtils.escapeCsv(alternative_names[i]));
         }
         statement.setString(22, joiner.toString());
+        statement.setString(23,monitorProcess);
 
         if (inDb) {
-            statement.setInt(23, id);
+            statement.setInt(24, id);
         }
 
         statement.execute();
@@ -432,6 +435,26 @@ public class GameEntry {
         }
     }
 
+    public String getMonitorProcess() {
+        return monitorProcess;
+    }
+
+    public void setMonitorProcess(String monitorProcess) {
+        this.monitorProcess = monitorProcess;
+        try {
+            if (savedLocally && !deleted) {
+                PreparedStatement statement = DataBase.getUserConnection().prepareStatement("update GameEntry set monitor_process = ? where id = ?");
+                statement.setString(1, monitorProcess);
+                statement.setInt(2, id);
+                statement.execute();
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public int getAggregated_rating() {
         return aggregated_rating;
     }
@@ -616,9 +639,13 @@ public class GameEntry {
     }
 
     public String getProcessName() {
+        String monitorPath = path;
+        if(monitorProcess != null && !monitorProcess.isEmpty() && new File(monitorProcess).exists()){
+            monitorPath = monitorProcess;
+        }
         String name = "";
-        for (int i = path.length() - 1; i >= 0; i--) {
-            char c = path.charAt(i);
+        for (int i = monitorPath.length() - 1; i >= 0; i--) {
+            char c = monitorPath.charAt(i);
             if (c == '\\' || c == '/') {
                 break;
             } else {
@@ -1051,6 +1078,7 @@ public class GameEntry {
             }
             setAlternativeNames(alternativeNames);
         }
+        setMonitorProcess(set.getString("monitor_process"));
 
         //LOAD GENRES FROM DB
         try {

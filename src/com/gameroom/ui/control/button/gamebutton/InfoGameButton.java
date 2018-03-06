@@ -13,6 +13,9 @@ import static com.gameroom.system.application.settings.GeneralSettings.settings;
  * Created by LM on 12/07/2016.
  */
 public class InfoGameButton extends GameButton {
+    private int width;
+    private int height;
+
     public InfoGameButton(GameEntry entry, BaseScene scene, Pane parent) {
         super(entry, scene, parent);
         COVER_SCALE_EFFECT_FACTOR = 1.03;
@@ -26,20 +29,26 @@ public class InfoGameButton extends GameButton {
             setFocused(true);
         });
         scene.heightProperty().addListener(cl -> {
-            //initAll();
+            height = (int) (scene.getParentStage().getHeight() * 2/ 3);
+            width = (int) (height / COVER_HEIGHT_WIDTH_RATIO);
+            setHeight(height);
+            setWidth(width);
         });
+
+        height = (int) (scene.getParentStage().getHeight() * 2/ 3);
+        width = (int) (height / COVER_HEIGHT_WIDTH_RATIO);
 
         initContentSize(getCoverWidth(),getCoverHeight());
     }
 
     @Override
     protected int getCoverWidth() {
-        return (int) (Main.SCREEN_HEIGHT * 2.0 / (3 * COVER_HEIGHT_WIDTH_RATIO));
+        return width;
     }
 
     @Override
     protected int getCoverHeight() {
-        return (int) (Main.SCREEN_HEIGHT * 2.0 / 3);
+        return height;
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.gameroom.system.application;
 import com.gameroom.data.game.entry.Emulator;
 import com.gameroom.data.io.FileUtils;
 import com.gameroom.data.game.entry.GameEntry;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import javafx.application.Platform;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -96,7 +97,7 @@ public class GameStarter {
         File preLog = null;
         try {
             preLog = FileUtils.initOrCreateFile(LOG_FOLDER + "pre_" + entry.getName() + ".log");
-        }catch (Exception e){
+        } catch (Exception e) {
             LOGGER.error(e);
         }
 
@@ -114,7 +115,7 @@ public class GameStarter {
             } catch (IOException | URISyntaxException e) {
                 e.printStackTrace();
             }
-        } else if (entry.isMSStoreGame()){
+        } else if (entry.isMSStoreGame()) {
             terminal.execute(commandsBefore, preLog);
 
             File gameLog = new File(LOG_FOLDER + entry.getName() + ".log");
@@ -134,7 +135,8 @@ public class GameStarter {
 
             Process gameProcess = gameProcessBuilder.start();
         } else {
-            terminal.execute(commandsBefore, preLog, getGameParentFolder());
+            File parentFile = getGameParentFolder();
+            terminal.execute(commandsBefore, preLog, parentFile);
 
             File gameLog = new File(LOG_FOLDER + entry.getProcessName() + ".log");
             List<String> commands = getStartGameCMD();
@@ -142,9 +144,8 @@ public class GameStarter {
 
             gameProcessBuilder.redirectOutput(gameLog);
             gameProcessBuilder.redirectError(gameLog);
-            File parentFile = new File(new File(entry.getPath()).getParent());
-            if(parentFile.exists()) {
-                gameProcessBuilder.directory();
+            if (parentFile.exists()) {
+                gameProcessBuilder.directory(parentFile);
             }
 
             if (entry.getOnGameLaunched() != null) {
@@ -290,8 +291,14 @@ public class GameStarter {
         }
     }
 
-
+    @NonNull
     private File getGameParentFolder() {
+        com.gameroom.data.game.entry.Platform p = entry.getPlatform();
+        if (p != null && !p.isPCLauncher()) {
+            if (p.getChosenEmulator() != null) {
+                return p.getChosenEmulator().getPath().getParentFile();
+            }
+        }
         return new File(new File(entry.getPath()).getParent());
     }
 

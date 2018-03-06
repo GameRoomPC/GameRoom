@@ -207,6 +207,10 @@ public class GameInfoScene extends BaseScene {
         propertiesPane.setPadding(new Insets(30 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920, 30 * SCREEN_HEIGHT / 1080, 30 * SCREEN_WIDTH / 1920));
 
         scrollPane.setContent(propertiesPane);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
         coverAndPropertiesPane.add(scrollPane, 1, 0);
 
         wrappingPane.setCenter(coverAndPropertiesPane);
