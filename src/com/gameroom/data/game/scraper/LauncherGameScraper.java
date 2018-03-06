@@ -45,7 +45,7 @@ public class LauncherGameScraper {
                 scanSteamOnlineGames(scanner);
                 break;
             case MICROSOFT_STORE:
-                //TODO scan for MS Store games
+                scanMSStoreGames(scanner);
                 break;
             default:
                 break;
@@ -145,6 +145,16 @@ public class LauncherGameScraper {
         String keyWord = "Support\\EA Help";
         String[] excludedNames = new String[]{"Origin"};
         scanUninstallReg(scanner, keyWord, excludedNames);
+    }
+
+    private static void scanMSStoreGames(GameScanner scanner){
+        List<MSStoreScraper.MSStoreEntry> msStoreEntries = MSStoreScraper.getApps();
+        for(MSStoreScraper.MSStoreEntry msStoreEntry: msStoreEntries){
+            GameEntry gameEntry = MSStoreScraper.shouldConsiderGame(msStoreEntry);
+            if(gameEntry != null){
+                scanner.checkAndAdd(gameEntry);
+            }
+        }
     }
 
     private static void scanUXGamesForOrigin(GameScanner scanner) {

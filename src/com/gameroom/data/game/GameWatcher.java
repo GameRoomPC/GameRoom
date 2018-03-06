@@ -78,6 +78,7 @@ public class GameWatcher {
         localGameScanners.add(new FolderGameScanner(this));
         localGameScanners.add(new ROMScanner(this));
         onlineGameScanners.add(new LauncherScanner(this, ScannerProfile.STEAM_ONLINE));
+        onlineGameScanners.add(new LauncherScanner(this, ScannerProfile.MICROSOFT_STORE));
 
         setScanPeriod(settings().getScanPeriod());
         if (scanPeriod == null) {

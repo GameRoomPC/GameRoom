@@ -1,7 +1,12 @@
 package com.gameroom.data.game.scraper;
 
+import com.gameroom.data.LevenshteinDistance;
+import com.gameroom.data.game.entry.GameEntry;
 import com.gameroom.system.os.Terminal;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import javafx.application.Platform;
+import org.json.JSONArray;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -10,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.gameroom.ui.Main.LOGGER;
+import static com.gameroom.ui.Main.MAIN_SCENE;
 
 /**
  * @author LM. Garret (admin@gameroom.me)
@@ -22,6 +28,8 @@ public class MSStoreScraper {
     private final static Pattern DISPLAY_NAME_PATTERN = Pattern.compile("<DisplayName>(.*)<\\/DisplayName>");
     private final static Pattern LOGO_PATTERN = Pattern.compile("<Logo>(.*)<\\/Logo>");
     private final static Pattern APPLICATION_ID_PATTERN = Pattern.compile("<Application Id=\\\"([a-z|A-Z|0-9]*)\\\"");
+
+    private final static int MAX_LEVENSHTEIN_DISTANCE = 2;
 
     private final static String[] EXCLUDED_PACKAGE_PREFIX = new String[]{
             "Microsoft.NET",
@@ -80,6 +88,46 @@ public class MSStoreScraper {
             LOGGER.error(e);
         }
         return entries;
+    }
+
+    /**
+     * Contacts GameRoom's API to determine whether this {@link MSStoreEntry} should be considered as a game or not,
+     * as it would be necessary for scanning for example.
+     *
+     * @param msStoreEntry the Microsoft Store application to check
+     * @return a filled {@link GameEntry} if this should be considered as a game, or null if not
+     */
+    public static GameEntry shouldConsiderGame(MSStoreEntry msStoreEntry) {
+        List<GameEntry> gameEntries = new ArrayList<>();
+
+        try {
+            JSONArray searchResults = IGDBScraper.searchGame(msStoreEntry.getName(),
+                    false,
+                    com.gameroom.data.game.entry.Platform.PC.getIGDBId()
+            );
+            if (searchResults != null) {
+                int minDistance = -1;
+                int jsonIndex = 0;
+                for (int i = 0; i < searchResults.length(); i++) {
+                    String name = searchResults.getJSONObject(i).getString("name");
+
+                    int distance = LevenshteinDistance.distance(msStoreEntry.getName(), name);
+                    if (minDistance == -1 || distance < minDistance) {
+                        minDistance = distance;
+                        jsonIndex = i;
+                    }
+                    if (minDistance == 0) {
+                        break;
+                    }
+                }
+                if (minDistance >= 0 && minDistance < MAX_LEVENSHTEIN_DISTANCE) {
+                    return IGDBScraper.getGameEntries(searchResults).get(jsonIndex);
+                }
+            }
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
