@@ -81,7 +81,7 @@ public class Terminal {
      * @throws IOException in case an error occurred.
      */
     public String[] executePowerShell(String command) throws IOException {
-        ArrayList<String> commands = new ArrayList<>(Arrays.asList("powershell.exe", "-Command", "mode con:cols=250 lines=50;", command));
+        ArrayList<String> commands = new ArrayList<>(Arrays.asList("powershell.exe", "-Command", command+" | out-string -Width 160"));
         processBuilder.command(commands);
 
         process = processBuilder.start();
