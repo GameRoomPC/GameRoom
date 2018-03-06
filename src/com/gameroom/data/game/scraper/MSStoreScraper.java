@@ -1,11 +1,10 @@
 package com.gameroom.data.game.scraper;
 
 import com.gameroom.data.LevenshteinDistance;
+import com.gameroom.data.game.GameWatcher;
 import com.gameroom.data.game.entry.GameEntry;
 import com.gameroom.system.os.Terminal;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import javafx.application.Platform;
 import org.json.JSONArray;
 
 import java.io.*;
@@ -15,7 +14,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.gameroom.ui.Main.LOGGER;
-import static com.gameroom.ui.Main.MAIN_SCENE;
 
 /**
  * @author LM. Garret (admin@gameroom.me)
@@ -111,7 +109,9 @@ public class MSStoreScraper {
                 for (int i = 0; i < searchResults.length(); i++) {
                     String name = searchResults.getJSONObject(i).getString("name");
 
-                    int distance = LevenshteinDistance.distance(msStoreEntry.getName(), name);
+                    String cleanName = GameWatcher.formatNameForComparison(name);
+                    String cleanMSName = GameWatcher.formatNameForComparison(msStoreEntry.getName());
+                    int distance = LevenshteinDistance.distance(cleanMSName, cleanName);
                     if (minDistance == -1 || distance < minDistance) {
                         minDistance = distance;
                         jsonIndex = i;
