@@ -13,10 +13,12 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.gameroom.data.game.GameWatcher.formatNameForComparison;
 import static com.gameroom.ui.Main.LOGGER;
 
 /**
@@ -100,8 +102,6 @@ public class MSStoreScraper {
      * @return a filled {@link GameEntry} if this should be considered as a game, or null if not
      */
     public static GameEntry shouldConsiderGame(MSStoreEntry msStoreEntry) {
-        List<GameEntry> gameEntries = new ArrayList<>();
-
         try {
             JSONArray searchResults = IGDBScraper.searchGame(msStoreEntry.getName(),
                     false,
@@ -290,6 +290,7 @@ public class MSStoreScraper {
 
         /**
          * Attempts to create a temporary file in GameRoom's temp folder that is filled with the app's icon's bitmap.
+         *
          * @return a {@link File} made by copying the bitmap from {@link #realIconPath}, or null if it could not copy it
          */
         public File getIconTempCopy() {
@@ -297,12 +298,12 @@ public class MSStoreScraper {
                 File originalFile = new File(realIconPath);
                 if (originalFile.exists()) {
                     BufferedImage in = ImageIO.read(originalFile);
-                    File tempIconFile = FileUtils.newTempFile(displayName + "." + FileUtils.getExtension(originalFile));
+                    File tempIconFile = FileUtils.newTempFile(displayName.replaceAll("[^a-zA-Z0-9\\.\\-]", "_") + "." + FileUtils.getExtension(originalFile));
                     ImageIO.write(in, FileUtils.getExtension(originalFile), tempIconFile);
                     return tempIconFile;
                 }
             } catch (IOException e) {
-                LOGGER.error(TAG+": ("+displayName+") could not copy bitmap icon to temp file.");
+                LOGGER.error(TAG + ": (" + displayName + ") could not copy bitmap icon to temp file.");
                 e.printStackTrace();
             }
             return null;
@@ -330,6 +331,25 @@ public class MSStoreScraper {
 
         public String getExecutableFilePath() {
             return executableFilePath;
+        }
+
+        public boolean isInGameEntryCollection(Collection<GameEntry> entries) {
+            if (entries == null || entries.isEmpty()) {
+                return false;
+            }
+            for (GameEntry gameEntry : entries) {
+                if (gameEntry != null && gameEntry.getPath() != null) {
+                    if (getStartCommand() == null) {
+                        return true;
+                    }
+                    boolean equalPaths = getStartCommand().trim().toLowerCase().equals(gameEntry.getPath().trim().toLowerCase());
+
+                    if (equalPaths) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 }

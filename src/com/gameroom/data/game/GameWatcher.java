@@ -450,6 +450,8 @@ public class GameWatcher {
                 .replaceAll("\\(.*\\)", "")
                 .replaceAll("\\[.*\\]", "")
                 .replaceAll("\\{.*\\}", "")
+                .replaceAll("for Windows 10","")
+                .replaceAll("for Windows","")
                 .trim();
     }
 
@@ -461,7 +463,7 @@ public class GameWatcher {
         ArrayList<GameEntry> toRemoveEntries = new ArrayList<>();
         for (GameEntry n : entriesToAdd) {
             boolean delete = n.getId() == entry.getId()
-                    || FolderGameScanner.entryNameOrPathEquals(n, entry);
+                    || FolderGameScanner.entriesPathsEqual(n, entry);
             if (delete) {
                 toRemoveEntries.add(n);
                 break;
