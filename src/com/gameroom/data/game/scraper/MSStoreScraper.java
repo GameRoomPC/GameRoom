@@ -107,27 +107,7 @@ public class MSStoreScraper {
                     false,
                     com.gameroom.data.game.entry.Platform.PC.getIGDBId()
             );
-            if (searchResults != null) {
-                int minDistance = -1;
-                int jsonIndex = 0;
-                for (int i = 0; i < searchResults.length(); i++) {
-                    String name = searchResults.getJSONObject(i).getString("name");
-
-                    String cleanName = GameWatcher.formatNameForComparison(name);
-                    String cleanMSName = GameWatcher.formatNameForComparison(msStoreEntry.getName());
-                    int distance = LevenshteinDistance.distance(cleanMSName, cleanName);
-                    if (minDistance == -1 || distance < minDistance) {
-                        minDistance = distance;
-                        jsonIndex = i;
-                    }
-                    if (minDistance < MAX_LEVENSHTEIN_DISTANCE) {
-                        break;
-                    }
-                }
-                if (minDistance >= 0 && minDistance < MAX_LEVENSHTEIN_DISTANCE) {
-                    return IGDBScraper.getGameEntries(searchResults).get(jsonIndex);
-                }
-            }
+            return LevenshteinDistance.getClosestEntry(msStoreEntry.getName(),searchResults,MAX_LEVENSHTEIN_DISTANCE);
         } catch (UnirestException e) {
             e.printStackTrace();
         }

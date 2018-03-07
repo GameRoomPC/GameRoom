@@ -36,7 +36,9 @@ public class Serie {
         if (id != NONE_ID) {
             insertInDB(updateIfExists);
         } else {
-            ID_MAP.put(id, this);
+            synchronized (ID_MAP) {
+                ID_MAP.put(id, this);
+            }
         }
     }
 
@@ -87,7 +89,9 @@ public class Serie {
                 id = getIdInDb();
 
             }
-            ID_MAP.put(id, this);
+            synchronized (ID_MAP) {
+                ID_MAP.put(id, this);
+            }
             return id;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -118,67 +122,30 @@ public class Serie {
     }
 
     public static Serie getFromIGDBId(int igdb_id) {
-        if (ID_MAP.isEmpty()) {
-            try {
-                initWithDb();
-            } catch (SQLException e) {
-                e.printStackTrace();
+        synchronized (ID_MAP) {
+            if (ID_MAP.isEmpty()) {
+                try {
+                    initWithDb();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
-        }
 
-        for (Serie serie : ID_MAP.values()) {
-            if (serie.getIGDBId() == igdb_id) {
-                return serie;
+            for (Serie serie : ID_MAP.values()) {
+                if (serie.getIGDBId() == igdb_id) {
+                    return serie;
+                }
             }
-        }
-        //try to see if it exists in db
-        try {
-            Connection connection = DataBase.getUserConnection();
-            PreparedStatement statement = connection.prepareStatement("select * from Serie where igdb_id = ? AND id_needs_update = 0");
-            statement.setInt(1, igdb_id);
-            ResultSet set = statement.executeQuery();
-            if (set.next()) {
-                int serieId = set.getInt("id");
-                String key = set.getString("name_key");
-                Serie newSerie = new Serie(serieId, igdb_id, key, false);
-                ID_MAP.put(serieId, newSerie);
-
-                return newSerie;
-            }
-            statement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    public static Serie getFromId(int id) {
-        if (ID_MAP.isEmpty()) {
-            try {
-                initWithDb();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        Serie serie = ID_MAP.get(id);
-
-        if (serie == null) {
             //try to see if it exists in db
             try {
                 Connection connection = DataBase.getUserConnection();
-                PreparedStatement statement = connection.prepareStatement("select * from Serie where id = ?");
-                statement.setInt(1, id);
+                PreparedStatement statement = connection.prepareStatement("select * from Serie where igdb_id = ? AND id_needs_update = 0");
+                statement.setInt(1, igdb_id);
                 ResultSet set = statement.executeQuery();
                 if (set.next()) {
                     int serieId = set.getInt("id");
-                    int igdbId = set.getInt("igdb_id");
-                    boolean idNeedsUpdate = set.getBoolean("id_needs_update");
                     String key = set.getString("name_key");
-                    Serie newSerie = new Serie(serieId, igdbId, key, false);
-                    newSerie.setIdNeedsUpdate(idNeedsUpdate);
-
+                    Serie newSerie = new Serie(serieId, igdb_id, key, false);
                     ID_MAP.put(serieId, newSerie);
 
                     return newSerie;
@@ -187,9 +154,50 @@ public class Serie {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        }
 
-        return serie;
+            return null;
+        }
+    }
+
+    public static Serie getFromId(int id) {
+        synchronized (ID_MAP) {
+            if (ID_MAP.isEmpty()) {
+                try {
+                    initWithDb();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            Serie serie = ID_MAP.get(id);
+
+            if (serie == null) {
+                //try to see if it exists in db
+                try {
+                    Connection connection = DataBase.getUserConnection();
+                    PreparedStatement statement = connection.prepareStatement("select * from Serie where id = ?");
+                    statement.setInt(1, id);
+                    ResultSet set = statement.executeQuery();
+                    if (set.next()) {
+                        int serieId = set.getInt("id");
+                        int igdbId = set.getInt("igdb_id");
+                        boolean idNeedsUpdate = set.getBoolean("id_needs_update");
+                        String key = set.getString("name_key");
+                        Serie newSerie = new Serie(serieId, igdbId, key, false);
+                        newSerie.setIdNeedsUpdate(idNeedsUpdate);
+
+                        ID_MAP.put(serieId, newSerie);
+
+                        return newSerie;
+                    }
+                    statement.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return serie;
+        }
     }
 
     private static void initWithDb() throws SQLException {
@@ -200,7 +208,9 @@ public class Serie {
             int id = set.getInt("id");
             int igdbId = set.getInt("igdb_id");
             String key = set.getString("name_key");
-            ID_MAP.put(id, new Serie(id, igdbId, key,false));
+            synchronized (ID_MAP) {
+                ID_MAP.put(id, new Serie(id, igdbId, key, false));
+            }
         }
         statement.close();
     }
@@ -210,7 +220,9 @@ public class Serie {
     }
 
     public static Collection<Serie> values() {
-        return ID_MAP.values();
+        synchronized (ID_MAP) {
+            return ID_MAP.values();
+        }
     }
 
     public int getId() {

@@ -5,6 +5,7 @@ import com.gameroom.data.io.DataBase;
 import java.sql.*;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Created by LM on 02/03/2017.
@@ -31,6 +32,7 @@ public class Company {
     /**
      * Should onyl by used for {@link com.gameroom.data.migration.OldGameEntry}. Allows to create a {@link Company} not inserted into
      * DB
+     *
      * @param name name of the company created
      */
     @Deprecated
@@ -55,9 +57,9 @@ public class Company {
                 if (igdb_id >= 0) {
                     companyStatement.setInt(2, igdb_id);
                     companyStatement.setInt(3, 0);
-                    companyStatement.setInt(4,id);
-                }else{
-                    companyStatement.setInt(2,id);
+                    companyStatement.setInt(4, id);
+                } else {
+                    companyStatement.setInt(2, id);
                 }
                 companyStatement.execute();
                 companyStatement.close();
@@ -75,7 +77,9 @@ public class Company {
 
                 id = getIdInDb();
             }
-            ID_MAP.put(id, this);
+            synchronized (ID_MAP) {
+                ID_MAP.put(id, this);
+            }
 
             return id;
             //DataBase.commit();
@@ -108,37 +112,40 @@ public class Company {
     }
 
     public static Company getFromIGDBId(int igdb_id) {
-        if (ID_MAP.isEmpty()) {
+        synchronized (ID_MAP) {
+            if (ID_MAP.isEmpty()) {
+                try {
+                    initWithDb();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+
+            for (Company company : ID_MAP.values()) {
+                if (company.getIGDBId() == igdb_id && !company.idNeedsUpdate()) {
+                    return company;
+                }
+            }
+            //try to see if it exists in db
             try {
-                initWithDb();
+                Connection connection = DataBase.getUserConnection();
+                PreparedStatement statement = connection.prepareStatement("select * from Company where igdb_id = ? AND id_needs_update = 0");
+                statement.setInt(1, igdb_id);
+                ResultSet set = statement.executeQuery();
+                if (set.next()) {
+                    int companyId = set.getInt("id");
+                    String key = set.getString("name_key");
+                    Company newCompany = new Company(igdb_id, key, false);
+                    newCompany.setId(companyId);
+                    ID_MAP.put(companyId, newCompany);
+
+                    return newCompany;
+                }
+                statement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        }
-
-        for (Company company : ID_MAP.values()) {
-            if (company.getIGDBId() == igdb_id && !company.idNeedsUpdate()) {
-                return company;
-            }
-        }
-        //try to see if it exists in db
-        try {
-            Connection connection = DataBase.getUserConnection();
-            PreparedStatement statement = connection.prepareStatement("select * from Company where igdb_id = ? AND id_needs_update = 0");
-            statement.setInt(1, igdb_id);
-            ResultSet set = statement.executeQuery();
-            if (set.next()) {
-                int companyId = set.getInt("id");
-                String key = set.getString("name_key");
-                Company newCompany = new Company(igdb_id, key, false);
-                newCompany.setId(companyId);
-                ID_MAP.put(companyId, newCompany);
-
-                return newCompany;
-            }
-            statement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
 
         return null;
@@ -153,42 +160,44 @@ public class Company {
     }
 
     public static Company getFromId(int id) {
-        if (ID_MAP.isEmpty()) {
-            try {
-                initWithDb();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        Company company = ID_MAP.get(id);
-
-        if (company == null) {
-            //try to see if it exists in db
-            try {
-                Connection connection = DataBase.getUserConnection();
-                PreparedStatement statement = connection.prepareStatement("select * from Company where id = ?");
-                statement.setInt(1, id);
-                ResultSet set = statement.executeQuery();
-                if (set.next()) {
-                    int companyId = set.getInt("id");
-                    String key = set.getString("name_key");
-                    boolean idNeedsUpdate = set.getBoolean("id_needs_update");
-                    Company newCompany = new Company(set.getInt("igdb_id"), key, false);
-                    newCompany.setId(companyId);
-                    newCompany.setIdNeedsUpdate(idNeedsUpdate);
-
-                    ID_MAP.put(companyId, newCompany);
-
-                    return newCompany;
+        synchronized (ID_MAP) {
+            if (ID_MAP.isEmpty()) {
+                try {
+                    initWithDb();
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
-                statement.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
             }
+
+            Company company = ID_MAP.get(id);
+
+            if (company == null) {
+                //try to see if it exists in db
+                try {
+                    Connection connection = DataBase.getUserConnection();
+                    PreparedStatement statement = connection.prepareStatement("select * from Company where id = ?");
+                    statement.setInt(1, id);
+                    ResultSet set = statement.executeQuery();
+                    if (set.next()) {
+                        int companyId = set.getInt("id");
+                        String key = set.getString("name_key");
+                        boolean idNeedsUpdate = set.getBoolean("id_needs_update");
+                        Company newCompany = new Company(set.getInt("igdb_id"), key, false);
+                        newCompany.setId(companyId);
+                        newCompany.setIdNeedsUpdate(idNeedsUpdate);
+
+                        ID_MAP.put(companyId, newCompany);
+
+                        return newCompany;
+                    }
+                    statement.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            return company;
         }
 
-        return company;
     }
 
     private static void initWithDb() throws SQLException {
@@ -198,7 +207,9 @@ public class Company {
         while (set.next()) {
             int id = set.getInt("id");
             String key = set.getString("name_key");
-            ID_MAP.put(id, new Company(set.getInt("igdb_id"), key, false));
+            synchronized (ID_MAP) {
+                ID_MAP.put(id, new Company(set.getInt("igdb_id"), key, false));
+            }
         }
         statement.close();
     }
@@ -216,7 +227,9 @@ public class Company {
     }
 
     public static Collection<Company> values() {
-        return ID_MAP.values();
+        synchronized (ID_MAP) {
+            return ID_MAP.values();
+        }
     }
 
     public int getId() {
