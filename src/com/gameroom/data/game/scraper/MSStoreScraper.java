@@ -3,10 +3,14 @@ package com.gameroom.data.game.scraper;
 import com.gameroom.data.LevenshteinDistance;
 import com.gameroom.data.game.GameWatcher;
 import com.gameroom.data.game.entry.GameEntry;
+import com.gameroom.data.io.FileUtils;
 import com.gameroom.system.os.Terminal;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import javafx.scene.image.Image;
 import org.json.JSONArray;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -116,7 +120,7 @@ public class MSStoreScraper {
                         minDistance = distance;
                         jsonIndex = i;
                     }
-                    if (minDistance == 0) {
+                    if (minDistance < MAX_LEVENSHTEIN_DISTANCE) {
                         break;
                     }
                 }
@@ -191,7 +195,7 @@ public class MSStoreScraper {
         //application id, used to start app
         private String applicationId = "App";
 
-        //command to execute to start the app
+        //command to execute to start the app, built using "shell:AppsFolder\\" + packageFamilyName + "!" + applicationId;
         private String startCommand;
 
         //path to the executable in the file path
@@ -282,6 +286,26 @@ public class MSStoreScraper {
             stream.close();
 
             startCommand = "shell:AppsFolder\\" + packageFamilyName + "!" + applicationId;
+        }
+
+        /**
+         * Attempts to create a temporary file in GameRoom's temp folder that is filled with the app's icon's bitmap.
+         * @return a {@link File} made by copying the bitmap from {@link #realIconPath}, or null if it could not copy it
+         */
+        public File getIconTempCopy() {
+            try {
+                File originalFile = new File(realIconPath);
+                if (originalFile.exists()) {
+                    BufferedImage in = ImageIO.read(originalFile);
+                    File tempIconFile = FileUtils.newTempFile(displayName + "." + FileUtils.getExtension(originalFile));
+                    ImageIO.write(in, FileUtils.getExtension(originalFile), tempIconFile);
+                    return tempIconFile;
+                }
+            } catch (IOException e) {
+                LOGGER.error(TAG+": ("+displayName+") could not copy bitmap icon to temp file.");
+                e.printStackTrace();
+            }
+            return null;
         }
 
         @Override
