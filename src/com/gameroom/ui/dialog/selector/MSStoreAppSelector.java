@@ -107,8 +107,8 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
 
     private static class MSStoreAppItem extends SelectListPane.ListItem {
         private MSStoreScraper.MSStoreEntry entry;
-        private final static int IMAGE_WIDTH = 45;
-        private final static int IMAGE_HEIGHT = 45;
+        private final static int IMAGE_WIDTH = 64;
+        private final static int IMAGE_HEIGHT = 64;
         private StackPane coverPane = new StackPane();
 
         public MSStoreAppItem(@NonNull Object value, SelectListPane parentList) {
@@ -121,14 +121,14 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
         protected void addContent() {
             ImageView iconView = new ImageView();
             double scale = settings().getUIScale().getScale();
-            iconView.setFitHeight(64 * scale);
-            iconView.setFitWidth(64 * scale);
+            iconView.setFitHeight(IMAGE_HEIGHT * scale);
+            iconView.setFitWidth(IMAGE_WIDTH * scale);
 
             if (entry.getIconPath() != null) {
                 File iconPath = new File(entry.getIconPath());
                 if (iconPath.exists()) {
-                    ImageUtils.transitionToCover(iconPath, 64, 64, iconView);
-                    iconView.setFitHeight(64 * scale);
+                    ImageUtils.transitionToCover(iconPath, IMAGE_WIDTH, IMAGE_HEIGHT, iconView);
+                    iconView.setFitHeight(IMAGE_HEIGHT * scale);
                 }
                 //iconView.setImage(AppSelectorDialog.getIcon(new File(entry.getStartCommand())));
             }

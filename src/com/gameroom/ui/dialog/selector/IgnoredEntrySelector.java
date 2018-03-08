@@ -96,8 +96,8 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
 
     private static class GameFolderItem extends SelectListPane.ListItem {
         private GameEntry entry;
-        private final static int IMAGE_WIDTH = 45;
-        private final static int IMAGE_HEIGHT = 45;
+        private final static int IMAGE_WIDTH = 64;
+        private final static int IMAGE_HEIGHT = 64;
         private StackPane coverPane = new StackPane();
 
         public GameFolderItem(Object value, SelectListPane parentList) {
@@ -110,13 +110,13 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
         protected void addContent() {
             ImageView iconView = new ImageView();
             double scale = settings().getUIScale().getScale();
-            iconView.setFitHeight(32 * scale);
-            iconView.setFitWidth(32 * scale);
+            iconView.setFitHeight(IMAGE_HEIGHT * scale);
+            iconView.setFitWidth(IMAGE_WIDTH * scale);
 
             File gamePath = new File(entry.getPath());
             if (!gamePath.exists() || gamePath.isDirectory()) {
-                iconView.setImage(entry.getImage(0, 32 * scale, 32 * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO, true, false));
-                iconView.setFitHeight(32 * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO);
+                iconView.setImage(entry.getImage(0, IMAGE_WIDTH * scale, IMAGE_HEIGHT * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO, true, false));
+                iconView.setFitHeight(IMAGE_HEIGHT * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO);
             } else {
                 iconView.setImage(AppSelectorDialog.getIcon(gamePath));
             }
@@ -129,7 +129,7 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
             Label titleLabel = new Label(entry.getName());
             titleLabel.setTooltip(new Tooltip(gamePath.getAbsolutePath()));
 
-            Label idLabel = new Label(gamePath.getParent());
+            Label idLabel = new Label(gamePath.getAbsolutePath());
             idLabel.setStyle("-fx-font-size: 0.7em;");
 
             vbox.getChildren().addAll(titleLabel, idLabel);
