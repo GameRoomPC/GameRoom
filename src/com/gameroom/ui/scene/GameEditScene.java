@@ -195,12 +195,10 @@ public class GameEditScene extends BaseScene {
                 entry.saveEntry();
 
                 for (int i = 0; i < chosenImageFiles.length; i++) {
-                    if (chosenImageFiles[i] != null) {
-                        try {
-                            entry.updateImage(i, chosenImageFiles[i]);
-                        } catch (IOException e) {
-                            GameRoomAlert.error(Main.getString("error_move_images"));
-                        }
+                    try {
+                        entry.updateImage(i, chosenImageFiles[i]);
+                    } catch (IOException e) {
+                        GameRoomAlert.error(Main.getString("error_move_images"));
                     }
                 }
 
@@ -616,6 +614,7 @@ public class GameEditScene extends BaseScene {
             screenshotDlDoneHandler.run(chosenImageFiles[1]);
         });
         Label orLabel = new Label(Main.getString("or"));
+        Label orLabel2 = new Label(Main.getString("or"));
 
         Button screenshotIGDBButton = new Button(Main.getString("IGDB"));
         screenshotIGDBButton.setOnAction(event -> {
@@ -653,7 +652,14 @@ public class GameEditScene extends BaseScene {
 
         );
 
-        screenShotButtonsBox.getChildren().addAll(screenshotFileButton, orLabel, screenshotIGDBButton);
+        Button deleteWallpaperButton = new Button(Main.getString("delete"));
+        deleteWallpaperButton.setOnAction(event -> {
+                    ImageUtils.transitionToWindowBackground((Image) null, backgroundView);
+                    chosenImageFiles[1] = null;
+                }
+        );
+
+        screenShotButtonsBox.getChildren().addAll(screenshotFileButton, orLabel, screenshotIGDBButton, orLabel2, deleteWallpaperButton);
 
         contentPane.add(screenShotButtonsBox, 1, row_count);
         row_count++;
