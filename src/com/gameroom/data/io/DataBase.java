@@ -56,7 +56,7 @@ public class DataBase {
             /**********************************/
 
             /***** UPDATE 1.1.0.1 *****/
-            UpdateProcedure update1101 = new UpdateProcedure(1101);
+            UpdateProcedure update1101 = new UpdateProcedure(1120);
             report = update1101.applyDBUpdate();
             if (report.failed) {
                 return report;
