@@ -170,30 +170,27 @@ public class GameWatcher {
                 savedEntries.add(entry);
             }
         });
-        savedEntries.sort(new Comparator<GameEntry>() {
-            @Override
-            public int compare(GameEntry o1, GameEntry o2) {
-                int result = 0;
-                LocalDateTime date1 = o1.getAddedDate();
-                LocalDateTime date2 = o2.getAddedDate();
+        savedEntries.sort((o1, o2) -> {
+            int result = 0;
+            LocalDateTime date1 = o1.getAddedDate();
+            LocalDateTime date2 = o2.getAddedDate();
 
-                if (date1 == null && date2 != null) {
-                    return 1;
-                } else if (date2 == null && date1 != null) {
-                    return -1;
-                } else if (date1 == null && date2 == null) {
-                    result = 0;
-                } else {
-                    result = date1.compareTo(date2);
-                }
-                if (result == 0) {
-                    String name1 = o1.getName();
-                    String name2 = o2.getName();
-                    result = name1.compareToIgnoreCase(name2);
-                }
-
-                return result;
+            if (date1 == null && date2 != null) {
+                return 1;
+            } else if (date2 == null && date1 != null) {
+                return -1;
+            } else if (date1 == null && date2 == null) {
+                result = 0;
+            } else {
+                result = date1.compareTo(date2);
             }
+            if (result == 0) {
+                String name1 = o1.getName();
+                String name2 = o2.getName();
+                result = name1.compareToIgnoreCase(name2);
+            }
+
+            return result;
         });
         for (GameEntry savedEntry : savedEntries) {
             Main.runAndWait(() -> {
