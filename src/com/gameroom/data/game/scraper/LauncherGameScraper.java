@@ -130,7 +130,7 @@ public class LauncherGameScraper {
     }
 
     private static void scanUplayGames(GameScanner scanner) {
-        scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Ubisoft\\com.gameroom.Launcher\\Installs", "InstallDir    REG_SZ    ", null, scanner);
+        scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Ubisoft\\Launcher\\Installs", "InstallDir    REG_SZ    ", null, scanner);
     }
 
     private static void scanGOGGames(GameScanner scanner) {
@@ -154,7 +154,6 @@ public class LauncherGameScraper {
         List<MSStoreScraper.MSStoreEntry> msStoreEntries = MSStoreScraper.getApps();
         msStoreEntries.removeIf(msStoreEntry -> msStoreEntry.isInGameEntryCollection(GameEntryUtils.ENTRIES_LIST)
                 || msStoreEntry.isInGameEntryCollection(GameEntryUtils.IGNORED_ENTRIES)
-                || msStoreEntry.isInGameEntryCollection(GameEntryUtils.loadToAddGames())
         );
 
         for (MSStoreScraper.MSStoreEntry msStoreEntry : msStoreEntries) {
