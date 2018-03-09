@@ -78,6 +78,7 @@ public class GameWatcher {
         localGameScanners.add(new FolderGameScanner(this));
         localGameScanners.add(new ROMScanner(this));
         onlineGameScanners.add(new LauncherScanner(this, ScannerProfile.STEAM_ONLINE));
+        onlineGameScanners.add(new LauncherScanner(this, ScannerProfile.MICROSOFT_STORE));
 
         setScanPeriod(settings().getScanPeriod());
         if (scanPeriod == null) {
@@ -169,30 +170,27 @@ public class GameWatcher {
                 savedEntries.add(entry);
             }
         });
-        savedEntries.sort(new Comparator<GameEntry>() {
-            @Override
-            public int compare(GameEntry o1, GameEntry o2) {
-                int result = 0;
-                LocalDateTime date1 = o1.getAddedDate();
-                LocalDateTime date2 = o2.getAddedDate();
+        savedEntries.sort((o1, o2) -> {
+            int result = 0;
+            LocalDateTime date1 = o1.getAddedDate();
+            LocalDateTime date2 = o2.getAddedDate();
 
-                if (date1 == null && date2 != null) {
-                    return 1;
-                } else if (date2 == null && date1 != null) {
-                    return -1;
-                } else if (date1 == null && date2 == null) {
-                    result = 0;
-                } else {
-                    result = date1.compareTo(date2);
-                }
-                if (result == 0) {
-                    String name1 = o1.getName();
-                    String name2 = o2.getName();
-                    result = name1.compareToIgnoreCase(name2);
-                }
-
-                return result;
+            if (date1 == null && date2 != null) {
+                return 1;
+            } else if (date2 == null && date1 != null) {
+                return -1;
+            } else if (date1 == null && date2 == null) {
+                result = 0;
+            } else {
+                result = date1.compareTo(date2);
             }
+            if (result == 0) {
+                String name1 = o1.getName();
+                String name2 = o2.getName();
+                result = name1.compareToIgnoreCase(name2);
+            }
+
+            return result;
         });
         for (GameEntry savedEntry : savedEntries) {
             Main.runAndWait(() -> {
@@ -220,15 +218,73 @@ public class GameWatcher {
                         entry.setSavedLocally(true);
                         entry.setBeingScraped(true);
                         entry.setSavedLocally(false);
+                        Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
+
+                        int platformId = entry.getPlatform().getIGDBId();
+                        if(platformId == -1 && entry.getPlatform().isPCLauncher()){
+                            platformId = com.gameroom.data.game.entry.Platform.PC.getIGDBId();
+                        }
                         JSONArray search_results = IGDBScraper.searchGame(entry.getName(),
-                                true,
-                                entry.getPlatform().getIGDBId()
+                                false,
+                                platformId
                         );
-                        if (search_results != null) {
-                            int igdbId = LevenshteinDistance.closestName(entry.getName(), search_results);
-                            searchIGDBIDs.add(igdbId);
-                            entry.setIgdb_id(igdbId);
-                            toScrapEntries.add(entry);
+                        GameEntry scrapedEntry = LevenshteinDistance.getClosestEntry(entry.getName(),search_results,10);
+                        if(scrapedEntry != null){
+                            scrapedEntry.setIgdb_id(scrapedEntry.getIgdb_id());
+                            LOGGER.debug("Added scrapped info to game \"" + scrapedEntry.getName() + "\"");
+                            entry.setSavedLocally(true);
+                            if (entry.getDescription() == null || scrapedEntry.getDescription().equals("")) {
+                                entry.setDescription(scrapedEntry.getDescription());
+                            }
+                            if (entry.getReleaseDate() == null) {
+                                entry.setReleaseDate(scrapedEntry.getReleaseDate());
+                            }
+                            entry.setThemes(scrapedEntry.getThemes());
+                            entry.setGenres(scrapedEntry.getGenres());
+                            entry.setSerie(scrapedEntry.getSerie());
+                            entry.setDevelopers(scrapedEntry.getDevelopers());
+                            entry.setPublishers(scrapedEntry.getPublishers());
+                            entry.setIgdb_id(scrapedEntry.getIgdb_id());
+                            entry.setSavedLocally(false);
+
+                            ImageUtils.downloadIGDBImageToCache(scrapedEntry.getIgdb_id()
+                                    , scrapedEntry.getIgdb_imageHash(0)
+                                    , ImageUtils.IGDB_TYPE_COVER
+                                    , ImageUtils.IGDB_SIZE_BIG_2X
+                                    , outputFile -> {
+                                        try {
+                                            entry.setSavedLocally(true);
+                                            entry.updateImage(0, outputFile);
+                                            entry.setSavedLocally(false);
+                                        } catch (Exception e) {
+                                            Main.LOGGER.error("GameWatcher : could not move image for game " + entry.getName());
+                                            e.printStackTrace();
+                                        }
+
+                                        ImageUtils.downloadIGDBImageToCache(entry.getIgdb_id()
+                                                , scrapedEntry.getIgdb_imageHash(1)
+                                                , ImageUtils.IGDB_TYPE_SCREENSHOT
+                                                , ImageUtils.IGDB_SIZE_BIG_2X
+                                                , outputfile1 -> {
+                                                    try {
+                                                        entry.setSavedLocally(true);
+                                                        entry.updateImage(1, outputfile1);
+                                                        entry.setSavedLocally(false);
+                                                    } catch (Exception e) {
+                                                        Main.LOGGER.error("GameWatcher : could not move image for game " + entry.getName());
+                                                        e.printStackTrace();
+                                                    }
+                                                    entry.setSavedLocally(true);
+                                                    entry.setWaitingToBeScrapped(false);
+                                                    entry.setBeingScraped(false);
+                                                    entry.setSavedLocally(false);
+                                                    Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
+                                                });
+                                    });
+                        } else {
+                            entry.setSavedLocally(true);
+                            entry.setBeingScraped(false);
+                            entry.setSavedLocally(false);
                             Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
                         }
 
@@ -245,6 +301,7 @@ public class GameWatcher {
                             }
                         } else{
                             LOGGER.error("Error for game \"" + entry.getName()+ "\": " + e.getMessage());
+                            e.printStackTrace();
                         }
                         entry.setBeingScraped(false);
                         entry.setSavedLocally(false);
@@ -263,124 +320,7 @@ public class GameWatcher {
             e.printStackTrace();
         }
 
-        CopyOnWriteArrayList<CopyOnWriteArrayList<Integer>> searchIDsCollection = new CopyOnWriteArrayList<>();
 
-        int listCounter = -1;
-        for (int i = 0; i < searchIGDBIDs.size(); i++) {
-            if (i % 200 == 0) {
-                listCounter++;
-                searchIDsCollection.add(new CopyOnWriteArrayList<>());
-            }
-            searchIDsCollection.get(listCounter).add(searchIGDBIDs.get(i));
-        }
-
-        boolean anErrorOccurred = false;
-
-        if (searchIDsCollection.size() > 0) {
-            for (CopyOnWriteArrayList<Integer> ids : searchIDsCollection) {
-                if (!ids.isEmpty()) {
-                    try {
-                        JSONArray gamesDataArray = IGDBScraper.getGamesData(ids);
-                        if (gamesDataArray != null) {
-                            ArrayList<GameEntry> scrappedEntries = IGDBScraper.getGameEntries(gamesDataArray);
-
-                            int i = 0;
-
-                            if (MAIN_SCENE != null) {
-                                GeneralToast.displayToast(Main.getString("downloading_images"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
-                            }
-                            for (GameEntry scrappedEntry : scrappedEntries) {
-                                GameEntry toScrapEntry = getGameWithIGDBId(scrappedEntry.getIgdb_id(), toScrapEntries);
-                                if (toScrapEntry != null && !GameEntryUtils.isGameIgnored(toScrapEntry)) {
-                                    LOGGER.debug("Added scrapped info to game \"" + toScrapEntry.getName() + "\"");
-                                    toScrapEntry.setSavedLocally(true);
-                                    if (toScrapEntry.getDescription() == null || toScrapEntry.getDescription().equals("")) {
-                                        toScrapEntry.setDescription(scrappedEntry.getDescription());
-                                    }
-                                    if (toScrapEntry.getReleaseDate() == null) {
-                                        toScrapEntry.setReleaseDate(scrappedEntry.getReleaseDate());
-                                    }
-                                    toScrapEntry.setThemes(scrappedEntry.getThemes());
-                                    toScrapEntry.setGenres(scrappedEntry.getGenres());
-                                    toScrapEntry.setSerie(scrappedEntry.getSerie());
-                                    toScrapEntry.setDevelopers(scrappedEntry.getDevelopers());
-                                    toScrapEntry.setPublishers(scrappedEntry.getPublishers());
-                                    toScrapEntry.setIgdb_id(scrappedEntry.getIgdb_id());
-                                    toScrapEntry.setSavedLocally(false);
-
-                                    ImageUtils.downloadIGDBImageToCache(scrappedEntry.getIgdb_id()
-                                            , scrappedEntry.getIgdb_imageHash(0)
-                                            , ImageUtils.IGDB_TYPE_COVER
-                                            , ImageUtils.IGDB_SIZE_BIG_2X
-                                            , outputFile -> {
-                                                try {
-                                                    toScrapEntry.setSavedLocally(true);
-                                                    toScrapEntry.updateImage(0, outputFile);
-                                                    toScrapEntry.setSavedLocally(false);
-                                                } catch (Exception e) {
-                                                    Main.LOGGER.error("GameWatcher : could not move image for game " + toScrapEntry.getName());
-                                                    e.printStackTrace();
-                                                }
-
-                                                Main.runAndWait(() -> {
-                                                    Main.MAIN_SCENE.updateGame(scrappedEntry);
-                                                });
-
-                                                ImageUtils.downloadIGDBImageToCache(scrappedEntry.getIgdb_id()
-                                                        , scrappedEntry.getIgdb_imageHash(1)
-                                                        , ImageUtils.IGDB_TYPE_SCREENSHOT
-                                                        , ImageUtils.IGDB_SIZE_BIG_2X
-                                                        , outputfile1 -> {
-                                                            try {
-                                                                toScrapEntry.setSavedLocally(true);
-                                                                toScrapEntry.updateImage(1, outputfile1);
-                                                                toScrapEntry.setSavedLocally(false);
-                                                            } catch (Exception e) {
-                                                                Main.LOGGER.error("GameWatcher : could not move image for game " + toScrapEntry.getName());
-                                                                e.printStackTrace();
-                                                            }
-                                                            toScrapEntry.setSavedLocally(true);
-                                                            toScrapEntry.setWaitingToBeScrapped(false);
-                                                            toScrapEntry.setBeingScraped(false);
-                                                            toScrapEntry.setSavedLocally(false);
-                                                            Main.runAndWait(() -> {
-                                                                Main.MAIN_SCENE.updateGame(toScrapEntry);
-                                                            });
-                                                        });
-                                            });
-                                }
-
-                                i++;
-
-                                try {
-                                    Thread.sleep(2 * 100);
-                                } catch (InterruptedException ignored) {
-                                }
-                            }
-                        }
-                    } catch (UnirestException e) {
-                        LOGGER.error("GameWatcher: error querying server API, "+e.getMessage());
-                        if (!alreadyDisplayedIGDBError) {
-                            alreadyDisplayedIGDBError = true;
-                            anErrorOccurred = true;
-                            GameRoomAlert.errorGameRoomAPI();
-                        }
-                    }
-                }
-            }
-            for (GameEntry ge : toScrapEntries) {
-                if (ge.isBeingScraped()) { //this means that there was no id on igdb for this game
-                    //here we set it to false as IGDB was not able to find our game
-                    ge.setSavedLocally(true);
-                    ge.setBeingScraped(false);
-                    ge.setWaitingToBeScrapped(ge.isWaitingToBeScrapped() && anErrorOccurred);
-                    ge.setSavedLocally(false);
-                    Main.runAndWait(() -> {
-                        Main.MAIN_SCENE.updateGame(ge);
-                    });
-                }
-            }
-        }
     }
 
     private void scanNewOnlineGamesRoutine() {
@@ -449,6 +389,8 @@ public class GameWatcher {
                 .replaceAll("\\(.*\\)", "")
                 .replaceAll("\\[.*\\]", "")
                 .replaceAll("\\{.*\\}", "")
+                .replaceAll("for Windows 10","")
+                .replaceAll("for Windows","")
                 .trim();
     }
 
@@ -460,7 +402,7 @@ public class GameWatcher {
         ArrayList<GameEntry> toRemoveEntries = new ArrayList<>();
         for (GameEntry n : entriesToAdd) {
             boolean delete = n.getId() == entry.getId()
-                    || FolderGameScanner.entryNameOrPathEquals(n, entry);
+                    || FolderGameScanner.entriesPathsEqual(n, entry);
             if (delete) {
                 toRemoveEntries.add(n);
                 break;

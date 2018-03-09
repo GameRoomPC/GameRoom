@@ -27,6 +27,10 @@ public class AppPathField extends PathTextField {
         buttonsBox.getChildren().add(0, searchButton);
 
         searchButton.setOnAction(event -> {
+            if(getTextField().getText() == null){
+                GameRoomAlert.error(Main.getString("invalid_gamesFolder_exist"));
+                return;
+            }
             File file = new File(getTextField().getText());
             if (!file.exists()) {
                 GameRoomAlert.error(Main.getString("invalid_gamesFolder_exist"));

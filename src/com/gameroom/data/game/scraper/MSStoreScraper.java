@@ -1,14 +1,25 @@
 package com.gameroom.data.game.scraper;
 
+import com.gameroom.data.LevenshteinDistance;
+import com.gameroom.data.game.GameWatcher;
+import com.gameroom.data.game.entry.GameEntry;
+import com.gameroom.data.io.FileUtils;
 import com.gameroom.system.os.Terminal;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import javafx.scene.image.Image;
+import org.json.JSONArray;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.gameroom.data.game.GameWatcher.formatNameForComparison;
 import static com.gameroom.ui.Main.LOGGER;
 
 /**
@@ -22,6 +33,8 @@ public class MSStoreScraper {
     private final static Pattern DISPLAY_NAME_PATTERN = Pattern.compile("<DisplayName>(.*)<\\/DisplayName>");
     private final static Pattern LOGO_PATTERN = Pattern.compile("<Logo>(.*)<\\/Logo>");
     private final static Pattern APPLICATION_ID_PATTERN = Pattern.compile("<Application Id=\\\"([a-z|A-Z|0-9]*)\\\"");
+
+    private final static int MAX_LEVENSHTEIN_DISTANCE = 2;
 
     private final static String[] EXCLUDED_PACKAGE_PREFIX = new String[]{
             "Microsoft.NET",
@@ -49,10 +62,11 @@ public class MSStoreScraper {
 
 
     /**
-     * @return list of installed {@link MSStoreEntry} on the computer, excluding well known ones that are not games.
+     * Scans for a list of installed {@link MSStoreEntry} on the computer, excluding well known ones that are not games.
+     * Executes a callback function once an entry is found.
+     * @param appFoundHandler callback function/interface to be called when an entry is found
      */
-    public static List<MSStoreEntry> getApps() {
-        List<MSStoreEntry> entries = new ArrayList<>();
+    public static void getApps(@NonNull OnMSAppFoundHandler appFoundHandler) {
         Terminal terminal = new Terminal(false);
         try {
             String[] result = terminal.executePowerShell("Get-AppxPackage | Select PackageFamilyName, InstallLocation");
@@ -68,7 +82,7 @@ public class MSStoreScraper {
                                 && !isDisplayNameExcluded(entry.displayName)) {
                             entry.findRealIconPath();
                             entry.findExecutableFilePath();
-                            entries.add(entry);
+                            appFoundHandler.handle(entry);
                         }
                     } catch (IOException e) {
                         LOGGER.error(e);
@@ -79,7 +93,26 @@ public class MSStoreScraper {
         } catch (IOException e) {
             LOGGER.error(e);
         }
-        return entries;
+    }
+
+    /**
+     * Contacts GameRoom's API to determine whether this {@link MSStoreEntry} should be considered as a game or not,
+     * as it would be necessary for scanning for example.
+     *
+     * @param msStoreEntry the Microsoft Store application to check
+     * @return a filled {@link GameEntry} if this should be considered as a game, or null if not
+     */
+    public static GameEntry shouldConsiderGame(MSStoreEntry msStoreEntry) {
+        try {
+            JSONArray searchResults = IGDBScraper.searchGame(msStoreEntry.getName(),
+                    false,
+                    com.gameroom.data.game.entry.Platform.PC.getIGDBId()
+            );
+            return LevenshteinDistance.getClosestEntry(msStoreEntry.getName(),searchResults,MAX_LEVENSHTEIN_DISTANCE);
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
@@ -116,13 +149,6 @@ public class MSStoreScraper {
         return toFilter;
     }
 
-
-    public static void main(String[] args) {
-        for (MSStoreEntry ws : getApps()) {
-            System.out.println(ws);
-        }
-    }
-
     /**
      * Helper class representing a Microsoft Store application that is installed on the system. Offers convenient methods
      * to fill itself reading the app's manifest.
@@ -143,7 +169,7 @@ public class MSStoreScraper {
         //application id, used to start app
         private String applicationId = "App";
 
-        //command to execute to start the app
+        //command to execute to start the app, built using "shell:AppsFolder\\" + packageFamilyName + "!" + applicationId;
         private String startCommand;
 
         //path to the executable in the file path
@@ -236,6 +262,27 @@ public class MSStoreScraper {
             startCommand = "shell:AppsFolder\\" + packageFamilyName + "!" + applicationId;
         }
 
+        /**
+         * Attempts to create a temporary file in GameRoom's temp folder that is filled with the app's icon's bitmap.
+         *
+         * @return a {@link File} made by copying the bitmap from {@link #realIconPath}, or null if it could not copy it
+         */
+        public File getIconTempCopy() {
+            try {
+                File originalFile = new File(realIconPath);
+                if (originalFile.exists()) {
+                    BufferedImage in = ImageIO.read(originalFile);
+                    File tempIconFile = FileUtils.newTempFile(displayName.replaceAll("[^a-zA-Z0-9\\.\\-]", "_") + "." + FileUtils.getExtension(originalFile));
+                    ImageIO.write(in, FileUtils.getExtension(originalFile), tempIconFile);
+                    return tempIconFile;
+                }
+            } catch (IOException e) {
+                LOGGER.error(TAG + ": (" + displayName + ") could not copy bitmap icon to temp file.");
+                e.printStackTrace();
+            }
+            return null;
+        }
+
         @Override
         public String toString() {
             return "DisplayName: " + displayName
@@ -259,5 +306,31 @@ public class MSStoreScraper {
         public String getExecutableFilePath() {
             return executableFilePath;
         }
+
+        public boolean isInGameEntryCollection(Collection<GameEntry> entries) {
+            if (entries == null || entries.isEmpty()) {
+                return false;
+            }
+            for (GameEntry gameEntry : entries) {
+                if (gameEntry != null && gameEntry.getPath() != null) {
+                    if (getStartCommand() == null) {
+                        return true;
+                    }
+                    boolean equalPaths = getStartCommand().trim().toLowerCase().equals(gameEntry.getPath().trim().toLowerCase());
+
+                    if (equalPaths) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Callback interface used for scanning {@link MSStoreEntry}.
+     */
+    public interface OnMSAppFoundHandler{
+        void handle(MSStoreEntry msStoreEntry);
     }
 }

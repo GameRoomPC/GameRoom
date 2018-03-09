@@ -71,7 +71,7 @@ public class Launcher extends Application {
 
     private volatile boolean monitoringStageProps = false;
 
-    private static String DATA_PATH;
+    public static String DATA_PATH;
 
     public static void main(String[] args) throws URISyntaxException {
         com.sun.javafx.application.PlatformImpl.startup(() -> {

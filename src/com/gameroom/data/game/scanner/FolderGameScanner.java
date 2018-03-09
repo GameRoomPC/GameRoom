@@ -13,7 +13,6 @@ import java.io.File;
 import java.util.*;
 
 import static com.gameroom.data.game.GameWatcher.cleanNameForDisplay;
-import static com.gameroom.data.game.GameWatcher.formatNameForComparison;
 import static com.gameroom.ui.Main.MAIN_SCENE;
 
 /**
@@ -69,7 +68,7 @@ public class FolderGameScanner extends GameScanner {
                 return;
             }
             for (File f : children) {
-                ScanTask task = new ScanTask(this,() -> {
+                ScanTask task = new ScanTask(this, () -> {
                     File file = FileUtils.tryResolveLnk(f);
                     GameEntry potentialEntry = new GameEntry(cleanNameForDisplay(
                             f.getName(),
@@ -113,7 +112,9 @@ public class FolderGameScanner extends GameScanner {
         boolean gameAlreadyInLibrary = gameAlreadyInLibrary(potentialEntry);
         boolean folderGameIgnored = GameEntryUtils.isGameIgnored(potentialEntry);
         boolean alreadyWaitingToBeAdded = gameAlreadyIn(potentialEntry, parentLooker.getEntriesToAdd());
-        boolean pathExists = new File(potentialEntry.getPath()).exists() || potentialEntry.getPath().startsWith("steam");
+        boolean pathExists = new File(potentialEntry.getPath()).exists()
+                || potentialEntry.getPath().startsWith("steam")
+                || potentialEntry.getPath().startsWith("shell:AppsFolder");
         return !gameAlreadyInLibrary && !folderGameIgnored && !alreadyWaitingToBeAdded && pathExists;
     }
 
@@ -177,7 +178,7 @@ public class FolderGameScanner extends GameScanner {
     }
 
     @Override
-    public String getScannerName(){
+    public String getScannerName() {
         return "GameFolders scanner";
     }
 
@@ -196,7 +197,7 @@ public class FolderGameScanner extends GameScanner {
             return;
         }
         for (GameEntry entry : toAddAndLibEntries) {
-            if (entryNameOrPathEquals(entry, foundEntry)) {
+            if (entriesPathsEqual(entry, foundEntry)) {
                 entry.setSavedLocally(true);
                 boolean needRefresh = false;
 
@@ -222,34 +223,40 @@ public class FolderGameScanner extends GameScanner {
     }
 
     /**
-     * Compares entry with paths or name, and not with UUID.
+     * Compares entry with paths, and not with UUID.
      * This is helpful to compare entries in toAdd and !toAdd states, as they may point to the same game but not have the same UUID
      *
      * @param e1 the first entry to compare
      * @param e2 the other entry to compare
-     * @return true if a path includes an other or if they have the same name, false otherwise
+     * @return true if a path includes an other, false otherwise
      */
-    public static boolean entryNameOrPathEquals(GameEntry e1, GameEntry e2) {
+    public static boolean entriesPathsEqual(GameEntry e1, GameEntry e2) {
         if (e1 == null && e2 == null) {
             return true;
         } else if (e1 == null || e2 == null) {
             return false;
         }
-        boolean e1IncludesE2 = e1.getPath().trim().toLowerCase().contains(e2.getPath().trim().toLowerCase());
-        boolean e2IncludesE1 = e2.getPath().trim().toLowerCase().contains(e1.getPath().trim().toLowerCase());
+        return entriesPathsEqual(e1.getPath(), e2);
+    }
 
-        if (e1IncludesE2) {
-            if (e2.isToAdd()) {
-                e2.setPath(e1.getPath());
-            }
+    /**
+     * Compares a path against an entry's path
+     * This is helpful to compare entries in toAdd and !toAdd states, as they may point to the same game but not have the same UUID
+     *
+     * @param path  the first entry to compare
+     * @param entry the other entry to compare
+     * @return true if a path includes an other, false otherwise
+     */
+    public static boolean entriesPathsEqual(String path, GameEntry entry) {
+        if (path == null && entry == null) {
+            return true;
+        } else if (path == null || entry == null) {
+            return false;
         }
-        if (e2IncludesE1) {
-            if (e1.isToAdd()) {
-                e1.setPath(e2.getPath());
-            }
-        }
-        //cannot use UUID as they are different at this pre-add-time
-        return e1IncludesE2 || e2IncludesE1 || formatNameForComparison(e2.getName()).equals(formatNameForComparison(e1.getName()));
+        boolean e1IncludesE2 = path.trim().toLowerCase().contains(entry.getPath().trim().toLowerCase());
+        boolean e2IncludesE1 = entry.getPath().trim().toLowerCase().contains(path.trim().toLowerCase());
+
+        return e1IncludesE2 || e2IncludesE1;
     }
 
     /**
@@ -271,9 +278,23 @@ public class FolderGameScanner extends GameScanner {
      * @return true if already in the library, false otherwise
      */
     public static boolean gameAlreadyIn(GameEntry foundEntry, Collection<GameEntry> library) {
+        if(foundEntry == null){
+            return true;
+        }
+        return pathAlreadyIn(foundEntry.getPath(),library);
+    }
+
+    /**
+     * Checks if Game is already in GameRoom's library
+     * Compareason is done on the path or the name, as UUID may be different at this time
+     *
+     * @param path the entry to check
+     * @return true if already in the library, false otherwise
+     */
+    public static boolean pathAlreadyIn(String path, Collection<GameEntry> library) {
         boolean alreadyAddedToLibrary = false;
         for (GameEntry entry : library) {
-            alreadyAddedToLibrary = entryNameOrPathEquals(entry, foundEntry);
+            alreadyAddedToLibrary = entriesPathsEqual(path, entry);
             if (alreadyAddedToLibrary) {
                 break;
             }

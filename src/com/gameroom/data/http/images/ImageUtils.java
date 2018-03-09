@@ -2,6 +2,7 @@ package com.gameroom.data.http.images;
 
 import com.gameroom.data.game.scraper.OnDLDoneHandler;
 import com.gameroom.data.http.SimpleImageInfo;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -18,10 +19,16 @@ import com.gameroom.ui.control.button.gamebutton.GameButton;
 import com.gameroom.ui.scene.BaseScene;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import static com.gameroom.Launcher.DATA_PATH;
 import static com.gameroom.system.application.settings.GeneralSettings.settings;
+import static com.gameroom.ui.Main.DEV_MODE;
 import static com.gameroom.ui.scene.BaseScene.FADE_IN_OUT_TIME;
 
 /**
@@ -68,6 +75,10 @@ public class ImageUtils {
 
     private final static double BACKGROUND_IMAGE_BLUR = 7;
     private final static double BACKGROUND_IMAGE_LOAD_RATIO = 2 / 3.0;
+
+    private final static String THUMBNAIL_EXTENSION = ".png";
+    private final static String THUMBNAILER_EXE_NAME = "ThumbnailerCLI.exe";
+    private final static List<Integer> VALID_THUMBNAIL_SIZES = Arrays.asList(32, 64, 128, 256, 512);
 
     @Deprecated
     public static Task downloadSteamImageToCache(int steam_id, String type, String size, OnDLDoneHandler dlDoneHandler) {
@@ -174,7 +185,7 @@ public class ImageUtils {
      * Basically does the same as {@link #transitionToImage(Image, ImageView, double)}, but with the predefined opacity
      * of {@link BaseScene#BACKGROUND_IMAGE_MAX_OPACITY}.
      *
-     * @param imgRef {@link WeakReference<Image>} to the the background image to load
+     * @param imgRef    {@link WeakReference<Image>} to the the background image to load
      * @param imageView and where to place it
      */
     public static void transitionToWindowBackground(WeakReference<Image> imgRef, ImageView imageView) {
@@ -355,7 +366,7 @@ public class ImageUtils {
      * @return true if it should keep its cover ratio, false otherwise
      */
     public static boolean shouldKeepImageRatio(File imgFile) {
-        if(imgFile == null || !imgFile.exists()){
+        if (imgFile == null || !imgFile.exists()) {
             return false;
         }
         SimpleImageInfo imageInfo = new SimpleImageInfo(new File(imgFile.getAbsolutePath()));
@@ -378,5 +389,112 @@ public class ImageUtils {
         return Main.getExecutorService();
     }
 
+    /**
+     * Gets from cache or generates the thumbnail used by Windows Explorer to display a file
+     * @param file file we want the thumbnail from
+     * @param size size of the icon, must be in {@link #VALID_THUMBNAIL_SIZES}
+     * @return null if the thumbnail could not be generated, the thumbnail otherwise
+     */
+    private static Image getFileThumbnail(File file, int size) {
+        if (file == null || !file.exists()) {
+            return null;
+        }
+        if (!VALID_THUMBNAIL_SIZES.contains(size)) {
+            return null;
+        }
+        File cachedThumbnail = getCachedThumbnail(file, size);
+        if (cachedThumbnail == null || !cachedThumbnail.exists()) {
+            File thumbnail = generateThumbnail(file, size);
+            if (thumbnail == null || !thumbnail.exists()) {
+                return null;
+            }
+            return new Image("file:///" + thumbnail.getAbsolutePath());
+        } else {
+            return new Image("file:///" + cachedThumbnail.getAbsolutePath());
+        }
+    }
+
+    /**
+     * Creates the thumbnail file in the cache folder for the given file
+     * @param file the file we want the thumbnail from
+     * @param size size of the thumbnail, should be in {@link #VALID_THUMBNAIL_SIZES}
+     * @return the thumbnail file, null if it could not be created
+     */
+    @Nullable
+    private static File generateThumbnail(@Nullable File file, int size) {
+        if (file == null || !file.exists()) {
+            return null;
+        }
+        File outputFile = getCachedThumbnail(file, size);
+        try {
+            if (outputFile == null) {
+                return null;
+            }
+            String exePath = DEV_MODE ? DATA_PATH + File.separator + THUMBNAILER_EXE_NAME : THUMBNAILER_EXE_NAME;
+            Process process = new ProcessBuilder()
+                    .command(Arrays.asList(
+                            exePath,
+                            file.getAbsolutePath(),
+                            outputFile.getAbsolutePath(),
+                            Integer.toString(size)
+                    ))
+                    .inheritIO()
+                    .start();
+            process.waitFor();
+            process.destroy();
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return outputFile;
+    }
+
+    /**
+     * Returns the {@link File} pointing to the current or future cached thumbnail image for the given {@link File}. Hence
+     * it may not exist and can be used to determine the output for the cached thumbnail
+     * @param file the file we want the thumbnail from
+     * @param size size of the thumbnail, should be in {@link #VALID_THUMBNAIL_SIZES}
+     * @return null if the input file is invalid, the file otherwise
+     */
+    @Nullable
+    private static File getCachedThumbnail(@Nullable File file, int size) {
+        if (file == null || !file.exists()) {
+            return null;
+        }
+        String cachedFilename = generateThumbnailFilename(file, size);
+        if (cachedFilename == null) {
+            return null;
+        }
+        return getOutputImageCacheFile(cachedFilename);
+    }
+
+    /**
+     * Generates a file name with extension that can be used to uniquely identify a cached thumbnail in GameRoom's cache folder.
+     * It is created by generating a UUID on the input's file absolute path and the size specified.
+     * @param file the file we want the thumbnail from
+     * @param size size of the thumbnail, should be in {@link #VALID_THUMBNAIL_SIZES}
+     * @return a filename used to identify cached version of the thumbnail, of null if the input file is invalid
+     */
+    @Nullable
+    private static String generateThumbnailFilename(@Nullable File file, int size) {
+        if (file == null || !file.exists()) {
+            return null;
+        }
+        return UUID.nameUUIDFromBytes(file.getAbsolutePath().getBytes()).toString() + "_" + size + THUMBNAIL_EXTENSION;
+    }
+
+    /**
+     * Create a smooth transition to a file thumbnail on the given {@link ImageView}. It loads the file thumbnail in a
+     * background thread and then smoothly transitions it on the main thread.
+     * @param file the file to get the thumbnail's from
+     * @param view the view to apply the thumbnail's image to
+     * @param size size of the thumbnail, should be in {@link #VALID_THUMBNAIL_SIZES}
+     */
+    public static void transitionToFileThumbnail(@Nullable File file, @Nullable ImageView view, int size){
+        getExecutorService().submit(() -> {
+            transitionToImage(getFileThumbnail(file,size),view);
+            return null;
+        });
+    }
 
 }

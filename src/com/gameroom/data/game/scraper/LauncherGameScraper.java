@@ -2,6 +2,7 @@ package com.gameroom.data.game.scraper;
 
 import com.gameroom.data.game.GameWatcher;
 import com.gameroom.data.game.entry.GameEntry;
+import com.gameroom.data.game.entry.GameEntryUtils;
 import com.gameroom.data.game.entry.Platform;
 import com.gameroom.data.game.scanner.FolderGameScanner;
 import com.gameroom.data.game.scanner.GameScanner;
@@ -14,6 +15,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.gameroom.ui.Main.LOGGER;
 
 /**
  * Created by LM on 29/08/2016.
@@ -45,7 +48,7 @@ public class LauncherGameScraper {
                 scanSteamOnlineGames(scanner);
                 break;
             case MICROSOFT_STORE:
-                //TODO scan for MS Store games
+                scanMSStoreGames(scanner);
                 break;
             default:
                 break;
@@ -67,7 +70,7 @@ public class LauncherGameScraper {
             output = terminal.execute("reg", "query", '"' + regFolder + '"');
             for (String s : output) {
                 if (s.contains(regFolder)) {
-                    ScanTask task = new ScanTask(scanner,() -> {
+                    ScanTask task = new ScanTask(scanner, () -> {
                         int index = s.indexOf(regFolder) + regFolder.length() + 1;
                         String subFolder = s.substring(index);
 
@@ -127,7 +130,7 @@ public class LauncherGameScraper {
     }
 
     private static void scanUplayGames(GameScanner scanner) {
-        scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Ubisoft\\com.gameroom.Launcher\\Installs", "InstallDir    REG_SZ    ", null, scanner);
+        scanInstalledGames("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Ubisoft\\Launcher\\Installs", "InstallDir    REG_SZ    ", null, scanner);
     }
 
     private static void scanGOGGames(GameScanner scanner) {
@@ -145,6 +148,40 @@ public class LauncherGameScraper {
         String keyWord = "Support\\EA Help";
         String[] excludedNames = new String[]{"Origin"};
         scanUninstallReg(scanner, keyWord, excludedNames);
+    }
+
+    private static void scanMSStoreGames(GameScanner scanner) {
+        MSStoreScraper.getApps(msStoreEntry -> {
+            boolean invalid =  msStoreEntry.isInGameEntryCollection(GameEntryUtils.ENTRIES_LIST)
+                    || msStoreEntry.isInGameEntryCollection(GameEntryUtils.IGNORED_ENTRIES);
+            if(!invalid){
+                ScanTask task = new ScanTask(scanner,() -> {
+                    LOGGER.debug("MICROSOFT_STORE potential entry: "+msStoreEntry.getName());
+                    GameEntry gameEntry = MSStoreScraper.shouldConsiderGame(msStoreEntry);
+                    if (gameEntry != null) {
+                        gameEntry.setToAdd(true);
+                        gameEntry.setPath(msStoreEntry.getStartCommand());
+                        gameEntry.setPlatform(Platform.MICROSOFT_STORE_ID);
+                        gameEntry.setMonitorProcess(msStoreEntry.getExecutableFilePath());
+                    /*if (msStoreEntry.getIconPath() != null) {
+                        try {
+                            File tempFile = msStoreEntry.getIconTempCopy();
+                            if (tempFile == null) {
+                                tempFile = new File(msStoreEntry.getIconPath());
+                            }
+                            gameEntry.updateImage(0, tempFile);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }*/
+                        scanner.checkAndAdd(gameEntry);
+                    }
+                    return null;
+                });
+                GameWatcher.getInstance().submitTask(task);
+            }
+
+        });
     }
 
     private static void scanUXGamesForOrigin(GameScanner scanner) {
@@ -230,7 +267,7 @@ public class LauncherGameScraper {
             String[] output = terminal.execute("reg", "query", '"' + regFolder + '"', "/s", "/f", '"' + keyWord + '"');
             List<String> linesToProcess = Arrays.stream(output).filter(s -> s.startsWith(regFolder)).collect(Collectors.toList());
             linesToProcess.forEach(line -> {
-                ScanTask task = new ScanTask(scanner,() -> {
+                ScanTask task = new ScanTask(scanner, () -> {
                     String appCode = line.substring(regFolder.length() + 1); //+1 for the \
 
                     boolean excluded = false;

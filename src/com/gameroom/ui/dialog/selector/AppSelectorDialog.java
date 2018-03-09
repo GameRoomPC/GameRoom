@@ -1,6 +1,7 @@
 package com.gameroom.ui.dialog.selector;
 
 import com.gameroom.data.game.scanner.FolderGameScanner;
+import com.gameroom.data.http.images.ImageUtils;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
@@ -157,30 +158,6 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
         return selectedFile;
     }
 
-    public static Image getIcon(File file) {
-        ShellFolder sf = null;
-        try {
-            sf = ShellFolder.getShellFolder(file);
-        } catch (FileNotFoundException e) {
-            return null;
-        }
-        if (sf == null) {
-            return null;
-        }
-        java.awt.Image img = sf.getIcon(true);
-
-        if (img == null) {
-            return null;
-        }
-
-        BufferedImage buff = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-        Graphics2D graphics = buff.createGraphics();
-        graphics.drawImage(img, 0, 0, null);
-        graphics.dispose();
-
-        return SwingFXUtils.toFXImage(buff, null);
-    }
-
     private static class ApplicationList<File> extends SelectListPane {
 
         public ApplicationList() {
@@ -196,6 +173,7 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
     }
 
     private static class ApplicationItem extends SelectListPane.ListItem {
+        private final static int ICON_SIZE = 64;
         private File file;
         private StackPane coverPane = new StackPane();
         private ImageView coverView = new ImageView();
@@ -208,11 +186,11 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
 
         @Override
         protected void addContent() {
-            Image icon = getIcon(file);
-            coverView.setFitHeight(icon.getHeight());
-            coverView.setFitWidth(icon.getWidth());
-            coverView.setImage(icon);
+            coverView.setFitHeight(ICON_SIZE);
+            coverView.setFitWidth(ICON_SIZE);
             coverPane.getChildren().add(coverView);
+
+            ImageUtils.transitionToFileThumbnail(file,coverView,ICON_SIZE);
 
             //GridPane.setMargin(coverPane, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
             add(coverPane, columnCount++, 0);

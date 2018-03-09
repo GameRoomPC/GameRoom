@@ -1,5 +1,9 @@
 package com.gameroom.data;
 
+import com.gameroom.data.game.GameWatcher;
+import com.gameroom.data.game.entry.GameEntry;
+import com.gameroom.data.game.scraper.IGDBScraper;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -12,7 +16,7 @@ public class LevenshteinDistance {
         a = a.toLowerCase();
         b = b.toLowerCase();
         // i == 0
-        int [] costs = new int [b.length() + 1];
+        int[] costs = new int[b.length() + 1];
         for (int j = 0; j < costs.length; j++)
             costs[j] = j;
         for (int i = 1; i <= a.length(); i++) {
@@ -28,24 +32,49 @@ public class LevenshteinDistance {
         return costs[b.length()];
     }
 
-    public static int closestName(String searchedName, JSONArray searchResult) throws JSONException{
+    public static int closestName(String searchedName, JSONArray searchResult) throws JSONException {
         int closestId = -1;
         int minDistance = -1;
         for (int i = 0; i < searchResult.length(); i++) {
             String name = searchResult.getJSONObject(i).getString("name");
             int id = searchResult.getJSONObject(i).getInt("id");
 
-            int distance = distance(searchedName,name);
-            if(minDistance == -1 || distance < minDistance){
+            int distance = distance(searchedName, name);
+            if (minDistance == -1 || distance < minDistance) {
                 minDistance = distance;
                 closestId = id;
             }
-            if(minDistance == 0){
+            if (minDistance == 0) {
                 break;
             }
 
         }
         return closestId;
+    }
+
+    public static GameEntry getClosestEntry(String searchedName, JSONArray searchResults, int maxDistance) throws JSONException, UnirestException {
+        if (searchResults != null) {
+            int minDistance = -1;
+            int jsonIndex = 0;
+            for (int i = 0; i < searchResults.length(); i++) {
+                String name = searchResults.getJSONObject(i).getString("name");
+
+                String cleanName = GameWatcher.formatNameForComparison(name);
+                String cleanMSName = GameWatcher.formatNameForComparison(searchedName);
+                int distance = LevenshteinDistance.distance(cleanMSName, cleanName);
+                if (minDistance == -1 || distance < minDistance) {
+                    minDistance = distance;
+                    jsonIndex = i;
+                }
+                if (minDistance < maxDistance) {
+                    break;
+                }
+            }
+            if (minDistance >= 0 && minDistance < maxDistance) {
+                return IGDBScraper.getGameEntries(searchResults).get(jsonIndex);
+            }
+        }
+        return null;
     }
 
     /*public static List<Integer> getSortedIds(String searchedName, JSONArray resultArray) throws JSONException{
@@ -63,7 +92,7 @@ public class LevenshteinDistance {
         return sortedIds;
     }*/
 
-    private static class SortingItem{
+    private static class SortingItem {
         int id;
         int distance;
 

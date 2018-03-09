@@ -493,6 +493,9 @@ public class GameEntry {
                         , StandardCopyOption.REPLACE_EXISTING);
 
                 imagesFiles[index] = localFile;
+            }else if(imagesFiles[index] != null & newImageFile == null){
+                imagesFiles[index].delete();
+                imagesFiles[index] = null;
             }
         }
     }

@@ -1,7 +1,10 @@
 package com.gameroom.ui.dialog.selector;
 
+import com.gameroom.data.game.GameWatcher;
 import com.gameroom.data.game.entry.GameEntry;
 import com.gameroom.data.game.entry.GameEntryUtils;
+import com.gameroom.data.game.entry.Platform;
+import com.gameroom.data.game.scanner.FolderGameScanner;
 import com.gameroom.data.game.scraper.MSStoreScraper;
 import com.gameroom.data.http.images.ImageUtils;
 import com.gameroom.ui.Main;
@@ -27,7 +30,8 @@ import java.util.List;
 
 import static com.gameroom.system.application.settings.GeneralSettings.settings;
 
-/** UI element used to select {@link com.gameroom.data.game.scraper.MSStoreScraper.MSStoreEntry}
+/**
+ * UI element used to select {@link com.gameroom.data.game.scraper.MSStoreScraper.MSStoreEntry}
  *
  * @author LM. Garret (admin@gameroom.me)
  * @date 22/02/2018.
@@ -57,8 +61,28 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
         mainPane.setPrefHeight(2.0 / 3 * Main.SCREEN_HEIGHT);
 
         MSStoreAppSelector.MSEntryList list = new MSStoreAppSelector.MSEntryList();
-        list.addItems(loadMSStoreEntriesToDisplay());
-        statusLabel.setText(null);
+        Main.getExecutorService().submit(() -> {
+            MSStoreScraper.getApps(msStoreEntry -> {
+                if (msStoreEntry == null) {
+                    return;
+                }
+                if (!FolderGameScanner.pathAlreadyIn(msStoreEntry.getStartCommand(), GameEntryUtils.ENTRIES_LIST)) {
+                    Main.runAndWait(() -> {
+                        list.addItem(msStoreEntry);
+                        if(list.getListItems().size() > 0){
+                            statusLabel.setText(null);
+                        }
+                    });
+                }
+            });
+            if(list.getListItems().size() == 0){
+                Main.runAndWait(() -> {
+                    statusLabel.setText(Main.getString("error_loading_apps"));
+                });
+            }
+        });
+
+        statusLabel.setText(Main.getString("loading")+"...");
 
         mainPane.setCenter(list);
         list.setPrefWidth(mainPane.getPrefWidth());
@@ -70,22 +94,6 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
         setOnHiding(event -> {
             selectedList.addAll(list.getSelectedValues());
         });
-    }
-
-    private List<MSStoreScraper.MSStoreEntry> loadMSStoreEntriesToDisplay() {
-        List<MSStoreScraper.MSStoreEntry> msStoreEntries = MSStoreScraper.getApps();
-        msStoreEntries.removeIf(msStoreEntry -> {
-            if (msStoreEntry == null) {
-                return true;
-            }
-            for (GameEntry entry : GameEntryUtils.ENTRIES_LIST) {
-                if (entry.getPath().equals(msStoreEntry.getStartCommand())) {
-                    return true;
-                }
-            }
-            return false;
-        });
-        return msStoreEntries;
     }
 
     public ArrayList<MSStoreScraper.MSStoreEntry> getSelectedEntries() {
@@ -107,8 +115,8 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
 
     private static class MSStoreAppItem extends SelectListPane.ListItem {
         private MSStoreScraper.MSStoreEntry entry;
-        private final static int IMAGE_WIDTH = 45;
-        private final static int IMAGE_HEIGHT = 45;
+        private final static int IMAGE_WIDTH = 64;
+        private final static int IMAGE_HEIGHT = 64;
         private StackPane coverPane = new StackPane();
 
         public MSStoreAppItem(@NonNull Object value, SelectListPane parentList) {
@@ -121,14 +129,14 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
         protected void addContent() {
             ImageView iconView = new ImageView();
             double scale = settings().getUIScale().getScale();
-            iconView.setFitHeight(64 * scale);
-            iconView.setFitWidth(64 * scale);
+            iconView.setFitHeight(IMAGE_HEIGHT * scale);
+            iconView.setFitWidth(IMAGE_WIDTH * scale);
 
             if (entry.getIconPath() != null) {
                 File iconPath = new File(entry.getIconPath());
                 if (iconPath.exists()) {
-                    ImageUtils.transitionToCover(iconPath, 64, 64, iconView);
-                    iconView.setFitHeight(64 * scale);
+                    ImageUtils.transitionToCover(iconPath, IMAGE_WIDTH, IMAGE_HEIGHT, iconView);
+                    iconView.setFitHeight(IMAGE_HEIGHT * scale);
                 }
                 //iconView.setImage(AppSelectorDialog.getIcon(new File(entry.getStartCommand())));
             }
