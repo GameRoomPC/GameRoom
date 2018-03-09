@@ -1,6 +1,7 @@
 package com.gameroom.ui.control.textfield;
 
 import com.gameroom.data.game.entry.Platform;
+import com.gameroom.ui.UIValues;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -43,78 +44,78 @@ public class PathTextField extends StackPane {
         this.initialPath = initialPath;
         this.extensions = extensions;
         field = new TextField(initialPath);
-        buttonsBox = new HBox(5 * Main.SCREEN_WIDTH / 1920);
+        buttonsBox = new HBox(UIValues.Constants.offsetSmall());
+        //buttonsBox.setId("path-field-buttons-box");
         buttonsBox.setFocusTraversable(false);
         buttonsBox.setAlignment(Pos.CENTER_RIGHT);
 
-        double imgSize = 50 * SCREEN_WIDTH / 1920;
-        folderButton = new ImageButton("folder-button", imgSize, imgSize);
+        double imgSize = 30 * SCREEN_WIDTH / 1920;
+        folderButton = new ImageButton("path-field-folder-button", imgSize, imgSize);
         folderButton.setFocusTraversable(false);
+
+        buttonsBox.setPadding(UIValues.CONTROL_SMALL.insets());
         buttonsBox.setPickOnBounds(false);
         buttonsBox.getChildren().add(folderButton);
 
         getChildren().addAll(field, buttonsBox);
 
-        folderButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                try {
-                    String path = field.getText();
-                    if(path == null || path.isEmpty()){
-                        path = System.getProperty("user.home");
-                    }
-                    File initialDir = new File(path);
-                    switch (fileChooserCode) {
-                        case FILE_CHOOSER_APPS:
-                            FileChooser fileChooser = new FileChooser();
+        folderButton.setOnAction(event -> {
+            try {
+                String path = field.getText();
+                if(path == null || path.isEmpty()){
+                    path = System.getProperty("user.home");
+                }
+                File initialDir = new File(path);
+                switch (fileChooserCode) {
+                    case FILE_CHOOSER_APPS:
+                        FileChooser fileChooser = new FileChooser();
 
-                            while (!initialDir.exists() || !initialDir.isDirectory()) {
-                                initialDir = initialDir.getParentFile();
-                                if (initialDir == null) {
-                                    initialDir = new File(System.getProperty("user.home"));
-                                }
-                            }
-
-                            fileChooser.setInitialDirectory(initialDir);
-                            fileChooser.setTitle(fileChooserTitle);
-                            if(PathTextField.this.extensions != null){
-                                for(String ext : PathTextField.this.extensions){
-                                    if(ext != null && !ext.isEmpty()) {
-                                        fileChooser.getExtensionFilters().add(0, new FileChooser.ExtensionFilter(ext.replace("*.","").toUpperCase(), ext.toLowerCase()));
-                                    }
-                                }
-                            }
-                            fileChooser.getExtensionFilters().add(0,new FileChooser.ExtensionFilter(Main.getString("supported_files"),PathTextField.this.extensions));
-                            fileChooser.getExtensionFilters().add(1,new FileChooser.ExtensionFilter(Main.getString("all_files"),"*.*"));
-
-
-                            File selectedFile = fileChooser.showOpenDialog(ownerWindow);
-
-                            if (selectedFile != null) {
-                                field.setText(selectedFile.getAbsolutePath());
-                            }
-                            break;
-                        case FILE_CHOOSER_FOLDER:
-                            DirectoryChooser folderChooser = new DirectoryChooser();
-                            folderChooser.setTitle(fileChooserTitle);
-
-                            if (initialPath == null || initialPath.equals("") || !initialDir.exists()) {
+                        while (!initialDir.exists() || !initialDir.isDirectory()) {
+                            initialDir = initialDir.getParentFile();
+                            if (initialDir == null) {
                                 initialDir = new File(System.getProperty("user.home"));
                             }
-                            folderChooser.setInitialDirectory(initialDir);
+                        }
 
-                            File selectedFolder = folderChooser.showDialog(ownerWindow);
-
-                            if (selectedFolder != null) {
-                                field.setText(selectedFolder.getAbsolutePath());
+                        fileChooser.setInitialDirectory(initialDir);
+                        fileChooser.setTitle(fileChooserTitle);
+                        if(PathTextField.this.extensions != null){
+                            for(String ext : PathTextField.this.extensions){
+                                if(ext != null && !ext.isEmpty()) {
+                                    fileChooser.getExtensionFilters().add(0, new FileChooser.ExtensionFilter(ext.replace("*.","").toUpperCase(), ext.toLowerCase()));
+                                }
                             }
-                    }
+                        }
+                        fileChooser.getExtensionFilters().add(0,new FileChooser.ExtensionFilter(Main.getString("supported_files"),PathTextField.this.extensions));
+                        fileChooser.getExtensionFilters().add(1,new FileChooser.ExtensionFilter(Main.getString("all_files"),"*.*"));
 
 
-                } catch (NullPointerException ne) {
-                    ne.printStackTrace();
-                    GameRoomAlert.warning(Main.getString("warning_internet_shortcut"));
+                        File selectedFile = fileChooser.showOpenDialog(ownerWindow);
+
+                        if (selectedFile != null) {
+                            field.setText(selectedFile.getAbsolutePath());
+                        }
+                        break;
+                    case FILE_CHOOSER_FOLDER:
+                        DirectoryChooser folderChooser = new DirectoryChooser();
+                        folderChooser.setTitle(fileChooserTitle);
+
+                        if (initialPath == null || initialPath.equals("") || !initialDir.exists()) {
+                            initialDir = new File(System.getProperty("user.home"));
+                        }
+                        folderChooser.setInitialDirectory(initialDir);
+
+                        File selectedFolder = folderChooser.showDialog(ownerWindow);
+
+                        if (selectedFolder != null) {
+                            field.setText(selectedFolder.getAbsolutePath());
+                        }
                 }
+
+
+            } catch (NullPointerException ne) {
+                ne.printStackTrace();
+                GameRoomAlert.warning(Main.getString("warning_internet_shortcut"));
             }
         });
     }

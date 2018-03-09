@@ -1,5 +1,6 @@
 package com.gameroom.ui.control.specific;
 
+import com.gameroom.ui.UIValues;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -22,6 +23,7 @@ public class FloatingSearchBar extends HBox {
 
         closeButton = new ImageButton("toaddtile-ignore-button", searchBar.getImgSize()/2, searchBar.getImgSize()/2);
         closeButton.setFocusTraversable(false);
+        closeButton.setPadding(UIValues.CONTROL_SMALL.insets());
         closeButton.setOnAction(event -> {
             hide();
             clearSearchField();

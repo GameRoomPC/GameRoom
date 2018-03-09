@@ -10,7 +10,8 @@ public enum UIValues {
     CONTROL_HUGE(Constants.OFFSET_HUGE),
     CONTROL_BIG(Constants.OFFSET_BIG),
     CONTROL_MEDIUM(Constants.OFFSET_MEDIUM),
-    CONTROL_SMALL(Constants.OFFSET_SMALL);
+    CONTROL_SMALL(Constants.OFFSET_SMALL),
+    CONTROL_XSMALL(Constants.OFFSET_XSMALL);
 
     private int[] values = new int[4];
 
@@ -38,11 +39,15 @@ public enum UIValues {
 
     public static class Constants {
         private final static int OFFSET_NONE = 0;
+        private final static int OFFSET_XSMALL = 5;
         private final static int OFFSET_SMALL = 10;
         private final static int OFFSET_MEDIUM = 20;
         private final static int OFFSET_BIG = 30;
         private final static int OFFSET_HUGE = 50;
 
+        public static double offsetXSmall() {
+            return OFFSET_XSMALL * getScreenFactor();
+        }
 
         public static double offsetSmall() {
             return OFFSET_SMALL * getScreenFactor();

@@ -5,6 +5,7 @@ import com.gameroom.data.http.images.ImageUtils;
 import com.gameroom.system.application.settings.PredefinedSetting;
 import com.gameroom.ui.GeneralToast;
 import com.gameroom.ui.Main;
+import com.gameroom.ui.UIValues;
 import com.gameroom.ui.control.button.ImageButton;
 import com.gameroom.ui.dialog.GameRoomAlert;
 import com.gameroom.ui.dialog.selector.AppSelectorDialog;
@@ -279,6 +280,7 @@ public abstract class GameButton extends BorderPane {
 
         playButton.setOpacity(0);
         infoButton.setOpacity(0);
+        infoButton.setPadding(UIValues.CONTROL_XSMALL.insets());
         ratingLabel.setOpacity(0);
         releaseDateLabel.setOpacity(0);
         playButton.setFocusTraversable(false);

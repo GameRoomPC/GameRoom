@@ -1,6 +1,7 @@
 package com.gameroom.ui.dialog;
 
 import com.gameroom.data.game.GameFolderManager;
+import com.gameroom.data.http.images.ImageUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -38,13 +39,21 @@ public class GamesFoldersDialog extends GameRoomDialog {
         listView = new ListView<File>();
         listView.setEditable(false);
         listView.setCellFactory(param -> new ListCell<File>() {
+            private final static int SIZE = 32;
+            private ImageView imageView = new ImageView();
+
             @Override
             public void updateItem(File file, boolean empty) {
                 super.updateItem(file, empty);
+                imageView.setFitWidth(32);
+                imageView.setFitHeight(32);
                 if (empty || file == null) {
                     setText(null);
+                    setGraphic(null);
                 } else {
                     setText(file.getAbsolutePath());
+                    ImageUtils.transitionToFileThumbnail(file,imageView,32);
+                    setGraphic(imageView);
                 }
             }
         });

@@ -84,7 +84,6 @@
  *                                                                             *
  ******************************************************************************/
 .image-button{
-	-fx-padding: 5 15 5 15;
     -fx-background-color: transparent;
     -fx-background-radius: 0;
 }
@@ -807,6 +806,15 @@
 #arrow-down-button{
 	-fx-image: url("icons/arrow/down.png");
 }
+/**************(APP) PATH FIELD****************/
+#path-field-folder-button{
+	-fx-image: url("icons/pathField/folder.png");
+}
+
+#app-path-field-search-button{
+	-fx-image: url("icons/pathField/search.png");
+}
+
 
 /**************OTHERS****************/
 
@@ -853,6 +861,7 @@
 }
 
 .drawer-button{
+	-fx-padding: 5 15 5 15;
    -fx-background-color: transparent;
 }
 

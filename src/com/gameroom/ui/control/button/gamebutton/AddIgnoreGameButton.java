@@ -2,6 +2,7 @@ package com.gameroom.ui.control.button.gamebutton;
 
 import com.gameroom.data.game.entry.GameEntry;
 import com.gameroom.data.http.images.ImageUtils;
+import com.gameroom.ui.UIValues;
 import javafx.animation.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -76,6 +77,7 @@ public class AddIgnoreGameButton extends GameButton {
         addButton.setFocusTraversable(false);
         ignoreButton.setOpacity(0);
         ignoreButton.setFocusTraversable(false);
+        ignoreButton.setPadding(UIValues.CONTROL_XSMALL.insets());
 
         StackPane stackPane = new StackPane();
         stackPane.getChildren().addAll(ignoreButton, addButton, scrapingButton);

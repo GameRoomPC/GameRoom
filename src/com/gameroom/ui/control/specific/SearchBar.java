@@ -1,5 +1,6 @@
 package com.gameroom.ui.control.specific;
 
+import com.gameroom.ui.UIValues;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
@@ -22,6 +23,7 @@ public class SearchBar extends HBox {
         imgSize =20*SCREEN_WIDTH/1080;
         searchButton = new ImageButton("search-button", imgSize, imgSize);
         searchButton.setFocusTraversable(false);
+        searchButton.setPadding(UIValues.CONTROL_XSMALL.insets());
         //searchButton.setPadding(new Insets(20*SCREEN_HEIGHT/1080,20*SCREEN_WIDTH/1080,20*SCREEN_HEIGHT/1080,20*SCREEN_WIDTH/1080));
 
         searchField = new TextField();

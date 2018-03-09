@@ -2,6 +2,7 @@ package com.gameroom.ui.scene;
 
 import com.gameroom.data.game.entry.*;
 import com.gameroom.data.http.images.ImageUtils;
+import com.gameroom.ui.UIValues;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
@@ -123,6 +124,7 @@ public class GameInfoScene extends BaseScene {
         if (!settings().getBoolean(PredefinedSetting.DISABLE_GAME_MAIN_THEME)) {
             try {
                 ytButton = new YoutubePlayerAndButton(entry, this);
+                ytButton.getSoundMuteButton().setPadding(UIValues.CONTROL_SMALL.insets());
                 entry.setOnGameLaunched(() -> Platform.runLater(() -> ytButton.automaticPause()));
                 entry.setOnGameStopped(() -> Platform.runLater(() -> ytButton.automaticPlay()));
                 topStackPane.getChildren().addAll(ytButton.getSoundMuteButton());
