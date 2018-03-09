@@ -2,6 +2,7 @@ package com.gameroom.data.http.images;
 
 import com.gameroom.data.game.scraper.OnDLDoneHandler;
 import com.gameroom.data.http.SimpleImageInfo;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -18,10 +19,16 @@ import com.gameroom.ui.control.button.gamebutton.GameButton;
 import com.gameroom.ui.scene.BaseScene;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import static com.gameroom.Launcher.DATA_PATH;
 import static com.gameroom.system.application.settings.GeneralSettings.settings;
+import static com.gameroom.ui.Main.DEV_MODE;
 import static com.gameroom.ui.scene.BaseScene.FADE_IN_OUT_TIME;
 
 /**
@@ -68,6 +75,10 @@ public class ImageUtils {
 
     private final static double BACKGROUND_IMAGE_BLUR = 7;
     private final static double BACKGROUND_IMAGE_LOAD_RATIO = 2 / 3.0;
+
+    private final static String THUMBNAIL_EXTENSION = ".png";
+    private final static String THUMBNAILER_EXE_NAME = "ThumbnailerCLI.exe";
+    private final static List<Integer> VALID_THUMBNAIL_SIZES = Arrays.asList(32, 64, 128, 256, 512);
 
     @Deprecated
     public static Task downloadSteamImageToCache(int steam_id, String type, String size, OnDLDoneHandler dlDoneHandler) {
@@ -174,7 +185,7 @@ public class ImageUtils {
      * Basically does the same as {@link #transitionToImage(Image, ImageView, double)}, but with the predefined opacity
      * of {@link BaseScene#BACKGROUND_IMAGE_MAX_OPACITY}.
      *
-     * @param imgRef {@link WeakReference<Image>} to the the background image to load
+     * @param imgRef    {@link WeakReference<Image>} to the the background image to load
      * @param imageView and where to place it
      */
     public static void transitionToWindowBackground(WeakReference<Image> imgRef, ImageView imageView) {
@@ -355,7 +366,7 @@ public class ImageUtils {
      * @return true if it should keep its cover ratio, false otherwise
      */
     public static boolean shouldKeepImageRatio(File imgFile) {
-        if(imgFile == null || !imgFile.exists()){
+        if (imgFile == null || !imgFile.exists()) {
             return false;
         }
         SimpleImageInfo imageInfo = new SimpleImageInfo(new File(imgFile.getAbsolutePath()));
@@ -378,5 +389,72 @@ public class ImageUtils {
         return Main.getExecutorService();
     }
 
+    public static Image getFileThumbnail(File file, int size) {
+        if (file == null || !file.exists()) {
+            return null;
+        }
+        if (!VALID_THUMBNAIL_SIZES.contains(size)) {
+            return null;
+        }
+        File cachedThumbnail = getCachedThumbnail(file, size);
+        if (cachedThumbnail == null || !cachedThumbnail.exists()) {
+            File thumbnail = generateThumbnail(file, size);
+            if (thumbnail == null || !thumbnail.exists()) {
+                return null;
+            }
+            return new Image("file:///" + thumbnail.getAbsolutePath());
+        } else {
+            return new Image("file:///" + cachedThumbnail.getAbsolutePath());
+        }
+    }
+
+    @Nullable
+    private static File generateThumbnail(@Nullable File file, int size) {
+        if (file == null || !file.exists()) {
+            return null;
+        }
+        File outputFile = getCachedThumbnail(file, size);
+        try {
+            if (outputFile == null) {
+                return null;
+            }
+            String exePath = DEV_MODE ? DATA_PATH + File.separator + THUMBNAILER_EXE_NAME : THUMBNAILER_EXE_NAME;
+            Process process = new ProcessBuilder()
+                    .command(Arrays.asList(
+                            exePath,
+                            file.getAbsolutePath(),
+                            outputFile.getAbsolutePath(),
+                            Integer.toString(size)
+                    ))
+                    .inheritIO()
+                    .start();
+            process.waitFor();
+            process.destroy();
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return outputFile;
+    }
+
+    @Nullable
+    private static File getCachedThumbnail(@Nullable File file, int size) {
+        if (file == null || !file.exists()) {
+            return null;
+        }
+        String cachedFilename = generateThumbnailFilename(file, size);
+        if (cachedFilename == null) {
+            return null;
+        }
+        return getOutputImageCacheFile(cachedFilename);
+    }
+
+    @Nullable
+    private static String generateThumbnailFilename(@Nullable File file, int size) {
+        if (file == null || !file.exists()) {
+            return null;
+        }
+        return UUID.nameUUIDFromBytes(file.getAbsolutePath().getBytes()).toString() + "_" + size + THUMBNAIL_EXTENSION;
+    }
 
 }

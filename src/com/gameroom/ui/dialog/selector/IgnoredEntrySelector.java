@@ -2,6 +2,7 @@ package com.gameroom.ui.dialog.selector;
 
 import com.gameroom.data.game.entry.GameEntry;
 import com.gameroom.data.game.entry.GameEntryUtils;
+import com.gameroom.data.http.images.ImageUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ButtonBar;
@@ -114,11 +115,11 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
             iconView.setFitWidth(IMAGE_WIDTH * scale);
 
             File gamePath = new File(entry.getPath());
-            if (!gamePath.exists() || gamePath.isDirectory()) {
+            if (!gamePath.exists() && entry.getImagePath(0) != null && entry.getImagePath(0).exists()) {
                 iconView.setImage(entry.getImage(0, IMAGE_WIDTH * scale, IMAGE_HEIGHT * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO, true, false));
                 iconView.setFitHeight(IMAGE_HEIGHT * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO);
             } else {
-                iconView.setImage(AppSelectorDialog.getIcon(gamePath));
+                iconView.setImage(ImageUtils.getFileThumbnail(gamePath,IMAGE_WIDTH));
             }
             coverPane.getChildren().add(iconView);
 
@@ -127,9 +128,9 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
 
             VBox vbox = new VBox(5 * Main.SCREEN_HEIGHT / 1080);
             Label titleLabel = new Label(entry.getName());
-            titleLabel.setTooltip(new Tooltip(gamePath.getAbsolutePath()));
+            titleLabel.setTooltip(new Tooltip(entry.getPath()));
 
-            Label idLabel = new Label(gamePath.getAbsolutePath());
+            Label idLabel = new Label(entry.getPath());
             idLabel.setStyle("-fx-font-size: 0.7em;");
 
             vbox.getChildren().addAll(titleLabel, idLabel);
