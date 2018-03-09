@@ -6,6 +6,7 @@ import com.gameroom.data.game.entry.GameEntry;
 import com.gameroom.data.io.FileUtils;
 import com.gameroom.system.os.Terminal;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import javafx.scene.image.Image;
 import org.json.JSONArray;
 
@@ -61,10 +62,11 @@ public class MSStoreScraper {
 
 
     /**
-     * @return list of installed {@link MSStoreEntry} on the computer, excluding well known ones that are not games.
+     * Scans for a list of installed {@link MSStoreEntry} on the computer, excluding well known ones that are not games.
+     * Executes a callback function once an entry is found.
+     * @param appFoundHandler callback function/interface to be called when an entry is found
      */
-    public static List<MSStoreEntry> getApps() {
-        List<MSStoreEntry> entries = new ArrayList<>();
+    public static void getApps(@NonNull OnMSAppFoundHandler appFoundHandler) {
         Terminal terminal = new Terminal(false);
         try {
             String[] result = terminal.executePowerShell("Get-AppxPackage | Select PackageFamilyName, InstallLocation");
@@ -80,7 +82,7 @@ public class MSStoreScraper {
                                 && !isDisplayNameExcluded(entry.displayName)) {
                             entry.findRealIconPath();
                             entry.findExecutableFilePath();
-                            entries.add(entry);
+                            appFoundHandler.handle(entry);
                         }
                     } catch (IOException e) {
                         LOGGER.error(e);
@@ -91,7 +93,6 @@ public class MSStoreScraper {
         } catch (IOException e) {
             LOGGER.error(e);
         }
-        return entries;
     }
 
     /**
@@ -146,13 +147,6 @@ public class MSStoreScraper {
             toFilter = displayName.startsWith(EXCLUDED_DISPLAY_NAME_PREFIX[i]);
         }
         return toFilter;
-    }
-
-
-    public static void main(String[] args) {
-        for (MSStoreEntry ws : getApps()) {
-            System.out.println(ws);
-        }
     }
 
     /**
@@ -331,5 +325,12 @@ public class MSStoreScraper {
             }
             return false;
         }
+    }
+
+    /**
+     * Callback interface used for scanning {@link MSStoreEntry}.
+     */
+    public interface OnMSAppFoundHandler{
+        void handle(MSStoreEntry msStoreEntry);
     }
 }

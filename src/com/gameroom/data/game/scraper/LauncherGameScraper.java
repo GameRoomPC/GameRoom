@@ -151,20 +151,18 @@ public class LauncherGameScraper {
     }
 
     private static void scanMSStoreGames(GameScanner scanner) {
-        List<MSStoreScraper.MSStoreEntry> msStoreEntries = MSStoreScraper.getApps();
-        msStoreEntries.removeIf(msStoreEntry -> msStoreEntry.isInGameEntryCollection(GameEntryUtils.ENTRIES_LIST)
-                || msStoreEntry.isInGameEntryCollection(GameEntryUtils.IGNORED_ENTRIES)
-        );
-
-        for (MSStoreScraper.MSStoreEntry msStoreEntry : msStoreEntries) {
-            ScanTask task = new ScanTask(scanner,() -> {
-                LOGGER.debug("MICROSOFT_STORE potential entry: "+msStoreEntry.getName());
-                GameEntry gameEntry = MSStoreScraper.shouldConsiderGame(msStoreEntry);
-                if (gameEntry != null) {
-                    gameEntry.setToAdd(true);
-                    gameEntry.setPath(msStoreEntry.getStartCommand());
-                    gameEntry.setPlatform(Platform.MICROSOFT_STORE_ID);
-                    gameEntry.setMonitorProcess(msStoreEntry.getExecutableFilePath());
+        MSStoreScraper.getApps(msStoreEntry -> {
+            boolean invalid =  msStoreEntry.isInGameEntryCollection(GameEntryUtils.ENTRIES_LIST)
+                    || msStoreEntry.isInGameEntryCollection(GameEntryUtils.IGNORED_ENTRIES);
+            if(!invalid){
+                ScanTask task = new ScanTask(scanner,() -> {
+                    LOGGER.debug("MICROSOFT_STORE potential entry: "+msStoreEntry.getName());
+                    GameEntry gameEntry = MSStoreScraper.shouldConsiderGame(msStoreEntry);
+                    if (gameEntry != null) {
+                        gameEntry.setToAdd(true);
+                        gameEntry.setPath(msStoreEntry.getStartCommand());
+                        gameEntry.setPlatform(Platform.MICROSOFT_STORE_ID);
+                        gameEntry.setMonitorProcess(msStoreEntry.getExecutableFilePath());
                     /*if (msStoreEntry.getIconPath() != null) {
                         try {
                             File tempFile = msStoreEntry.getIconTempCopy();
@@ -176,12 +174,14 @@ public class LauncherGameScraper {
                             e.printStackTrace();
                         }
                     }*/
-                    scanner.checkAndAdd(gameEntry);
-                }
-                return null;
-            });
-            GameWatcher.getInstance().submitTask(task);
-        }
+                        scanner.checkAndAdd(gameEntry);
+                    }
+                    return null;
+                });
+                GameWatcher.getInstance().submitTask(task);
+            }
+
+        });
     }
 
     private static void scanUXGamesForOrigin(GameScanner scanner) {
