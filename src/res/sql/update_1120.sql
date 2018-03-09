@@ -33,8 +33,8 @@ INSERT INTO GameEntry
 SELECT
  id, name, release_date,description,aggregated_rating,path,cmd_before,cmd_after,launch_args,yt_hash,added_date,
 	last_played_date,
-	cover_hash ,
-	initial_playtime ,
+	initial_playtime,
+	cover_hash,
 	wp_hash ,
 	igdb_id ,
 	installed ,
