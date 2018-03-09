@@ -1,5 +1,6 @@
 package com.gameroom.ui.control.textfield;
 
+import com.gameroom.ui.UIValues;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Window;
@@ -20,8 +21,8 @@ public class AppPathField extends PathTextField {
     public AppPathField(String initialPath, Window ownerWindow, int fileChooserCode, String fileChooserTitle, String[] extensions) {
         super(initialPath, ownerWindow, fileChooserCode, fileChooserTitle,extensions);
 
-        double imgSize = 50 * SCREEN_WIDTH / 1920;
-        ImageButton searchButton = new ImageButton("search-button", imgSize, imgSize);
+        double imgSize = 30 * SCREEN_WIDTH / 1920;
+        ImageButton searchButton = new ImageButton("app-path-field-search-button", imgSize, imgSize);
         searchButton.setFocusTraversable(false);
 
         buttonsBox.getChildren().add(0, searchButton);
