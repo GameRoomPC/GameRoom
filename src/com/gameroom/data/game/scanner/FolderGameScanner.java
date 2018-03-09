@@ -24,7 +24,7 @@ public class FolderGameScanner extends GameScanner {
             , "GameData", "data_win32", "DXSETUP.exe", "unins000.exe", "uninstall", "Uninstall.exe", "Updater.exe"
             , "Installers", "_CommonRedist", "directx", "DotNetFX", "DirectX8", "DirectX9", "DirectX10", "DirectX11"
             , "DirectX12", "UPlayBrowser.exe", "UbisoftGameLauncherInstaller.exe", "FirewallInstall.exe"
-            , "GDFInstall.exe", "pbsvc.exe", "ActivationUI.exe","vcredist_x64_2012.exe","vcredist_x86_2012.exe",
+            , "GDFInstall.exe", "pbsvc.exe", "ActivationUI.exe","vcredist_x64_2012.exe","vcredist_x86_2012.exe"
             , "EasyAntiCheat_Setup.exe"
     };
     private final static String[] PREFERRED_FOLDER = new String[]{"Bin", "Binary", "Binaries", "win32", "win64", "x64"};
