@@ -389,7 +389,13 @@ public class ImageUtils {
         return Main.getExecutorService();
     }
 
-    public static Image getFileThumbnail(File file, int size) {
+    /**
+     * Gets from cache or generates the thumbnail used by Windows Explorer to display a file
+     * @param file file we want the thumbnail from
+     * @param size size of the icon, must be in {@link #VALID_THUMBNAIL_SIZES}
+     * @return null if the thumbnail could not be generated, the thumbnail otherwise
+     */
+    private static Image getFileThumbnail(File file, int size) {
         if (file == null || !file.exists()) {
             return null;
         }
@@ -408,6 +414,12 @@ public class ImageUtils {
         }
     }
 
+    /**
+     * Creates the thumbnail file in the cache folder for the given file
+     * @param file the file we want the thumbnail from
+     * @param size size of the thumbnail, should be in {@link #VALID_THUMBNAIL_SIZES}
+     * @return the thumbnail file, null if it could not be created
+     */
     @Nullable
     private static File generateThumbnail(@Nullable File file, int size) {
         if (file == null || !file.exists()) {
@@ -437,6 +449,13 @@ public class ImageUtils {
         return outputFile;
     }
 
+    /**
+     * Returns the {@link File} pointing to the current or future cached thumbnail image for the given {@link File}. Hence
+     * it may not exist and can be used to determine the output for the cached thumbnail
+     * @param file the file we want the thumbnail from
+     * @param size size of the thumbnail, should be in {@link #VALID_THUMBNAIL_SIZES}
+     * @return null if the input file is invalid, the file otherwise
+     */
     @Nullable
     private static File getCachedThumbnail(@Nullable File file, int size) {
         if (file == null || !file.exists()) {
@@ -449,12 +468,33 @@ public class ImageUtils {
         return getOutputImageCacheFile(cachedFilename);
     }
 
+    /**
+     * Generates a file name with extension that can be used to uniquely identify a cached thumbnail in GameRoom's cache folder.
+     * It is created by generating a UUID on the input's file absolute path and the size specified.
+     * @param file the file we want the thumbnail from
+     * @param size size of the thumbnail, should be in {@link #VALID_THUMBNAIL_SIZES}
+     * @return a filename used to identify cached version of the thumbnail, of null if the input file is invalid
+     */
     @Nullable
     private static String generateThumbnailFilename(@Nullable File file, int size) {
         if (file == null || !file.exists()) {
             return null;
         }
         return UUID.nameUUIDFromBytes(file.getAbsolutePath().getBytes()).toString() + "_" + size + THUMBNAIL_EXTENSION;
+    }
+
+    /**
+     * Create a smooth transition to a file thumbnail on the given {@link ImageView}. It loads the file thumbnail in a
+     * background thread and then smoothly transitions it on the main thread.
+     * @param file the file to get the thumbnail's from
+     * @param view the view to apply the thumbnail's image to
+     * @param size size of the thumbnail, should be in {@link #VALID_THUMBNAIL_SIZES}
+     */
+    public static void transitionToFileThumbnail(@Nullable File file, @Nullable ImageView view, int size){
+        getExecutorService().submit(() -> {
+            transitionToImage(getFileThumbnail(file,size),view);
+            return null;
+        });
     }
 
 }

@@ -186,11 +186,11 @@ public class AppSelectorDialog extends GameRoomDialog<ButtonType> {
 
         @Override
         protected void addContent() {
-            Image icon = ImageUtils.getFileThumbnail(file,ICON_SIZE);
-            coverView.setFitHeight(icon.getHeight());
-            coverView.setFitWidth(icon.getWidth());
-            coverView.setImage(icon);
+            coverView.setFitHeight(ICON_SIZE);
+            coverView.setFitWidth(ICON_SIZE);
             coverPane.getChildren().add(coverView);
+
+            ImageUtils.transitionToFileThumbnail(file,coverView,ICON_SIZE);
 
             //GridPane.setMargin(coverPane, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));
             add(coverPane, columnCount++, 0);
