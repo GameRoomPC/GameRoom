@@ -383,6 +383,15 @@ public class GameEditScene extends BaseScene {
             processMonitorField.setId("monitor_process");
             processMonitorField.getTextField().textProperty().addListener((observable, oldValue, newValue) -> entry.setMonitorProcess(newValue));
             monitorProcessNode = processMonitorField;
+        } else if (entry.getPlatform().getChosenEmulator() != null) {
+            File path = entry.getPlatform().getChosenEmulator().getPath();
+            if (path != null) {
+                monitorProcessNode = new Label(path.getAbsolutePath());
+                monitorProcessNode.setFocusTraversable(false);
+            } else {
+                monitorProcessNode = new Label(Main.getString("emulators_tooltip"));
+                monitorProcessNode.setFocusTraversable(false);
+            }
         } else {
             monitorProcessNode = new Label(entry.getPath());
             monitorProcessNode.setFocusTraversable(false);
