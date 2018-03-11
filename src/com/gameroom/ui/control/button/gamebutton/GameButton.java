@@ -763,11 +763,12 @@ public abstract class GameButton extends BorderPane {
     }
 
     public void checkFileExists() {
-        boolean validLauncher = !entry.isSteamGame()
+        boolean validLauncher = (!entry.isSteamGame()
                 && !entry.isMSStoreGame()
-                && entry.getPlatform().getId() != Platform.STEAM_ONLINE_ID;
-        if (validLauncher && entry.getPath() != null) {
-            File file = new File(entry.getPath());
+                && entry.getPlatform().getId() != Platform.STEAM_ONLINE_ID)
+                ||(entry.isMSStoreGame() && entry.getMonitorProcess() != null);
+        if (validLauncher && entry.getPath() != null ) {
+            File file = new File(entry.isMSStoreGame() ? entry.getMonitorProcess() : entry.getPath());
             if (!file.exists() && warningButton.isDisabled()) {
                 setDisabledCoverEffects();
                 enableNode(warningButton);

@@ -377,24 +377,40 @@ public class GameEditScene extends BaseScene {
         /************************** MONITOR PROCESS *********************************************/
         contentPane.add(createTitleLabel("monitor_process", false), 0, row_count);
         Node monitorProcessNode;
-        if (!entry.isSteamGame() && entry.getPlatform().isPCLauncher()) {
+
+        if (entry.isSteamGame()) {
+            monitorProcessNode = new Label(entry.getPath());
+            ((Label)monitorProcessNode).setTooltip(new Tooltip(entry.getPath()));
+            monitorProcessNode.setFocusTraversable(false);
+        } else if (entry.isMSStoreGame()) {
+            monitorProcessNode = new Label(entry.getMonitorProcess());
+            ((Label)monitorProcessNode).setTooltip(new Tooltip(entry.getMonitorProcess()));
+            monitorProcessNode.setFocusTraversable(false);
+        } else if (entry.getPlatform().isPCLauncher()) {
             AppPathField processMonitorField = new AppPathField(entry.getMonitorProcess(), getWindow(), PathTextField.FILE_CHOOSER_APPS, Main.getString("select_a_file"), entry.getPlatform().getSupportedExtensions());
             processMonitorField.getTextField().setPrefColumnCount(50);
             processMonitorField.setId("monitor_process");
             processMonitorField.getTextField().textProperty().addListener((observable, oldValue, newValue) -> entry.setMonitorProcess(newValue));
             monitorProcessNode = processMonitorField;
-        } else if (entry.getPlatform().getChosenEmulator() != null) {
-            File path = entry.getPlatform().getChosenEmulator().getPath();
-            if (path != null) {
-                monitorProcessNode = new Label(path.getAbsolutePath());
+        } else {
+            Emulator emulator = entry.getPlatform().getChosenEmulator();
+            if (emulator == null) {
+                monitorProcessNode = new Label(Main.getString("emulators_tooltip"));
+                ((Label)monitorProcessNode).setTooltip(new Tooltip(Main.getString("emulators_tooltip")));
                 monitorProcessNode.setFocusTraversable(false);
             } else {
-                monitorProcessNode = new Label(Main.getString("emulators_tooltip"));
-                monitorProcessNode.setFocusTraversable(false);
+
+                File path = entry.getPlatform().getChosenEmulator().getPath();
+                if (path != null) {
+                    monitorProcessNode = new Label(path.getAbsolutePath());
+                    ((Label)monitorProcessNode).setTooltip(new Tooltip(path.getAbsolutePath()));
+                    monitorProcessNode.setFocusTraversable(false);
+                } else {
+                    monitorProcessNode = new Label(Main.getString("emulators_tooltip"));
+                    ((Label)monitorProcessNode).setTooltip(new Tooltip(Main.getString("emulators_tooltip")));
+                    monitorProcessNode.setFocusTraversable(false);
+                }
             }
-        } else {
-            monitorProcessNode = new Label(entry.getPath());
-            monitorProcessNode.setFocusTraversable(false);
         }
 
         contentPane.add(monitorProcessNode, 1, row_count);
