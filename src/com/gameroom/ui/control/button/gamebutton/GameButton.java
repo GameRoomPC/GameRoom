@@ -1,6 +1,7 @@
 package com.gameroom.ui.control.button.gamebutton;
 
 import com.gameroom.data.game.entry.GameEntry;
+import com.gameroom.data.game.entry.Platform;
 import com.gameroom.data.http.images.ImageUtils;
 import com.gameroom.system.application.settings.PredefinedSetting;
 import com.gameroom.ui.GeneralToast;
@@ -65,6 +66,7 @@ public abstract class GameButton extends BorderPane {
     public static double COVER_SCALE_EFFECT_FACTOR = 1.1;
     private final static double COVER_BLUR_EFFECT_RADIUS = 10;
     private final static double COVER_BRIGHTNESS_EFFECT_FACTOR = 0.1;
+    private final static double DISABLED_COVER_BRIGHTNESS = -0.6;
 
     private BaseScene parentScene;
 
@@ -84,6 +86,7 @@ public abstract class GameButton extends BorderPane {
 
     ImageButton playButton;
     ImageButton infoButton;
+    ImageButton warningButton;
 
 
     private GameEntry entry;
@@ -92,6 +95,13 @@ public abstract class GameButton extends BorderPane {
     private ChangeListener<Boolean> monitoredChangeListener;
 
     private long lastGameStart = 0;
+
+    //COVER EFFECTS
+    DropShadow dropShadowBG = new DropShadow();
+    ColorAdjust colorAdjustBG = new ColorAdjust();
+    GaussianBlur blurBG = new GaussianBlur(0.0);
+    ColorAdjust colorAdjustIMG = new ColorAdjust();
+    GaussianBlur blurIMG = new GaussianBlur(0.0);
 
 
     GameButton(GameEntry entry, BaseScene scene, Pane parent) {
@@ -127,6 +137,7 @@ public abstract class GameButton extends BorderPane {
         ImageUtils.getExecutorService().submit(this::showCover);
 
         initNotInstalled();
+        checkFileExists();
     }
 
     public void setLauncherLogo() {
@@ -173,6 +184,7 @@ public abstract class GameButton extends BorderPane {
         });
         setCenter(coverPane);
         setBottom(titleBox);
+        checkFileExists();
     }
 
     private void initNameText() {
@@ -260,6 +272,8 @@ public abstract class GameButton extends BorderPane {
         playButton = new ImageButton("tile-play-button", SCREEN_WIDTH / 10, SCREEN_WIDTH / 10);
         //infoButton = new ImageButton(DEFAULT_INFO_IMAGE);
         infoButton = new ImageButton("tile-info-button", SCREEN_WIDTH / 20, SCREEN_WIDTH / 20);
+        warningButton = new ImageButton("tile-warning-button", SCREEN_WIDTH / 20, SCREEN_WIDTH / 20);
+        disableNode(warningButton);
 
         playTimeLabel = new Label(entry.getPlayTimeFormatted(GameEntry.TIME_FORMAT_ROUNDED_HMS));
         playTimeLabel.setId("tile-playtime-label");
@@ -281,10 +295,12 @@ public abstract class GameButton extends BorderPane {
         playButton.setOpacity(0);
         infoButton.setOpacity(0);
         infoButton.setPadding(UIValues.CONTROL_XSMALL.insets());
+        warningButton.setPadding(UIValues.CONTROL_XSMALL.insets());
         ratingLabel.setOpacity(0);
         releaseDateLabel.setOpacity(0);
         playButton.setFocusTraversable(false);
         infoButton.setFocusTraversable(false);
+        warningButton.setFocusTraversable(false);
 
         StackPane.setMargin(ratingLabel, new Insets(10 * Main.SCREEN_HEIGHT / 1080
                 , 10 * Main.SCREEN_WIDTH / 1920
@@ -372,27 +388,22 @@ public abstract class GameButton extends BorderPane {
         });
         infoButton.setOnMouseClicked(event -> parentScene.fadeTransitionTo(new GameInfoScene(new StackPane(), parentScene.getParentStage(), parentScene, entry), parentScene.getParentStage()));
 
-        //COVER EFFECTS
-        DropShadow dropShadowBG = new DropShadow();
-        dropShadowBG.setOffsetX(6.0 * SCREEN_WIDTH / 1920);
-        dropShadowBG.setOffsetY(4.0 * SCREEN_HEIGHT / 1080);
-        ColorAdjust colorAdjustBG = new ColorAdjust();
-        colorAdjustBG.setBrightness(0.0);
-        colorAdjustBG.setInput(dropShadowBG);
-        GaussianBlur blurBG = new GaussianBlur(0.0);
-        blurBG.setInput(colorAdjustBG);
+        warningButton.setOnMouseClicked(event -> {
+            //TODO open a dialog explain why the warning
+        });
 
-        ColorAdjust colorAdjustIMG = new ColorAdjust();
-        colorAdjustIMG.setBrightness(0.0);
-        GaussianBlur blurIMG = new GaussianBlur(0.0);
-        blurIMG.setInput(colorAdjustIMG);
-
-        coverView.setEffect(blurIMG);
-        defaultCoverView.setEffect(blurBG);
+        setDefaultCoverEffects();
 
         setFocusTraversable(true);
         focusedProperty().addListener((observable, oldValue, newValue) -> {
             javafx.application.Platform.runLater(() -> {
+                double dropShadowBGX = dropShadowBG.getOffsetX();
+                double dropShadowBGY = dropShadowBG.getOffsetY();
+                double blurBGRadius = blurBG.getRadius();
+                double blurIMGRadius = blurIMG.getRadius();
+                double colorAdjustIMGBrightness = colorAdjustIMG.getBrightness();
+                double colorAdjustBGBrightness = colorAdjustBG.getBrightness();
+
                 if (newValue) {
                     playButton.setMouseTransparent(false);
                     infoButton.setMouseTransparent(false);
@@ -418,8 +429,8 @@ public abstract class GameButton extends BorderPane {
                                     new KeyValue(playButton.opacityProperty(), 1, Interpolator.EASE_OUT),
                                     new KeyValue(infoButton.opacityProperty(), 1, Interpolator.EASE_OUT),
                                     new KeyValue(scaleYProperty(), COVER_SCALE_EFFECT_FACTOR, Interpolator.LINEAR),
-                                    new KeyValue(colorAdjustIMG.brightnessProperty(), -COVER_BRIGHTNESS_EFFECT_FACTOR, Interpolator.LINEAR),
-                                    new KeyValue(colorAdjustBG.brightnessProperty(), -COVER_BRIGHTNESS_EFFECT_FACTOR, Interpolator.LINEAR)
+                                    new KeyValue(colorAdjustIMG.brightnessProperty(), warningButton.isVisible() ? DISABLED_COVER_BRIGHTNESS : -COVER_BRIGHTNESS_EFFECT_FACTOR, Interpolator.LINEAR),
+                                    new KeyValue(colorAdjustBG.brightnessProperty(), warningButton.isVisible() ? DISABLED_COVER_BRIGHTNESS : -COVER_BRIGHTNESS_EFFECT_FACTOR, Interpolator.LINEAR)
                             ));
                     fadeInTimeline.setCycleCount(1);
                     fadeInTimeline.setAutoReverse(false);
@@ -437,32 +448,62 @@ public abstract class GameButton extends BorderPane {
                         playButton.setMouseTransparent(true);
                         infoButton.setMouseTransparent(true);
 
-                        Timeline fadeOutTimeline = new Timeline(
-                                new KeyFrame(Duration.seconds(0),
-                                        new KeyValue(dropShadowBG.offsetXProperty(), dropShadowBG.offsetXProperty().getValue(), Interpolator.LINEAR),
-                                        new KeyValue(dropShadowBG.offsetYProperty(), dropShadowBG.offsetYProperty().getValue(), Interpolator.LINEAR),
-                                        new KeyValue(blurBG.radiusProperty(), blurBG.radiusProperty().getValue(), Interpolator.LINEAR),
-                                        new KeyValue(blurIMG.radiusProperty(), blurIMG.radiusProperty().getValue(), Interpolator.LINEAR),
-                                        new KeyValue(scaleXProperty(), scaleXProperty().getValue(), Interpolator.LINEAR),
-                                        new KeyValue(playButton.opacityProperty(), playButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
-                                        new KeyValue(infoButton.opacityProperty(), infoButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
-                                        new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT),
-                                        new KeyValue(scaleYProperty(), scaleYProperty().getValue(), Interpolator.LINEAR),
-                                        new KeyValue(colorAdjustIMG.brightnessProperty(), colorAdjustIMG.brightnessProperty().getValue(), Interpolator.LINEAR),
-                                        new KeyValue(colorAdjustBG.brightnessProperty(), colorAdjustBG.brightnessProperty().getValue(), Interpolator.LINEAR)),
-                                new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
-                                        new KeyValue(dropShadowBG.offsetXProperty(), 6.0 * SCREEN_WIDTH / 1920, Interpolator.LINEAR),
-                                        new KeyValue(dropShadowBG.offsetYProperty(), 4.0 * SCREEN_WIDTH / 1080, Interpolator.LINEAR),
-                                        new KeyValue(blurBG.radiusProperty(), 0, Interpolator.LINEAR),
-                                        new KeyValue(blurIMG.radiusProperty(), 0, Interpolator.LINEAR),
-                                        new KeyValue(scaleXProperty(), 1, Interpolator.LINEAR),
-                                        new KeyValue(playButton.opacityProperty(), 0, Interpolator.EASE_OUT),
-                                        new KeyValue(infoButton.opacityProperty(), 0, Interpolator.EASE_OUT),
-                                        new KeyValue(playTimeLabel.opacityProperty(), keepTimeLabelVisible ? 1 : 0, Interpolator.EASE_OUT),
-                                        new KeyValue(scaleYProperty(), 1, Interpolator.LINEAR),
-                                        new KeyValue(colorAdjustBG.brightnessProperty(), 0, Interpolator.LINEAR),
-                                        new KeyValue(colorAdjustIMG.brightnessProperty(), 0, Interpolator.LINEAR)
-                                ));
+                        Timeline fadeOutTimeline;
+                        if (warningButton.isVisible()) {
+                            fadeOutTimeline = new Timeline(
+                                    new KeyFrame(Duration.seconds(0),
+                                            new KeyValue(dropShadowBG.offsetXProperty(), dropShadowBG.offsetXProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(dropShadowBG.offsetYProperty(), dropShadowBG.offsetYProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(blurBG.radiusProperty(), blurBG.radiusProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(blurIMG.radiusProperty(), blurIMG.radiusProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(scaleXProperty(), scaleXProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(playButton.opacityProperty(), playButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
+                                            new KeyValue(infoButton.opacityProperty(), infoButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
+                                            new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT),
+                                            new KeyValue(scaleYProperty(), scaleYProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(colorAdjustIMG.brightnessProperty(), colorAdjustIMG.brightnessProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(colorAdjustBG.brightnessProperty(), colorAdjustBG.brightnessProperty().getValue(), Interpolator.LINEAR)),
+                                    new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                            new KeyValue(dropShadowBG.offsetXProperty(), 6.0 * SCREEN_WIDTH / 1920, Interpolator.LINEAR),
+                                            new KeyValue(dropShadowBG.offsetYProperty(), 4.0 * SCREEN_WIDTH / 1080, Interpolator.LINEAR),
+                                            new KeyValue(blurBG.radiusProperty(), COVER_BLUR_EFFECT_RADIUS, Interpolator.LINEAR),
+                                            new KeyValue(blurIMG.radiusProperty(), COVER_BLUR_EFFECT_RADIUS, Interpolator.LINEAR),
+                                            new KeyValue(scaleXProperty(), 1, Interpolator.LINEAR),
+                                            new KeyValue(playButton.opacityProperty(), 0, Interpolator.EASE_OUT),
+                                            new KeyValue(infoButton.opacityProperty(), 0, Interpolator.EASE_OUT),
+                                            new KeyValue(playTimeLabel.opacityProperty(), keepTimeLabelVisible ? 1 : 0, Interpolator.EASE_OUT),
+                                            new KeyValue(scaleYProperty(), 1, Interpolator.LINEAR),
+                                            new KeyValue(colorAdjustBG.brightnessProperty(), DISABLED_COVER_BRIGHTNESS, Interpolator.LINEAR),
+                                            new KeyValue(colorAdjustIMG.brightnessProperty(), DISABLED_COVER_BRIGHTNESS, Interpolator.LINEAR)
+                                    ));
+                        } else {
+                            fadeOutTimeline = new Timeline(
+                                    new KeyFrame(Duration.seconds(0),
+                                            new KeyValue(dropShadowBG.offsetXProperty(), dropShadowBG.offsetXProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(dropShadowBG.offsetYProperty(), dropShadowBG.offsetYProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(blurBG.radiusProperty(), blurBG.radiusProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(blurIMG.radiusProperty(), blurIMG.radiusProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(scaleXProperty(), scaleXProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(playButton.opacityProperty(), playButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
+                                            new KeyValue(infoButton.opacityProperty(), infoButton.opacityProperty().getValue(), Interpolator.EASE_OUT),
+                                            new KeyValue(playTimeLabel.opacityProperty(), playTimeLabel.opacityProperty().getValue(), Interpolator.EASE_OUT),
+                                            new KeyValue(scaleYProperty(), scaleYProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(colorAdjustIMG.brightnessProperty(), colorAdjustIMG.brightnessProperty().getValue(), Interpolator.LINEAR),
+                                            new KeyValue(colorAdjustBG.brightnessProperty(), colorAdjustBG.brightnessProperty().getValue(), Interpolator.LINEAR)),
+                                    new KeyFrame(Duration.seconds(FADE_IN_OUT_TIME),
+                                            new KeyValue(dropShadowBG.offsetXProperty(), 6.0 * SCREEN_WIDTH / 1920, Interpolator.LINEAR),
+                                            new KeyValue(dropShadowBG.offsetYProperty(), 4.0 * SCREEN_WIDTH / 1080, Interpolator.LINEAR),
+                                            new KeyValue(blurBG.radiusProperty(), 0, Interpolator.LINEAR),
+                                            new KeyValue(blurIMG.radiusProperty(), 0, Interpolator.LINEAR),
+                                            new KeyValue(scaleXProperty(), 1, Interpolator.LINEAR),
+                                            new KeyValue(playButton.opacityProperty(), 0, Interpolator.EASE_OUT),
+                                            new KeyValue(infoButton.opacityProperty(), 0, Interpolator.EASE_OUT),
+                                            new KeyValue(playTimeLabel.opacityProperty(), keepTimeLabelVisible ? 1 : 0, Interpolator.EASE_OUT),
+                                            new KeyValue(scaleYProperty(), 1, Interpolator.LINEAR),
+                                            new KeyValue(colorAdjustBG.brightnessProperty(), 0, Interpolator.LINEAR),
+                                            new KeyValue(colorAdjustIMG.brightnessProperty(), 0, Interpolator.LINEAR)
+                                    ));
+                        }
                         fadeOutTimeline.setCycleCount(1);
                         fadeOutTimeline.setAutoReverse(false);
 
@@ -555,10 +596,12 @@ public abstract class GameButton extends BorderPane {
                 coverView,
                 playButton,
                 infoButton,
+                warningButton,
                 playTimeLabel,
                 ratingLabel,
                 releaseDateLabel);
         StackPane.setAlignment(infoButton, Pos.BOTTOM_RIGHT);
+        StackPane.setAlignment(warningButton, Pos.BOTTOM_LEFT);
         StackPane.setAlignment(playTimeLabel, Pos.BOTTOM_CENTER);
         StackPane.setAlignment(ratingLabel, Pos.BOTTOM_LEFT);
         StackPane.setAlignment(releaseDateLabel, Pos.BOTTOM_LEFT);
@@ -569,6 +612,38 @@ public abstract class GameButton extends BorderPane {
         initNotInstalled();
         setCache(true);
         setCacheHint(CacheHint.SPEED);
+    }
+
+    private void setDefaultCoverEffects() {
+        //COVER EFFECTS
+        dropShadowBG.setOffsetX(6.0 * SCREEN_WIDTH / 1920);
+        dropShadowBG.setOffsetY(4.0 * SCREEN_HEIGHT / 1080);
+        colorAdjustBG.setBrightness(0.0);
+        colorAdjustBG.setInput(dropShadowBG);
+        blurBG.setInput(colorAdjustBG);
+        blurBG.setRadius(0);
+        colorAdjustIMG.setBrightness(0.0);
+        blurIMG.setInput(colorAdjustIMG);
+        blurIMG.setRadius(0);
+
+        coverView.setEffect(blurIMG);
+        defaultCoverView.setEffect(blurBG);
+    }
+
+    private void setDisabledCoverEffects() {
+        //COVER EFFECTS
+        dropShadowBG.setOffsetX(6.0 * SCREEN_WIDTH / 1920);
+        dropShadowBG.setOffsetY(4.0 * SCREEN_HEIGHT / 1080);
+        colorAdjustBG.setBrightness(DISABLED_COVER_BRIGHTNESS);
+        colorAdjustBG.setInput(dropShadowBG);
+        blurBG.setInput(colorAdjustBG);
+        blurBG.setRadius(COVER_BLUR_EFFECT_RADIUS);
+        colorAdjustIMG.setBrightness(DISABLED_COVER_BRIGHTNESS);
+        blurIMG.setInput(colorAdjustIMG);
+        blurIMG.setRadius(COVER_BLUR_EFFECT_RADIUS);
+
+        coverView.setEffect(blurIMG);
+        defaultCoverView.setEffect(blurBG);
     }
 
     protected abstract int getCoverHeight();
@@ -606,6 +681,13 @@ public abstract class GameButton extends BorderPane {
         node.setMouseTransparent(true);
     }
 
+    private void enableNode(Node node) {
+        node.setVisible(true);
+        node.setDisable(false);
+        node.setManaged(true);
+        node.setMouseTransparent(false);
+    }
+
     public void hideReleaseDate() {
         releaseDateLabel.setOpacity(0);
     }
@@ -631,6 +713,7 @@ public abstract class GameButton extends BorderPane {
         defaultCoverView.setFitWidth(width);
         playButton.setFitWidth(width * RATIO_PLAYBUTTON_COVER);
         infoButton.setFitWidth(width * RATIO_INFOBUTTON_COVER);
+        warningButton.setFitWidth(width * RATIO_INFOBUTTON_COVER);
         notInstalledImage.setFitWidth(width * RATIO_NOTINSTALLEDIMAGE_COVER);
 
         onNewTileWidth(width);
@@ -643,6 +726,7 @@ public abstract class GameButton extends BorderPane {
         defaultCoverView.setFitHeight(height);
         playButton.setFitHeight(height * RATIO_PLAYBUTTON_COVER);
         infoButton.setFitHeight(height * RATIO_INFOBUTTON_COVER);
+        warningButton.setFitHeight(height * RATIO_INFOBUTTON_COVER);
         notInstalledImage.setFitHeight(height * RATIO_NOTINSTALLEDIMAGE_COVER);
 
         onNewTileHeight(height);
@@ -676,6 +760,26 @@ public abstract class GameButton extends BorderPane {
 
         ImageUtils.transitionToCover(entry.getImagePath(0), width, height, coverView);
         //ImageUtils.getExecutorService().submit(() -> ImageUtils.transitionToCover(entry.getImagePath(0), width, height, coverView));
+    }
+
+    public void checkFileExists() {
+        boolean validLauncher = !entry.isSteamGame()
+                && !entry.isMSStoreGame()
+                && entry.getPlatform().getId() != Platform.STEAM_ONLINE_ID;
+        if (validLauncher && entry.getPath() != null) {
+            File file = new File(entry.getPath());
+            if (!file.exists() && warningButton.isDisabled()) {
+                setDisabledCoverEffects();
+                enableNode(warningButton);
+                disableNode(playButton);
+                LOGGER.debug("Entry " + entry.getName() + " has non-existent file: " + entry.getPath());
+                //TODO store somewhere a special message to display when the warningButton is pressed
+            } else if(file.exists() && ! warningButton.isDisabled()) {
+                disableNode(warningButton);
+                enableNode(playButton);
+                setDefaultCoverEffects();
+            }
+        }
     }
 
 }

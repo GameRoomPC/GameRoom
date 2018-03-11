@@ -60,6 +60,7 @@ public class SupportService {
                 checkAndDisplaySupportAlert();
                 scanSteamGamesTime();
                 checkForUpdates();
+                checkFilesForEntries();
                 ping();
 
                 long elapsedTime = System.currentTimeMillis() - start;
@@ -73,6 +74,13 @@ public class SupportService {
         });
         thread.setPriority(Thread.MIN_PRIORITY);
         thread.setDaemon(true);
+    }
+
+    private void checkFilesForEntries() {
+        if(MAIN_SCENE != null){
+            LOGGER.info("SupportService: starting file verification for entries.");
+            MAIN_SCENE.checkFilesForEntries();
+        }
     }
 
     private static SupportService getInstance() {

@@ -781,6 +781,10 @@
 	-fx-image: url("icons/tile/info.png");
 }
 
+#tile-warning-button{
+	-fx-image: url("icons/tile/warning.png");
+}
+
 #tile-addAll-button{
 	-fx-image: url("icons/tile/addAll.png");
 }
