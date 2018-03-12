@@ -122,7 +122,7 @@ public class FolderGameScanner extends GameScanner {
         boolean pathExists = new File(potentialEntry.getPath()).exists()
                 || potentialEntry.getPath().startsWith("steam")
                 || potentialEntry.getPath().startsWith("shell:AppsFolder");
-        LOGGER.debug(
+        /*LOGGER.debug(
                 "FolderGameScanner: " + potentialEntry.getName()
                         + ": parentFolderInLib=" + parentFolderInLib
                         + ", checkParentFolder=" + checkParentFolder
@@ -131,7 +131,7 @@ public class FolderGameScanner extends GameScanner {
                         + ", folderGameIgnored=" + folderGameIgnored
                         + ", alreadyWaitingToBeAdded=" + alreadyWaitingToBeAdded
                         + ", pathExists=" + pathExists
-        );
+        );*/
         return !gameAlreadyInLibrary
                 && (!checkParentFolder || !parentFolderInLib || parentFolderIsUserGameFolder)
                 && !folderGameIgnored
