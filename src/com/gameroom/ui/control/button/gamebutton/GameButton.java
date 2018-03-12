@@ -389,8 +389,9 @@ public abstract class GameButton extends BorderPane {
         infoButton.setOnMouseClicked(event -> parentScene.fadeTransitionTo(new GameInfoScene(new StackPane(), parentScene.getParentStage(), parentScene, entry), parentScene.getParentStage()));
 
         warningButton.setOnMouseClicked(event -> {
-            //TODO open a dialog explain why the warning
+            GameRoomAlert.warning( Main.getString("warning_game_moved_deleted"));
         });
+        warningButton.setTooltip(new Tooltip(Main.getString("warning_game_moved_deleted")));
 
         setDefaultCoverEffects();
 
@@ -763,27 +764,26 @@ public abstract class GameButton extends BorderPane {
     }
 
     public void checkFileExists() {
-        if(settings().getBoolean(PredefinedSetting.REPORT_INVALID_GAMES)){
+        if (settings().getBoolean(PredefinedSetting.REPORT_INVALID_GAMES)) {
             boolean validLauncher = (!entry.isSteamGame()
                     && !entry.isMSStoreGame()
                     && entry.getPlatform().getId() != Platform.STEAM_ONLINE_ID)
-                    ||(entry.isMSStoreGame() && entry.getMonitorProcess() != null);
-            if (validLauncher && entry.getPath() != null ) {
+                    || (entry.isMSStoreGame() && entry.getMonitorProcess() != null);
+            if (validLauncher && entry.getPath() != null) {
                 File file = new File(entry.isMSStoreGame() ? entry.getMonitorProcess() : entry.getPath());
                 if (!file.exists() && warningButton.isDisabled()) {
                     setDisabledCoverEffects();
                     enableNode(warningButton);
                     disableNode(playButton);
                     LOGGER.debug("Entry " + entry.getName() + " has non-existent file: " + entry.getPath());
-                    //TODO store somewhere a special message to display when the warningButton is pressed
-                } else if(file.exists() && ! warningButton.isDisabled()) {
+                } else if (file.exists() && !warningButton.isDisabled()) {
                     disableNode(warningButton);
                     enableNode(playButton);
                     setDefaultCoverEffects();
                 }
             }
-        }else{
-            if(!warningButton.isDisabled()) {
+        } else {
+            if (!warningButton.isDisabled()) {
                 disableNode(warningButton);
                 enableNode(playButton);
                 setDefaultCoverEffects();
