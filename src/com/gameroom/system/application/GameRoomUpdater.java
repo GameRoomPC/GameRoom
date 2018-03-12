@@ -5,6 +5,7 @@ import de.dimaki.refuel.updater.boundary.Updater;
 import de.dimaki.refuel.updater.entity.ApplicationStatus;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
@@ -23,6 +24,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 import static com.gameroom.system.application.settings.GeneralSettings.settings;
@@ -51,19 +55,28 @@ public class GameRoomUpdater {
     private boolean started = false;
     private volatile boolean isReminding = false;
     private SchedulableTask<Void> remindTask;
+    private Future<?> pingFuture;
     private FileDownloader fdl;
     private final static GameRoomUpdater updaterInstance = new GameRoomUpdater();
 
 
     private GameRoomUpdater() {
         this.currentVersion = Main.getVersion();
-        String domain = getDomain();
-        try {
-            this.updateUrl = new URL(domain + URL_VERSION_XML_SUFFIX);
-            this.changelogUrl = new URL(domain + URL_CHANGELOG_MD_SUFFIX);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        Task t = new Task() {
+            @Override
+            protected Object call() throws Exception {
+                String domain = getDomain();
+                try {
+                    updateUrl = new URL(domain + URL_VERSION_XML_SUFFIX);
+                    changelogUrl = new URL(domain + URL_CHANGELOG_MD_SUFFIX);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        };
+        pingFuture = Main.getExecutorService().submit(t);
+
         this.workingDir = Main.FILES_MAP.get("cache");
         this.changeListener = changeListener;
     }
@@ -73,6 +86,11 @@ public class GameRoomUpdater {
     }
 
     public void start() {
+        try {
+            pingFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
         started = true;
         if (settings() != null) {
             settings().setSettingValue(PredefinedSetting.LAST_UPDATE_CHECK, new Date());
