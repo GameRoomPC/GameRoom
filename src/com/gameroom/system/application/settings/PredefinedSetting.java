@@ -85,6 +85,7 @@ public enum PredefinedSetting {
     ,ALLOW_COLLECT_SYSTEM_INFO("allowCollectSystemInfo", new SettingValue(true,Boolean.class,CATEGORY_GENERAL))
     ,GROUP_BY("group_by", new SettingValue(GroupType.DEFAULT.getId(),String.class,CATEGORY_NONE))
     ,SORT_BY("sort_by", new SettingValue(SortType.NAME.getId(),String.class,CATEGORY_NONE))
+    , REPORT_INVALID_GAMES("reportInvalidGames", new SettingValue(true,Boolean.class,CATEGORY_NONE))
     ;
 
 

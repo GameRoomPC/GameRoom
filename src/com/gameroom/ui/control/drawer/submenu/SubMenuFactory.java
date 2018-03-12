@@ -237,6 +237,14 @@ public final class SubMenuFactory {
         });
         editMenu.addItem(keepRatioCheckBox);
 
+        CheckBoxItem reportInvalidGamesCheckBox = new CheckBoxItem("report_invalid_games", true);
+        reportInvalidGamesCheckBox.setSelected(settings().getBoolean(PredefinedSetting.REPORT_INVALID_GAMES));
+        reportInvalidGamesCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            settings().setSettingValue(PredefinedSetting.REPORT_INVALID_GAMES, newValue);
+            mainScene.checkFilesForEntries();
+        });
+        editMenu.addItem(reportInvalidGamesCheckBox);
+
         CheckBoxItem showPCIconCheckBox = new CheckBoxItem("show_pc_icon", true);
         showPCIconCheckBox.setSelected(settings().getBoolean(PredefinedSetting.SHOW_PC_ICON));
         showPCIconCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {

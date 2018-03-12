@@ -934,4 +934,13 @@ public class MainScene extends BaseScene {
 
         return vbox;
     }
+
+    public void checkFilesForEntries() {
+        tilePane.getGameButtons().forEach(GameButton::checkFileExists);
+        toAddTilePane.getGameButtons().forEach(GameButton::checkFileExists);
+        recentlyAddedTilePane.getGameButtons().forEach(GameButton::checkFileExists);
+        lastPlayedTilePane.getGameButtons().forEach(GameButton::checkFileExists);
+        groupRowList.forEach(groupRowTilePane -> groupRowTilePane.getGameButtons().forEach(GameButton::checkFileExists));
+
+    }
 }
