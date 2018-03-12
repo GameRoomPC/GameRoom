@@ -1,5 +1,6 @@
 BEGIN TRANSACTION;
 pragma foreign_keys = OFF;
+DROP TABLE IF EXISTS temp_GameEntry;
 ALTER TABLE GameEntry RENAME TO temp_GameEntry;
 
 CREATE TABLE IF NOT EXISTS GameEntry (
