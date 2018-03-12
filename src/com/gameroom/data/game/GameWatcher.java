@@ -344,7 +344,7 @@ public class GameWatcher {
     }
 
     public GameButton onGameFound(GameEntry foundEntry) {
-        if (!FolderGameScanner.gameAlreadyIn(foundEntry, entriesToAdd) && !GameEntryUtils.isGameIgnored(foundEntry)) {
+        if (!GameEntryUtils.gameAlreadyIn(foundEntry, entriesToAdd) && !GameEntryUtils.isGameIgnored(foundEntry)) {
             if (!foundEntry.isInDb()) {
                 foundEntry.setAddedDate(LocalDateTime.now());
                 foundEntry.setToAdd(true);
@@ -402,7 +402,7 @@ public class GameWatcher {
         ArrayList<GameEntry> toRemoveEntries = new ArrayList<>();
         for (GameEntry n : entriesToAdd) {
             boolean delete = n.getId() == entry.getId()
-                    || FolderGameScanner.entriesPathsEqual(n, entry);
+                    || GameEntryUtils.entriesPathsEqual(n, entry);
             if (delete) {
                 toRemoveEntries.add(n);
                 break;

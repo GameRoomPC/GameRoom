@@ -13,6 +13,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.gameroom.data.game.GameWatcher.cleanNameForDisplay;
+import static com.gameroom.ui.Main.LOGGER;
 import static com.gameroom.ui.Main.MAIN_SCENE;
 
 /**
@@ -24,10 +25,10 @@ public class FolderGameScanner extends GameScanner {
             , "GameData", "data_win32", "DXSETUP.exe", "unins000.exe", "uninstall", "Uninstall.exe", "Updater.exe"
             , "Installers", "_CommonRedist", "directx", "DotNetFX", "DirectX8", "DirectX9", "DirectX10", "DirectX11"
             , "DirectX12", "UPlayBrowser.exe", "UbisoftGameLauncherInstaller.exe", "FirewallInstall.exe"
-            , "GDFInstall.exe", "pbsvc.exe", "ActivationUI.exe","vcredist_x64_2012.exe","vcredist_x86_2012.exe"
+            , "GDFInstall.exe", "pbsvc.exe", "ActivationUI.exe", "vcredist_x64_2012.exe", "vcredist_x86_2012.exe"
             , "EasyAntiCheat_Setup.exe", "DirectX", "videos", "sounddata", "support", "_support", "__support"
-            , "Resources", "maindata", "Licenses", "localisation", "music", "sound", "config", "cache","video","EngineData"
-            , "Engine", "gamesave", "gamesaves", "Log", "Logs", "mods", "Profiles","EULA","Locale", "Resource","Assets",""
+            , "Resources", "maindata", "Licenses", "localisation", "music", "sound", "config", "cache", "video", "EngineData"
+            , "Engine", "gamesave", "gamesaves", "Log", "Logs", "mods", "Profiles", "EULA", "Locale", "Resource", "Assets", ""
     };
     private final static String[] PREFERRED_FOLDER = new String[]{"Bin", "Binary", "Binaries", "win32", "win64", "x64"};
 
@@ -79,7 +80,7 @@ public class FolderGameScanner extends GameScanner {
                             Platform.PC.getSupportedExtensions()
                     )); //f because we prefer to use the .lnk name if its the case !
                     potentialEntry.setPath(file.getAbsolutePath());
-                    if (checkValidToAdd(potentialEntry)) {
+                    if (checkValidToAdd(potentialEntry, true)) {
                         if (isPotentiallyAGame(file)) {
                             potentialEntry.setInstalled(true);
                             addGameEntryFound(potentialEntry);
@@ -99,7 +100,7 @@ public class FolderGameScanner extends GameScanner {
      * @param potentialEntry the potential entry to check and add
      */
     public void checkAndAdd(GameEntry potentialEntry) {
-        if (checkValidToAdd(potentialEntry)) {
+        if (checkValidToAdd(potentialEntry, true)) {
             addGameEntryFound(potentialEntry);
         } else if (!GameEntryUtils.isGameIgnored(potentialEntry)) {
             compareAndSetLauncherId(potentialEntry);
@@ -112,14 +113,30 @@ public class FolderGameScanner extends GameScanner {
      * @param potentialEntry the potential entry to check
      * @return true if must be added to the toAdd row, false otherwise
      */
-    protected boolean checkValidToAdd(GameEntry potentialEntry) {
-        boolean gameAlreadyInLibrary = gameAlreadyInLibrary(potentialEntry);
+    protected boolean checkValidToAdd(GameEntry potentialEntry, boolean checkParentFolder) {
+        boolean parentFolderInLib = GameEntryUtils.parentFolderAlreadyInLibrary(potentialEntry);
+        boolean parentFolderIsUserGameFolder = GameEntryUtils.parentFolderIsUserGameFolder(potentialEntry);
+        boolean gameAlreadyInLibrary = GameEntryUtils.gameAlreadyInLibrary(potentialEntry);
         boolean folderGameIgnored = GameEntryUtils.isGameIgnored(potentialEntry);
-        boolean alreadyWaitingToBeAdded = gameAlreadyIn(potentialEntry, parentLooker.getEntriesToAdd());
+        boolean alreadyWaitingToBeAdded = GameEntryUtils.gameAlreadyIn(potentialEntry, parentLooker.getEntriesToAdd());
         boolean pathExists = new File(potentialEntry.getPath()).exists()
                 || potentialEntry.getPath().startsWith("steam")
                 || potentialEntry.getPath().startsWith("shell:AppsFolder");
-        return !gameAlreadyInLibrary && !folderGameIgnored && !alreadyWaitingToBeAdded && pathExists;
+        LOGGER.debug(
+                "FolderGameScanner: " + potentialEntry.getName()
+                        + ": parentFolderInLib=" + parentFolderInLib
+                        + ", checkParentFolder=" + checkParentFolder
+                        + ", parentFolderIsUserGameFolder=" + parentFolderIsUserGameFolder
+                        + ", gameAlreadyInLibrary=" + gameAlreadyInLibrary
+                        + ", folderGameIgnored=" + folderGameIgnored
+                        + ", alreadyWaitingToBeAdded=" + alreadyWaitingToBeAdded
+                        + ", pathExists=" + pathExists
+        );
+        return !gameAlreadyInLibrary
+                && (!checkParentFolder || !parentFolderInLib || parentFolderIsUserGameFolder)
+                && !folderGameIgnored
+                && !alreadyWaitingToBeAdded
+                && pathExists;
     }
 
     /**
@@ -201,7 +218,7 @@ public class FolderGameScanner extends GameScanner {
             return;
         }
         for (GameEntry entry : toAddAndLibEntries) {
-            if (entriesPathsEqual(entry, foundEntry)) {
+            if (GameEntryUtils.entriesPathsEqual(entry, foundEntry)) {
                 entry.setSavedLocally(true);
                 boolean needRefresh = false;
 
@@ -224,86 +241,6 @@ public class FolderGameScanner extends GameScanner {
                 break;
             }
         }
-    }
-
-    /**
-     * Compares entry with paths, and not with UUID.
-     * This is helpful to compare entries in toAdd and !toAdd states, as they may point to the same game but not have the same UUID
-     *
-     * @param e1 the first entry to compare
-     * @param e2 the other entry to compare
-     * @return true if a path includes an other, false otherwise
-     */
-    public static boolean entriesPathsEqual(GameEntry e1, GameEntry e2) {
-        if (e1 == null && e2 == null) {
-            return true;
-        } else if (e1 == null || e2 == null) {
-            return false;
-        }
-        return entriesPathsEqual(e1.getPath(), e2);
-    }
-
-    /**
-     * Compares a path against an entry's path
-     * This is helpful to compare entries in toAdd and !toAdd states, as they may point to the same game but not have the same UUID
-     *
-     * @param path  the first entry to compare
-     * @param entry the other entry to compare
-     * @return true if a path includes an other, false otherwise
-     */
-    public static boolean entriesPathsEqual(String path, GameEntry entry) {
-        if (path == null && entry == null) {
-            return true;
-        } else if (path == null || entry == null) {
-            return false;
-        }
-        boolean e1IncludesE2 = path.trim().toLowerCase().contains(entry.getPath().trim().toLowerCase());
-        boolean e2IncludesE1 = entry.getPath().trim().toLowerCase().contains(path.trim().toLowerCase());
-
-        return e1IncludesE2 || e2IncludesE1;
-    }
-
-    /**
-     * Checks if Game is already in GameRoom's library
-     * Compareason is done on the path or the name, as UUID may be different at this time
-     *
-     * @param foundEntry the entry to check
-     * @return true if already in the library, false otherwise
-     */
-    public static boolean gameAlreadyInLibrary(GameEntry foundEntry) {
-        return gameAlreadyIn(foundEntry, GameEntryUtils.ENTRIES_LIST);
-    }
-
-    /**
-     * Checks if Game is already in GameRoom's library
-     * Compareason is done on the path or the name, as UUID may be different at this time
-     *
-     * @param foundEntry the entry to check
-     * @return true if already in the library, false otherwise
-     */
-    public static boolean gameAlreadyIn(GameEntry foundEntry, Collection<GameEntry> library) {
-        if(foundEntry == null){
-            return true;
-        }
-        return pathAlreadyIn(foundEntry.getPath(),library);
-    }
-
-    /**
-     * Checks if Game is already in GameRoom's library
-     * Compareason is done on the path or the name, as UUID may be different at this time
-     *
-     * @param path the entry to check
-     * @return true if already in the library, false otherwise
-     */
-    public static boolean pathAlreadyIn(String path, Collection<GameEntry> library) {
-        boolean alreadyAddedToLibrary = false;
-        for (GameEntry entry : library) {
-            alreadyAddedToLibrary = entriesPathsEqual(path, entry);
-            if (alreadyAddedToLibrary) {
-                break;
-            }
-        }
-        return alreadyAddedToLibrary;
     }
 
     /**

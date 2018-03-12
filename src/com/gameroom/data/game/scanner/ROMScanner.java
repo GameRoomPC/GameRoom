@@ -48,7 +48,7 @@ public class ROMScanner extends FolderGameScanner {
                     )); //f because we prefer to use the .lnk name if its the case !
 
                     potentialEntry.setPath(file.getAbsolutePath());
-                    if (checkValidToAdd(potentialEntry)) {
+                    if (checkValidToAdd(potentialEntry,false)) {
                         if (isPotentiallyAGame(file, platform.getSupportedExtensions())) {
                             potentialEntry.setInstalled(true);
                             potentialEntry.setPlatform(platform);

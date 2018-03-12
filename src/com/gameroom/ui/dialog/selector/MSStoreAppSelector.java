@@ -66,7 +66,7 @@ public class MSStoreAppSelector extends GameRoomDialog<ButtonType> {
                 if (msStoreEntry == null) {
                     return;
                 }
-                if (!FolderGameScanner.pathAlreadyIn(msStoreEntry.getStartCommand(), GameEntryUtils.ENTRIES_LIST)) {
+                if (!GameEntryUtils.pathAlreadyIn(msStoreEntry.getStartCommand(), GameEntryUtils.ENTRIES_LIST)) {
                     Main.runAndWait(() -> {
                         list.addItem(msStoreEntry);
                         if(list.getListItems().size() > 0){
