@@ -779,6 +779,14 @@ public class MainScene extends BaseScene {
         }
     }
 
+    public void toggleSearchField(){
+        if(!searchBar.isVisible()){
+            showSearchField();
+        }else{
+            hideSearchField();
+        }
+    }
+
     public void showSearchField() {
         searchBar.show();
         searchBar.getSearchField().requestFocus();
