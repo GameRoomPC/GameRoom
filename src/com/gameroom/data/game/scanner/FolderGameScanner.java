@@ -20,8 +20,8 @@ import static com.gameroom.ui.Main.MAIN_SCENE;
  * Created by LM on 19/08/2016.
  */
 public class FolderGameScanner extends GameScanner {
-    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library", "SteamLibrary", "SteamVR"
-            , "!Downloads", "VCRedist", "vcredist_x86.exe", "vcredist_x64.exe", "Redist", "__Installer", "Data"
+    public final static String[] EXCLUDED_FILE_NAMES = new String[]{"Steam Library", "SteamLibrary", "steamapps", "Steam"
+            , "SteamVR", "!Downloads", "VCRedist", "vcredist_x86.exe", "vcredist_x64.exe", "Redist", "__Installer", "Data"
             , "GameData", "data_win32", "DXSETUP.exe", "unins000.exe", "uninstall", "Uninstall.exe", "Updater.exe"
             , "Installers", "_CommonRedist", "directx", "DotNetFX", "DirectX8", "DirectX9", "DirectX10", "DirectX11"
             , "DirectX12", "UPlayBrowser.exe", "UbisoftGameLauncherInstaller.exe", "FirewallInstall.exe"
@@ -75,15 +75,17 @@ public class FolderGameScanner extends GameScanner {
             for (File f : children) {
                 ScanTask task = new ScanTask(this, () -> {
                     File file = FileUtils.tryResolveLnk(f);
-                    GameEntry potentialEntry = new GameEntry(cleanNameForDisplay(
-                            f.getName(),
-                            Platform.PC.getSupportedExtensions()
-                    )); //f because we prefer to use the .lnk name if its the case !
-                    potentialEntry.setPath(file.getAbsolutePath());
-                    if (checkValidToAdd(potentialEntry, true)) {
-                        if (isPotentiallyAGame(file)) {
-                            potentialEntry.setInstalled(true);
-                            addGameEntryFound(potentialEntry);
+                    if(file.exists()) {
+                        GameEntry potentialEntry = new GameEntry(cleanNameForDisplay(
+                                f.getName(),
+                                Platform.PC.getSupportedExtensions()
+                        )); //f because we prefer to use the .lnk name if its the case !
+                        potentialEntry.setPath(file.getAbsolutePath());
+                        if (checkValidToAdd(potentialEntry, true)) {
+                            if (isPotentiallyAGame(file)) {
+                                potentialEntry.setInstalled(true);
+                                addGameEntryFound(potentialEntry);
+                            }
                         }
                     }
                     return null;
