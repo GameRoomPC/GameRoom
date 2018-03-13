@@ -17,7 +17,7 @@ import static com.gameroom.ui.Main.LOGGER;
 public class DataBase {
     public final static String DB_NAME = "library.db";
     private final static DataBase INSTANCE = new DataBase();
-    private static Connection USER_CONNECTION;
+    private static volatile Connection USER_CONNECTION;
 
     //used to check whether some update script should be applied
     private int dbVersion = 0;
@@ -89,18 +89,20 @@ public class DataBase {
         //for example when resizing a window in EditScene have to either commit changes to a game or take the risk to discard
         //the window's size if user cancel changes
         try {
-            USER_CONNECTION = DriverManager.getConnection(url);
-            if (USER_CONNECTION != null) {
-                //USER_CONNECTION.setAutoCommit(false);
-                DatabaseMetaData meta = USER_CONNECTION.getMetaData();
-                LOGGER.info("The driver name is " + meta.getDriverName());
-                LOGGER.info("DB path is \"" + url + "\"");
-                //USER_CONNECTION.prepareStatement("PRAGMA foreign_keys = ON");
+            if(USER_CONNECTION == null) {
+                USER_CONNECTION = DriverManager.getConnection(url);
+                if (USER_CONNECTION != null) {
+                    //USER_CONNECTION.setAutoCommit(false);
+                    DatabaseMetaData meta = USER_CONNECTION.getMetaData();
+                    LOGGER.info("The driver name is " + meta.getDriverName());
+                    LOGGER.info("DB path is \"" + url + "\"");
+                    //USER_CONNECTION.prepareStatement("PRAGMA foreign_keys = ON");
 
-                try (Statement statement = USER_CONNECTION.createStatement()) {
-                    try (ResultSet rs = statement.executeQuery("PRAGMA user_version;")) {
-                        INSTANCE.dbVersion = rs.getInt(1);
-                        LOGGER.info("DB Version: " + INSTANCE.dbVersion);
+                    try (Statement statement = USER_CONNECTION.createStatement()) {
+                        try (ResultSet rs = statement.executeQuery("PRAGMA user_version;")) {
+                            INSTANCE.dbVersion = rs.getInt(1);
+                            LOGGER.info("DB Version: " + INSTANCE.dbVersion);
+                        }
                     }
                 }
             }
