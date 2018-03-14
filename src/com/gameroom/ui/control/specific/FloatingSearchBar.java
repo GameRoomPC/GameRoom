@@ -21,7 +21,7 @@ public class FloatingSearchBar extends HBox {
     public FloatingSearchBar(ChangeListener<String> changeListener){
         searchBar = new SearchBar(changeListener);
 
-        closeButton = new ImageButton("toaddtile-ignore-button", searchBar.getImgSize()/2, searchBar.getImgSize()/2);
+        closeButton = new ImageButton("toaddtile-ignore-button", searchBar.getImgSize()/1.5, searchBar.getImgSize()/1.5);
         closeButton.setFocusTraversable(false);
         closeButton.setPadding(UIValues.CONTROL_SMALL.insets());
         closeButton.setOnAction(event -> {
@@ -36,7 +36,9 @@ public class FloatingSearchBar extends HBox {
         setFocusTraversable(false);
         setPickOnBounds(false);
 
-        setPadding(new Insets(10*SCREEN_HEIGHT/1080,0*SCREEN_WIDTH/1920,10*SCREEN_HEIGHT/1080,0*SCREEN_WIDTH/1920));
+        searchBar.setPadding(UIValues.CONTROL_XSMALL.insets());
+
+        //setPadding(new Insets(10*SCREEN_HEIGHT/1080,0*SCREEN_WIDTH/1920,10*SCREEN_HEIGHT/1080,0*SCREEN_WIDTH/1920));
 
     }
 

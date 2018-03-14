@@ -42,17 +42,19 @@ public class ROMScanner extends FolderGameScanner {
             for (File f : children) {
                 ScanTask task = new ScanTask(this, () -> {
                     File file = FileUtils.tryResolveLnk(f);
-                    GameEntry potentialEntry = new GameEntry(cleanNameForDisplay(
-                            f.getName(),
-                            platform.getSupportedExtensions()
-                    )); //f because we prefer to use the .lnk name if its the case !
+                    if(file.exists()) {
+                        GameEntry potentialEntry = new GameEntry(cleanNameForDisplay(
+                                f.getName(),
+                                platform.getSupportedExtensions()
+                        )); //f because we prefer to use the .lnk name if its the case !
 
-                    potentialEntry.setPath(file.getAbsolutePath());
-                    if (checkValidToAdd(potentialEntry,false)) {
-                        if (isPotentiallyAGame(file, platform.getSupportedExtensions())) {
-                            potentialEntry.setInstalled(true);
-                            potentialEntry.setPlatform(platform);
-                            addGameEntryFound(potentialEntry);
+                        potentialEntry.setPath(file.getAbsolutePath());
+                        if (checkValidToAdd(potentialEntry, false)) {
+                            if (isPotentiallyAGame(file, platform.getSupportedExtensions())) {
+                                potentialEntry.setInstalled(true);
+                                potentialEntry.setPlatform(platform);
+                                addGameEntryFound(potentialEntry);
+                            }
                         }
                     }
                     return null;

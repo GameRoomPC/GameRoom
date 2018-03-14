@@ -5,14 +5,14 @@ import com.gameroom.data.game.GameWatcher;
 import com.gameroom.data.game.scanner.FolderGameScanner;
 import com.gameroom.data.io.DataBase;
 import com.gameroom.ui.Main;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.StringJoiner;
 
 import static com.gameroom.ui.Main.FILES_MAP;
 import static com.gameroom.ui.Main.LOGGER;
@@ -54,7 +54,7 @@ public class GameEntryUtils {
         }
         boolean ignored = false;
         for (GameEntry ignoredEntry : IGNORED_ENTRIES) {
-            ignored = entriesPathsEqual(entry,ignoredEntry);
+            ignored = entriesPathsEqual(entry, ignoredEntry);
             if (ignored) {
                 return true;
             }
@@ -180,24 +180,24 @@ public class GameEntryUtils {
         return e1IncludesE2 || e2IncludesE1;
     }
 
-    public static boolean parentFolderIsUserGameFolder(GameEntry entry){
-        if(entry == null){
+    public static boolean parentFolderIsUserGameFolder(GameEntry entry) {
+        if (entry == null) {
             return false;
         }
         return parentFolderIsUserGameFolder(entry.getPath());
     }
 
-    public static boolean parentFolderIsUserGameFolder(String absPath){
-        if(absPath == null){
+    public static boolean parentFolderIsUserGameFolder(String absPath) {
+        if (absPath == null) {
             return false;
         }
         File parent = new File(absPath);
-        if(!parent.exists() || parent.getParentFile() == null || !parent.getParentFile().exists()){
+        if (!parent.exists() || parent.getParentFile() == null || !parent.getParentFile().exists()) {
             return false;
         }
 
-        for(File folder : GameFolderManager.getPCFolders()){
-            if (folder != null && folder.getAbsolutePath().trim().toLowerCase().equals(parent.getParentFile().getAbsolutePath().trim().toLowerCase())){
+        for (File folder : GameFolderManager.getPCFolders()) {
+            if (folder != null && folder.getAbsolutePath().trim().toLowerCase().equals(parent.getParentFile().getAbsolutePath().trim().toLowerCase())) {
                 return true;
             }
         }
@@ -213,13 +213,13 @@ public class GameEntryUtils {
         }
         boolean e1IncludesE2 = path1.trim().toLowerCase().contains(path2.trim().toLowerCase());
         boolean e2IncludesE1 = path2.trim().toLowerCase().contains(path1.trim().toLowerCase());
-        if(e1IncludesE2 || e2IncludesE1){
+        if (e1IncludesE2 || e2IncludesE1) {
             return true;
         }
         File f1 = new File(path1);
         File f2 = new File(path2);
 
-        if(f1.exists() && f2.exists()){
+        if (f1.exists() && f2.exists()) {
             File p1 = f1.getParentFile();
             File p2 = f2.getParentFile();
 
@@ -278,8 +278,8 @@ public class GameEntryUtils {
         if (foundEntry == null || parentFolderIsUserGameFolder(foundEntry.getPath())) {
             return true;
         }
-        for(GameEntry entry : library){
-            if(pathFromSameParentFolder(entry.getPath(), foundEntry.getPath())){
+        for (GameEntry entry : library) {
+            if (pathFromSameParentFolder(entry.getPath(), foundEntry.getPath())) {
                 return true;
             }
         }
@@ -302,5 +302,41 @@ public class GameEntryUtils {
             }
         }
         return alreadyAddedToLibrary;
+    }
+
+    /**
+     * Update the {@link DataBase} and sets in one SQL request games given as no toAdd anymore, and also updates the added
+     * date.
+     *
+     * @param entries entries to consider as not to add anymore.
+     */
+    public static boolean updateAsNotToAdd(@NonNull Collection<GameEntry> entries) {
+        StringJoiner joiner = new StringJoiner(",", "(", ")");
+        for (GameEntry entry : entries) {
+            if (entry != null) {
+                joiner.add("?");
+
+            }
+        }
+        int paramIndex = 1;
+        try {
+            PreparedStatement statement = DataBase.getUserConnection().prepareStatement(
+                    "UPDATE GameEntry SET toAdd = ?, added_date = ? WHERE id in " + joiner.toString());
+            statement.setInt(paramIndex++, 0);
+            statement.setTimestamp(paramIndex++, Timestamp.valueOf(LocalDateTime.now()));
+            for (GameEntry entry : entries) {
+                if (entry != null) {
+                    statement.setInt(paramIndex++, entry.getId());
+                }
+            }
+
+            statement.execute();
+            statement.close();
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

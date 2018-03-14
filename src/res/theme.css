@@ -746,6 +746,10 @@
 	-fx-image: url("icons/main/group.png");
 }
 
+#main-search-button{
+	-fx-image: url("icons/main/search.png");
+}
+
 #main-add-button{
 	-fx-image: url("icons/main/add.png");
 }

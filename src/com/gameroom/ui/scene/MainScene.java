@@ -188,10 +188,10 @@ public class MainScene extends BaseScene {
         maskView.setOpacity(0);
         setChangeBackgroundNextTime(true);
 
-        statusLabel = new Label();
-        getRootStackPane().getChildren().add(statusLabel);
         wrappingPane = new BorderPane();
         getRootStackPane().getChildren().add(wrappingPane);
+        statusLabel = new Label();
+        getRootStackPane().getChildren().add(statusLabel);
     }
 
     @Override
@@ -624,6 +624,7 @@ public class MainScene extends BaseScene {
             @Override
             public GameButton gameToAddFound(GameEntry entry) {
                 toAddTilePane.addGame(entry);
+                Platform.runLater(() -> checkDisplayEmptyMessagePane());
                 return toAddTilePane.getGameButton(entry);
             }
 
@@ -776,6 +777,14 @@ public class MainScene extends BaseScene {
             if (maskView.isVisible()) {
                 maskView.setVisible(false);
             }
+        }
+    }
+
+    public void toggleSearchField(){
+        if(!searchBar.isVisible()){
+            showSearchField();
+        }else{
+            hideSearchField();
         }
     }
 

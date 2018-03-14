@@ -28,6 +28,7 @@ import java.util.HashMap;
 import static com.gameroom.system.application.settings.GeneralSettings.settings;
 import static com.gameroom.ui.Main.LOGGER;
 import static com.gameroom.ui.Main.SCREEN_WIDTH;
+import static com.gameroom.ui.Main.main;
 import static com.gameroom.ui.control.drawer.submenu.SubMenuFactory.*;
 
 /**
@@ -212,9 +213,8 @@ public class DrawerMenu extends BorderPane {
         initAddButton(mainScene);
         initScanButton(mainScene);
         initSortButton(mainScene);
-
         initGroupButton(mainScene);
-        //initScaleSlider();
+        initSearchButton(mainScene);
 
         initEditButton(mainScene);
         initSettingsButton(mainScene);
@@ -337,6 +337,20 @@ public class DrawerMenu extends BorderPane {
         subMenus.put(groupMenu.getMenuId(), groupMenu);
 
         topButtonsBox.getChildren().add(groupButton);
+    }
+
+    private void initSearchButton(MainScene mainScene) {
+        DrawerButton searchButton = new DrawerButton("main-search-button", this);
+        searchButton.setFocusTraversable(false);
+        searchButton.setSelectionable(true);
+        searchButton.setTooltip(new Tooltip(Main.getString("search_a_game")));
+
+        searchButton.setOnAction(event -> {
+            mainScene.toggleSearchField();
+            searchButton.setSelected(false);
+        });
+
+        topButtonsBox.getChildren().add(searchButton);
     }
 
     private void initEditButton(MainScene mainScene) {
