@@ -24,7 +24,7 @@ public class SteamProfileSelector extends GameRoomDialog<ButtonType> {
     public SteamProfileSelector(List<SteamProfile> profiles) {
         super();
         mainPane.getStyleClass().add("container");
-        ButtonType okButton = new ButtonType(Main.getString("close"), ButtonBar.ButtonData.OK_DONE);
+        ButtonType okButton = new ButtonType(Main.getString("ok"), ButtonBar.ButtonData.OK_DONE);
         getDialogPane().getButtonTypes().addAll(okButton);
 
         mainPane.setCenter(createCenterPane(profiles));
