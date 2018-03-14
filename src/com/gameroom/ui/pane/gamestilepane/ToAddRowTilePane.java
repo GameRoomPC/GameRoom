@@ -3,6 +3,7 @@ package com.gameroom.ui.pane.gamestilepane;
 import com.gameroom.data.game.entry.GameEntry;
 import com.gameroom.data.game.entry.GameEntryUtils;
 import com.gameroom.data.game.entry.Platform;
+import com.gameroom.ui.dialog.GameRoomAlert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tooltip;
 import com.gameroom.ui.Main;
@@ -69,7 +70,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
                                 GeneralToast.displayToast(Main.getString("gameroom_has_found") + " " + entries.size() + " " + end, MAIN_SCENE.getParentStage(), GeneralToast.DURATION_LONG);
                             }
                         } else {
-                            //TODO display error message
+                            GameRoomAlert.error(Main.getString("error_loading_apps"));
                         }
                     });
 
