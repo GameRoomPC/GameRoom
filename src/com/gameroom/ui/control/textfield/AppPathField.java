@@ -41,7 +41,7 @@ public class AppPathField extends PathTextField {
                     selector.searchApps();
                     Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
                     ignoredOptionnal.ifPresent(pairs -> {
-                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE) && selector.getSelectedFile() != null) {
                             getTextField().setText(selector.getSelectedFile().getAbsolutePath());
                         }
                     });

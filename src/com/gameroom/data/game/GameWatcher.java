@@ -1,5 +1,7 @@
 package com.gameroom.data.game;
 
+import com.gameroom.ui.dialog.GameRoomAlert;
+import com.gameroom.ui.dialog.NonScrapedListDialog;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.gameroom.data.LevenshteinDistance;
 import com.gameroom.data.game.entry.GameEntry;
@@ -8,24 +10,24 @@ import com.gameroom.data.game.scanner.*;
 import com.gameroom.data.game.scraper.IGDBScraper;
 import com.gameroom.data.http.images.ImageUtils;
 import com.gameroom.data.io.FileUtils;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import javafx.application.Platform;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import org.json.JSONArray;
 import com.gameroom.system.application.settings.PredefinedSetting;
 import com.gameroom.ui.GeneralToast;
 import com.gameroom.ui.Main;
 import com.gameroom.ui.control.button.gamebutton.GameButton;
-import com.gameroom.ui.dialog.GameRoomAlert;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
+import java.util.concurrent.*;
 
 import static com.gameroom.system.application.settings.GeneralSettings.settings;
 import static com.gameroom.ui.Main.LOGGER;
@@ -35,6 +37,7 @@ import static com.gameroom.ui.Main.MAIN_SCENE;
  * Created by LM on 17/08/2016.
  */
 public class GameWatcher {
+    private final static String TAG = "GameWatcher: ";
     private ScanPeriod scanPeriod = ScanPeriod.HALF_HOUR;
     private static GameWatcher WATCHER;
 
@@ -53,7 +56,6 @@ public class GameWatcher {
     private Future scanningFuture;
 
     private volatile boolean alreadyDisplayedIGDBError = false;
-
 
 
     public static GameWatcher getInstance() {
@@ -104,7 +106,7 @@ public class GameWatcher {
             }
         }
 
-        LOGGER.info("GameWatcher started");
+        LOGGER.info(TAG + "search started!");
         if (MAIN_SCENE != null) {
             GeneralToast.displayToast(Main.getString("search_started"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
         }
@@ -119,7 +121,7 @@ public class GameWatcher {
 
         if (entriesToAdd.size() > originalGameFoundNumber) {
             int numberFound = entriesToAdd.size() - originalGameFoundNumber;
-            Main.LOGGER.info("GameWatcher : found " + numberFound + " new games!");
+            Main.LOGGER.info(TAG + "found " + numberFound + " new games!");
             if (MAIN_SCENE != null) {
                 String end = numberFound > 1 ? Main.getString("new_games") : Main.getString("new_game");
                 GeneralToast.displayToast(Main.getString("gameroom_has_found") + " " + numberFound + " " + end, MAIN_SCENE.getParentStage(), GeneralToast.DURATION_LONG);
@@ -128,10 +130,10 @@ public class GameWatcher {
         }
 
 
-        tryScrapToAddEntries();
+        scrapEntries(entriesToAdd);
 
-        LOGGER.info("GameWatcher ended");
-        LOGGER.info("IGDB requests made : " + IGDBScraper.REQUEST_COUNTER);
+        LOGGER.info(TAG + "search ended.");
+        LOGGER.info(TAG + IGDBScraper.REQUEST_COUNTER + " IGDB requests made ");
         for (Runnable onSeachDone : onSearchDoneListeners) {
             if (onSeachDone != null) {
                 onSeachDone.run();
@@ -142,6 +144,10 @@ public class GameWatcher {
     public void start(boolean manualStart) {
         loadToAddEntries();
         if (manualStart) {
+            if(GameEntryUtils.ENTRIES_LIST.isEmpty() && entriesToAdd.isEmpty()){
+                //TODO replace text by explanation
+                GameRoomAlert.info(Main.getString("info_how_toadd_works"));
+            }
             scanningFuture = Main.getScheduledExecutor().submit(scanningTask);
         } else {
             if (scanPeriod != null && scanPeriod.toMillis() > 0) {
@@ -194,25 +200,27 @@ public class GameWatcher {
         });
         for (GameEntry savedEntry : savedEntries) {
             Main.runAndWait(() -> {
-                onGameFound(savedEntry);
+                onGameFound(savedEntry, null);
             });
         }
     }
 
 
-    private void tryScrapToAddEntries() {
-        CopyOnWriteArrayList<Integer> searchIGDBIDs = new CopyOnWriteArrayList<>();
-        CopyOnWriteArrayList<GameEntry> toScrapEntries = new CopyOnWriteArrayList<>();
+    private void scrapEntries(CopyOnWriteArrayList<GameEntry> entriesToScrap) {
         HashSet<Callable<Object>> tasks = new HashSet<>();
+        CopyOnWriteArrayList<GameEntry> failedScrapedEntries = new CopyOnWriteArrayList<>();
+        CopyOnWriteArrayList<CountDownLatch> latches = new CopyOnWriteArrayList<>();
 
         if (MAIN_SCENE != null) {
             GeneralToast.displayToast(Main.getString("fetching_data_igdb"), MAIN_SCENE.getParentStage(), GeneralToast.DURATION_SHORT);
         }
-        LOGGER.info("Now scraping found games");
+        LOGGER.info(TAG + "Now scraping found games");
 
         alreadyDisplayedIGDBError = false;
-        for (GameEntry entry : entriesToAdd) {
+        for (GameEntry entry : entriesToScrap) {
             if (entry.isWaitingToBeScrapped() && !entry.isBeingScraped() && !GameEntryUtils.isGameIgnored(entry)) {
+                CountDownLatch latch = new CountDownLatch(1);
+                latches.add(latch);
                 Callable task = () -> {
                     try {
                         entry.setSavedLocally(true);
@@ -221,17 +229,17 @@ public class GameWatcher {
                         Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
 
                         int platformId = entry.getPlatform().getIGDBId();
-                        if(platformId == -1 && entry.getPlatform().isPCLauncher()){
+                        if (platformId == -1 && entry.getPlatform().isPCLauncher()) {
                             platformId = com.gameroom.data.game.entry.Platform.PC.getIGDBId();
                         }
                         JSONArray search_results = IGDBScraper.searchGame(entry.getName(),
                                 false,
                                 platformId
                         );
-                        GameEntry scrapedEntry = LevenshteinDistance.getClosestEntry(entry.getName(),search_results,10);
-                        if(scrapedEntry != null){
+                        GameEntry scrapedEntry = LevenshteinDistance.getClosestEntry(entry.getName(), search_results, 10);
+                        if (scrapedEntry != null) {
                             scrapedEntry.setIgdb_id(scrapedEntry.getIgdb_id());
-                            LOGGER.debug("Added scrapped info to game \"" + scrapedEntry.getName() + "\"");
+                            LOGGER.debug(TAG + "Added scrapped info to game \"" + scrapedEntry.getName() + "\"");
                             entry.setSavedLocally(true);
                             if (entry.getDescription() == null || scrapedEntry.getDescription().equals("")) {
                                 entry.setDescription(scrapedEntry.getDescription());
@@ -257,7 +265,7 @@ public class GameWatcher {
                                             entry.updateImage(0, outputFile);
                                             entry.setSavedLocally(false);
                                         } catch (Exception e) {
-                                            Main.LOGGER.error("GameWatcher : could not move image for game " + entry.getName());
+                                            Main.LOGGER.error(TAG + "could not move image for game " + entry.getName());
                                             e.printStackTrace();
                                         }
 
@@ -271,7 +279,7 @@ public class GameWatcher {
                                                         entry.updateImage(1, outputfile1);
                                                         entry.setSavedLocally(false);
                                                     } catch (Exception e) {
-                                                        Main.LOGGER.error("GameWatcher : could not move image for game " + entry.getName());
+                                                        Main.LOGGER.error(TAG + "could not move image for game " + entry.getName());
                                                         e.printStackTrace();
                                                     }
                                                     entry.setSavedLocally(true);
@@ -282,41 +290,77 @@ public class GameWatcher {
                                                 });
                                     });
                         } else {
+                            LOGGER.warn(TAG + "No match for game \"" + entry.getName() + "\".");
                             entry.setSavedLocally(true);
                             entry.setBeingScraped(false);
+                            entry.setWaitingToBeScrapped(false);
                             entry.setSavedLocally(false);
                             Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
                         }
 
                     } catch (Exception e) {
                         entry.setSavedLocally(true);
-                        if (e instanceof IOException) {
-                            Main.LOGGER.error(entry.getName() + " not found on igdb first guess");
-                            entry.setWaitingToBeScrapped(false);
-                        } else if (e instanceof UnirestException) {
+                        if (e instanceof UnirestException) {
+                            LOGGER.error(TAG + "UnirestError for game \"" + entry.getName() + "\": " + e.getMessage());
                             entry.setWaitingToBeScrapped(true);
-                            if (!alreadyDisplayedIGDBError) {
-                                alreadyDisplayedIGDBError = true;
-                                GameRoomAlert.errorGameRoomAPI();
-                            }
-                        } else{
-                            LOGGER.error("Error for game \"" + entry.getName()+ "\": " + e.getMessage());
+                        } else {
+                            LOGGER.error(TAG + "Error for game \"" + entry.getName() + "\": " + e.getMessage());
                             e.printStackTrace();
                         }
+                        failedScrapedEntries.add(entry);
                         entry.setBeingScraped(false);
                         entry.setSavedLocally(false);
                         Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
                     }
+                    latch.countDown();
                     return null;
                 };
                 tasks.add(task);
             }
         }
 
+        //adds here the final task that will warn the user that some games could not be scraped
+        //and offers him to rescrap selected entries
+        tasks.add(() -> {
+            int count = latches.size();
+            for (CountDownLatch latch : latches) {
+                try {
+                    latch.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                //LOGGER.debug(TAG + (--count) + " scrap latches left");
+            }
+
+            if (!failedScrapedEntries.isEmpty()) {
+                LOGGER.debug(TAG + failedScrapedEntries.size() + " failed scraped entries to display");
+                Platform.runLater(() -> {
+                    NonScrapedListDialog dialog = new NonScrapedListDialog(failedScrapedEntries);
+                    Optional<ButtonType> optional = dialog.showAndWait();
+                    optional.ifPresent(pairs -> {
+                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                            dialog.getUnselectedEntries().forEach(entry -> {
+                                entry.setSavedLocally(true);
+                                entry.setWaitingToBeScrapped(false);
+                                entry.setBeingScraped(false);
+                                entry.setSavedLocally(false);
+                            });
+                            if (!dialog.getSelectedEntries().isEmpty()) {
+                                scrapEntries(new CopyOnWriteArrayList<>(dialog.getSelectedEntries()));
+                            }
+                        }
+                    });
+                });
+            } else {
+                LOGGER.debug(TAG + "No failed scraped entries to display");
+            }
+            return null;
+        });
+
         try {
             Main.getExecutorService().invokeAll(tasks);
         } catch (InterruptedException e) {
-            LOGGER.error("GameWatcher : error starting tasks");
+            LOGGER.error(TAG + "error starting tasks");
             e.printStackTrace();
         }
 
@@ -343,7 +387,7 @@ public class GameWatcher {
         return entriesToAdd;
     }
 
-    public GameButton onGameFound(GameEntry foundEntry) {
+    public GameButton onGameFound(@NonNull GameEntry foundEntry, @Nullable GameScanner scanner) {
         if (!GameEntryUtils.gameAlreadyIn(foundEntry, entriesToAdd) && !GameEntryUtils.isGameIgnored(foundEntry)) {
             if (!foundEntry.isInDb()) {
                 foundEntry.setAddedDate(LocalDateTime.now());
@@ -354,8 +398,9 @@ public class GameWatcher {
                         foundEntry.getName(),
                         com.gameroom.data.game.entry.Platform.PC.getSupportedExtensions())
                 );
+                String scannerName = scanner == null ? "" : scanner.getScannerName() + " ";
 
-                Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
+                Main.LOGGER.debug(TAG + scannerName + "found new game, " + foundEntry.getName() + ", path: \"" + foundEntry.getPath()+"\"");
             }
             entriesToAdd.add(foundEntry);
             return onGameFoundHandler.gameToAddFound(foundEntry);
@@ -389,8 +434,8 @@ public class GameWatcher {
                 .replaceAll("\\(.*\\)", "")
                 .replaceAll("\\[.*\\]", "")
                 .replaceAll("\\{.*\\}", "")
-                .replaceAll("for Windows 10","")
-                .replaceAll("for Windows","")
+                .replaceAll("for Windows 10", "")
+                .replaceAll("for Windows", "")
                 .trim();
     }
 

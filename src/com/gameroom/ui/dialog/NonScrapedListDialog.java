@@ -1,47 +1,45 @@
-package com.gameroom.ui.dialog.selector;
+package com.gameroom.ui.dialog;
 
 import com.gameroom.data.game.entry.GameEntry;
 import com.gameroom.data.game.entry.GameEntryUtils;
 import com.gameroom.data.http.images.ImageUtils;
+import com.gameroom.ui.Main;
+import com.gameroom.ui.UIValues;
+import com.gameroom.ui.control.button.gamebutton.GameButton;
+import com.gameroom.ui.dialog.selector.IgnoredEntrySelector;
+import com.gameroom.ui.pane.SelectListPane;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import com.gameroom.ui.Main;
-import com.gameroom.ui.control.button.gamebutton.GameButton;
-import com.gameroom.ui.dialog.GameRoomDialog;
-import com.gameroom.ui.pane.SelectListPane;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 
 import static com.gameroom.system.application.settings.GeneralSettings.settings;
 
 /**
- * Created by LM on 19/08/2016.
+ * Created by LM on 11/08/2016.
  */
-public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
-    public final static int MODE_REMOVE_FROM_LIST = 0;
-    public final static int MODE_ADD_TO_LIST = 1;
+public class NonScrapedListDialog extends GameRoomDialog<ButtonType> {
     private ArrayList<GameEntry> selectedList = new ArrayList<>();
     private ArrayList<GameEntry> unselectedList = new ArrayList<>();
     private Label statusLabel;
 
-    public IgnoredEntrySelector() throws IOException {
+    public NonScrapedListDialog(Collection<GameEntry> entries) {
         statusLabel = new Label(Main.getString("loading") + "...");
         rootStackPane.getChildren().add(statusLabel);
-        Label titleLabel = new Label(Main.getString("select_games_ignore"));
+        //TODO localize
+        Label titleLabel = new Label(Main.getString("following_games_not_scraped"));
         titleLabel.setWrapText(true);
-        titleLabel.setTooltip(new Tooltip(Main.getString("select_games_ignore")));
+        titleLabel.setTooltip(new Tooltip(Main.getString("following_games_not_scraped")));
         titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
                 , 20 * Main.SCREEN_WIDTH / 1920
                 , 20 * Main.SCREEN_HEIGHT / 1080
@@ -56,12 +54,21 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
         mainPane.setPrefWidth(1.0 / 3.5 * Main.SCREEN_WIDTH);
         mainPane.setPrefHeight(2.0 / 3 * Main.SCREEN_HEIGHT);
 
-        GameEntryList list = new GameEntryList();
-        GameEntryUtils.loadIgnoredGames();
-        list.addItems(GameEntryUtils.IGNORED_ENTRIES);
+        NonScrapedListDialog.GameEntryList list = new NonScrapedListDialog.GameEntryList();
+        list.addItems(entries);
         statusLabel.setText(null);
 
         mainPane.setCenter(list);
+        CheckBox selectAllBox = new CheckBox(Main.getString("select_all"));
+        selectAllBox.setPadding(UIValues.CONTROL_SMALL.insets());
+        selectAllBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if(!oldValue && newValue){
+                list.selectAllValues(true);
+            } else if (oldValue && !newValue){
+                list.selectAllValues(false);
+            }
+        });
+        mainPane.setBottom(selectAllBox);
         list.setPrefWidth(mainPane.getPrefWidth());
 
         getDialogPane().getButtonTypes().addAll(
@@ -90,7 +97,7 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
 
         @Override
         protected ListItem createListItem(Object value) {
-            GameFolderItem item = new GameFolderItem(value, this);
+            NonScrapedListDialog.GameFolderItem item = new NonScrapedListDialog.GameFolderItem(value, this);
             item.setSelected(((GameEntry) value).isIgnored());
             return item;
         }
@@ -127,7 +134,6 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
             } else {
                 ImageUtils.transitionToFileThumbnail(gamePath,iconView,IMAGE_WIDTH);
             }
-
             coverPane.getChildren().add(iconView);
 
             GridPane.setMargin(coverPane, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));

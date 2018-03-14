@@ -80,7 +80,6 @@ public class ImageUtils {
     private final static String THUMBNAILER_EXE_NAME = "ThumbnailerCLI.exe";
     private final static List<Integer> VALID_THUMBNAIL_SIZES = Arrays.asList(32, 64, 128, 256, 512);
 
-    @Deprecated
     public static Task downloadSteamImageToCache(int steam_id, String type, String size, OnDLDoneHandler dlDoneHandler) {
         String imageURL = STEAM_IMAGE_URL_PREFIX + steam_id + "/" + type + (type.equals(STEAM_TYPE_HEADER) ? "" : size) + ".jpg";
         String imageFileName = steam_id + "_" + type + (type.equals(STEAM_TYPE_HEADER) ? "" : size) + ".jpg";
