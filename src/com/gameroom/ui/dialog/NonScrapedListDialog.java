@@ -37,9 +37,9 @@ public class NonScrapedListDialog extends GameRoomDialog<ButtonType> {
         statusLabel = new Label(Main.getString("loading") + "...");
         rootStackPane.getChildren().add(statusLabel);
         //TODO localize
-        Label titleLabel = new Label("Following games could not be scraped. Select the one you wish to scrap again:");
+        Label titleLabel = new Label(Main.getString("following_games_not_scraped"));
         titleLabel.setWrapText(true);
-        titleLabel.setTooltip(new Tooltip("Following games could not be scraped. Select the one you wish to scrap again:"));
+        titleLabel.setTooltip(new Tooltip(Main.getString("following_games_not_scraped")));
         titleLabel.setPadding(new Insets(0 * Main.SCREEN_HEIGHT / 1080
                 , 20 * Main.SCREEN_WIDTH / 1920
                 , 20 * Main.SCREEN_HEIGHT / 1080

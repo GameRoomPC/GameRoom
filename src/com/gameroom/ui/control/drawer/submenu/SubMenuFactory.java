@@ -74,7 +74,6 @@ public final class SubMenuFactory {
 
         //************ MICROSOFT STORE ****************
         TextItem MSAppItem = new TextItem("add_MS_apps");
-        //TODO add a true localized tooltip
         MSAppItem.setTooltip(new Tooltip(Main.getString("add_MS_apps")));
         MSAppItem.setOnAction(event -> {
             mainScene.getRootStackPane().setMouseTransparent(true);
