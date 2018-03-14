@@ -1,23 +1,27 @@
 package com.gameroom.ui.dialog;
 
 import com.gameroom.data.game.entry.Platform;
+import com.gameroom.ui.UIValues;
+import com.gameroom.ui.scene.SettingsScene;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Window;
 import com.gameroom.ui.Main;
 import com.gameroom.ui.control.specific.SearchBar;
 import com.gameroom.ui.pane.platform.PlatformSettingsPane;
 
+import javax.swing.*;
+
 import static com.gameroom.system.application.settings.GeneralSettings.settings;
 import static com.gameroom.ui.Main.SCREEN_HEIGHT;
 import static com.gameroom.ui.Main.SCREEN_WIDTH;
+import static com.gameroom.ui.Main.SUPPORTER_MODE;
 
 /**
  * @author LM. Garret (admin@gameroom.me)
@@ -47,7 +51,8 @@ public class EmulationDialog extends GameRoomDialog<ButtonType> {
         mainPane.setCenter(new EmulationPane(focusedPlatform,getOwner()));
     }
 
-    public static class EmulationPane extends BorderPane{
+    public static class EmulationPane extends StackPane{
+        private BorderPane borderPane;
         private PlatformSettingsPane currentCenterPane;
 
         public EmulationPane(Window window){
@@ -56,8 +61,31 @@ public class EmulationDialog extends GameRoomDialog<ButtonType> {
         public EmulationPane(Platform focusedPlatform, Window window){
             super();
             getStyleClass().add("container");
+            borderPane = new BorderPane();
+            borderPane.setLeft(createLeftPane(focusedPlatform,window));
+            getChildren().add(borderPane);
+            if(!SUPPORTER_MODE){
+                getChildren().add(createNonSupporterPane());
+            }
+        }
 
-            setLeft(createLeftPane(focusedPlatform,window));
+        private Node createNonSupporterPane(){
+            Label label = new Label(Main.getString("sorry_supporters_only"));
+
+            Button button = new Button(Main.getString("more_infos"));
+            button.setOnAction(event -> SettingsScene.checkAndDisplayRegisterDialog());
+
+            VBox vbox = new VBox(UIValues.Constants.offsetXSmall());
+            vbox.getChildren().addAll(label,button);
+            vbox.setAlignment(Pos.CENTER);
+
+            StackPane stackPane = new StackPane();
+            stackPane.getChildren().add(vbox);
+            StackPane.setAlignment(vbox, Pos.CENTER);
+            StackPane.setAlignment(label, Pos.CENTER);
+            StackPane.setAlignment(button, Pos.CENTER);
+            stackPane.setStyle("-fx-background-color: -dark; -fx-opacity: 0.9;");
+            return stackPane;
         }
 
         private Node createLeftPane(Platform focusedPlatform, Window window) {
@@ -100,7 +128,7 @@ public class EmulationDialog extends GameRoomDialog<ButtonType> {
                             10 * Main.SCREEN_WIDTH / 1920,
                             20 * Main.SCREEN_HEIGHT / 1080
                     ));
-                    setCenter(currentCenterPane);
+                    borderPane.setCenter(currentCenterPane);
                 }
             });
             listView.getSelectionModel().select(focusedPlatform == null ? 0 : items.indexOf(focusedPlatform));
