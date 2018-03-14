@@ -2,12 +2,10 @@ package com.gameroom.ui.dialog.selector;
 
 import com.gameroom.data.game.entry.Platform;
 import com.gameroom.data.game.scanner.ScannerProfile;
+import com.gameroom.ui.UIValues;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -46,6 +44,17 @@ public class GameScannerSelector extends GameRoomDialog<ButtonType> {
         mainPane.setPrefWidth(1.0 / 3.5 * Main.SCREEN_WIDTH);
         mainPane.setPrefHeight(1.0 / 2.2 * Main.SCREEN_HEIGHT);
         mainPane.setCenter(list);
+
+        CheckBox selectAllBox = new CheckBox(Main.getString("select_all"));
+        selectAllBox.setPadding(UIValues.CONTROL_SMALL.insets());
+        selectAllBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if(!oldValue && newValue){
+                list.selectAllValues(true);
+            } else if (oldValue && !newValue){
+                list.selectAllValues(false);
+            }
+        });
+        mainPane.setBottom(selectAllBox);
 
         getDialogPane().getButtonTypes().addAll(
                 new ButtonType(Main.getString("ok"), ButtonBar.ButtonData.OK_DONE));

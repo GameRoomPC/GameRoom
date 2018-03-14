@@ -84,6 +84,17 @@ public abstract class SelectListPane<T> extends ScrollPane {
         selectedValues.remove(value);
     }
 
+    public void selectAllValues(boolean selected){
+        if(!multiSelection){
+            throw new IllegalStateException("This SelectListPane is not using multiSelection.");
+        }
+
+        for(ListItem item : items){
+            item.setSelected(selected);
+        }
+
+    }
+
     public void addItem(T value) {
         ListItem item = createListItem(value);
         item.setItemId(itemCount++);
@@ -171,25 +182,22 @@ public abstract class SelectListPane<T> extends ScrollPane {
             setOnMouseClicked(me -> {
                 setSelected(!isSelected());
             });
-            radioButton.selectedProperty().addListener(new ChangeListener<Boolean>() {
-                @Override
-                public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                    if(newValue){
-                        setId("selected-item");
-                    }else{
-                        setId("unselected-item");
-                        getStylesheets().clear();
-                    }
-                    if(!multiSelection && oldValue && !newValue){
-                        setId("unselected-item");
-                        getStylesheets().clear();
-                        parentList.removeSelectedValue(getValue());
-                    }
-                    if(newValue && !selected){
-                        setSelected(true);
-                    }else if(!newValue && selected){
-                        setSelected(false);
-                    }
+            radioButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                if(newValue){
+                    setId("selected-item");
+                }else{
+                    setId("unselected-item");
+                    getStylesheets().clear();
+                }
+                if(!multiSelection && oldValue && !newValue){
+                    setId("unselected-item");
+                    getStylesheets().clear();
+                    parentList.removeSelectedValue(getValue());
+                }
+                if(newValue && !selected){
+                    setSelected(true);
+                }else if(!newValue && selected){
+                    setSelected(false);
                 }
             });
         }
@@ -210,11 +218,11 @@ public abstract class SelectListPane<T> extends ScrollPane {
         public void setSelected(boolean selected){
             boolean oldSelection = this.selected;
             this.selected= selected;
-            if(!oldSelection){
+            if(!oldSelection && selected){
                 radioButton.setSelected(true);
                 parentList.setSelectedId(getItemId());
                 parentList.onItemSelected(this);
-            }else{
+            }else if (oldSelection && !selected){
                 if(multiSelection){
                     parentList.removeSelectedValue(getValue());
                     radioButton.setSelected(false);
