@@ -348,7 +348,7 @@ public class GameEditScene extends BaseScene {
                         final boolean[] result = {true};
 
                         appOptionnal.ifPresent(pairs -> {
-                            if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                            if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE) && selector.getSelectedFile() != null) {
                                 entry.setPath(selector.getSelectedFile().getAbsolutePath());
                             } else {
                                 result[0] = false;

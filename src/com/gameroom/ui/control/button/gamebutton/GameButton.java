@@ -366,7 +366,7 @@ public abstract class GameButton extends BorderPane {
 
                             Optional<ButtonType> ignoredOptionnal = selector.showAndWait();
                             ignoredOptionnal.ifPresent(pairs -> {
-                                if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                                if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE) && selector.getSelectedFile() != null) {
                                     entry.setPath(selector.getSelectedFile().getAbsolutePath());
                                     setFocused(false);
                                     entry.startGame();
@@ -389,7 +389,7 @@ public abstract class GameButton extends BorderPane {
         infoButton.setOnMouseClicked(event -> parentScene.fadeTransitionTo(new GameInfoScene(new StackPane(), parentScene.getParentStage(), parentScene, entry), parentScene.getParentStage()));
 
         warningButton.setOnMouseClicked(event -> {
-            GameRoomAlert.warning( Main.getString("warning_game_moved_deleted"));
+            GameRoomAlert.warning(Main.getString("warning_game_moved_deleted"));
         });
         warningButton.setTooltip(new Tooltip(Main.getString("warning_game_moved_deleted")));
 
