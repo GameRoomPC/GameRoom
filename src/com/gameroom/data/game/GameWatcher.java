@@ -1,5 +1,6 @@
 package com.gameroom.data.game;
 
+import com.gameroom.ui.dialog.GameRoomAlert;
 import com.gameroom.ui.dialog.NonScrapedListDialog;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.gameroom.data.LevenshteinDistance;
@@ -143,6 +144,10 @@ public class GameWatcher {
     public void start(boolean manualStart) {
         loadToAddEntries();
         if (manualStart) {
+            if(GameEntryUtils.ENTRIES_LIST.isEmpty() && entriesToAdd.isEmpty()){
+                //TODO replace text by explanation
+                GameRoomAlert.info(Main.getString("info_how_toadd_works"));
+            }
             scanningFuture = Main.getScheduledExecutor().submit(scanningTask);
         } else {
             if (scanPeriod != null && scanPeriod.toMillis() > 0) {

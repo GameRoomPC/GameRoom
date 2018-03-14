@@ -68,6 +68,7 @@ public class NonScrapedListDialog extends GameRoomDialog<ButtonType> {
                 list.selectAllValues(false);
             }
         });
+        mainPane.setBottom(selectAllBox);
         list.setPrefWidth(mainPane.getPrefWidth());
 
         getDialogPane().getButtonTypes().addAll(
