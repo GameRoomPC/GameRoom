@@ -1,6 +1,8 @@
 package com.gameroom.ui.pane.gamestilepane;
 
 import com.gameroom.data.game.entry.GameEntry;
+import com.gameroom.data.game.entry.GameEntryUtils;
+import com.gameroom.data.game.entry.Platform;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tooltip;
 import com.gameroom.ui.Main;
@@ -29,7 +31,7 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
         maxColumn = Integer.MAX_VALUE;
         automaticSort = false;
 
-        double imgSize =  SCREEN_WIDTH / 65;
+        double imgSize = SCREEN_WIDTH / 65;
         ImageButton addAllButton = new ImageButton("tile-addAll-button", imgSize, imgSize);
         addAllButton.setOnAction(event -> {
             parentScene.getRootStackPane().setMouseTransparent(true);
@@ -43,22 +45,33 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
             Optional<ButtonType> result = choiceDialog.showAndWait();
             result.ifPresent(letter -> {
                 if (letter.getText().equals(Main.getString("add_all_no_edit"))) {
-                    ArrayList<GameEntry> entries = new ArrayList<GameEntry>();
-                    for (GameButton b : tilesList) { //have to do this, as MAIN_SCENE.addGame call deleteGame here -> concurrent modif exception
-                        entries.add(b.getEntry());
-                    }
-                    for (GameEntry entry : entries) {
-                        if (entry.isToAdd()) {
-                            entry.setToAdd(false);
+                    Main.getExecutorService().submit(() -> {
+                        ArrayList<GameEntry> entries = new ArrayList<GameEntry>();
+                        for (GameButton b : tilesList) { //have to do this, as MAIN_SCENE.addGame call deleteGame here -> concurrent modif exception
+                            entries.add(b.getEntry());
                         }
-                        entry.setSavedLocally(true);
-                        entry.setAddedDate(LocalDateTime.now());
-                        MAIN_SCENE.addGame(entry);
-                    }
-                    if(MAIN_SCENE!=null){
-                        String end = entries.size() > 1 ? Main.getString("new_games") : Main.getString("new_game");
-                        GeneralToast.displayToast(Main.getString("gameroom_has_found")+" "+entries.size()+" "+end,MAIN_SCENE.getParentStage(),GeneralToast.DURATION_LONG);
-                    }
+
+                        if (GameEntryUtils.updateAsNotToAdd(entries)) {
+                            for (GameEntry entry : entries) {
+                                entry.setSavedLocally(false);
+                                entry.setToAdd(false);
+                                entry.setAddedDate(LocalDateTime.now()); //interesting to note here that it night differ from db (ms only)
+                                entry.setSavedLocally(true);
+                                javafx.application.Platform.runLater(() -> MAIN_SCENE.addGame(entry));
+                                try {
+                                    Thread.sleep(100);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            if (MAIN_SCENE != null) {
+                                String end = entries.size() > 1 ? Main.getString("new_games") : Main.getString("new_game");
+                                GeneralToast.displayToast(Main.getString("gameroom_has_found") + " " + entries.size() + " " + end, MAIN_SCENE.getParentStage(), GeneralToast.DURATION_LONG);
+                            }
+                        } else {
+                            //TODO display error message
+                        }
+                    });
 
                 } else if (letter.getText().equals(Main.getString("add_all_edit"))) {
                     ArrayList<GameEntry> entries = new ArrayList<GameEntry>();
@@ -91,8 +104,8 @@ public abstract class ToAddRowTilePane extends RowCoverTilePane {
     }
 
     @Override
-    public boolean isValidToAdd(GameEntry entry){
-        return entry.isToAdd() && !entry.isDeleted() && ! entry.isIgnored();
+    public boolean isValidToAdd(GameEntry entry) {
+        return entry.isToAdd() && !entry.isDeleted() && !entry.isIgnored();
     }
 
 }
