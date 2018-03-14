@@ -9,20 +9,23 @@ import com.gameroom.data.game.scanner.*;
 import com.gameroom.data.game.scraper.IGDBScraper;
 import com.gameroom.data.http.images.ImageUtils;
 import com.gameroom.data.io.FileUtils;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import javafx.application.Platform;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import org.json.JSONArray;
 import com.gameroom.system.application.settings.PredefinedSetting;
 import com.gameroom.ui.GeneralToast;
 import com.gameroom.ui.Main;
 import com.gameroom.ui.control.button.gamebutton.GameButton;
-import com.gameroom.ui.dialog.GameRoomAlert;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 import static com.gameroom.system.application.settings.GeneralSettings.settings;
@@ -126,7 +129,7 @@ public class GameWatcher {
         }
 
 
-        tryScrapToAddEntries(entriesToAdd);
+        scrapEntries(entriesToAdd);
 
         LOGGER.info(TAG + "search ended.");
         LOGGER.info(TAG + IGDBScraper.REQUEST_COUNTER + " IGDB requests made ");
@@ -192,13 +195,13 @@ public class GameWatcher {
         });
         for (GameEntry savedEntry : savedEntries) {
             Main.runAndWait(() -> {
-                onGameFound(savedEntry);
+                onGameFound(savedEntry, null);
             });
         }
     }
 
 
-    private void tryScrapToAddEntries(CopyOnWriteArrayList<GameEntry> entriesToScrap) {
+    private void scrapEntries(CopyOnWriteArrayList<GameEntry> entriesToScrap) {
         HashSet<Callable<Object>> tasks = new HashSet<>();
         CopyOnWriteArrayList<GameEntry> failedScrapedEntries = new CopyOnWriteArrayList<>();
         CopyOnWriteArrayList<CountDownLatch> latches = new CopyOnWriteArrayList<>();
@@ -282,18 +285,17 @@ public class GameWatcher {
                                                 });
                                     });
                         } else {
+                            LOGGER.warn(TAG + "No match for game \"" + entry.getName() + "\".");
                             entry.setSavedLocally(true);
                             entry.setBeingScraped(false);
+                            entry.setWaitingToBeScrapped(false);
                             entry.setSavedLocally(false);
                             Platform.runLater(() -> MAIN_SCENE.updateGame(entry));
                         }
 
                     } catch (Exception e) {
                         entry.setSavedLocally(true);
-                        if (e instanceof IOException) {
-                            Main.LOGGER.error(TAG + entry.getName() + " not found on igdb first guess");
-                            entry.setWaitingToBeScrapped(false);
-                        } else if (e instanceof UnirestException) {
+                        if (e instanceof UnirestException) {
                             LOGGER.error(TAG + "UnirestError for game \"" + entry.getName() + "\": " + e.getMessage());
                             entry.setWaitingToBeScrapped(true);
                         } else {
@@ -312,6 +314,8 @@ public class GameWatcher {
             }
         }
 
+        //adds here the final task that will warn the user that some games could not be scraped
+        //and offers him to rescrap selected entries
         tasks.add(() -> {
             int count = latches.size();
             for (CountDownLatch latch : latches) {
@@ -320,15 +324,27 @@ public class GameWatcher {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                LOGGER.debug(TAG + (--count) + " scrap latches left");
+                //LOGGER.debug(TAG + (--count) + " scrap latches left");
             }
 
             if (!failedScrapedEntries.isEmpty()) {
                 LOGGER.debug(TAG + failedScrapedEntries.size() + " failed scraped entries to display");
                 Platform.runLater(() -> {
-                    NonScrapedListDialog dialog = new NonScrapedListDialog();
-                    failedScrapedEntries.forEach(entry -> dialog.appendLine(entry.getName() + ": " + entry.getPath()));
-                    dialog.showAndWait();
+                    NonScrapedListDialog dialog = new NonScrapedListDialog(failedScrapedEntries);
+                    Optional<ButtonType> optional = dialog.showAndWait();
+                    optional.ifPresent(pairs -> {
+                        if (pairs.getButtonData().equals(ButtonBar.ButtonData.OK_DONE)) {
+                            dialog.getUnselectedEntries().forEach(entry -> {
+                                entry.setSavedLocally(true);
+                                entry.setWaitingToBeScrapped(false);
+                                entry.setBeingScraped(false);
+                                entry.setSavedLocally(false);
+                            });
+                            if (!dialog.getSelectedEntries().isEmpty()) {
+                                scrapEntries(new CopyOnWriteArrayList<>(dialog.getSelectedEntries()));
+                            }
+                        }
+                    });
                 });
             } else {
                 LOGGER.debug(TAG + "No failed scraped entries to display");
@@ -366,7 +382,7 @@ public class GameWatcher {
         return entriesToAdd;
     }
 
-    public GameButton onGameFound(GameEntry foundEntry) {
+    public GameButton onGameFound(@NonNull GameEntry foundEntry, @Nullable GameScanner scanner) {
         if (!GameEntryUtils.gameAlreadyIn(foundEntry, entriesToAdd) && !GameEntryUtils.isGameIgnored(foundEntry)) {
             if (!foundEntry.isInDb()) {
                 foundEntry.setAddedDate(LocalDateTime.now());
@@ -377,8 +393,9 @@ public class GameWatcher {
                         foundEntry.getName(),
                         com.gameroom.data.game.entry.Platform.PC.getSupportedExtensions())
                 );
+                String scannerName = scanner == null ? "" : scanner.getScannerName() + " ";
 
-                Main.LOGGER.debug(GameWatcher.class.getName() + " : found new game, " + foundEntry.getName() + ", path:" + foundEntry.getPath());
+                Main.LOGGER.debug(TAG + scannerName + "found new game, " + foundEntry.getName() + ", path: \"" + foundEntry.getPath()+"\"");
             }
             entriesToAdd.add(foundEntry);
             return onGameFoundHandler.gameToAddFound(foundEntry);

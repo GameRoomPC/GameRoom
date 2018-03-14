@@ -505,7 +505,7 @@ public class GameEntry {
     }
 
     public boolean isSteamGame() {
-        return platform.getId() == Platform.STEAM_ID;
+        return platform.getId() == Platform.STEAM_ID || platform.getId() == Platform.STEAM_ONLINE_ID;
     }
 
     public boolean isMSStoreGame() {

@@ -9,6 +9,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -118,9 +119,15 @@ public class IgnoredEntrySelector extends GameRoomDialog<ButtonType> {
             if (!gamePath.exists() && entry.getImagePath(0) != null && entry.getImagePath(0).exists()) {
                 iconView.setImage(entry.getImage(0, IMAGE_WIDTH * scale, IMAGE_HEIGHT * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO, true, false));
                 iconView.setFitHeight(IMAGE_HEIGHT * scale * GameButton.COVER_HEIGHT_WIDTH_RATIO);
+            }  else if (entry.isSteamGame()) {
+                ImageUtils.downloadSteamImageToCache(entry.getPlatformGameID(),ImageUtils.STEAM_TYPE_CAPSULE,ImageUtils.STEAM_SIZE_SMALL,outputFile -> {
+                    iconView.setImage(new Image("file:///"+outputFile.getAbsolutePath(),IMAGE_WIDTH * scale,IMAGE_HEIGHT * scale,true,true));
+                    iconView.setFitHeight(0);
+                });
             } else {
                 ImageUtils.transitionToFileThumbnail(gamePath,iconView,IMAGE_WIDTH);
             }
+
             coverPane.getChildren().add(iconView);
 
             GridPane.setMargin(coverPane, new Insets(10 * Main.SCREEN_HEIGHT / 1080, 0 * Main.SCREEN_WIDTH / 1920, 10 * Main.SCREEN_HEIGHT / 1080, 10 * Main.SCREEN_WIDTH / 1920));

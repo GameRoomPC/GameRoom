@@ -43,7 +43,7 @@ public abstract class GameScanner {
 
     /**
      * {@link GameWatcher} instance that created this {@link GameScanner} instance. Is used as a callback on
-     * {@link GameWatcher#onGameFound(GameEntry)}
+     * {@link GameWatcher#onGameFound(GameEntry,GameScanner)}
      */
     protected GameWatcher parentLooker;
 
@@ -103,7 +103,7 @@ public abstract class GameScanner {
         entryFound.setWaitingToBeScrapped(true);
 
         Main.runAndWait(() -> {
-            parentLooker.onGameFound(entryFound);
+            parentLooker.onGameFound(entryFound,this);
         });
     }
 
