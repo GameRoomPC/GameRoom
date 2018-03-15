@@ -878,7 +878,10 @@ public class MainScene extends BaseScene {
     private void initKeyShortcuts() {
         addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.ESCAPE) {
-                if (drawerMenu.isSubMenuOpened()) {
+                if(searchBar.isVisible()){
+                    event.consume();
+                    searchBar.hide();
+                }else if (drawerMenu.isSubMenuOpened()) {
                     event.consume();
                     drawerMenu.closeSubMenu(MainScene.this);
                 } else {
