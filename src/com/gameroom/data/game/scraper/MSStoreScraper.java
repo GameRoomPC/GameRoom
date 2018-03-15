@@ -27,7 +27,7 @@ import static com.gameroom.ui.Main.LOGGER;
  * @date 22/02/2018.
  */
 public class MSStoreScraper {
-    private final static String TAG = "MSStoreScraper";
+    private final static String TAG = "MSStoreScraper: ";
 
     private final static Pattern PATH_PATTERN = Pattern.compile("(.*)([a-z|A-Z]\\:\\\\.*)");
     private final static Pattern DISPLAY_NAME_PATTERN = Pattern.compile("<DisplayName>(.*)<\\/DisplayName>");
@@ -64,6 +64,7 @@ public class MSStoreScraper {
     /**
      * Scans for a list of installed {@link MSStoreEntry} on the computer, excluding well known ones that are not games.
      * Executes a callback function once an entry is found.
+     *
      * @param appFoundHandler callback function/interface to be called when an entry is found
      */
     public static void getApps(@NonNull OnMSAppFoundHandler appFoundHandler) {
@@ -85,13 +86,13 @@ public class MSStoreScraper {
                             appFoundHandler.handle(entry);
                         }
                     } catch (IOException e) {
-                        LOGGER.error(e);
+                        LOGGER.error(TAG + e);
                     }
                 }
             }
 
         } catch (IOException e) {
-            LOGGER.error(e);
+            LOGGER.error(TAG + e);
         }
     }
 
@@ -108,7 +109,7 @@ public class MSStoreScraper {
                     false,
                     com.gameroom.data.game.entry.Platform.PC.getIGDBId()
             );
-            return LevenshteinDistance.getClosestEntry(msStoreEntry.getName(),searchResults,MAX_LEVENSHTEIN_DISTANCE);
+            return LevenshteinDistance.getClosestEntry(msStoreEntry.getName(), searchResults, MAX_LEVENSHTEIN_DISTANCE);
         } catch (UnirestException e) {
             e.printStackTrace();
         }
@@ -192,7 +193,7 @@ public class MSStoreScraper {
             String iconsPath = virtualIconPath.substring(0, virtualIconPath.lastIndexOf(File.separator));
             File[] iconFiles = new File(iconsPath).listFiles();
             if (iconFiles == null) {
-                LOGGER.warn(TAG + ": Empty icons folder for " + displayName);
+                LOGGER.warn(TAG + "Empty icons folder for " + displayName);
                 return;
             }
 
@@ -210,17 +211,18 @@ public class MSStoreScraper {
         private void findExecutableFilePath() {
             File[] subFiles = new File(path).listFiles();
             if (subFiles == null) {
-                LOGGER.warn(TAG + ": Empty folder for " + displayName);
+                LOGGER.warn(TAG + "Empty folder for " + displayName);
                 return;
             }
 
             for (File f : subFiles) {
                 if (f.getName().endsWith(".exe")) {
                     executableFilePath = f.getAbsolutePath();
-                    //LOGGER.debug(TAG + ": Found .exe for " + displayName + ", " + executableFilePath);
+                    LOGGER.debug(TAG + "Found .exe for " + displayName + ", " + executableFilePath);
+                    return;
                 }
-
             }
+            LOGGER.debug(TAG + "Found no .exe for " + displayName + " in " + path);
         }
 
         /**
@@ -330,7 +332,7 @@ public class MSStoreScraper {
     /**
      * Callback interface used for scanning {@link MSStoreEntry}.
      */
-    public interface OnMSAppFoundHandler{
+    public interface OnMSAppFoundHandler {
         void handle(MSStoreEntry msStoreEntry);
     }
 }
